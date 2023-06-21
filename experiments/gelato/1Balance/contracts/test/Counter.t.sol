@@ -2,23 +2,15 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import "../src/Counter.sol";
+import "../src/CounterERC2771.sol";
 
 contract CounterTest is Test {
-    Counter public counter;
+    CounterERC2771 public counter;
 
     function setUp() public {
-        counter = new Counter();
-        counter.setNumber(0);
+        address trustedForwarderGelato = 0xd8253782c45a12053594b9deB72d8e8aB2Fca54c;
+        counter = new CounterERC2771(trustedForwarderGelato);
     }
 
-    function testIncrement() public {
-        counter.increment();
-        assertEq(counter.number(), 1);
-    }
 
-    function testSetNumber(uint256 x) public {
-        counter.setNumber(x);
-        assertEq(counter.number(), x);
-    }
 }
