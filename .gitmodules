@@ -1,0 +1,3 @@
+[submodule "experiments/gelato/1Balance/contracts/lib/forge-std"]
+	path = experiments/gelato/1Balance/contracts/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
