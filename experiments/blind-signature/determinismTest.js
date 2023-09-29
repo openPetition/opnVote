@@ -1,6 +1,7 @@
 const BlindSignature = require('blind-signatures');
 var NodeRSA = require('node-rsa');
 const fs = require('fs');
+var BigInteger = require('jsbn').BigInteger;
 
 
 const DEMO_TOKEN = "bcf5210deddf96b181df80ae74822c82"
@@ -17,7 +18,8 @@ Register.E = Register.key.keyPair.e.toString();
 
 const User = {
   unblindedToken: DEMO_TOKEN,
-  r: null, //private Factor
+  blindedToken: null,
+  r: new BigInteger("338922692460374891126404547797748834225460220127150478321098751665786312456122334570901368631018529430015369091509876298707759325509158311610008930741474"), //private Factor
   blindedSignature: null, // Blinded Signature received from Register
   unblindedSignature: null,
 };
@@ -28,15 +30,17 @@ const SVS = {
 
 }
 
+
 // User locally blinds his token
-const { blinded, r } = BlindSignature.blind({
+const {blinded} = BlindSignature.blind({
   message: User.unblindedToken,
   N: Register.N,
   E: Register.E,
+  r: User.r,
 });
-const blindedToken = blinded;
-User.r = r;
 
+const blindedToken = blinded;
+User.blindedToken = blindedToken
 // Register receives User Blinded Token
 Register.blindedToken = blindedToken;
 
@@ -45,7 +49,7 @@ const blindedSignature = BlindSignature.sign({
   blinded: Register.blindedToken,
   key: Register.key,
 });
-
+console.log("Register: Signing ok!")
 // User receives blinded Signature
 User.blindedSignature = blindedSignature
 
@@ -85,36 +89,35 @@ const result2 = BlindSignature.verify({
   message: SVS.unblindedToken,
 });
 if (result2) {
-  console.log('Register: Verification ok!');
+  console.log('SVS: Verification ok!');
 } else {
-  console.log('Register: Verification faild');
+  console.log('SVS: Verification faild');
 }
 
-// // Print out relevant properties of Register in hex format
+// Print out relevant properties of Register in hex format
+console.log("Register")
+console.log({
+  N: Register.key.keyPair.n.toString(16),
+  E: Register.key.keyPair.e.toString(16),
+});
 
-// console.log({
-//   N: Register.key.keyPair.n.toString(16),
-//   E: Register.key.keyPair.e.toString(16),
-// });
+// Print out relevant properties of User in hex format
+console.log("User")
+console.log({
+  r: User.r.toString(16),
+  unblindedToken: User.unblindedToken,
+  blindedToken: User.blindedToken.toString(16),
+  blindedSignature: User.blindedSignature.toString(16),
+  unblindedSignature: User.unblindedSignature.toString(16),
+});
 
-// // Print out relevant properties of User in hex format
-// console.log({
-//   N: User.N.toString(16),
-//   E: User.E.toString(16),
-//   r: User.r.toString(16),
-//   unblindedToken: User.unblindedToken,
-//   blindedSignature: User.blindedSignature.toString(16),
-//   unblindedSignature: User.unblindedSignature.toString(16),
-// });
+console.log("SVS")
+console.log({
+  unblindedSignature: SVS.unblindedSignature.toString(16),
+  unblindedToken: SVS.unblindedToken,
+});
 
-// // Print out relevant properties of SVS in hex format
-// console.log({
-//   unblindedSignature: SVS.unblindedSignature.toString(16),
-//   unblindedToken: SVS.unblindedToken,
-// });
 
-// function generateToken(length) {
-//   return crypto.randomBytes(length).toString('hex');
-// }
+
 
 
