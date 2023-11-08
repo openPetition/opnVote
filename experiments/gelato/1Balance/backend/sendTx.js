@@ -19,18 +19,18 @@ dotenv_1.default.config();
 const provider = new ethers5_1.ethers.providers.JsonRpcProvider(process.env['GETH_RPC']);
 const gelatoKey = process.env['GELATO_SPONSOR_KEY'];
 const randWallet = new ethers5_1.ethers.Wallet(ethers5_1.ethers.Wallet.createRandom(provider).privateKey, provider);
-const counterContractAddress = "0xA1DcB0486cA2c07d27237Ab7E349308694Bcc45B";
+const contractAddress = "0xD56e4eAb23cb81f43168F9F45211Eb027b9aC7cc";
 const relay = new relay_sdk_1.GelatoRelay();
 const iface = new ethers5_1.ethers.utils.Interface([
-    "function increment()"
+    "function allowlistSize()"
 ]);
-const callData = iface.encodeFunctionData("increment");
+const callData = iface.encodeFunctionData("allowlistSize");
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         const network = yield provider.getNetwork();
         const relayRequest = {
             chainId: network.chainId,
-            target: counterContractAddress,
+            target: contractAddress,
             data: callData,
             user: randWallet.address
         };
@@ -40,4 +40,3 @@ function main() {
     });
 }
 main();
-//# sourceMappingURL=sendTx.js.map
