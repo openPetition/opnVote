@@ -1,55 +1,10 @@
 import { ethers } from "ethers";
-import Base64 from 'crypto-js/enc-base64';
-import Hex from 'crypto-js/enc-hex';
+
 import { modInv } from 'bigint-crypto-utils';
+import { Token, R, Signature } from "../types/types";
+import { base64ToHexString, hexStringToBase64, hexStringToBigInt, validateR, validateSignature, validateToken } from "../utils/utils";
+import { Register } from '../config'; 
 
-
-
-
-/*** Public Constants ***/
-
-
-const Register = {
-    e: BigInt("0x10001"),
-    N: BigInt("0xb04da828580e20ca83f0de9c0c62a201bf5d4b3afa8131e6dbd56efcdbc43bf1c66f1e27b24631ee13cba9c5e783560db2f7aae59fd88c7d381fe10519f84329"),
-    NbitLength: 512, // Bit length of N
-};
-
-
-/** Types */
-
-/**
- * Represents a Token
- * @property {string} hexValue - The token value, encoded as a hexadecimal string (must be "0x" prefixed).
- * @property {boolean} isMaster - Indicates if the token is a master token. 
- * @property {boolean} isBlinded - Indicates if the token is blinded or unblinded. 
- * 
- */
-export type Token = {
-    hexString: string;
-    isMaster: Boolean;
-    isBlinded: Boolean
-};
-
-/**
- * Represents r in RSA Blind Signature Scheme
- * @property {string} hexString - The value of r, encoded as a hexadecimal string (must be "0x" prefixed).
- * @property {boolean} isMaster - Indicates if the r is a master r.  
- */
-export type R = {
-    hexString: string;
-    isMaster: Boolean;
-};
-
-/**
- * Represents a signed Message
- * @property {string} hexString - The value of r, encoded as a hexadecimal string (must be "0x" prefixed).
- * @property {boolean} isBlinded - Indicates if the signature is blinded or unblinded. 
- */
-export type Signature = {
-    hexString: string;
-    isBlinded: Boolean;
-};
 
 
 /*** Main methods ***/
@@ -102,7 +57,8 @@ export function qrToTokenAndR(concatenatedBase64: string, isMaster: Boolean): { 
     // Decode the Base64 strings into Token and r objects
     const token: Token = { hexString: base64ToHexString(tokenBase64), isMaster: isMaster, isBlinded: false }; // All QR codes must store unblinded Tokens
     const r: R = { hexString: base64ToHexString(rBase64), isMaster: isMaster };
-
+    validateToken(token)
+    validateR(r)
     return { token, r };
 }
 
@@ -323,110 +279,6 @@ export function unblindSignature(signature: Signature, r: R): Signature {
 /*** Helpers ***/
 
 
-
-/**
- * Validates a hexadecimal string.
- * @param hexStringObject - An object containing a hexadecimal string to be validated.
- * @param expectedLength - The expected length of the hexadecimal string.
- * @throws Will throw an error if the hexadecimal string is invalid or of incorrect length.
- */
-export function validateHexString(hexStringObject: { hexString: string }, expectedLength: number): void {
-
-    if (hexStringObject.hexString.length !== expectedLength || !isValidHex(hexStringObject.hexString)) {
-        throw new Error(`Invalid token format or length. Expected length: ${expectedLength} Token: ${hexStringObject.hexString}`);
-    }
-}
-
-
-
-/**
- * Validates a token object.
- * @param token - The token object to be validated.
- * @throws Will throw an error if the token object is invalid.
- */
-export function validateToken(token: Token): void {
-    if (token.isBlinded && token.isMaster) {
-        throw new Error("Master token must not be blinded");
-    }
-
-    let expectedLength = 66; // Default length for unblinded tokens (SHA-256 Output)
-    if (token.isBlinded) {
-        expectedLength = (Register.NbitLength / 4) + 2; // Adjust length for blinded tokens: Convert bit length to hex length and add 2 for '0x' prefix.
-    }
-
-    validateHexString(token, expectedLength);
-}
-
-
-/**
- * Validates an R object.
- * @param r - The R object to be validated.
- * @throws Will throw an error if the R object is invalid or of incorrect length.
- */
-export function validateR(r: R): void {
-
-    const expectedLength = 66; // Default length for R (SHA-256 output)
-    validateHexString(r, expectedLength);
-}
-
-
-/**
- * Validates an Signature.
- * @param signature - The Signature object to be validated.
- * @throws Will throw an error if the Signature object is invalid or of incorrect length.
- */
-export function validateSignature(signature: Signature): void {
-
-    const expectedLength = (Register.NbitLength / 4) + 2; // length for signature: Convert bit length to hex length and add 2 for '0x' prefix.
-    validateHexString(signature, expectedLength);
-}
-
-
-
-/**
- * Checks if a string is a valid hexadecimal format.
- * @param str - The string to be checked.
- * @returns True if the string is a valid hexadecimal, false otherwise.
- */
-export function isValidHex(str: string): boolean {
-    if (str.length < 3) { return false }
-
-    str = str.startsWith('0x')
-        ? str.substring(2)
-        : str
-
-    const regexp = /^[0-9a-fA-F]+$/;
-    return regexp.test(str);
-}
-
-
-/**
- * Converts a hexadecimal string to a Base64 string.
- * 
- * @param hexStringObject - An object containing a hexadecimal string to be converted.
- * @returns The Base64 string representation of the hexadecimal string.
- */
-function hexStringToBase64(hexStringObject: { hexString: string }, expectedHexLength: number): string {
-    validateHexString(hexStringObject, expectedHexLength);
-    const wordArray = Hex.parse(hexStringObject.hexString.substring(2));
-    return Base64.stringify(wordArray);
-}
-
-
-/**
- * Converts a Base64-encoded string to a hexadecimal string with "0x" prefix. 
- * This function handles the conversion Token, R and Signature types. 
- * 
- * @param base64String - The Base64 string to be converted.
- * @returns A '0x' prefixed hexadecimal string representation of the Base64 input.
- */
-function base64ToHexString(base64String: string): string {
-    const wordArray = Base64.parse(base64String);
-    const hexStringWithPrefix = "0x" + Hex.stringify(wordArray);
-    return hexStringWithPrefix;
-}
-
-
 /**
  * Computes the GCD of two bigint numbers, using Euclidean algorithm.
  * @param a - The first bigint number.
@@ -439,18 +291,3 @@ function gcdBigInt(a: bigint, b: bigint): bigint {
 }
 
 
-/**
- * Converts a hexadecimal string to a bigint.
- * @param hexString - The hexadecimal string to convert.
- * @returns The bigint representation of the hexadecimal string.
- */
-export function hexStringToBigInt(hexString: string): bigint {
-    // Ensure the hexString is 0x prefixed
-    if (!hexString.startsWith('0x')) {
-        hexString = '0x' + hexString;
-    }
-
-    // Convert the hex string to a bigint
-    const messageBigInt = BigInt(hexString);
-    return messageBigInt;
-}
