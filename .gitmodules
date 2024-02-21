@@ -1,3 +1,9 @@
 [submodule "experiments/gelato/1Balance/contracts/lib/forge-std"]
 	path = experiments/gelato/1Balance/contracts/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "backend/smart-contracts/lib/forge-std"]
+	path = backend/smart-contracts/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "backend/smart-contracts/lib/openzeppelin-contracts"]
+	path = backend/smart-contracts/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
