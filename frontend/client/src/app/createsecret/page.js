@@ -23,11 +23,6 @@ export default function Home() {
 
   return (
     <main className="">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <div id="logo"></div>
-        <div>
-        </div>
-      </div>
       <div className="bg-op-blue">
         <div className="flex-col items-center justify-between p-5 text-sm">
           Die Generierung und Speicherung deines Geheimnisses erfolgt komplett „offline“. Wenn du ganz sicher gehen will, kannst du deine Internetverbindung jetzt deaktivieren und später wieder aktivieren.
@@ -36,7 +31,7 @@ export default function Home() {
       <div className="items-center">
         <div id="key" className="self-center mx-auto m-2"></div>
         <div className={loading.length > 0 && loading == 'loaded' ? 'hidden' : ''}>
-          <button onClick={callClick} className="items-center bg-op-btn-bg text-white font-bold py-2 px-4 rounded m-2 mx-auto block">
+          <button onClick={callClick} className="items-center bg-op-btn-bg font-bold py-2 px-4 rounded m-2 mx-auto block">
             Generieren
           </button>
         </div>
