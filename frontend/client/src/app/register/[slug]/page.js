@@ -4,33 +4,46 @@ import React, { useState, useEffect } from "react";
 
 import QRCode from "react-qr-code";
 import Image from "next/image";
-import { generateMasterTokenAndMasterR, concatTokenAndRForQR } from "votingsystem";
+import {useStepStore} from "./zustand";
+import Stepuploadsecret from "./Stepuploadsecret";
+import Steps from "./Steps";
+
+
 
 export default function Home({ params }) {
 
   const [secret, setSecret] = useState('');
   const [loading, setLoading] = useState('');
+  const activestep = useStepStore((state) => state.step)
 
-  async function callClick() {
-    setLoading('loading');
-    let values = await generateMasterTokenAndMasterR();
-    console.log(values);
-    let create = await concatTokenAndRForQR(values.masterToken, values.masterR);
-    console.log(create);
-    setSecret(create);
-    setLoading('loaded');
+  function callClick() {
+
   }
 
   return (
-    <main className="">
+    <>
+      <div className="bg-op-grey-light">
+        <div className="p-4">
+          <h3 className="text-center font-bold py-2">Wahlschein beantragen</h3>
+          <p>Abstimmung: {params.slug}</p>
+          <p>Wahlkoordinator:</p>
+          <p>Wähler Authentifikation:</p>
+          <p>Wahl Hash:</p>
+        </div>
 
-      <div className="bg-op-blue">
-        <div className="flex-col items-center justify-between p-5 text-sm">
-        {params.slug}
-                </div>
       </div>
+      <Steps />
+
+       ---STEP:  {activestep} --- 
+
+       {activestep == 2 && (
+          <>
+            <Stepuploadsecret />
+          </>
+        )
+      }
 
 
-    </main>
+    </>
   );
 }
