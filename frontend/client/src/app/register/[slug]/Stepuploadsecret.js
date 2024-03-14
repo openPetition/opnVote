@@ -15,8 +15,6 @@ export default function Stepuploadsecret() {
   const qrcodeReaderId = "html5qr-qrcodeReaderId-full-region";
   const [html5QrCode, setHtml5QrCode] = useState();
 
-
-
    const handleFileChange = (e) => {
     console.log(e.width);
     if (e.target.files) {

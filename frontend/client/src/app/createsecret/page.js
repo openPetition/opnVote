@@ -7,6 +7,26 @@ import Image from "next/image";
 import { generateMasterTokenAndMasterR, concatTokenAndRForQR } from "votingsystem";
 
 export default function Home() {
+  const [qrCodeRef, setQrCodeRef] = useState();
+
+  const downloadQRCode = () => {
+    const svgElement = qrCodeRef.current;
+    let clonedSvgElement = svgElement.cloneNode(true);
+    let outerHTML = clonedSvgElement.outerHTML,
+    blob = new Blob([outerHTML],{type:'image/svg+xml;charset=utf-8'});
+    let URL = window.URL || window.webkitURL || window;
+    let blobURL = URL.createObjectURL(blob);
+    console.log(blobURL);
+    const link = document.createElement("a");
+    link.href = blobURL;
+    link.download = 'download.svg';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setTimeout(() => URL.revokeObjectURL(blobURL), 5000);
+  };
+
 
   const [secret, setSecret] = useState('');
   const [loading, setLoading] = useState('');
@@ -18,7 +38,9 @@ export default function Home() {
     let create = await concatTokenAndRForQR(values.masterToken, values.masterR);
     console.log(create);
     setSecret(create);
+    setQrCodeRef(React.createRef());
     setLoading('loaded');
+
   }
 
   return (
@@ -40,12 +62,14 @@ export default function Home() {
         {secret.length > 0 &&
           <div>
             {secret}
-
+            <button onClick={downloadQRCode}>Download QR Code</button>
             <QRCode
               size={256}
               style={{ height: "auto", maxWidth: "300px", width: "100%" }}
               value={secret}
               viewBox={`0 0 256 256`}
+              ref={qrCodeRef}
+              id="qrCodeEl"
               />
 
           </div>
