@@ -1,0 +1,123 @@
+type ElectionCreated @entity(immutable: true) {
+  id: Bytes!
+  electionID: BigInt! # uint256
+  startTime: BigInt! # uint256
+  endTime: BigInt! # uint256
+  registerId: Int! # uint8
+  authProviderId: Int! # uint8
+  svsId: Int! # uint8
+  ballotLength: Int! # uint8
+  descriptionIPFSHash: String! # string
+  ballotIPFSHash: String! # string
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ElectionRegisterKeySet @entity(immutable: true) {
+  id: Bytes!
+  electionID: BigInt! # uint256
+  registerKey: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ElectionResultsPublished @entity(immutable: true) {
+  id: Bytes!
+  electionID: BigInt! # uint256
+  privateKey: Bytes! # bytes
+  yesVotes: [BigInt!]! # uint256[]
+  noVotes: [BigInt!]! # uint256[]
+  invalidVotes: [BigInt!]! # uint256[]
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ElectionStatusChanged @entity(immutable: true) {
+  id: Bytes!
+  electionID: BigInt! # uint256
+  oldStatus: Int! # uint8
+  newStatus: Int! # uint8
+  cancelReasonIPFS: String! # string
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnershipTransferred @entity(immutable: true) {
+  id: Bytes!
+  previousOwner: Bytes! # address
+  newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type VoteCast @entity(immutable: true) {
+  id: Bytes!
+  electionID: BigInt! # uint256
+  voter: Bytes! # address
+  svsSignature: Bytes! # bytes
+  vote_encrypted: Bytes! # bytes
+  unblindedElectionToken: Bytes! # bytes
+  unblindedSignature: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type VoteUpdated @entity(immutable: true) {
+  id: Bytes!
+  electionID: BigInt! # uint256
+  voter: Bytes! # address
+  vote_encrypted: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type VoterAuthorized @entity(immutable: true) {
+  id: Bytes!
+  electionID: BigInt! # uint256
+  voterID: BigInt! # uint256
+  apID: Int! # uint8
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type VoterRegistered @entity(immutable: true) {
+  id: Bytes!
+  electionID: BigInt! # uint256
+  voterID: BigInt! # uint256
+  registerID: Int! # uint8
+  blindedSignature: Bytes! # bytes
+  blindedElectionToken: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type VotersAuthorized @entity(immutable: true) {
+  id: Bytes!
+  electionID: BigInt! # uint256
+  voterIDs: [BigInt!]! # uint256[]
+  apID: Int! # uint8
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type VotersRegistered @entity(immutable: true) {
+  id: Bytes!
+  electionID: BigInt! # uint256
+  voterIDs: [BigInt!]! # uint256[]
+  registerID: Int! # uint8
+  blindedSignature: Bytes! # bytes
+  blindedElectionToken: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
