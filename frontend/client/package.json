@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "canvg": "^4.0.1",
     "fs": "^0.0.1-security",
     "jsqr-es6": "^1.4.0-1",
     "next": "14.1.0",
@@ -18,7 +19,6 @@
     "react-qr-code": "^2.0.12",
     "votingsystem": "file:../../votingSystem",
     "zustand": "^4.5.0"
-
   },
   "devDependencies": {
     "autoprefixer": "^10.0.1",

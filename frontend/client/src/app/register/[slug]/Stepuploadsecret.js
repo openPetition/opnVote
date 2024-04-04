@@ -13,7 +13,18 @@ import {Html5Qrcode} from "html5-qrcode";
 export default function Stepuploadsecret() {
   const [file, setFile] = useState(null);
   const qrcodeReaderId = "html5qr-qrcodeReaderId-full-region";
-  const [html5QrCode, setHtml5QrCode] = useState();
+  const [html5QrCodeO, setHtml5QrCodeO] = useState();
+  const [html5QrcodeScannerO, sethHml5QrcodeScannerO] = useState();
+
+  const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+      /* handle success */
+  };
+  const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+  const qrcodeRegionId = "html5qr-code-full-region";
+  const verbose = true;
+  // Creates the configuration object for Html5QrcodeScanner.
+
 
    const handleFileChange = (e) => {
     console.log(e.width);
@@ -24,15 +35,21 @@ export default function Stepuploadsecret() {
   };
 
   useEffect(() => {
-    setHtml5QrCode (new Html5Qrcode(qrcodeReaderId));
+
+    setHtml5QrCodeO (new Html5Qrcode(qrcodeReaderId));
+    sethHml5QrcodeScannerO (new Html5QrcodeScanner(qrcodeRegionId, config, verbose));
+    console.log('lels');
   }, []);
 
+  useEffect(() => {
 
+
+  }, [html5QrcodeScannerO]);
 
   useEffect(() => {
 
     if(file) {
-      html5QrCode.scanFile(file, true).then(decodedText => {
+      html5QrCodeO.scanFile(file, true).then(decodedText => {
         console.log(decodedText);
       })
     .catch(err => {
@@ -68,6 +85,7 @@ export default function Stepuploadsecret() {
 
                 </div>
                 <div id={qrcodeReaderId}></div>
+                <div id="html5qr-code-full-region"></div>
           </div>
         
       </div>

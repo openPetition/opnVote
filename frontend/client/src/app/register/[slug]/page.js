@@ -8,15 +8,13 @@ import {useStepStore} from "./zustand";
 import Stepuploadsecret from "./Stepuploadsecret";
 import Steps from "./Steps";
 
-
-
 export default function Home({ params }) {
 
-  const [secret, setSecret] = useState('');
-  const [loading, setLoading] = useState('');
-  const activestep = useStepStore((state) => state.step)
+    const [secret, setSecret] = useState('');
+    const [loading, setLoading] = useState('');
+    const activestep = useStepStore((state) => state.step)
 
-  function callClick() {
+    function callClick() {
 
   }
 

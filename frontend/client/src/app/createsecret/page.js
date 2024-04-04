@@ -3,23 +3,28 @@
 import React, { useState, useEffect } from "react";
 
 import QRCode from "react-qr-code";
-import Image from "next/image";
 import { generateMasterTokenAndMasterR, concatTokenAndRForQR } from "votingsystem";
+import { Canvg } from 'canvg';
 
 export default function Home() {
   const [qrCodeRef, setQrCodeRef] = useState();
+  const [secret, setSecret] = useState('');
+  const [loading, setLoading] = useState('');
 
   const downloadQRCode = () => {
-    const svgElement = qrCodeRef.current;
+    let svgElement = qrCodeRef.current;
+    if (!svgElement.match(/xmlns=\"/mi)){
+      svgElement = svgElement.replace ('<svg ','<svg xmlns="http://www.w3.org/2000/svg" ') ;  
+    }
+
     let clonedSvgElement = svgElement.cloneNode(true);
     let outerHTML = clonedSvgElement.outerHTML,
-    blob = new Blob([outerHTML],{type:'image/svg+xml;charset=utf-8'});
+    blob = new Blob([outerHTML],{type:'image/png+xml;charset=utf-8'});
     let URL = window.URL || window.webkitURL || window;
     let blobURL = URL.createObjectURL(blob);
-    console.log(blobURL);
     const link = document.createElement("a");
     link.href = blobURL;
-    link.download = 'download.svg';
+    link.download = 'download.png';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -27,20 +32,43 @@ export default function Home() {
     setTimeout(() => URL.revokeObjectURL(blobURL), 5000);
   };
 
+  const DownloadAsPng = () => {
+    var canvas = document.getElementById("canvas");
+    const svgSElement = document.getElementById('qrCodeEl')
+    var svgString = new XMLSerializer().serializeToString(svgSElement);
+    var ctx = canvas.getContext("2d");
+    var DOMURL = self.URL || self.webkitURL || self;
+    var svg = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"});
+    var url = DOMURL.createObjectURL(svg);
+    let img = new Image(100, 200);
+    img.onload = function() {
+      ctx.drawImage(img, 0, 0);
 
-  const [secret, setSecret] = useState('');
-  const [loading, setLoading] = useState('');
+      var png = canvas.toDataURL("image/png");
+
+      const link = document.createElement("a");
+      link.setAttribute('download', 'wahlperso.png');
+      link.setAttribute('href', png.replace("image/png", "image/octet-stream"));
+      link.click();
+
+
+
+      document.getElementById('png-container').innerHTML = '<img src="'+png+'"/>';
+      DOMURL.revokeObjectURL(png);
+    };
+    img.src = url;
+
+
+  }
+
 
   async function callClick() {
     setLoading('loading');
     let values = await generateMasterTokenAndMasterR();
-    console.log(values);
     let create = await concatTokenAndRForQR(values.masterToken, values.masterR);
-    console.log(create);
     setSecret(create);
     setQrCodeRef(React.createRef());
     setLoading('loaded');
-
   }
 
   return (
@@ -62,7 +90,7 @@ export default function Home() {
         {secret.length > 0 &&
           <div>
             {secret}
-            <button onClick={downloadQRCode}>Download QR Code</button>
+            <button onClick={DownloadAsPng}>Download QR Code</button>
             <QRCode
               size={256}
               style={{ height: "auto", maxWidth: "300px", width: "100%" }}
@@ -71,6 +99,9 @@ export default function Home() {
               ref={qrCodeRef}
               id="qrCodeEl"
               />
+
+<div id="png-container"></div>
+<canvas id="canvas" width="256" height="256" style={{display: "none"}}></canvas>
 
           </div>
         }
