@@ -14,6 +14,7 @@
     "fs": "^0.0.1-security",
     "jsqr-es6": "^1.4.0-1",
     "next": "14.1.0",
+    "qrcode.react": "^3.1.0",
     "react": "^18",
     "react-dom": "^18",
     "react-qr-code": "^2.0.12",

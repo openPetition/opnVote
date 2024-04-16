@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom';
 import jsQR from "jsqr-es6";
 // To use Html5QrcodeScanner (more info below)
 import {Html5QrcodeScanner} from "html5-qrcode";
+import Html5QrcodePlugin from "./../../../HtmlQRCodePlugin"
 
 // To use Html5Qrcode (more info below)
 import {Html5Qrcode} from "html5-qrcode";
@@ -15,16 +16,17 @@ export default function Stepuploadsecret() {
   const qrcodeReaderId = "html5qr-qrcodeReaderId-full-region";
   const [html5QrCodeO, setHtml5QrCodeO] = useState();
   const [html5QrcodeScannerO, sethHml5QrcodeScannerO] = useState();
+  const [qrCodeText, setQRCodeText] = useState('');
 
   const qrCodeSuccessCallback = (decodedText, decodedResult) => {
       /* handle success */
   };
+  
   const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
   const qrcodeRegionId = "html5qr-code-full-region";
   const verbose = true;
   // Creates the configuration object for Html5QrcodeScanner.
-
 
    const handleFileChange = (e) => {
     console.log(e.width);
@@ -35,10 +37,8 @@ export default function Stepuploadsecret() {
   };
 
   useEffect(() => {
-
     setHtml5QrCodeO (new Html5Qrcode(qrcodeReaderId));
     sethHml5QrcodeScannerO (new Html5QrcodeScanner(qrcodeRegionId, config, verbose));
-    console.log('lels');
   }, []);
 
   useEffect(() => {
@@ -51,6 +51,7 @@ export default function Stepuploadsecret() {
     if(file) {
       html5QrCodeO.scanFile(file, true).then(decodedText => {
         console.log(decodedText);
+        setQRCodeText(decodedText);
       })
     .catch(err => {
       console.log(`Error scanning file. Reason: ${err}`)
@@ -59,12 +60,22 @@ export default function Stepuploadsecret() {
   }
   }, [file]);
 
-
+  const onNewScanResult = (decodedText, decodedResult) => {
+    console.log(decodedText);
+    console.log(decodedResult)
+  };
 
   return (
     <>
       <div className="">
-
+        <div >
+              <Html5QrcodePlugin
+                  fps={10}
+                  qrbox={250}
+                  disableFlip={false}
+                  qrCodeSuccessCallback={onNewScanResult}
+              />
+          </div>
           <div className="">
               <div className="">Helfen Sie mit, Bürgerbeteiligung zu stärken. Wir wollen Ihren Anliegen Gehör verschaffen und dabei weiterhin unabhängig bleiben.</div>
               <div className="">
@@ -82,8 +93,15 @@ export default function Stepuploadsecret() {
                         className="text-white bg-op-blue-dark text-center mx-auto rounded w-1/2 block p-2 my-2"
                     />
                 </label>
+                <div id="reader" width="600px"></div>
+
 
                 </div>
+                {qrCodeText.length > 0 &&
+                  <>
+                  {qrCodeText}
+                  </>
+                }
                 <div id={qrcodeReaderId}></div>
                 <div id="html5qr-code-full-region"></div>
           </div>

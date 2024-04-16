@@ -14,10 +14,6 @@ export default function Home({ params }) {
     const [loading, setLoading] = useState('');
     const activestep = useStepStore((state) => state.step)
 
-    function callClick() {
-
-  }
-
   return (
     <>
       <div className="bg-op-grey-light">
