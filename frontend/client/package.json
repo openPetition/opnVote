@@ -10,8 +10,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@apollo/client": "^3.9.11",
     "canvg": "^4.0.1",
     "fs": "^0.0.1-security",
+    "graphql": "^16.8.1",
     "jsqr-es6": "^1.4.0-1",
     "next": "14.1.0",
     "qrcode.react": "^3.1.0",
