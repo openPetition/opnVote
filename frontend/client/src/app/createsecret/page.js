@@ -1,44 +1,17 @@
 'use client';
-
 import React, { useState, useEffect } from "react";
 import { generateMasterTokenAndMasterR, concatTokenAndRForQR } from "votingsystem";
-import { QRCodeCanvas } from 'qrcode.react';
+import GenerateQRCode from "../../components/GenerateQRCode";
 
 export default function Home() {
-  const [qrCodeRef, setQrCodeRef] = useState();
   const [secret, setSecret] = useState('');
   const [loading, setLoading] = useState('');
-
-  const DownloadAsPng = () => {
-
-    var textCanvas = document.getElementById("canvas");
-    var textCanvasContext = textCanvas.getContext("2d");
-    textCanvasContext.fillStyle = "white";
-    textCanvasContext.fillRect(0, 0, canvas.width, canvas.height);
-    textCanvasContext.fillStyle = "#000";
-    textCanvasContext.lineStyle = "#000";
-    textCanvasContext.font = "18px sans-serif";
-    textCanvasContext.lineWidth = 2;
-    var position = textCanvasContext.width / 2;
-    textCanvasContext.textAlign = "center";
-    textCanvasContext.fillText('Wahlperso', 100, 50);
-
-    var qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
-
-    textCanvasContext.drawImage(qrCodeCanvasContext, 0, 100,200,200);
-    var dataURL = textCanvas.toDataURL("image/png");
-    var link = document.createElement('a');
-    link.download = "wahlschein.png";
-    link.href = textCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-    link.click();
-  }
 
   async function generateAndCreate() {
     setLoading('loading');
     let values = await generateMasterTokenAndMasterR();
     let create = await concatTokenAndRForQR(values.masterToken, values.masterR);
     setSecret(create);
-    setQrCodeRef(React.createRef());
     setLoading('loaded');
   }
 
@@ -60,20 +33,10 @@ export default function Home() {
       <div className="m-2  m-5 mx-auto break-words p-5">
         {secret.length > 0 && (
           <div>
-            {secret}
-            <button onClick={DownloadAsPng}>Download QR Code</button>
-
-            <QRCodeCanvas
-              value={secret}
-              size={200}
-              bgColor={"#ffffff"}
-              fgColor={"#000000"}
-              level={"L"}
-              includeMargin={false}
-              id="qrCodeCanvas"
+            <GenerateQRCode
+              text={secret}
+              downloadHeadline="Wahlperso"
             />
-            <div id="png-container" style={{display: "none"}}></div>
-            <canvas id="canvas" width="200" height="300" style={{display: "none"}} />
           </div>
         )}
       </div>
