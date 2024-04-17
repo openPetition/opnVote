@@ -17,7 +17,6 @@
     "qrcode.react": "^3.1.0",
     "react": "^18",
     "react-dom": "^18",
-    "react-qr-code": "^2.0.12",
     "votingsystem": "file:../../votingSystem",
     "zustand": "^4.5.0"
   },

@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 
-import QRCode from "react-qr-code";
-import Image from "next/image";
 import {useStepStore} from "./zustand";
 import Stepuploadsecret from "./Stepuploadsecret";
 import Steps from "./Steps";
