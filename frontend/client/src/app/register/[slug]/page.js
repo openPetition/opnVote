@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
-
-
+import Alert from "../../../components/Alert";
+import Loading from "../../../components/Loading";
 import {useStepStore} from "./zustand";
 import Stepuploadsecret from "./Stepuploadsecret";
 import Steps from "./Steps";
-
 import { useLazyQuery } from '@apollo/client';
 import { gql } from '@apollo/client';
 
@@ -21,12 +20,17 @@ const GET_ELECTION = gql`
 }`;
 
 export default function Home({ params }) {
+  const [ election, setElection ] = useState();
+  const [ emptyLoad, setEmptyLoad ]= useState(false);
 
   const [getElection, { loading, data }]  = useLazyQuery(GET_ELECTION, { variables: { id: params.slug } });
   useEffect(() => {getElection()}, []);
   useEffect((() => {
-    if (data) {
-      console.log(JSON.parse(data?.election?.descriptionBlob));
+
+    if (data && data?.election ) {
+      setEmptyLoad(false);
+    } else if(data && data?.election == null) {
+      setEmptyLoad(true);
     }
   }
   ),[data]);
@@ -34,8 +38,22 @@ export default function Home({ params }) {
 
   return (
     <>
-      {loading && (<>Loading Election Data</>)}
-      {!loading && (
+      {loading && (
+        <>
+          <Loading loadingText="Warten auf Wahldaten"/>
+        </>
+      )}
+
+      {emptyLoad && (
+        <>
+          <Alert 
+            alertType="error"
+            alertText="keine Wahldaten vorhanden!"
+          />
+        </>
+      )}
+
+      {!loading && data?.election && (
         <>
 
         <div className="bg-op-grey-light">
