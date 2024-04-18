@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom';
 import jsQR from "jsqr-es6";
 // To use Html5QrcodeScanner (more info below)
 import {Html5QrcodeScanner} from "html5-qrcode";
-import Html5QrcodePlugin from "./../../../HtmlQRCodePlugin"
+import HtmlQRCodePlugin from "../../../components/ScanUploadQRCode"
 
 // To use Html5Qrcode (more info below)
 import {Html5Qrcode} from "html5-qrcode";
@@ -17,6 +17,10 @@ export default function Stepuploadsecret() {
   const [html5QrCodeO, setHtml5QrCodeO] = useState();
   const [html5QrcodeScannerO, sethHml5QrcodeScannerO] = useState();
   const [qrCodeText, setQRCodeText] = useState('');
+
+  const [decodedValue, setDecodedValue] = useState("");
+  const [scannerType, setScannerType] = useState("QR");
+  
 
   const qrCodeSuccessCallback = (decodedText, decodedResult) => {
       /* handle success */
@@ -68,32 +72,22 @@ export default function Stepuploadsecret() {
   return (
     <>
       <div className="">
-        <div >
-              <Html5QrcodePlugin
-                  fps={10}
-                  qrbox={250}
-                  disableFlip={false}
-                  qrCodeSuccessCallback={onNewScanResult}
-              />
-          </div>
+
           <div className="">
               <div className="">Helfen Sie mit, Bürgerbeteiligung zu stärken. Wir wollen Ihren Anliegen Gehör verschaffen und dabei weiterhin unabhängig bleiben.</div>
               <div className="">
                   Wählergeheimnis asd test s
               </div>
               <div>
-                <label className="cursor-pointer">
-                    Click to select some files...
-                    <input
-                        style={{ display: "none" }}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}   
-                        id="qr-input-file"                     
-                        className="text-white bg-op-blue-dark text-center mx-auto rounded w-1/2 block p-2 my-2"
-                    />
-                </label>
-                <div id="reader" width="600px"></div>
+
+ 
+      <HtmlQRCodePlugin type={scannerType} onResult={(res) => setDecodedValue(res)} />
+      <br />
+      <p style={{ width: "100%", wordWrap: "break-word" }}>
+        <strong>Value:</strong>
+        {decodedValue}
+      </p>
+
 
 
                 </div>
