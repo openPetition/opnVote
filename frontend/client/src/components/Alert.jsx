@@ -23,7 +23,7 @@ export default function Alert(props) {
     <>
 
         <div className={"px-4 py-3 m-2 rounded relative " + alertClasses} role="alert">
-          <strong className="font-bold">{headLine}</strong>
+          <h3 className="font-bold">{headLine}</h3>
           <span className="block sm:inline">{alertText}</span>
         </div>
 
