@@ -35,7 +35,7 @@ const router = Router();
  */
 
 router.get('/',
-    jwtTokenValidator,      // Checks if JWT is present in Authorization header
+    jwtTokenValidator(),      // Checks if JWT is present in Authorization header
     authenticateJWT,        // Checks if JWT is valid
     checkElectionStatus,    // Confirms that election status is Pending or Open
     (req: Request, res: Response) => {

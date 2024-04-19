@@ -3,6 +3,7 @@ import { BlindedSignature } from '../models/BlindedSignature';
 import { dataSource } from '../database';
 import { RequestWithUser } from '../types/jwt';
 import { ApiResponse } from '../types/apiResponses';
+import { Token } from 'votingsystem';
 
 
 /**
@@ -22,7 +23,7 @@ export async function checkForExistingBlindedSignature(req: Request, res: Respon
   
   const userID = reqWithUser.user.userID;
   const electionID = reqWithUser.user.electionID;
-  const blindedToken = req.body.token as string;
+  const blindedToken = req.body.token as Token;
 
   try {
     // Search for BlindSignature entries with same userID & electionID
@@ -36,7 +37,7 @@ export async function checkForExistingBlindedSignature(req: Request, res: Respon
 
     if (existingSignature) {
       // Return existing blind Signature if provided same blinded Token
-      if (existingSignature.blindedToken.toLowerCase() === blindedToken.toLowerCase()) {
+      if (existingSignature.blindedToken.toLowerCase() === blindedToken.hexString.toLowerCase()) {
         return res.status(200).json({
           data: {
             message: 'Existing blinded signature found.',

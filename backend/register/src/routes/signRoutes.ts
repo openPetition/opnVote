@@ -13,7 +13,7 @@ const router = Router();
 
 /**
  * @openapi
- * /api/auth:
+ * /api/sign:
  *   post:
  *     summary: Validate if user is eligible for registration and sign blinded Token.
  *     description: Registration for election through this route. Validates the JWT, checks election status, ensures correct token format, checks for prior signatures, and signs the token if eligible.
@@ -71,10 +71,10 @@ const router = Router();
  */
 
 router.post('/',
-  jwtTokenValidator,                // Checks if JWT is present in Authorization header.
+  jwtTokenValidator(),                // Checks if JWT is present in Authorization header.
   authenticateJWT,                  // Checks if JWT is valid
   checkElectionStatus,              // Confirms that election status is Pending or Open
-  blindedTokenValidationRules,      // Checks if provided blinded Token format is corret
+  blindedTokenValidationRules(),      // Checks if provided blinded Token format is corret
   checkForExistingBlindedSignature, // Confirms that user didnt receive a blinded Signature for this election
   async (req: Request, res: Response) => {
 
