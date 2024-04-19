@@ -1,5 +1,5 @@
 import { TestRegister } from '../config';
-import { Token, Signature, R } from '../types/types';
+import { Token, R } from '../types/types';
 import { signToken, validateR, validateSignature, validateToken } from '../utils/utils';
 import { generateMasterTokenAndMasterR, concatTokenAndRForQR, qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, unblindSignature, blindToken, verifyUnblindedSignature } from './generateTokens';
 
@@ -223,7 +223,7 @@ describe('verifyUnblindedSignature Tests', () => {
       expect(() => validateToken(blindedElectionToken)).not.toThrow();
 
       // Sign blinded Election Token and obtain blinded Signature
-      const blindedSignature = signToken(blindedElectionToken)
+      const blindedSignature = signToken(blindedElectionToken, TestRegister)
       expect(() => validateSignature(blindedSignature)).not.toThrow();
 
       // Unblind blinded Signature
@@ -255,7 +255,7 @@ describe('verifyUnblindedSignature Tests', () => {
       expect(() => validateToken(blindedElectionToken)).not.toThrow();
 
       // Sign blinded Election Token and obtain blinded Signature
-      const blindedSignature = signToken(blindedElectionToken)
+      const blindedSignature = signToken(blindedElectionToken, TestRegister)
       expect(() => validateSignature(blindedSignature)).not.toThrow();
 
       // Unblind blinded Signature

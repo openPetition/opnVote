@@ -166,6 +166,7 @@ export function deriveElectionUnblindedToken(electionID: number, masterToken: To
  * @throws Error if the provided token is already blinded.
  */
 export function blindToken(unblindedToken: Token, r: R): Token {
+    if(!Register.e) {throw new Error("Register public Exponent not defined")}
 
     validateToken(unblindedToken)
     validateR(r)
@@ -210,6 +211,7 @@ export function blindToken(unblindedToken: Token, r: R): Token {
  * @throws Error if the signature is blinded, if the token is a master token, or if the token is blinded.
  */
 export function verifyUnblindedSignature(unblindedSignature: Signature, unblindedToken: Token): Boolean {
+    if(!Register.e) {throw new Error("Register public Exponent not defined")}
 
     validateSignature(unblindedSignature)
     validateToken(unblindedToken)

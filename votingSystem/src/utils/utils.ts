@@ -1,6 +1,6 @@
 
 import Hex from 'crypto-js/enc-hex';
-import { ElectionCredentials, R, Signature, Token } from '../types/types';
+import { ElectionCredentials, R, RSAParams, Signature, Token } from '../types/types';
 import Base64 from 'crypto-js/enc-base64';
 import { Register, TestRegister } from '../config';
 
@@ -149,19 +149,24 @@ export function validateCredentials(credentials: ElectionCredentials): void {
 
 //Helper function to sign a token
 //Not for production use
-export function signToken(token: Token): Signature {
-    if (!token.isBlinded) { throw new Error("Only blinded Tokens shall be signed") }
-    if (token.isMaster) { throw new Error("Master Tokens shall not be signed") }
-    validateToken(token)
-    const tokenBig = hexStringToBigInt(token.hexString)
-    const signatureBig = powermod(tokenBig, TestRegister.D, TestRegister.N) // tokenBig ** TestRegister.D % TestRegister.N;
+export function signToken(token: Token, rsaParams: RSAParams): Signature {
+    if (!token.isBlinded) {throw new Error("Only blinded Tokens shall be signed");}
+    if (token.isMaster) {throw new Error("Master Tokens shall not be signed");}
+    if(!rsaParams.D) {throw new Error("Private exponent is missing")}
 
-    const hexLength = TestRegister.NbitLength / 4; // Convert bit length to hex length
-    const signatureHex = '0x' + signatureBig.toString(16).padStart(hexLength, '0')
-    const blindedSignature = { hexString: signatureHex, isBlinded: true }
-    validateSignature(blindedSignature)
-    return blindedSignature
+    validateToken(token);
+    
+    const tokenBig = hexStringToBigInt(token.hexString);
+    const signatureBig = powermod(tokenBig, rsaParams.D, rsaParams.N);  // tokenBig ** rsaParams.D % rsaParams.N;
 
+    // Calculate  hex length from N if not provided
+    const hexLength = rsaParams.NbitLength ? rsaParams.NbitLength / 4 : rsaParams.N.toString(16).length;
+    const signatureHex = '0x' + signatureBig.toString(16).padStart(hexLength, '0');
+    
+    const blindedSignature = { hexString: signatureHex, isBlinded: true };
+    validateSignature(blindedSignature);
+
+    return blindedSignature;
 }
 
 // Helper function calculation modpow
