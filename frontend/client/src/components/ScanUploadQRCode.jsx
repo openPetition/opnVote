@@ -2,16 +2,15 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-// import { getCameraList } from "./Utils";
 
 const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
-const brConfig = { fps: 10, qrbox: { width: 300, height: 150 } };
 let html5QrCode;
 
 export default function HtmlQRCodePlugin (props) {
     const fileRef = useRef(null);
     const [cameraList, setCameraList] = useState([]);
     const [activeCamera, setActiveCamera] = useState();
+
     useEffect(() => {
       html5QrCode = new Html5Qrcode("reader");
       getCameras();
@@ -19,31 +18,26 @@ export default function HtmlQRCodePlugin (props) {
       oldRegion && oldRegion.remove();
     }, []);
   
-    const handleClickAdvanced = () => {
+    const startScanClick = () => {
+      
       const qrCodeSuccessCallback = (decodedText, decodedResult) => {
         console.info(decodedResult, decodedText);
         props.onResult(decodedText);
-        alert(`decoded:__ ${decodedText}`);
         handleStop();
       };
+
       html5QrCode
         .start(
-          { facingMode: "environment" },
-          props.type === "QR" ? qrConfig : brConfig,
-          qrCodeSuccessCallback
-        )
+          { facingMode: "environment" }, qrConfig, qrCodeSuccessCallback )
         .then(() => {
-          // const oldRegion = document.getElementById("qr-shaded-region");
-          // if (oldRegion) oldRegion.innerHTML = "";
+          const oldRegion = document.getElementById("qr-shaded-region");
+          if (oldRegion) oldRegion.innerHTML = "";
         });
     };
+
     const getCameras = () => {
       Html5Qrcode.getCameras()
         .then((devices) => {
-          /**
-           * devices would be an array of objects of type:
-           * { id: "id", label: "label" }
-           */
           console.info(devices);
           if (devices && devices.length) {
             setCameraList(devices);
@@ -55,6 +49,7 @@ export default function HtmlQRCodePlugin (props) {
           setCameraList([]);
         });
     };
+
     const onCameraChange = (e) => {
       if (e.target.selectedIndex) {
         let selectedCamera = e.target.options[e.target.selectedIndex];
@@ -63,6 +58,7 @@ export default function HtmlQRCodePlugin (props) {
         setActiveCamera(cameraList.find((cam) => cam.id === cameraId));
       }
     };
+
     const handleStop = () => {
       try {
         html5QrCode
@@ -77,12 +73,14 @@ export default function HtmlQRCodePlugin (props) {
         console.log(err);
       }
     };
+
     const scanLocalFile = () => {
       fileRef.current.click();
     };
+    
     const scanFile = (e) => {
       if (e.target.files.length === 0) {
-        // No file selected, ignore
+        // No file there -> do nothing for now
         return;
       }
   
@@ -92,51 +90,56 @@ export default function HtmlQRCodePlugin (props) {
       html5QrCode
         .scanFile(imageFile, /* showImage= */ true)
         .then((qrCodeMessage) => {
-          // success, use qrCodeMessage
           console.log(qrCodeMessage);
+          // handover -> do sth with result
           props.onResult(qrCodeMessage);
           html5QrCode.clear();
         })
         .catch((err) => {
-          // failure, handle it.
           console.log(`Error scanning file. Reason: ${err}`);
         });
     };
   
     return (
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative" }} className="m-10 p-10 bg-grey-100 border border-black rounded">
+
         <div id="reader" width="100%"></div>
-        <button onClick={getCameras}>Get List of cameras</button>
+
+        <button onClick={getCameras} className="m-2 p-1 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">Kameraliste</button>
+        {cameraList.length == 0 && (<div className="">Keine Kameras erkannt oder Zugriff auf Kameras verweigert</div>)}
         {cameraList.length > 0 && (
           <select onChange={onCameraChange}>
             {cameraList.map((li) => (
               <option
                 key={li.id}
                 id={li.id}
-                selected={activeCamera && activeCamera.id === li.id}
+                defaultValue={activeCamera && activeCamera.id === li.id}
               >
                 {li.label}
               </option>
             ))}
-            <option>Dummy</option>
           </select>
         )}
 
+        <div>        
+          <button onClick={() => startScanClick()} className="m-2 p-3 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">
+            Scan QR Code
+          </button>
+          <button onClick={() => handleStop()} className="m-2 p-3 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">
+            Scannen Abbrechen
+          </button>
+          <button onClick={scanLocalFile} className="m-2 p-3 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">
+            Hochladen
+          </button>
+          <input
+            type="file"
+            hidden
+            ref={fileRef}
+            accept="image/*"
+            onChange={scanFile}
+          />
+        </div>
 
-        <button onClick={() => handleClickAdvanced()} className="m-2 p-3 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">
-          click pro {props.type}
-        </button>
-        <button onClick={() => handleStop()} className="m-2 p-3 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">stop pro</button>
-        <br />
-        <br />
-        <button onClick={scanLocalFile} className="m-2 p-3 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">Scan local file</button>
-        <input
-          type="file"
-          hidden
-          ref={fileRef}
-          accept="image/*"
-          onChange={scanFile}
-        />
       </div>
     );
   };

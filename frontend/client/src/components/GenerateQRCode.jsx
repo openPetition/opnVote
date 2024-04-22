@@ -15,7 +15,6 @@ export default function GenerateQRCode(props) {
     textCanvasContext.lineStyle = "#000";
     textCanvasContext.font = "18px sans-serif";
     textCanvasContext.lineWidth = 2;
-    var position = textCanvasContext.width / 2;
     textCanvasContext.textAlign = "center";
     textCanvasContext.fillText(downloadHeadline, 100, 50);
 
@@ -32,7 +31,6 @@ export default function GenerateQRCode(props) {
   const PrintPng = () => {
     const div = document.querySelector('.print-content');
 
-
     var qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
     const img = qrCodeCanvasContext.toDataURL({
       format: 'jpeg',
@@ -41,15 +39,12 @@ export default function GenerateQRCode(props) {
     const singleImg = `<img src=${img} class='image-content' />`
     div.innerHTML = singleImg;
 
-
     var windowUrl = 'about:blank';
     var uniqueName = new Date();
     var windowName = 'Print' + uniqueName.getTime();
     var printWindow = window.open(windowUrl, windowName, 'left=50000,top=50000,width=1000000,height=10000');
     printWindow.document.write(div.innerHTML);
-
     printWindow.document.close();
-
     printWindow.onload = function() {
       printWindow.focus();
       printWindow.print();
