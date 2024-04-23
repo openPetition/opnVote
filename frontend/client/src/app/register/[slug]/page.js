@@ -6,8 +6,7 @@ import Loading from "../../../components/Loading";
 import {useStepStore} from "./zustand";
 import Stepuploadsecret from "./Stepuploadsecret";
 import Steps from "./Steps";
-import { useLazyQuery } from '@apollo/client';
-import { gql } from '@apollo/client';
+import { useLazyQuery, gql } from '@apollo/client';
 
 const GET_ELECTION = gql`
   query election($id: ID!) {
