@@ -21,19 +21,10 @@ const GET_ELECTION = gql`
 
 export default function Home({ params }) {
   const [ election, setElection ] = useState();
-  const [ emptyLoad, setEmptyLoad ]= useState(false);
 
   const [getElection, { loading, data }]  = useLazyQuery(GET_ELECTION, { variables: { id: params.slug } });
   useEffect(() => {getElection()}, []);
-  useEffect((() => {
 
-    if (data && data?.election ) {
-      setEmptyLoad(false);
-    } else if(data && data?.election == null) {
-      setEmptyLoad(true);
-    }
-  }
-  ),[data]);
   const activestep = useStepStore((state) => state.step)
 
   return (
@@ -44,7 +35,7 @@ export default function Home({ params }) {
         </>
       )}
 
-      {emptyLoad && (
+      {!loading && !data?.election && (
         <>
           <Alert 
             alertType="error"
