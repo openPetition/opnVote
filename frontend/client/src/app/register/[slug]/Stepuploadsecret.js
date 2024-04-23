@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { qrToTokenAndR } from "votingsystem";
 
 // To use Html5QrcodeScanner (more info below)
-import HtmlQRCodePlugin from "../../../components/ScanUploadQRCode"
+import ScanUploadQRCode from "../../../components/ScanUploadQRCode"
 
 // To use Html5Qrcode (more info below)
 
@@ -29,7 +29,7 @@ export default function Stepuploadsecret() {
                   Wählergeheimnis 
               </div>
               <div>
-                <HtmlQRCodePlugin onResult={(res) => setDecodedValue(res)} />
+                <ScanUploadQRCode onResult={(res) => setDecodedValue(res)} />
                 <br />
                 <p style={{ width: "100%", wordWrap: "break-word" }}>
                   <strong>Value:</strong>

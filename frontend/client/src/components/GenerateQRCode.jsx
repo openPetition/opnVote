@@ -7,10 +7,10 @@ export default function GenerateQRCode(props) {
   const { text, downloadHeadline } = props;
 
   const DownloadAsPng = () => {
-    var textCanvas = document.getElementById("canvas");
-    var textCanvasContext = textCanvas.getContext("2d");
+    const textCanvas = document.getElementById("canvas");
+    const textCanvasContext = textCanvas.getContext("2d");
     textCanvasContext.fillStyle = "white";
-    textCanvasContext.fillRect(0, 0, canvas.width, canvas.height);
+    textCanvasContext.fillRect(0, 0, textCanvas.width, textCanvas.height);
     textCanvasContext.fillStyle = "#000";
     textCanvasContext.lineStyle = "#000";
     textCanvasContext.font = "18px sans-serif";
@@ -18,11 +18,11 @@ export default function GenerateQRCode(props) {
     textCanvasContext.textAlign = "center";
     textCanvasContext.fillText(downloadHeadline, 100, 50);
 
-    var qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
+    const qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
 
     textCanvasContext.drawImage(qrCodeCanvasContext, 0, 100,200,200);
-    var dataURL = textCanvas.toDataURL("image/png");
-    var link = document.createElement('a');
+    const dataURL = textCanvas.toDataURL("image/png");
+    const link = document.createElement('a');
     link.download = "wahlschein.png";
     link.href = textCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
     link.click();
@@ -31,7 +31,7 @@ export default function GenerateQRCode(props) {
   const PrintPng = () => {
     const div = document.querySelector('.print-content');
 
-    var qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
+    const qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
     const img = qrCodeCanvasContext.toDataURL({
       format: 'jpeg',
       quality: 0.75
@@ -39,10 +39,10 @@ export default function GenerateQRCode(props) {
     const singleImg = `<img src=${img} class='image-content' />`
     div.innerHTML = singleImg;
 
-    var windowUrl = 'about:blank';
-    var uniqueName = new Date();
-    var windowName = 'Print' + uniqueName.getTime();
-    var printWindow = window.open(windowUrl, windowName, 'left=50000,top=50000,width=1000000,height=10000');
+    const windowUrl = 'about:blank';
+    const uniqueName = new Date();
+    const windowName = 'Print' + uniqueName.getTime();
+    const printWindow = window.open(windowUrl, windowName, 'left=50000,top=50000,width=1000000,height=10000');
     printWindow.document.write(div.innerHTML);
     printWindow.document.close();
     printWindow.onload = function() {

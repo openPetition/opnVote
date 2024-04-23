@@ -6,7 +6,7 @@ import { Html5Qrcode } from "html5-qrcode";
 const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
 let html5QrCode;
 
-export default function HtmlQRCodePlugin (props) {
+export default function ScanUploadQRCode (props) {
     const fileRef = useRef(null);
     const [cameraList, setCameraList] = useState([]);
     const [activeCamera, setActiveCamera] = useState();
@@ -31,21 +31,21 @@ export default function HtmlQRCodePlugin (props) {
           { facingMode: "environment" }, qrConfig, qrCodeSuccessCallback )
         .then(() => {
           const oldRegion = document.getElementById("qr-shaded-region");
-          if (oldRegion) oldRegion.innerHTML = "";
+          if (oldRegion) {
+            oldRegion.innerHTML = "";
+          }
         });
     };
 
     const getCameras = () => {
       Html5Qrcode.getCameras()
         .then((devices) => {
-          console.info(devices);
           if (devices && devices.length) {
             setCameraList(devices);
             setActiveCamera(devices[0]);
           }
         })
         .catch((err) => {
-          console.error(err);
           setCameraList([]);
         });
     };
@@ -53,7 +53,6 @@ export default function HtmlQRCodePlugin (props) {
     const onCameraChange = (e) => {
       if (e.target.selectedIndex) {
         let selectedCamera = e.target.options[e.target.selectedIndex];
-        console.info(selectedCamera);
         let cameraId = selectedCamera.dataset.key;
         setActiveCamera(cameraList.find((cam) => cam.id === cameraId));
       }
@@ -67,10 +66,10 @@ export default function HtmlQRCodePlugin (props) {
             html5QrCode.clear();
           })
           .catch((err) => {
-            console.log(err.message);
+            console.debug(err.message);
           });
       } catch (err) {
-        console.log(err);
+        console.debug(err);
       }
     };
 
@@ -86,17 +85,15 @@ export default function HtmlQRCodePlugin (props) {
   
       // Use the first item in the list
       const imageFile = e.target.files[0];
-      console.info(imageFile);
       html5QrCode
         .scanFile(imageFile, /* showImage= */ true)
         .then((qrCodeMessage) => {
-          console.log(qrCodeMessage);
           // handover -> do sth with result
           props.onResult(qrCodeMessage);
           html5QrCode.clear();
         })
         .catch((err) => {
-          console.log(`Error scanning file. Reason: ${err}`);
+          console.debug(`Error scanning file. Reason: ${err}`);
         });
     };
   
