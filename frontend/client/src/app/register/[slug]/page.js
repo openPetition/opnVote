@@ -14,6 +14,7 @@ const GET_ELECTION = gql`
     id,
     totalVotes,
     startTime,
+    endTime,
     descriptionBlob
   }
 }`;
