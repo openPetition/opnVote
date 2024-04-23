@@ -5,8 +5,7 @@ import "./globals.css";
 import Head from "../components/Head";
 import Footer from "../components/Footer"
 
-import { ApolloClient, InMemoryCache } from "@apollo/client";
-import { ApolloProvider } from "@apollo/client";
+import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 
 const client = new ApolloClient({
   uri: "http://37.120.169.119:8000/subgraphs/name/opnVote",
