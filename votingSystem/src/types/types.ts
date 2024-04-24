@@ -46,3 +46,17 @@ export type Signature = {
     hexString: string;
     isBlinded: Boolean;
 };
+
+/**
+ * Represents  RSA cryptographic parameters for signing
+ * @property {bigint} N - Modulus in RSA
+ * @property {bigint} e - Optional. Public exponent in RSA operations
+ * @property {bigint} D - Optional.  Private exponent in RSA operations
+ * @property {number} NbitLength - Bit length of the modulus
+ */
+export type RSAParams = {
+    N: bigint;
+    e?: bigint;
+    D?: bigint;
+    NbitLength: number;
+}

@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { blindToken, deriveElectionR, deriveElectionUnblindedToken, generateMasterTokenAndMasterR, unblindSignature } from "../blind-signature/generateTokens";
 import { signToken, validateCredentials } from "../utils/utils";
 import { concatElectionCredentialsForQR, createVoterCredentials, qrToElectionCredentials } from "./voterCredentials";
+import { TestRegister } from "../config";
 
 
 describe('createVoterCredentials', () => {
@@ -11,7 +12,7 @@ describe('createVoterCredentials', () => {
     const unblindedElectionToken = deriveElectionUnblindedToken(electionID, masterToken);
     const electionR = deriveElectionR(electionID, masterR, unblindedElectionToken);
     const blindedElectionToken = blindToken(unblindedElectionToken, electionR)
-    const blindedSignature = signToken(blindedElectionToken)
+    const blindedSignature = signToken(blindedElectionToken, TestRegister)
     const unblindedSignature = unblindSignature(blindedSignature, electionR)
 
     // Creating voter Credentials for specific Election
@@ -42,7 +43,7 @@ describe('QR Code Encode and Decode', () => {
     const unblindedElectionToken = deriveElectionUnblindedToken(electionID, masterToken);
     const electionR = deriveElectionR(electionID, masterR, unblindedElectionToken);
     const blindedElectionToken = blindToken(unblindedElectionToken, electionR);
-    const blindedSignature = signToken(blindedElectionToken);
+    const blindedSignature = signToken(blindedElectionToken, TestRegister);
     const unblindedSignature = unblindSignature(blindedSignature, electionR);
     const originalCredentials = createVoterCredentials(unblindedSignature, unblindedElectionToken, masterToken, electionID);
     expect(() => validateCredentials(originalCredentials)).not.toThrow();
