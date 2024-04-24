@@ -33,3 +33,16 @@ body {}
     text-wrap: balance;
   }
 }
+
+
+@media screen
+{
+    .noPrint{}
+    .noScreen{display:none;}
+}
+
+@media print
+{
+    .noPrint{display:none;}
+    .noScreen{}
+}
