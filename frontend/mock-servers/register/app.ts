@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import { Token, Signature } from './types';
@@ -6,6 +7,21 @@ import { isValidHex, signToken } from './utility'
 
 const app = express();
 const port = process.env.PORT || 3001;
+
+app.use(cors({
+  origin: '*', 
+  methods: ['GET', 'POST', 'HEAD', 'OPTIONS'], 
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+//!Update on production use
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:");
+  next();
+});
+
+
+
 const swaggerOptions = {
   swaggerDefinition: {
     openapi: '3.0.0',
