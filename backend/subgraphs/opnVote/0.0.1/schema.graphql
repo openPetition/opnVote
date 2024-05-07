@@ -1,3 +1,35 @@
+
+type Election @entity(immutable: false) {
+  id: String!
+  startTime: BigInt! # uint256
+  endTime: BigInt! # uint256
+  registerId: Int! # uint8
+  authProviderId: Int! # uint8
+  svsId: Int! # uint8
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  registerPublicKeyN:Bytes
+  registerPublicKeyE:Bytes
+  publicKey:Bytes
+  privateKey:Bytes
+  totalVotes: BigInt
+  registeredVoterCount: BigInt 
+  authorizedVoterCount: BigInt
+  status: Int
+  descriptionCID:String
+  descriptionBlob:String
+}
+
+type ElectionCanceled @entity(immutable: true) {
+  id: Bytes!
+  electionID: BigInt! # uint256
+  cancelReasonIPFSCID: String! # string
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
 type ElectionCreated @entity(immutable: true) {
   id: Bytes!
   electionID: BigInt! # uint256
@@ -6,18 +38,18 @@ type ElectionCreated @entity(immutable: true) {
   registerId: Int! # uint8
   authProviderId: Int! # uint8
   svsId: Int! # uint8
-  ballotLength: Int! # uint8
-  descriptionIPFSHash: String! # string
-  ballotIPFSHash: String! # string
+  descriptionIPFSCID: String! # string
+  publicKey: Bytes! # bytes
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
 
-type ElectionRegisterKeySet @entity(immutable: true) {
+type ElectionRegisterPublicKeySet @entity(immutable: true) {
   id: Bytes!
   electionID: BigInt! # uint256
-  registerKey: Bytes! # bytes
+  n: Bytes! # bytes
+  e: Bytes! # bytes
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
@@ -40,7 +72,6 @@ type ElectionStatusChanged @entity(immutable: true) {
   electionID: BigInt! # uint256
   oldStatus: Int! # uint8
   newStatus: Int! # uint8
-  cancelReasonIPFS: String! # string
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!

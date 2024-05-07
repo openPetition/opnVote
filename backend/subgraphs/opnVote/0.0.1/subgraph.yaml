@@ -1,21 +1,25 @@
 specVersion: 0.0.5
 schema:
   file: ./schema.graphql
+features:
+  - ipfsOnEthereumContracts
 dataSources:
   - kind: ethereum
     name: opnVote
     network: gnosis
     source:
-      address: "0xb87137deC2Af323501780e84A2484926358C3dcE"
+      address: "0xb2971419bb6437856eb9ec8ca3e56958af45eee9"
       abi: opnVote
-      startBlock: 32476305
+      startBlock: 33516090
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
+        - Election
+        - ElectionCanceled
         - ElectionCreated
-        - ElectionRegisterKeySet
+        - ElectionRegisterPublicKeySet
         - ElectionResultsPublished
         - ElectionStatusChanged
         - OwnershipTransferred
@@ -29,13 +33,15 @@ dataSources:
         - name: opnVote
           file: ./abis/opnVote.json
       eventHandlers:
-        - event: ElectionCreated(indexed uint256,uint256,uint256,uint8,uint8,uint8,uint8,string,string)
+        - event: ElectionCanceled(indexed uint256,string)
+          handler: handleElectionCanceled
+        - event: ElectionCreated(indexed uint256,uint256,uint256,uint8,uint8,uint8,string,bytes)
           handler: handleElectionCreated
-        - event: ElectionRegisterKeySet(indexed uint256,bytes)
-          handler: handleElectionRegisterKeySet
+        - event: ElectionRegisterPublicKeySet(indexed uint256,bytes,bytes)
+          handler: handleElectionRegisterPublicKeySet
         - event: ElectionResultsPublished(indexed uint256,bytes,uint256[],uint256[],uint256[])
           handler: handleElectionResultsPublished
-        - event: ElectionStatusChanged(indexed uint256,uint8,uint8,string)
+        - event: ElectionStatusChanged(indexed uint256,uint8,uint8)
           handler: handleElectionStatusChanged
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred

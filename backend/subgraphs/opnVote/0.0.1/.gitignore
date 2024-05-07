@@ -1,0 +1,14 @@
+# Dependencies
+/node_modules/
+
+# Build artifacts
+/build/
+/generated/
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Test files (boilerplate)
+tests/
