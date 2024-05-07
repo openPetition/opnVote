@@ -8,9 +8,11 @@ contract DeployScript is Script {
     function setUp() public {}
 
     function run() public {
-        uint256 deployer = vm.envUint("DEPLOYER_PRIV_KEY");
-        vm.startBroadcast(deployer);
-        OpnVote opnVote = new OpnVote();
+        uint256 deployerPrivkey = vm.envUint("DEPLOYER_PRIV_KEY");
+        address trustedForwarder = vm.envAddress("GELATO_TRUSTED_FORWARDER");
+
+        vm.startBroadcast(deployerPrivkey);
+        OpnVote opnVote = new OpnVote(trustedForwarder);
         console.log(address(opnVote));
     }
 }

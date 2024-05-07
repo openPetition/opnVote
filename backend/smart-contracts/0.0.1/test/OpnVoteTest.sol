@@ -19,9 +19,11 @@ contract OpnVoteTest is Test {
     address svsOwner = vm.envAddress("SVS_OWNER_ADDRESS");
     uint8 svsID = uint8(vm.envUint("SVS_ID"));
 
+    address gelatoTrustedForwarder = vm.envAddress("GELATO_TRUSTED_FORWARDER");
+
     function setUp() public {
         vm.startPrank(electionCoordinator);
-        opnVote = new OpnVote();
+        opnVote = new OpnVote(gelatoTrustedForwarder);
 
         AuthorizationProvider memory ap =
             AuthorizationProvider(apID, apOwner, "OpenPetition AP", "https://www.openpetition.de/ap/");
@@ -41,9 +43,7 @@ contract OpnVoteTest is Test {
         uint256 startTime = block.timestamp + 1;
         uint256 endTime = block.timestamp + 100;
 
-        uint8 ballotLegth = 0;
-        string memory descriptionIPFSHash = "IPFS"; //todo Set IPFS data
-        string memory ballotIPFSHash = "IPFS"; //todo Set IPFS  data
+        string memory descriptionIPFSCID = "IPFS"; //todo Set IPFS data
         bytes memory electionPubKey = hex"11"; //todo Set Election Pub Key
 
         uint256 electionID = opnVote.createElection(
@@ -52,9 +52,7 @@ contract OpnVoteTest is Test {
             registerID,
             apID,
             svsID,
-            ballotLegth,
-            descriptionIPFSHash,
-            ballotIPFSHash,
+            descriptionIPFSCID,
             electionPubKey
         );
 
@@ -63,8 +61,10 @@ contract OpnVoteTest is Test {
         //Setting Regiser Key
         vm.startPrank(registerOwner);
 
-        bytes memory registerElectionPubKey = hex"11"; //todo Set Register Election Key
-        opnVote.setElectionRegisterKey(electionID, registerElectionPubKey);
+        bytes memory registerElectionPubKeyE = vm.envBytes("REGISTER_ELECTION_0_E");
+        bytes memory registerElectionPubKeyN = vm.envBytes("REGISTER_ELECTION_0_N");
+
+        opnVote.setElectionRegisterPublicKey(electionID, registerElectionPubKeyN, registerElectionPubKeyE);
         vm.stopPrank();
 
         //Starting created Election

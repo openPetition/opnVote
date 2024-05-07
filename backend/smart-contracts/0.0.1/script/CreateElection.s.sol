@@ -25,17 +25,14 @@ contract CreateElectionScript is Script {
         uint8 svsID = uint8(vm.envUint("SVS_ID"));
 
 
-        uint8 ballotLegth = 0;
-        string memory descriptionIPFSHash = "IPFS"; //todo Set IPFS data
-        string memory ballotIPFSHash = "IPFS"; //todo Set IPFS  data
-        bytes memory electionPubKey = hex"11"; //todo Set Election Pub Key
+        string memory descriptionIPFSCID = vm.envString("ELECTION_1_CID");
+        bytes memory electionPubKey = vm.envBytes("ELECTION_1_PUBKEY");
 
         uint256 deployer = vm.envUint("DEPLOYER_PRIV_KEY");
         vm.startBroadcast(deployer);
 
-        opnVote.createElection(startTime, endTime, registerID, apID, svsID,ballotLegth, descriptionIPFSHash, ballotIPFSHash, electionPubKey);
+        opnVote.createElection(startTime, endTime, registerID, apID, svsID, descriptionIPFSCID, electionPubKey);
 
     }
 }
-
 

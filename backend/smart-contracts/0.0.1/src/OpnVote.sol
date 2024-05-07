@@ -4,24 +4,26 @@ pragma solidity ^0.8.19;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import "./Structs.sol";
 
-contract OpnVote is Ownable(msg.sender) {
+contract OpnVote is Ownable, ERC2771Context{
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 
+    constructor(address _trustedForwarder) Ownable(msg.sender) ERC2771Context(_trustedForwarder){}
     mapping(uint8 => Register) public registers;
     mapping(uint8 => SignatureValidationServer) public svss;
     mapping(uint8 => AuthorizationProvider) public aps;
     Election[] public elections;
 
-    //Events
+    /** Events **/
 
-    //AP Events
+    // AP Events
     event VoterAuthorized(uint256 indexed electionID, uint256 indexed voterID, uint8 indexed apID);
     event VotersAuthorized(uint256 indexed electionID, uint256[] voterIDs, uint8 indexed apID);
 
-    //Register Events
+    // Register Events
     event VoterRegistered(
         uint256 indexed electionID,
         uint256 indexed voterID,
@@ -38,9 +40,9 @@ contract OpnVote is Ownable(msg.sender) {
         bytes blindedElectionToken
     );
 
-    event ElectionRegisterKeySet(uint256 indexed electionID, bytes registerKey);
+    event ElectionRegisterPublicKeySet(uint256 indexed electionID, bytes n, bytes e);
 
-    //Voter Events
+    // Voter Events
     event VoteCast(
         uint256 indexed electionID,
         address indexed voter,
@@ -51,7 +53,7 @@ contract OpnVote is Ownable(msg.sender) {
     );
     event VoteUpdated(uint256 indexed electionID, address indexed voter, bytes vote_encrypted);
 
-    //Admin Events
+    // Admin Events
     event ElectionCreated(
         uint256 indexed electionID,
         uint256 startTime,
@@ -59,19 +61,22 @@ contract OpnVote is Ownable(msg.sender) {
         uint8 registerId,
         uint8 authProviderId,
         uint8 svsId,
-        uint8 ballotLength,
-        string descriptionIPFSHash,
-        string ballotIPFSHash
+        string descriptionIPFSCID,
+        bytes publicKey
     );
     event ElectionStatusChanged(
-        uint256 indexed electionID, ElectionStatus oldStatus, ElectionStatus newStatus, string cancelReasonIPFS
+        uint256 indexed electionID, ElectionStatus oldStatus, ElectionStatus newStatus
+    );
+    event ElectionCanceled(
+        uint256 indexed electionID, string cancelReasonIPFSCID
     );
 
     event ElectionResultsPublished(
         uint256 indexed electionID, bytes privateKey, uint256[] yesVotes, uint256[] noVotes, uint256[] invalidVotes
     );
 
-    //AP Functions
+    /** AP Methods  **/
+
     // voterID will not be stored or validated onchain as register & Ap might publish them in no specific order
     function authorizeVoter(uint256 electionID, uint256 voterID) external {
         uint8 apID = elections[electionID].authProviderId;
@@ -87,7 +92,7 @@ contract OpnVote is Ownable(msg.sender) {
         emit VotersAuthorized(electionID, voterIDs, apID);
     }
 
-    //Register Functions
+    /** Register Methods  **/
     function registerVoter(
         uint256 electionID,
         uint256 voterID,
@@ -118,7 +123,7 @@ contract OpnVote is Ownable(msg.sender) {
         emit VotersRegistered(electionID, voterIDs, registerID, blindedSignature, blindedElectionToken);
     }
 
-    function setElectionRegisterKey(uint256 electionID, bytes memory registerKey) external {
+    function setElectionRegisterPublicKey(uint256 electionID, bytes memory n, bytes memory e) external {
         uint8 registerID = elections[electionID].registerID;
         require(registers[registerID].owner == msg.sender, "Only Register");
         require(
@@ -126,11 +131,12 @@ contract OpnVote is Ownable(msg.sender) {
                 || elections[electionID].status == ElectionStatus.Active,
             "Election not active or pending"
         );
-        elections[electionID].registerPubKey = registerKey;
-        emit ElectionRegisterKeySet(electionID, registerKey);
+        elections[electionID].registerPubKey = RSAPublicKeyRaw({n: n,e: e});
+
+        emit ElectionRegisterPublicKeySet(electionID, n, e);
     }
 
-    // Voter Functions
+    /** Voter Methods  **/
     function vote(
         uint256 electionID,
         address voter,
@@ -168,12 +174,12 @@ contract OpnVote is Ownable(msg.sender) {
             emit VoteCast(electionID, voter, svsSignature, vote_encrypted, unblindedElectionToken, unblindedSignature);
         } else {
             //Vote recasting
-            require(election.hasVoted[msg.sender], "voter unknown");
-            emit VoteUpdated(electionID, msg.sender, vote_encrypted);
+            require(election.hasVoted[_msgSender()], "voter unknown");
+            emit VoteUpdated(electionID, _msgSender(), vote_encrypted);
         }
     }
 
-    //Admin Functions
+    /** Admin Methods  **/
 
     function addRegister(Register memory newRegister) external onlyOwner {
         require(registers[newRegister.id].owner == address(0), "ID already used");
@@ -193,16 +199,16 @@ contract OpnVote is Ownable(msg.sender) {
         aps[newAP.id] = newAP;
     }
 
-    // Admin Election Functions
+    /** Admin Election Methods  **/
 
     function startElection(uint256 electionID) external onlyOwner {
         Election storage election = elections[electionID];
         require(election.startTime <= block.timestamp, "too early");
         require(election.endTime > block.timestamp, "too late");
-        require(election.registerPubKey.length > 0, "Register Key required"); //todo: Specify expected Length
+        require(election.registerPubKey.n.length > 0 && election.registerPubKey.e.length > 0, "Register Key required"); //todo: Specify expected Length 
         ElectionStatus oldStatus = election.status;
         election.status = ElectionStatus.Active;
-        emit ElectionStatusChanged(electionID, oldStatus, ElectionStatus.Active, "");
+        emit ElectionStatusChanged(electionID, oldStatus, ElectionStatus.Active);
     }
 
     function endElection(uint256 electionID) external onlyOwner {
@@ -211,16 +217,17 @@ contract OpnVote is Ownable(msg.sender) {
         ElectionStatus oldStatus = election.status;
 
         election.status = ElectionStatus.Ended;
-        emit ElectionStatusChanged(electionID, oldStatus, ElectionStatus.Ended, "");
+        emit ElectionStatusChanged(electionID, oldStatus, ElectionStatus.Ended);
     }
 
-    function cancelElection(uint256 electionID, string memory cancelReasonIPFSHash) external onlyOwner {
+    function cancelElection(uint256 electionID, string memory cancelReasonIPFSCID) external onlyOwner {
         Election storage election = elections[electionID];
         ElectionStatus oldStatus = election.status;
 
         election.status = ElectionStatus.Canceled;
-        election.cancelReasonIPFSHash = cancelReasonIPFSHash;
-        emit ElectionStatusChanged(electionID, oldStatus, ElectionStatus.Canceled, cancelReasonIPFSHash);
+        election.cancelReasonIPFSCID = cancelReasonIPFSCID;
+        emit ElectionCanceled(electionID, cancelReasonIPFSCID);
+        emit ElectionStatusChanged(electionID, oldStatus, ElectionStatus.Canceled);
     }
 
     function createElection(
@@ -229,9 +236,7 @@ contract OpnVote is Ownable(msg.sender) {
         uint8 registerID,
         uint8 authProviderId,
         uint8 svsId,
-        uint8 ballotLength,
-        string memory descriptionIPFSHash,
-        string memory ballotIPFSHash,
+        string memory descriptionIPFSCID,
         bytes memory publicKey
     ) external onlyOwner returns(uint256 createdElectionID) {
         require(startTime < endTime, "Start time must be before end time.");
@@ -241,8 +246,7 @@ contract OpnVote is Ownable(msg.sender) {
         require(aps[authProviderId].owner != address(0), "Invalid authProviderId");
         require(svss[svsId].owner != address(0), "Invalid svsId");
 
-        require(bytes(descriptionIPFSHash).length > 0, "Invalid description hash"); //todo: Specify expected Length
-        require(bytes(ballotIPFSHash).length > 0, "Invalid ballot hash"); //todo: Specify expected Length
+        require(bytes(descriptionIPFSCID).length > 0, "Invalid description CID"); //todo: Specify expected Length
 
         require(publicKey.length > 0, "Invalid election PubKey"); //todo: Specify expected Length
 
@@ -252,15 +256,13 @@ contract OpnVote is Ownable(msg.sender) {
         Election storage election = elections[electionID];
         election.status = ElectionStatus.Pending;
         election.electionID = electionID;
-        election.descriptionIPFSHash = descriptionIPFSHash;
+        election.descriptionIPFSCID = descriptionIPFSCID;
         election.startTime = startTime;
         election.endTime = endTime;
         election.registerID = registerID;
         election.authProviderId = authProviderId;
         election.svsId = svsId;
-        election.ballotIPFSHash = ballotIPFSHash;
         election.publicKey = publicKey;
-        election.ballotLength = ballotLength;
 
         emit ElectionCreated(
             electionID,
@@ -269,9 +271,8 @@ contract OpnVote is Ownable(msg.sender) {
             registerID,
             authProviderId,
             svsId,
-            ballotLength,
-            descriptionIPFSHash,
-            ballotIPFSHash
+            descriptionIPFSCID,
+            publicKey
         );
         return electionID; 
     }
@@ -288,7 +289,7 @@ contract OpnVote is Ownable(msg.sender) {
         require(election.status == ElectionStatus.Ended, "Election not ended");
 
         require(
-            yesVotes.length == election.ballotLength && yesVotes.length == noVotes.length
+            yesVotes.length == noVotes.length
                 && noVotes.length == invalidVotes.length,
             "Results arrays must have the same length."
         );
@@ -296,7 +297,7 @@ contract OpnVote is Ownable(msg.sender) {
         election.status = ElectionStatus.ResultsPublished;
         election.privateKey = privateKey;
 
-        //todo uncomment if election results should be stored onchain
+        //uncomment if election results should be stored onchain
         
         // delete election.results;
 
@@ -307,9 +308,29 @@ contract OpnVote is Ownable(msg.sender) {
         // }
 
         emit ElectionResultsPublished(electionID, privateKey, yesVotes, noVotes, invalidVotes);
+        emit ElectionStatusChanged(electionID, ElectionStatus.Ended, ElectionStatus.ResultsPublished);
     }
 
     function _verify(bytes32 data, bytes memory signature, address account) internal pure returns (bool) {
         return data.toEthSignedMessageHash().recover(signature) == account;
     }
+    
+
+
+    /** OZ Overrides  **/
+    
+    function _msgSender() internal view override(Context, ERC2771Context) returns(address) {
+        return ERC2771Context._msgSender();
+    } 
+    
+    function _msgData() internal view override(Context, ERC2771Context) returns(bytes calldata) 
+    {
+        return ERC2771Context._msgData();
+    }
+
+    function _contextSuffixLength() internal pure override(Context, ERC2771Context) returns (uint256) {
+        return 20;
+    }
+
+
 }

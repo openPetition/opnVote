@@ -47,14 +47,17 @@ struct Election {
     uint8 registerID;
     uint8 authProviderId;
     uint8 svsId;
-    uint8 ballotLength;
     ElectionStatus status;
     // ElectionResult[] results;
     mapping(address => bool) hasVoted;
-    string ballotIPFSHash;
-    string cancelReasonIPFSHash;
-    string descriptionIPFSHash;
+    string cancelReasonIPFSCID;
+    string descriptionIPFSCID;
     bytes publicKey;
     bytes privateKey;
-    bytes registerPubKey;
+    RSAPublicKeyRaw registerPubKey;
+}
+
+struct RSAPublicKeyRaw {
+    bytes n;  //  RSA modulus
+    bytes e; // RSA public exponent
 }

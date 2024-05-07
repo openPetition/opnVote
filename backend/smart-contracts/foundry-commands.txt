@@ -1,1 +1,0 @@
-forge script VoteScript --chain-id 100 --rpc-url https://gnosis.drpc.org --legacy --with-gas-price 3500000000  --broadcast -vvvv
