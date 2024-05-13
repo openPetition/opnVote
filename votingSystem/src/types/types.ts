@@ -1,7 +1,18 @@
 import { ethers } from "ethers";
 
 /**
- * Represents the credentials of a voter for a specific election.
+ * Public key for vote encryption, encoded in DER format as hexstring
+ */
+export type PublicKeyDer = string;
+
+/**
+ * Private key for vote decryption, encoded in DER format as hexstring
+ */
+export type PrivateKeyDer = string;
+
+
+/**
+ * Voter Credentials for a specific election.
  * @property {Signature} unblindedSignature - The unblinded signature of the voter.
  * @property {Token} unblindedElectionToken - The unblinded election token of the voter.
  * @property {ethers.Wallet} voterWallet - The Ethereum wallet of the voter.
@@ -60,3 +71,47 @@ export type RSAParams = {
     D?: bigint;
     NbitLength: number;
 }
+
+/**
+ *  Collection of encrypted votes
+ * @property {string} hexString - Encrypted votes
+ */
+export type EncryptedVotes = {
+    hexString: string;
+};
+
+/**
+ * Voting transaction to be send to Blockchain
+ * @property {number} electionID - ID of the election
+ * @property {string} voterAddress -  Ethereum address of voter
+ * @property {EncryptedVotes} encryptedVote - Encrypted votes
+ * @property {Token} unblindedElectionToken - Unblinded election token of voter
+ * @property {Signature} unblindedSignature - Unblinded register signature
+ * @property {Signature|null} svsSignature - SVS signature of voting transaction
+ */
+export type VotingTransaction = {
+    electionID: number,
+    voterAddress: string,
+    encryptedVote: EncryptedVotes,
+    unblindedElectionToken: Token,
+    unblindedSignature: Signature,
+    svsSignature: Signature | null
+}
+
+/**
+ * Single vote option
+ * @enum {number}
+ */
+export enum VoteOption {
+    Yes = 0,
+    No = 1,
+    Abstain = 2
+}
+
+/**
+ * A single unencrypted vote
+ * @property {VoteOption} value - Chosen voting option
+ */
+export type Vote = {
+    value: VoteOption;
+};

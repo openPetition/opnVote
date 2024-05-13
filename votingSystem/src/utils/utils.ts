@@ -1,8 +1,9 @@
 
 import Hex from 'crypto-js/enc-hex';
-import { ElectionCredentials, R, RSAParams, Signature, Token } from '../types/types';
+import { ElectionCredentials, EncryptedVotes, R, RSAParams, Signature, Token } from '../types/types';
 import Base64 from 'crypto-js/enc-base64';
 import { Register, TestRegister } from '../config';
+import { ethers } from 'ethers';
 
 /**
  * Validates a hexadecimal string.
@@ -89,6 +90,29 @@ export function validateSignature(signature: Signature): void {
     const expectedLength = (Register.NbitLength / 4) + 2; // length for signature: Convert bit length to hex length and add 2 for '0x' prefix.
     validateHexString(signature, expectedLength);
 }
+
+
+/**
+ * Validates an EncryptedVotes object.
+ * @param encryptedVotes - The EncryptedVotes object to be validated.
+ * @throws Will throw an error if the EncryptedVotes object is of incorrect format.
+ */
+export function validateEncryptedVotes(encryptedVotes: EncryptedVotes): void {
+
+    validateHexString(encryptedVotes, 514);
+
+  }
+
+/**
+ * Validates an Ethereum address.
+ * @param address - The Ethereum address to be validated.
+ * @throws Will throw an error if the address is invalid.
+ */
+export function validateEthAddress(address: string): void {
+    if (!ethers.isAddress(address)) {
+      throw new Error("Invalid Ethereum address provided.");
+    }
+  }
 
 
 /**
