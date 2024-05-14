@@ -1,7 +1,7 @@
 
 import * as crypto from 'crypto';
 import { ElectionCredentials, EncryptedVotes, PrivateKeyDer, PublicKeyDer, Signature, Vote, VoteOption, VotingTransaction, } from "../types/types";
-import { validateEncryptedVotes, validateEthAddress, validateSignature, validateToken } from '../utils/utils';
+import { validateEncryptedVotes, validateEthAddress, validateSignature, validateToken, validateVotingTransaction } from '../utils/utils';
 
 /**
  * Creates a voting transaction without SVS signature.
@@ -41,6 +41,8 @@ export function createVotingTransactionWithoutSVSSignature(voterCredentials: Ele
         svsSignature: null
     }
 
+    validateVotingTransaction(votingTransaction)
+
     return votingTransaction;
 }
 
@@ -49,7 +51,6 @@ export function createVotingTransactionWithoutSVSSignature(voterCredentials: Ele
  * @param {VotingTransaction} votingTransaction - Voting transaction to which the signature will be added
  * @param {Signature} svsSignature - Unblinded SVS signature to be added to the voting transaction
  * @returns {VotingTransaction} Updated voting transaction with SVS signature
- * @throws {Error} if the SVS signature is already set or blinded
  * @throws {Error} if any validation (Signature, EncryptedVotes, Token, Signature, ...) fails
  */
 export function addSVSSignatureToVotingTransaction(votingTransaction: VotingTransaction, svsSignature: Signature): VotingTransaction {
@@ -62,26 +63,9 @@ export function addSVSSignatureToVotingTransaction(votingTransaction: VotingTran
         throw new Error("SVS Signature must be unblinded");
     }
 
+
+    validateVotingTransaction(votingTransaction)
     validateSignature(svsSignature)
-    validateEncryptedVotes(votingTransaction.encryptedVote)
-    validateToken(votingTransaction.unblindedElectionToken)
-    validateSignature(votingTransaction.unblindedSignature)
-    validateEthAddress(votingTransaction.voterAddress)
-
-    if (votingTransaction.unblindedElectionToken.isMaster) {
-        throw new Error("Voting transaction must not include a Master Token.");
-
-    }
-
-    if (votingTransaction.unblindedElectionToken.isBlinded) {
-        throw new Error("Voting transaction must not include a blinded Token");
-
-    }
-
-    if (votingTransaction.unblindedSignature.isBlinded) {
-        throw new Error("Voting transaction must not include a blinded Signature");
-
-    }
 
     return {
         ...votingTransaction,
@@ -198,7 +182,7 @@ function stringToVotes(votesString: string): Array<Vote> {
  * @param {string} hexString -  hex string to convert
  * @returns {Buffer} Buffer representing binary data
  */
-function hexToBuffer(hexString: string) {
+function hexToBuffer(hexString: string): Buffer {
     if (hexString.startsWith('0x')) {
         hexString = hexString.substring(2);
     }

@@ -1,11 +1,12 @@
 import { generateKeyPairSync } from 'crypto';
 import NodeRSA from 'node-rsa';
+import { PrivateKeyDer, PublicKeyDer } from '../types/types';
 
 /**
- * Generates an RSA public-private key pair.
- * @returns An object containing the publicKey and privateKey.
+ * Generates an RSA public-private key pair (der-format)
+ * @returns Object containing the der-formatted publicKey and privateKey as hex-strings
  */
-export function generateKeyPair(): { publicKey: string, privateKey: string } {
+export function generateKeyPair(): { publicKey: PublicKeyDer, privateKey: PrivateKeyDer } {
     const { publicKey, privateKey } = generateKeyPairSync('rsa', {
         modulusLength: 2048,
         publicKeyEncoding: {
@@ -26,8 +27,8 @@ export function generateKeyPair(): { publicKey: string, privateKey: string } {
 
 
 /**
- * Generates a raw RSA public-private key pair for blind signatures.
- * @returns An object containing the raw components of the RSA keys in hex.
+ * Generates a raw RSA public-private key pair for blind signatures
+ * @returns Object containing the raw components of the RSA keys as hex-strings
  */
 export function generateKeyPairRaw(): { e: string, n: string, d:string }{
     const key = new NodeRSA({ b: 2048 });

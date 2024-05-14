@@ -1,6 +1,6 @@
 
 import Hex from 'crypto-js/enc-hex';
-import { ElectionCredentials, EncryptedVotes, R, RSAParams, Signature, Token } from '../types/types';
+import { ElectionCredentials, EncryptedVotes, R, RSAParams, Signature, Token, VotingTransaction } from '../types/types';
 import Base64 from 'crypto-js/enc-base64';
 import { Register, TestRegister } from '../config';
 import { ethers } from 'ethers';
@@ -101,7 +101,35 @@ export function validateEncryptedVotes(encryptedVotes: EncryptedVotes): void {
 
     validateHexString(encryptedVotes, 514);
 
-  }
+}
+
+/**
+ * Validates a voting transaction.
+ * Ensures that the voting transaction does not include a master token, a blinded token, or a blinded signature.
+ * @param {VotingTransaction} votingTransaction - The voting transaction to validate.
+ * @throws {Error} Will throw an error if any validation check fails.
+ */
+export function validateVotingTransaction(votingTransaction: VotingTransaction): void {
+
+    validateEncryptedVotes(votingTransaction.encryptedVote)
+    validateToken(votingTransaction.unblindedElectionToken)
+    validateSignature(votingTransaction.unblindedSignature)
+    validateEthAddress(votingTransaction.voterAddress)
+
+    if (votingTransaction.unblindedElectionToken.isMaster) {
+        throw new Error("Voting transaction must not include a Master Token.");
+
+    }
+    if (votingTransaction.unblindedElectionToken.isBlinded) {
+        throw new Error("Voting transaction must not include a blinded Token");
+
+    }
+
+    if (votingTransaction.unblindedSignature.isBlinded) {
+        throw new Error("Voting transaction must not include a blinded Signature");
+
+    }
+}
 
 /**
  * Validates an Ethereum address.
@@ -110,9 +138,9 @@ export function validateEncryptedVotes(encryptedVotes: EncryptedVotes): void {
  */
 export function validateEthAddress(address: string): void {
     if (!ethers.isAddress(address)) {
-      throw new Error("Invalid Ethereum address provided.");
+        throw new Error("Invalid Ethereum address provided.");
     }
-  }
+}
 
 
 /**
@@ -174,19 +202,19 @@ export function validateCredentials(credentials: ElectionCredentials): void {
 //Helper function to sign a token
 //Not for production use
 export function signToken(token: Token, rsaParams: RSAParams): Signature {
-    if (!token.isBlinded) {throw new Error("Only blinded Tokens shall be signed");}
-    if (token.isMaster) {throw new Error("Master Tokens shall not be signed");}
-    if(!rsaParams.D) {throw new Error("Private exponent is missing")}
+    if (!token.isBlinded) { throw new Error("Only blinded Tokens shall be signed"); }
+    if (token.isMaster) { throw new Error("Master Tokens shall not be signed"); }
+    if (!rsaParams.D) { throw new Error("Private exponent is missing") }
 
     validateToken(token);
-    
+
     const tokenBig = hexStringToBigInt(token.hexString);
     const signatureBig = powermod(tokenBig, rsaParams.D, rsaParams.N);  // tokenBig ** rsaParams.D % rsaParams.N;
 
     // Calculate  hex length from N if not provided
     const hexLength = rsaParams.NbitLength ? rsaParams.NbitLength / 4 : rsaParams.N.toString(16).length;
     const signatureHex = '0x' + signatureBig.toString(16).padStart(hexLength, '0');
-    
+
     const blindedSignature = { hexString: signatureHex, isBlinded: true };
     validateSignature(blindedSignature);
 
