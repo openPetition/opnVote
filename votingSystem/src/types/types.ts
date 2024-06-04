@@ -49,14 +49,24 @@ export type R = {
 };
 
 /**
- * Represents a signed Message
- * @property {string} hexString - The value of r, encoded as a hexadecimal string (must be "0x" prefixed).
+ * Represents a RSA signed Message
+ * @property {string} hexString - The signature, encoded as a hexadecimal string (must be "0x" prefixed).
  * @property {boolean} isBlinded - Indicates if the signature is blinded or unblinded. 
  */
 export type Signature = {
     hexString: string;
     isBlinded: Boolean;
 };
+
+/**
+ * Represents an EIP-191 compliant Signature, signed by an ethereum wallet
+ * @property {string} hexString - The EIP-191 signature, encoded as a hexadecimal string (must be "0x" prefixed).
+ */
+export type EthSignature = {
+    hexString: string;
+};
+
+
 
 /**
  * Represents  RSA cryptographic parameters for signing
@@ -95,7 +105,7 @@ export type VotingTransaction = {
     encryptedVote: EncryptedVotes,
     unblindedElectionToken: Token,
     unblindedSignature: Signature,
-    svsSignature: Signature | null
+    svsSignature: EthSignature | null
 }
 
 /**

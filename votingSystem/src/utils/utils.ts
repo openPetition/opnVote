@@ -129,6 +129,10 @@ export function validateVotingTransaction(votingTransaction: VotingTransaction):
         throw new Error("Voting transaction must not include a blinded Signature");
 
     }
+
+    if (votingTransaction.svsSignature) {
+        // validateSignature(votingTransaction.svsSignature) //todo: Add EIP-191 compliant Signature Validation
+      }
 }
 
 /**

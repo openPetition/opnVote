@@ -1,6 +1,6 @@
 
 import * as crypto from 'crypto';
-import { ElectionCredentials, EncryptedVotes, PrivateKeyDer, PublicKeyDer, Signature, Vote, VoteOption, VotingTransaction, } from "../types/types";
+import { ElectionCredentials, EncryptedVotes, EthSignature, PrivateKeyDer, PublicKeyDer, Signature, Vote, VoteOption, VotingTransaction, } from "../types/types";
 import { validateEncryptedVotes, validateEthAddress, validateSignature, validateToken, validateVotingTransaction } from '../utils/utils';
 
 /**
@@ -49,23 +49,18 @@ export function createVotingTransactionWithoutSVSSignature(voterCredentials: Ele
 /**
  * Adds an SVS signature to an existing voting transaction.
  * @param {VotingTransaction} votingTransaction - Voting transaction to which the signature will be added
- * @param {Signature} svsSignature - Unblinded SVS signature to be added to the voting transaction
+ * @param {EthSignature} svsSignature -  EIP-191 compliant SVS signature to be added to the voting transaction
  * @returns {VotingTransaction} Updated voting transaction with SVS signature
  * @throws {Error} if any validation (Signature, EncryptedVotes, Token, Signature, ...) fails
  */
-export function addSVSSignatureToVotingTransaction(votingTransaction: VotingTransaction, svsSignature: Signature): VotingTransaction {
+export function addSVSSignatureToVotingTransaction(votingTransaction: VotingTransaction, svsSignature: EthSignature): VotingTransaction {
 
     if (votingTransaction.svsSignature) {
         throw new Error("Voting Transaction already contains SVS Signature");
     }
 
-    if (svsSignature.isBlinded) {
-        throw new Error("SVS Signature must be unblinded");
-    }
-
-
     validateVotingTransaction(votingTransaction)
-    validateSignature(svsSignature)
+    // validateSignature(svsSignature) //todo: Add Validation for EIP 191 compliant Signature
 
     return {
         ...votingTransaction,

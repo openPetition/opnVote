@@ -1,15 +1,15 @@
 import { ethers } from "ethers";
-import { Signature, VotingTransaction } from "../types/types";
+import { EthSignature, Signature, VotingTransaction } from "../types/types";
 import { validateVotingTransaction } from "../utils/utils";
 
 /**
  * Signs a voting transaction using the provided signing key.
  * @param {VotingTransaction} votingTransaction - Voting transaction to be signed
  * @param {string} signingKey - Private key to sign the transaction
- * @returns {Promise<Signature>} Resolves to the signature object
+ * @returns {Promise<EthSignature>} Resolves to the signature object
  * @throws {Error} if the SVS signature is already set, if the signing key is invalid, or if an error occurs during the signing process
  */
-export async function signVotingTransaction(votingTransaction: VotingTransaction, signingKey: string): Promise<Signature> {
+export async function signVotingTransaction(votingTransaction: VotingTransaction, signingKey: string): Promise<EthSignature> {
 
     if (votingTransaction.svsSignature) {
         throw new Error("SVS Signature already set")
@@ -37,7 +37,7 @@ export async function signVotingTransaction(votingTransaction: VotingTransaction
             ]
         );
         const signatureHexString = await wallet.signMessage(ethers.toBeArray(message));
-        return { hexString: signatureHexString, isBlinded: false };
+        return { hexString: signatureHexString };
 
     } catch (err) {
         throw new Error(`Error signing voting transaction: ${err instanceof Error ? err.message : String(err)}`);

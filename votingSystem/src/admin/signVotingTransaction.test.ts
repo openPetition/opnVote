@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { signVotingTransaction } from './signVotingTransaction';
 import { createVotingTransactionWithoutSVSSignature } from '../voting/voting';
-import { ElectionCredentials, EncryptedVotes, Signature, Token, VotingTransaction } from '../types/types';
+import { ElectionCredentials, EncryptedVotes, EthSignature, Signature, Token, VotingTransaction } from '../types/types';
 import { isValidHex } from '../utils/utils';
 import * as utils from '../utils/utils';
 
@@ -28,11 +28,10 @@ describe('signVotingTransaction', () => {
     it('should sign a voting transaction successfully', async () => {
         const votingTransaction = createVotingTransactionWithoutSVSSignature(voterCredentials, dummyEncryptedVotes);
 
-        const signature = await signVotingTransaction(votingTransaction, voterWallet.privateKey);
+        const signature:EthSignature = await signVotingTransaction(votingTransaction, voterWallet.privateKey);
 
         expect(signature).toBeDefined();
         expect(isValidHex(signature.hexString)).toBe(true);
-        expect(signature.isBlinded).toBe(false);
     });
 
     it('should throw an error if SVS Signature is already set', async () => {
