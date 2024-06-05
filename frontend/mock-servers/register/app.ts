@@ -6,6 +6,8 @@ import { Token, Signature } from './types';
 import { isValidHex, signToken } from './utility'
 
 const app = express();
+app.use(cors());
+
 const port = process.env.PORT || 3001;
 
 app.use(cors({

@@ -58,7 +58,8 @@ export default function GenerateQRCode(props) {
     <>
         <div className="">
           <div className="noScreen print-content"></div>
-            <div id="" className="">
+            <div id="" className="mx-auto bg-white inline-block p-3">
+                {downloadHeadline}
                 <QRCodeCanvas
                     value={text}
                     size={200}
@@ -76,10 +77,10 @@ export default function GenerateQRCode(props) {
                 />
             </div>
             <div>
-                <button onClick={DownloadAsPng}  className="m-2 p-3 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">
+                <button onClick={DownloadAsPng} className="m-2 p-3 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">
                     Download QR Code
                 </button>
-                <button onClick={PrintPng}  className="m-2 p-3 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">
+                <button onClick={PrintPng} className="m-2 p-3 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">
                     Print QR Code
                 </button>
             </div>

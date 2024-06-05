@@ -12,7 +12,8 @@ module.exports = {
         'op-blue-main': '#29b0cc',
         'op-blue-dark': '#0d6c7f',
         'op-grey-light': '#efefef',
-        'op-grey-dark': '#3e3d40'
+        'op-grey-dark': '#3e3d40',
+        'op-blue-light': '#D4EFF5'
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
