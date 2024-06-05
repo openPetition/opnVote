@@ -34,7 +34,7 @@ export async function createRelayRequest(
   const svsSignatureHex = votingTransaction.svsSignature ? votingTransaction.svsSignature.hexString : "0x";
 
   try {
-    const opnVoteContract = new ethers.Contract(opnVoteContractAddress, opnVoteABI, credentials.voterWallet);
+    const opnVoteContract:ethers.Contract = new ethers.Contract(opnVoteContractAddress, opnVoteABI, credentials.voterWallet);
 
     // Create transaction calldata
     const { data } = await opnVoteContract.vote.populateTransaction(
