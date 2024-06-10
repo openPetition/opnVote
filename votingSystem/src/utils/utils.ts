@@ -1,8 +1,8 @@
 
 import Hex from 'crypto-js/enc-hex';
-import { ElectionCredentials, EncryptedVotes, R, RSAParams, Signature, Token, VotingTransaction } from '../types/types';
+import { ElectionCredentials, EncryptedVotes, R, RSAParams, RecastingVotingTransaction, Signature, Token, VotingTransaction } from '../types/types';
 import Base64 from 'crypto-js/enc-base64';
-import { Register, TestRegister } from '../config';
+import { Register } from '../config';
 import { ethers } from 'ethers';
 
 /**
@@ -33,6 +33,18 @@ export function isValidHex(str: string): boolean {
 
     const regexp = /^[0-9a-fA-F]+$/;
     return regexp.test(str);
+}
+
+
+/**
+ * Validates an election ID.
+ * @param electionID - The election ID to be checked.
+ * @throws Will throw an error if election ID is a negative number.
+ */
+export function validateElectionID(electionID:number){
+    if (electionID < 0) {
+        throw new Error("Election ID must be a positive number")
+    }
 }
 
 
@@ -115,6 +127,7 @@ export function validateVotingTransaction(votingTransaction: VotingTransaction):
     validateToken(votingTransaction.unblindedElectionToken)
     validateSignature(votingTransaction.unblindedSignature)
     validateEthAddress(votingTransaction.voterAddress)
+    validateElectionID(votingTransaction.electionID)
 
     if (votingTransaction.unblindedElectionToken.isMaster) {
         throw new Error("Voting transaction must not include a Master Token.");
@@ -132,7 +145,18 @@ export function validateVotingTransaction(votingTransaction: VotingTransaction):
 
     if (votingTransaction.svsSignature) {
         // validateSignature(votingTransaction.svsSignature) //todo: Add EIP-191 compliant Signature Validation
-      }
+    }
+}
+
+/**
+ * Validates a recasting voting transaction.
+ * Ensures that the recasting voting transaction has the required fields.
+ * @param {RecastingVotingTransaction} recastingTransaction - The recasting voting transaction to validate.
+ * @throws {Error} Will throw an error if any validation check fails.
+ */
+export function validateRecastingVotingTransaction(recastingTransaction: RecastingVotingTransaction): void {
+    validateEncryptedVotes(recastingTransaction.encryptedVote);
+    validateEthAddress(recastingTransaction.voterAddress);
 }
 
 /**
@@ -184,6 +208,7 @@ export function base64ToHexString(base64String: string): string {
 export function validateCredentials(credentials: ElectionCredentials): void {
     validateToken(credentials.unblindedElectionToken)
     validateSignature(credentials.unblindedSignature)
+    validateElectionID(credentials.electionID)
 
     const voterWalletPrivKey = credentials.voterWallet.privateKey
     validateHexString({ hexString: voterWalletPrivKey }, 66)
@@ -197,9 +222,7 @@ export function validateCredentials(credentials: ElectionCredentials): void {
     if (credentials.unblindedElectionToken.isMaster) {
         throw new Error("Election token must not be a master token.");
     }
-    if (credentials.electionID < 0) {
-        throw new Error("Election ID must be a non-negative number.");
-    }
+ 
 }
 
 

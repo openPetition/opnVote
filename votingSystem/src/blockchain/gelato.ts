@@ -1,11 +1,11 @@
 import { ethers } from "ethers";
 import { GelatoRelay, CallWithERC2771Request, SignatureData, ERC2771Type } from "@gelatonetwork/relay-sdk";
-import { ElectionCredentials, VotingTransaction } from "../types/types";
-import { validateCredentials, validateVotingTransaction } from "../utils/utils";
+import { ElectionCredentials, RecastingVotingTransaction, VotingTransaction } from "../types/types";
+import { validateCredentials, validateRecastingVotingTransaction, validateVotingTransaction } from "../utils/utils";
 
 /**
  * Creates a Gelato ERC2771 sponsored Transaction Request for a voting transaction.
- * @param {VotingTransaction} votingTransaction - The voting transaction to be submitted to Gelato
+ * @param {VotingTransaction | RecastingVotingTransaction} votingTransaction - The voting transaction to be submitted to Gelato
  * @param {ElectionCredentials} credentials - Credentials of the voter
  * @param {string} opnVoteContractAddress - Address of the OpnVote contract
  * @param {ethers.Interface | ethers.InterfaceAbi} opnVoteABI - ABI of the OpnVote contract
@@ -14,7 +14,7 @@ import { validateCredentials, validateVotingTransaction } from "../utils/utils";
  * @throws {Error} if validation fails or if an error occurs while creating the relay request
  */
 export async function createRelayRequest(
-  votingTransaction: VotingTransaction,
+  votingTransaction: VotingTransaction | RecastingVotingTransaction,
   credentials: ElectionCredentials,
   opnVoteContractAddress: string,
   opnVoteABI: ethers.Interface | ethers.InterfaceAbi,
@@ -22,8 +22,8 @@ export async function createRelayRequest(
 ): Promise<CallWithERC2771Request> {
 
   // Validate the voting transaction and credentials
-  validateVotingTransaction(votingTransaction)
   validateCredentials(credentials)
+
   const transactionSender = credentials.voterWallet.address;
 
   // Check if the transaction sender address matches voter address
@@ -31,10 +31,23 @@ export async function createRelayRequest(
     throw new Error(`Transaction sender (${transactionSender}) does not match voter address (${votingTransaction.voterAddress}).`);
   }
 
-  const svsSignatureHex = votingTransaction.svsSignature ? votingTransaction.svsSignature.hexString : "0x";
+  let svsSignatureHex: string = "0x"
+  let unblindedElectionTokenHex: string = "0x"
+  let unblindedSignatureHex: string = "0x"
+
+  // Check if the transaction is a regular voting transaction or a recasting voting transaction
+  if ('unblindedElectionToken' in votingTransaction && 'unblindedSignature' in votingTransaction && votingTransaction.svsSignature) {
+    validateVotingTransaction(votingTransaction as VotingTransaction);
+    svsSignatureHex = votingTransaction.svsSignature.hexString
+    unblindedElectionTokenHex = votingTransaction.unblindedElectionToken.hexString,
+    unblindedSignatureHex = votingTransaction.unblindedSignature.hexString
+  } else {
+    validateRecastingVotingTransaction(votingTransaction as RecastingVotingTransaction);
+  }
+ 
 
   try {
-    const opnVoteContract:ethers.Contract = new ethers.Contract(opnVoteContractAddress, opnVoteABI, credentials.voterWallet);
+    const opnVoteContract: ethers.Contract = new ethers.Contract(opnVoteContractAddress, opnVoteABI, credentials.voterWallet);
 
     // Create transaction calldata
     const { data } = await opnVoteContract.vote.populateTransaction(
@@ -42,8 +55,8 @@ export async function createRelayRequest(
       votingTransaction.voterAddress,
       svsSignatureHex,
       votingTransaction.encryptedVote.hexString,
-      votingTransaction.unblindedElectionToken.hexString,
-      votingTransaction.unblindedSignature.hexString
+      unblindedElectionTokenHex,
+      unblindedSignatureHex
     );
 
 

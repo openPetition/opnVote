@@ -1,8 +1,7 @@
 
 import * as crypto from 'crypto';
-import { ElectionCredentials, EncryptedVotes, EthSignature, PrivateKeyDer, PublicKeyDer, Signature, Vote, VoteOption, VotingTransaction, } from "../types/types";
-import { validateEncryptedVotes, validateEthAddress, validateSignature, validateToken, validateVotingTransaction } from '../utils/utils';
-
+import { ElectionCredentials, EncryptedVotes, EthSignature, PrivateKeyDer, PublicKeyDer, RecastingVotingTransaction, Signature, Vote, VoteOption, VotingTransaction, } from "../types/types";
+import { validateElectionID, validateEncryptedVotes, validateEthAddress, validateRecastingVotingTransaction, validateSignature, validateToken, validateVotingTransaction } from '../utils/utils';
 /**
  * Creates a voting transaction without SVS signature.
  * @param {ElectionCredentials} voterCredentials - Credentials of the voter
@@ -67,6 +66,30 @@ export function addSVSSignatureToVotingTransaction(votingTransaction: VotingTran
         svsSignature: svsSignature
     }
 
+}
+
+/**
+ * Creates a recasting voting transaction.
+ * @param {ElectionCredentials} voterCredentials - Credentials of the voter
+ * @param {EncryptedVotes} encryptedVotes - Encrypted votes to be included in the recasting voting transaction
+ * @returns {RecastingVotingTransaction} Recasting voting transaction
+ * @throws {Error} if any validation (ElectionID, EncryptedVotes, EthAddress) fails
+ */
+export function createVoteRecastTransaction(voterCredentials: ElectionCredentials, encryptedVotes: EncryptedVotes): RecastingVotingTransaction {
+    validateEncryptedVotes(encryptedVotes)
+    validateEthAddress(voterCredentials.voterWallet.address)
+    validateElectionID(voterCredentials.electionID)
+
+
+    const recastingVotingTransaction: RecastingVotingTransaction = {
+        electionID: voterCredentials.electionID,
+        voterAddress: voterCredentials.voterWallet.address,
+        encryptedVote: encryptedVotes,
+    }
+
+    validateRecastingVotingTransaction(recastingVotingTransaction)
+
+    return recastingVotingTransaction;
 }
 
 /**

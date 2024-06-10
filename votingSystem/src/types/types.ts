@@ -109,6 +109,18 @@ export type VotingTransaction = {
 }
 
 /**
+ * Recasting Vote transaction to be send to Blockchain
+ * @property {number} electionID - ID of the election
+ * @property {string} voterAddress -  Ethereum address of voter
+ * @property {EncryptedVotes} encryptedVote - Encrypted votes
+ */
+export type RecastingVotingTransaction = {
+    electionID: number,
+    voterAddress: string,
+    encryptedVote: EncryptedVotes,
+}
+
+/**
  * Single vote option
  * @enum {number}
  */
