@@ -32,12 +32,14 @@ export default function Home() {
       </div>
       <div className="m-2  m-5 mx-auto break-words p-5">
         {secret.length > 0 && (
-          <div>
+          <>
             <GenerateQRCode
+              headline="Als Bild speichern"
+              subheadline="Sie können den QR-Code mit dem persönlichen Wahlgeheimnis als Bild speichern."
               text={secret}
-              downloadHeadline="Wahlperso"
+              downloadHeadline="Wahlgeheimnis"
             />
-          </div>
+          </>
         )}
       </div>
     </main>

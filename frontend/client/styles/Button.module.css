@@ -1,0 +1,21 @@
+.btn {
+    border-radius: 0.2rem;
+    border: 1px solid transparent;
+    margin: .25rem 0;
+    padding: .25rem .5rem;
+}
+
+.primary {
+    color: white;
+    background-color: var(--op-blue-main);
+}
+
+.dark {
+    color: white;
+    background-color: var(--op-blue-dark);
+}
+
+.hide {
+    display: none;
+    visibility: hidden;
+}

@@ -4,6 +4,7 @@ module.exports = {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./styles/**/*.{css,js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
@@ -13,7 +14,8 @@ module.exports = {
         'op-blue-dark': '#0d6c7f',
         'op-grey-light': '#efefef',
         'op-grey-dark': '#3e3d40',
-        'op-blue-light': '#D4EFF5'
+        'op-blue-light': '#D4EFF5',
+        'op-grey-main': '#EFEFEF',
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

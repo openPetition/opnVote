@@ -1,0 +1,81 @@
+.blueheartbox {
+    color: #FFF;
+    background-color: var(--op-blue-main);
+    position: relative;
+    padding: 32px;
+    margin-top: 64px;
+    text-align: center;
+}
+
+.blueheartbox::before {
+    position: absolute;
+    background-color: var(--op-blue-main);
+    width: 64px;
+    height: 64px;
+    content: '\2764';
+    top: -32px;
+    left:0;
+    right:0;
+    margin: 0 auto;
+    border-radius: 32px;
+    border: 1px transparent;
+    text-align: center;
+    font-weight: bold;
+    font-size: 2rem;
+}
+
+.greyblock {
+    background-color: var(--op-grey-light);
+    padding: 32px;
+}
+
+.greyblock .inner{
+    margin: 0 auto;
+    max-width: var(--op-max-width-layout);
+    display: block;
+    text-align: center;
+}
+
+.checkmark {
+    padding: 0;
+    padding-right: .4rem;
+    font-size: .8rem;
+    font-weight: bold;
+}
+
+.checkmark::before {
+    content: '\2714';
+    color: var(--op-blue);
+    margin-right: .4rem;
+
+}
+
+.textblock {
+    text-align: center;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+@media only screen and (min-width: 600px) 
+{
+    .greyblock {
+        background-color: var(--op-grey-light);
+        padding: 16px;
+    }
+
+    .greyblock .inner{
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .checkmark {
+        padding-right: 1rem;
+        font-weight: normal;
+        font-size: 1rem;
+    }
+    
+    .checkmark::before {
+        margin-right: 1rem;
+    }
+  }
+  

@@ -1,0 +1,54 @@
+.innerbox {
+    width: 340px;
+    margin: 0 auto
+}
+
+.zigzagbox {
+    background-color: #fff;
+}
+
+.zigzagbox::before {
+    content: ' ';
+    display: block;
+
+    width: 100%;
+    height:10px;
+
+    --a: 110deg; /* the angle of the spikes*/
+    --s: 20px;  /* the size of spikes*/
+
+    background: repeating-linear-gradient(135deg,#EFEFEF 0 15px,#EFEFEF 0 15px);
+    --mask: 
+        conic-gradient(from calc(var(--a)/-2) at bottom,
+        #0000,#000 1deg var(--a),#0000 calc(var(--a) + 1deg))
+        50%/var(--s);
+    -webkit-mask: var(--mask);
+            mask: var(--mask);
+}
+
+.zigzagbox::after {
+    content: ' ';
+    display: block;
+
+    width: 100%;
+    height:10px;
+
+    --a: 110deg; /* the angle of the spikes*/
+    --s: 20px;  /* the size of spikes*/
+
+    background: repeating-linear-gradient(135deg,#EFEFEF 0 15px,#EFEFEF 0 15px);
+    --mask: 
+        conic-gradient(from calc(180deg - var(--a)/2) at top,
+        #0000,#000 1deg var(--a),#0000 calc(var(--a) + 1deg)) 
+        50%/var(--s);
+    -webkit-mask: var(--mask);
+            mask: var(--mask);
+
+}
+
+.headline {
+    text-align: center;
+    font-weight: bold;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+}

@@ -1,20 +1,19 @@
 'use client';
 import React, { useState, useEffect } from "react";
+import Image from 'next/image';
+import styles from '../../styles/Header.module.css';
 
 export default function Head() {
-
-
-
-
     return (
       <>
-
-<div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <div id="logo"></div>
-        <div>
+        <div className={styles.header}>
+          <Image
+            src="/images/opnvote-logo.png" 
+            height={68}
+            width={194}
+            style={{margin: "1rem auto"}} 
+          />
         </div>
-      </div>
-
       </>
     )
 }

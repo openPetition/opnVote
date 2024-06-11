@@ -1,0 +1,32 @@
+.header {
+    text-align:center;
+    padding: .5rem .5rem 1rem 0;
+}
+
+.qr-bg {
+    display: none
+}
+
+.innerbox {
+    background-color: #FFFFFF;
+    padding: 45px 0;
+    border: transparent;
+    border-radius: .5rem;
+}
+
+@media only screen and (min-width: 600px) {
+    .header {
+        text-align:left;
+        display: flex;
+        padding: .5rem .5rem 1rem 0;
+    }
+
+    .qrbg  {
+        background-color: var(--op-blue);
+        height: 60px;
+        width: 60px;
+        display: inline-block;
+        margin-right: 1rem;
+    }
+  }
+  

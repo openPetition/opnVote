@@ -2,6 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  --op-blue: #A9DFEB;
+  --op-blue-main: #29b0cc;
+  --op-blue-dark: #0d6c7f;
+  --op-grey-light: #efefef;
+  --op-grey-dark: #3e3d40;
+  --op-blue-light: #D4EFF5;
+  --op-grey-main: #EFEFEF;
+
+  --op-max-width-layout: 1160px;
+}
+
+h3 {
+  font-weight: bold; 
+}
+
+.op__outerbox_grey {
+  max-width: 760px;
+  width: 96%;
+  display: block;
+  margin: 1rem auto;
+  padding: .5rem;
+  border: 1 px solid #000;
+  background-color: var(--op-grey-main);
+  text-align: center;
+  border-radius: .5rem;
+  position: relative;
+}
+
+
+/* this below can be ignored as its old and not reworded with the new styles*/
 
 .bg-op {
   background-color: #A9DFEB;
@@ -13,7 +44,6 @@
   width: 192px;
   height: 68px;
   /* UI Properties */
-  background: transparent url('../../public/opnvote-logo.svg') 0% 0% no-repeat padding-box;
   opacity: 1;
 }
 
@@ -25,8 +55,6 @@
   opacity: 1;
   border-radius: 50%;
 }
-
-body {}
 
 @layer utilities {
   .text-balance {
