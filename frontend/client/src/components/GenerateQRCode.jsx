@@ -1,10 +1,12 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import { QRCodeCanvas } from 'qrcode.react';
-
+import styles from '../../styles/GenerateQRCode.module.css';
+import Image from 'next/image';
+import Button from './Button'
 
 export default function GenerateQRCode(props) {
-  const { text, downloadHeadline } = props;
+  const { headline, subheadline, text, downloadHeadline } = props;
 
   const DownloadAsPng = () => {
     const textCanvas = document.getElementById("canvas");
@@ -56,34 +58,53 @@ export default function GenerateQRCode(props) {
 
   return (
     <>
-        <div className="">
-          <div className="noScreen print-content"></div>
-            <div id="" className="mx-auto bg-white inline-block p-3">
-                {downloadHeadline}
-                <QRCodeCanvas
-                    value={text}
-                    size={200}
-                    bgColor={"#ffffff"}
-                    fgColor={"#000000"}
-                    level={"L"}
-                    includeMargin={false}
-                    id="qrCodeCanvas"
+        <div className="op__outerbox_grey">
+          <div className={styles.innerbox}>
+            <div className="noScreen print-content"></div>
+              <strong>{headline}</strong>
+              <p>{subheadline}</p>
+              <div className={styles.zigzagbox}>
+                  <Image
+                    src="/images/GenerateQRCodeDesignElement.png" 
+                    height={75}
+                    width={300}
+                    style={{margin: "1rem auto"}} 
+                  />
+                  <h3>{downloadHeadline}</h3>
+                  <QRCodeCanvas
+                      value={text}
+                      size={300}
+                      bgColor={"#ffffff"}
+                      fgColor={"#000000"}
+                      level={"L"}
+                      includeMargin={false}
+                      id="qrCodeCanvas"
+                      style={{margin: "1rem auto"}} 
+                  />
+                  <canvas 
+                      id="canvas" 
+                      width="200" 
+                      height="300" 
+                      style={{display: "none"}} 
+                  />
+              </div>
+              <div className={styles.buttonbox}>
+
+                <Button 
+                  onClickAction={DownloadAsPng} 
+                  type="primary"
+                  text="Bild speichern"
+                  style={{display: 'block', width: '100%'}} 
                 />
-                <canvas 
-                    id="canvas" 
-                    width="200" 
-                    height="300" 
-                    style={{display: "none"}} 
+
+                <Button 
+                  onClickAction={PrintPng} 
+                  type="primary"
+                  text="Bild drucken"
+                  style={{display: 'block', width: '100%'}} 
                 />
-            </div>
-            <div>
-                <button onClick={DownloadAsPng} className="m-2 p-3 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">
-                    Download QR Code
-                </button>
-                <button onClick={PrintPng} className="m-2 p-3 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">
-                    Print QR Code
-                </button>
-            </div>
+              </div>
+          </div>
         </div>
     </>
   )

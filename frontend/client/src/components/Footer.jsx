@@ -1,5 +1,8 @@
 'use client';
 import React, { useState, useEffect } from "react";
+import styles from '../../styles/Footer.module.css';
+import Button from './Button'
+import Image from 'next/image';
 
 export default function Footer() {
 
@@ -7,25 +10,38 @@ export default function Footer() {
       <>
 
         <footer>
-            <div className="bg-op-blue-main">
-
-                <div className="p-6 flex-wrap">
-                    <div className="text-white">Helfen Sie mit, Bürgerbeteiligung zu stärken. Wir wollen Ihren Anliegen Gehör verschaffen und dabei weiterhin unabhängig bleiben.</div>
-                    <div className="text-white bg-op-blue-dark text-center mx-auto rounded w-1/2 block p-2 my-2">
-                        Jetzt Fördern
+            <div className={styles.blueheartbox}>
+                <p className={styles.textblock}>
+                Helfen Sie uns Demokratische Online-Wahlen möglich zu machen. Um die Platform kostenlos für alle bereitzustellen und gemeinnützige Wahlausrichter zu unterstützen, sind wir auf Spenden angewiesen.
+                </p>
+                <Button 
+                  onClickAction=""
+                  type="dark"
+                  text="JETZT SPENDEN"
+                  style={{display: 'block', margin: '0 auto', marginTop: '1rem', fontWeight: 'bold'}} 
+                />
+            </div>
+            <div className={styles.greyblock}>
+                <div className={styles.inner}>
+                    <div className={styles.checkmarks}>
+                        <span className={styles.checkmark}>selbstorganisiert</span>
+                        <span className={styles.checkmark}>gemeinnützig</span>
+                        <span className={styles.checkmark}>demokratisch</span>
+                    </div>
+                    <div>
+                        Ein Service von
+                        <Image
+                            src="/images/opnvote-logo.png" 
+                            height={68}
+                            width={194}
+                            style={{margin: ".2rem"}} 
+                        />
                     </div>
                 </div>
             </div>
-            <div className="bg-op-grey-light">
-                <div className="p-6 flex-wrap ">
 
-                    <div className="flex flex-col md:flex-row sm:w-4/6 md:w-full md:flex-row p-6 flex-wrap w-full ">
-                        <span className="text-gray-500 hover:text-gray-900 dark:hover:text-white">selbstorganisiert</span>
-                        <span className="text-gray-500 hover:text-gray-900 dark:hover:text-white">gemeinnützig</span>
-                        <span className="text-gray-500 hover:text-gray-900 dark:hover:text-white">demokratisch</span>
-                    </div>
-                </div>
-            </div>
+
+
             <div className="bg-op-grey-dark">
                 <div className="flex flex-col md:flex-row p-6 flex-wrap w-full">
                     <div className="text-center md:text-left">

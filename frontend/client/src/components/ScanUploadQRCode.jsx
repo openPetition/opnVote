@@ -2,14 +2,20 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
+import Button from './Button'
+import styles from '../../styles/ScanUploadQRCode.module.css';
 
 const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
 let html5QrCode;
 
 export default function ScanUploadQRCode (props) {
+
+    const { headline, subheadline, uploadSubHeadline, scanSubHeadline } = props;
+
     const fileRef = useRef(null);
     const [cameraList, setCameraList] = useState([]);
     const [activeCamera, setActiveCamera] = useState();
+    const [showStopScanBtn, setShowStopScanBtn] = useState(false);
 
     useEffect(() => {
       html5QrCode = new Html5Qrcode("reader");
@@ -19,7 +25,7 @@ export default function ScanUploadQRCode (props) {
     }, []);
   
     const startScanClick = () => {
-      
+      setShowStopScanBtn(true);
       const qrCodeSuccessCallback = (decodedText, decodedResult) => {
         console.info(decodedResult, decodedText);
         props.onResult(decodedText);
@@ -59,6 +65,7 @@ export default function ScanUploadQRCode (props) {
     };
 
     const handleStop = () => {
+      setShowStopScanBtn(false);
       try {
         html5QrCode
           .stop()
@@ -98,13 +105,64 @@ export default function ScanUploadQRCode (props) {
     };
   
     return (
-      <div style={{ position: "relative" }} className="m-10 p-10 bg-grey-100 border border-black rounded">
+      <>
+        <h3>{headline}</h3>
+        {subheadline}
+        <div className="op__outerbox_grey">
+          <div className={styles.header}>
+            <div className={styles.qrbg}></div>
+            <div>
+              <h3>QR Code hochladen</h3>
+              <p>{uploadSubHeadline}</p>
+            </div>
+          </div>
+          <div className={styles.innerbox}>
+            <p>QR Code über den Button auswählen</p>
+            <Button 
+              onClickAction={scanLocalFile} 
+              type="primary"
+              text="Bild auswählen"
+            />
+            <input
+              type="file"
+              hidden
+              ref={fileRef}
+              accept="image/*"
+              onChange={scanFile}
+            />
+          </div>
+        </div>
 
-        <div id="reader" width="100%"></div>
-
-        <button onClick={getCameras} className="m-2 p-1 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">Kameraliste</button>
+        <div className="op__outerbox_grey">
+        <div className={styles.header}>
+            <div className={styles.qrbg}></div>
+            <div>
+              <h3>QR Code Scannen</h3>
+              <p>{scanSubHeadline}</p>
+            </div>
+          </div>
+          <div className={styles.innerbox}>
+            <p>Kamera starten und QR Code vor die Linse halten</p>
+            <div id="reader" width="100%"></div>
+            <Button 
+              onClickAction={() => startScanClick()} 
+              type={`${showStopScanBtn ? "hide" : "primary"}`}
+              text="Kamera starten"
+            />
+            <Button
+              onClickAction={() => handleStop()}
+              type={`${showStopScanBtn ? "primary" : "hide"}`}
+              text="Karmera stoppen"
+            />
+            <p>
+            <Button 
+              onClickAction={getCameras} 
+              text="Geräte-Kameras neu erkennen"
+              type="primary"
+            />
+            </p>
         {cameraList.length == 0 && (<div className="">Keine Kameras erkannt oder Zugriff auf Kameras verweigert</div>)}
-        {cameraList.length > 0 && (
+        {cameraList.length > 1 && (
           <select onChange={onCameraChange}>
             {cameraList.map((li) => (
               <option
@@ -117,26 +175,9 @@ export default function ScanUploadQRCode (props) {
             ))}
           </select>
         )}
-
-        <div>        
-          <button onClick={() => startScanClick()} className="m-2 p-3 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">
-            Scan QR Code
-          </button>
-          <button onClick={() => handleStop()} className="m-2 p-3 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">
-            Scannen Abbrechen
-          </button>
-          <button onClick={scanLocalFile} className="m-2 p-3 bg-blue-100 border border-blue-400 text-blue-700 hover:border-transparent rounded">
-            Hochladen
-          </button>
-          <input
-            type="file"
-            hidden
-            ref={fileRef}
-            accept="image/*"
-            onChange={scanFile}
-          />
         </div>
-
       </div>
+
+      </>
     );
   };

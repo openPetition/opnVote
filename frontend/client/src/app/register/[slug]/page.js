@@ -134,24 +134,25 @@ export default function Home({ params }) {
 
         {registerStateStep == "UPLOADSECRET" && (
             <>
-              <div className="inline-block m-2 p-2 bg-stone-100 border border-stone-300 text-black hover:border-transparent rounded w-[calc(100%-1rem)]">
-                <h3>Wahlgeheimnis eingeben</h3>
-                <HtmlQRCodePlugin 
-                  onResult={(res) => setDecodedValue(res)} 
-                />
-              </div>
+              <HtmlQRCodePlugin 
+                headline = "Wahlgeheimnis prüfen"
+                subheadline = "Bitte wählen Sie Ihr gespeichertes Wahlgeheimnis aus, um dessen Besitz nachzuweisen!"
+                uploadSubHeadline = "Sie können Ihr Wahlgeheimnis ganz einfach hier als Bild laden und prüfen lassen."
+                scanSubHeadline = "Sie können Ihr Wahlgeheimnis ganz einfach über Ihre Geräte-Kamera prüfen lassen."
+                onResult={(res) => setDecodedValue(res)} 
+              />
             </>
           )
         }
 
       {registerStateStep == "GENERATED" && voterQRCodeText.length > 0 && (
         <>
-          <div className="inline-block m-2 p-2 bg-stone-100 border border-stone-300 text-black hover:border-transparent rounded w-[calc(100%-1rem)]">
-            <GenerateQRCode
-              text={voterQRCodeText}
-              downloadHeadline="Wahlschein"
-            />
-          </div>
+          <GenerateQRCode
+            headline="Bild speichern"
+            subheadline="Sie können den QR-Code mit dem Wahlschein als Bild speichern."
+            text={voterQRCodeText}
+            downloadHeadline="Wahlschein"
+          />
           <button onClick={goToElection} className="m-2 p-3 bg-white border border-op-blue-main font-bold text-op-blue-main hover:op-grey-light rounded">
             ZUR WAHLKABINE
           </button>

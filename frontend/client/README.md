@@ -5,24 +5,28 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 * be sure that project / branch is up to date
 
-# 1. prepare votingsystem 
-Votingsystem includes the calculations for all our steps. e.g. it returns and checks all our ballot papers
+# 1. Prepare votingsystem
+VotingSystem includes the calculations for all our steps. e.g. it returns and checks all our ballot papers.
 
-* go into votingsystem folder
-* we need first to install all dependencies of this votingsystem with 'npm install'
-* then run npm build for having a 'dist build' (distribution folder - all this stuff packed)
-* then we need to create a so called link - locally we need to link this package to the frontend 'npm link'
-( for more informations about linking you can read https://medium.com/dailyjs/how-to-use-npm-link-7375b6219557 )
+* go into folder 'votingSystem'
+* install all dependencies of this votingsystem with `npm install`
+* then run `npm run build` for having a 'dist build' (distribution folder - all this stuff packed)
+* then create a so called link - locally this package needs to be linked to the frontend - `npm link`
+(for more information about linking you can read https://medium.com/dailyjs/how-to-use-npm-link-7375b6219557)
 
-# 2. run mock server for registration
-go into mock servers and start registration server with 'npm start'
+# 2. Start the mock server for registration
+* cd into mock 'frontend/mock-servers/register'
+* run `npm install` to install packages
+* and start registration server with `npm start
 
-# 3. opnreg
-* first install dependencies 'npm install'
-* link the votingsystem ('npm link votingsystem')
-* start server ('npm run dev')
+# 3. Start opnreg
+* take a new shell
+* cd into 'frontend/opnreg'
+* first install dependencies `npm install`
+* link the votingsystem: `npm link votingsystem`
+* start server: `npm run dev`
 
-Under [http://localhost:3000](http://localhost:3000) (or wherever it starterd) we can see the result e.g. under 
+Open [http://localhost:3000](http://localhost:3000) (or wherever it started) in your browser.
 
 http://localhost:3000/createsecret
 creating the user secret (qr code) that confirms the identity of the user and that he is allowed to register for elections
@@ -32,3 +36,18 @@ checks wether the user is allowed to register for election with help of the crea
 
 http://localhost:3000/pollingstation/[electionid]
 will contain the voting process (checking the voting authorization card) and the vote (selection of answers, putting them into the voting ballot)
+
+#### TECH
+
+### frontend 
+
+we are using ?
+
+### styling 
+
+for styling we are using styled components 
+* really global styles we put into globals.css and we try to keep it short as possible with css variables mainly
+* all other styles from components we put into corresponding .module.css .. it should have name of the component (e.g. "Button.jsx" - "Buttton.module.css")
+* next js is creating namespace for this components with its modules. So module css can only be used inside of the component.
+
+doc for better understanding: https://nextjs.org/docs/app/building-your-application/styling/css-modules
