@@ -1,0 +1,82 @@
+/* all mobile first */
+
+.electionheader {
+    position: relative;
+}
+
+.greystripe {
+    width: 100%;
+    padding: .5rem;
+    background-color: var(--op-grey-main);
+    position: relative;
+}
+
+.election_informations {
+    padding-left: 0;
+    text-align: left;
+}
+
+
+.bluestripe {
+    width: 100%;
+    background-color: var(--op-blue);
+    height: 100px;
+}
+
+.election_image {
+    margin: 0 auto;
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    max-height: 300px;
+}
+
+.timer_mainbox {
+    width: 340px;
+    position: relative;
+    margin: 0 auto;
+}
+
+.timer_headline {
+    padding: var(--op-padding-standard);
+    font-weight: bold; 
+    text-align: center;
+}
+
+.timer {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.timer_item {
+    width: 30%;
+    text-align:center;
+}
+
+.timer_item_between {
+    width: 4%;
+    text-align: center;
+}
+
+@media only screen and (min-width: 800px) 
+{
+    .timer_mainbox {
+        margin: 0;
+        float: right;
+    }
+
+    .election_image {
+        margin: 0;
+        position: absolute;
+        left: .5rem;
+        top: .5rem;
+        width: 420px;
+        height: auto;
+    }
+
+    .election_informations {
+        padding-left: 360px;
+        text-align: left;
+    }
+}

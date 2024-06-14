@@ -1,0 +1,12 @@
+.innerbox {
+    position: relative;
+    margin-right: 30px;
+    text-align: left;
+}
+
+.innerbox::after {
+    position: absolute;
+    right: -30px;
+    top: 40%;
+    content: '>';
+}

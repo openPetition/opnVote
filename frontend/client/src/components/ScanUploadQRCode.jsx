@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
+import Image from 'next/image';
 import Button from './Button'
-import styles from '../../styles/ScanUploadQRCode.module.css';
+import styles from '../styles/ScanUploadQRCode.module.css';
 
 const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
 let html5QrCode;
@@ -22,6 +23,7 @@ export default function ScanUploadQRCode (props) {
       getCameras();
       const oldRegion = document.getElementById("qr-shaded-region");
       oldRegion && oldRegion.remove();
+      console.log(showStopScanBtn);
     }, []);
   
     const startScanClick = () => {
@@ -106,8 +108,10 @@ export default function ScanUploadQRCode (props) {
   
     return (
       <>
-        <h3>{headline}</h3>
-        {subheadline}
+        <div class="op__contentbox_760">
+          <h3>{headline}</h3>
+          {subheadline}
+        </div>
         <div className="op__outerbox_grey">
           <div className={styles.header}>
             <div className={styles.qrbg}></div>
@@ -177,6 +181,8 @@ export default function ScanUploadQRCode (props) {
         )}
         </div>
       </div>
+  
+
 
       </>
     );

@@ -8,7 +8,7 @@ import Footer from "../components/Footer"
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 
 const client = new ApolloClient({
-  uri: "http://37.120.169.119:8000/subgraphs/name/opnVote",
+  uri: "http://37.120.169.119:8000/subgraphs/name/opnvote-001",
   cache: new InMemoryCache(),
 });
 

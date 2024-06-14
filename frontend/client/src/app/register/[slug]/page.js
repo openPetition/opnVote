@@ -60,7 +60,7 @@ export default function Home({ params }) {
     //set cookie with election data
     cookies.set('voterQR', voterQRCodeText);
     // will be changed to dynamic election location when its more clear where we go
-    window.location.href="/ballot/0"
+    window.location.href="/pollingstation/0"
   }
 
   const voteLater = function() {

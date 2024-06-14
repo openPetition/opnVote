@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import Image from 'next/image';
-import styles from '../../styles/Header.module.css';
+import styles from '../styles/Header.module.css';
 
 export default function Head() {
     return (

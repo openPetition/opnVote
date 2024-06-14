@@ -1,13 +1,12 @@
 'use client';
 import React, { useState, useEffect } from "react";
 
-export default function Alert(props) {
-  const { alertType, alertText } = props;
-  const [ alertClasses, setAlertClasses ] = useState('');
-  const [ headLine, setHeadLine ] = useState('');
+export default function Question(props) {
+  const { question, style, selected, changeSelection } = props;
 
   useEffect(() => {
-    switch (alertType) {
+
+    switch (style) {
       case 'error':
         setHeadLine('Fehler:');
         setAlertClasses('bg-red-100 border border-red-400 text-red-700');
@@ -21,15 +20,12 @@ export default function Alert(props) {
         setAlertClasses('bg-white-100 border border-gray-400 text-black-700');
         break;
     }
-
-    console.log(alertType + alertText);
   }, []);
 
   return (
     <>
-        <div className={"px-4 py-3 m-2 rounded relative " + alertClasses} role="alert">
-          <h3 className="font-bold">{headLine}</h3>
-          <span className="block sm:inline">{alertText}</span>
+        <div className="op__outerbox_grey">
+          <h4>{question}</h4>
         </div>
     </>
   )
