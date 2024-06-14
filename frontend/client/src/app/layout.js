@@ -8,26 +8,26 @@ import Footer from "../components/Footer"
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 
 const client = new ApolloClient({
-  uri: "http://37.120.169.119:8000/subgraphs/name/opnvote-001",
-  cache: new InMemoryCache(),
+    uri: "http://37.120.169.119:8000/subgraphs/name/opnvote-001",
+    cache: new InMemoryCache(),
 });
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <body className={inter.className}>
-        <Head />
-        
-          <main>
-            <ApolloProvider client={client}>
-              {children}
-            </ApolloProvider>
-          </main>
-        
-        <Footer />
-      </body>
-    </html>
-  );
+    return (
+        <html lang="en">
+            <body className={inter.className}>
+                <Head />
+
+                <main>
+                    <ApolloProvider client={client}>
+                        {children}
+                    </ApolloProvider>
+                </main>
+
+                <Footer />
+            </body>
+        </html>
+    );
 }

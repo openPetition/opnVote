@@ -25,13 +25,13 @@ export default function Home({ params }) {
         notificationText: '',
         notificationType: ''
     }
-    
+
     const cookies = new Cookies(null, { path: '/' });
     const [ votingCredentials, setVotingCredentials ] = useState({});
     const [ electionInformations, setElectionInformations ] = useState({});
 
     // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
-    const [ pollingStationManager, setPollingStationManager ] = useState(pollingStationManagerInit); 
+    const [ pollingStationManager, setPollingStationManager ] = useState(pollingStationManagerInit);
 
     const GET_ELECTION = gql`
         query election($id: ID!) {
@@ -54,7 +54,7 @@ export default function Home({ params }) {
         if(data?.election.id) {
             window.location.href="/register/"+data?.election.id;
         }
-      }
+    }
 
     const qrCodeToCredentials = async (code) => {
         try {
@@ -72,7 +72,7 @@ export default function Home({ params }) {
                         showVotingSlipSelection: true,
                         allowedToVote: false,
                         showNotification: true,
-                        notificationText: 'Die Daten des gespeicherten Wahlscheins passen nicht zu dieser Wahl.', 
+                        notificationText: 'Die Daten des gespeicherten Wahlscheins passen nicht zu dieser Wahl.',
                         notificationType: 'error'
                     });
                 } else {
@@ -89,29 +89,29 @@ export default function Home({ params }) {
                         notificationType: 'note',
                         notificationText: 'Ihr Wahlschein für diese Wahl wurde anerkannt. Sie können jetzt Ihre Auswahl treffen.'
                     })
-                } 
+                }
             }
         } catch(err) {
             setPollingStationManager({
-                ...pollingStationManager, 
+                ...pollingStationManager,
                 showElection: false,
                 showQuestions: true,
                 showVotingSlipUpload: false,
                 showVotingSlipSelection: true,
                 showNotification: true,
-                notificationText: 'Die Daten dieses Wahlscheins konnten nicht verarbeitet werden.', 
+                notificationText: 'Die Daten dieses Wahlscheins konnten nicht verarbeitet werden.',
                 notificationType: 'error'
-            });       
-         }
+            });
+        }
     }
 
     const [getElection, { loading, data }]  = useLazyQuery(GET_ELECTION, { variables: { id: params.slug } });
 
     const setNoElectionData = () => {
         setPollingStationManager({
-            ...pollingStationManager, 
+            ...pollingStationManager,
             showNotification: true,
-            notificationText: 'Es wurden keine Wahldaten gefunden.', 
+            notificationText: 'Es wurden keine Wahldaten gefunden.',
             notificationType: 'error'
         })
     }
@@ -119,10 +119,10 @@ export default function Home({ params }) {
     useEffect(() => {
         // everything that we need to do first is get the election data
         getElection();
-      }, []);
+    }, []);
 
     useEffect(() => {
-        // after we got election data .. check this 
+        // after we got election data .. check this
         if (data && data?.election && Object.keys(data?.election).length > 0) {
             setElectionInformations(JSON.parse(data.election?.descriptionBlob));
             setPollingStationManager({
@@ -151,100 +151,100 @@ export default function Home({ params }) {
     }, [electionInformations])
 
     return (
-    <>
-        {pollingStationManager.showElectionInformation && (
-            <Electionheader 
-                election={data?.election}
-                electionInformations={electionInformations}
-            />
-        )}
-        {pollingStationManager.showNotification && (
-            <>
-                <Alert 
-                    alertType={pollingStationManager.notificationType}
-                    alertText={pollingStationManager.notificationText}
+        <>
+            {pollingStationManager.showElectionInformation && (
+                <Electionheader
+                    election={data?.election}
+                    electionInformations={electionInformations}
                 />
-            </>
-        )} 
+            )}
+            {pollingStationManager.showNotification && (
+                <>
+                    <Alert
+                        alertType={pollingStationManager.notificationType}
+                        alertText={pollingStationManager.notificationText}
+                    />
+                </>
+            )}
 
-        {pollingStationManager.showQuestions && (
-            <>
-                {electionInformations.ballot.map((question, index) => 
+            {pollingStationManager.showQuestions && (
+                <>
+                    {electionInformations.ballot.map((question, index) =>
                         <Question
                             key = {index}
                             question = {question}
                         />
-                )}
-            </>
-        )}
+                    )}
+                </>
+            )}
 
-        {pollingStationManager.showVotingSlipSelection && (
-            <>
-                <div className="op__contentbox_760 op__padding_standard_top_bottom">
-                    <h4>Zur Abstimmung benötigen Sie einen Wahlschein</h4>
-                </div>
-                <div>
-                    <NavigationBox 
-                        onClickAction={() => registerForElection()}
-                        head="Wahlschein bestellen"
-                        text="Ich habe noch keinen Wahlschein und möchte einen bestellen"
-                        type="primary"
+            {pollingStationManager.showVotingSlipSelection && (
+                <>
+                    <div className="op__contentbox_760 op__padding_standard_top_bottom">
+                        <h4>Zur Abstimmung benötigen Sie einen Wahlschein</h4>
+                    </div>
+                    <div>
+                        <NavigationBox
+                            onClickAction={() => registerForElection()}
+                            head="Wahlschein bestellen"
+                            text="Ich habe noch keinen Wahlschein und möchte einen bestellen"
+                            type="primary"
+                        />
+                    </div>
+                    <div>
+                        <NavigationBox
+                            onClickAction={() =>
+                                setPollingStationManager({
+                                    ...pollingStationManager,
+                                    showVotingSlipUpload: true,
+                                    showVotingSlipSelection: false,
+                                    showQuestions: false,
+                                    showNotification: false,
+                                })
+                            }
+                            head="Direkt abstimmen"
+                            text="Ich habe meinen Wahlschein und möchte direkt abstimmen"
+                            type="primary"
+                        />
+                    </div>
+                </>
+            )}
+            {pollingStationManager.showVotingSlipUpload && (
+                <>
+                    <HtmlQRCodePlugin
+                        headline = "Wahlschein prüfen"
+                        subheadline = "Mithilfe des Wahlscheins prüft die Wahlleitung Ihre Wahlberechtigung.!"
+                        uploadSubHeadline = "Sie können Ihren Wahlschein ganz einfach hier als Bild laden und prüfen lassen."
+                        scanSubHeadline = "Sie können Ihren Wahlschein ganz einfach über Ihre Geräte-Kamera prüfen lassen."
+                        onResult={(res) => {
+                            qrCodeToCredentials(res)
+                        }}
                     />
-                </div>
-                <div>
-                    <NavigationBox 
-                        onClickAction={() =>  
-                            setPollingStationManager({
-                                ...pollingStationManager, 
-                                showVotingSlipUpload: true,
-                                showVotingSlipSelection: false,
-                                showQuestions: false,
-                                showNotification: false,
-                            })
-                        }
-                        head="Direkt abstimmen"
-                        text="Ich habe meinen Wahlschein und möchte direkt abstimmen"
-                        type="primary"
-                    />
-                </div>
-            </>
-        )}
-        {pollingStationManager.showVotingSlipUpload && ( 
-            <>
-                <HtmlQRCodePlugin 
-                    headline = "Wahlschein prüfen"
-                    subheadline = "Mithilfe des Wahlscheins prüft die Wahlleitung Ihre Wahlberechtigung.!"
-                    uploadSubHeadline = "Sie können Ihren Wahlschein ganz einfach hier als Bild laden und prüfen lassen."
-                    scanSubHeadline = "Sie können Ihren Wahlschein ganz einfach über Ihre Geräte-Kamera prüfen lassen."
-                    onResult={(res) => {
-                        qrCodeToCredentials(res)
-                    }} 
-                />
 
-                <div className="op__contentbox_760 op__center_align">
-                    <Button 
-                        onClickAction={() =>  
-                            setPollingStationManager({
-                                ...pollingStationManager, 
-                                showVotingSlipUpload: false,
-                                showQuestions: true,
-                                showVotingSlipSelection: true,
-                            })
-                        }
-                        text="Eingabe abbrechen"
-                        type="primary"
-                    />
-                </div>
+                    <div className="op__contentbox_760 op__center_align">
+                        <Button
+                            onClickAction={() =>
+                                setPollingStationManager({
+                                    ...pollingStationManager,
+                                    showVotingSlipUpload: false,
+                                    showQuestions: true,
+                                    showVotingSlipSelection: true,
+                                })
+                            }
+                            text="Eingabe abbrechen"
+                            type="primary"
+                        />
+                    </div>
 
-            </>
-        )}
-        {pollingStationManager.showElection && pollingStationManager.allowedToVote && (
-            <>
-                <div>
-                    Wahlschein erkannt. Weitermachen mit dem nächsten Ticket
-                </div>
-            </>
-        )}
-    </>
+                </>
+            )}
+            {pollingStationManager.showElection && pollingStationManager.allowedToVote && (
+                <>
+                    <div>
+                        Wahlschein erkannt. Weitermachen mit dem nächsten Ticket
+                    </div>
+                </>
+            )}
+        </>
     );
 }
