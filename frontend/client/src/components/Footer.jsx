@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from "react";
-import styles from '../../styles/Footer.module.css';
+import styles from '../styles/Footer.module.css';
 import Button from './Button'
 import Image from 'next/image';
 
@@ -15,7 +15,7 @@ export default function Footer() {
                 Helfen Sie uns Demokratische Online-Wahlen möglich zu machen. Um die Platform kostenlos für alle bereitzustellen und gemeinnützige Wahlausrichter zu unterstützen, sind wir auf Spenden angewiesen.
                 </p>
                 <Button 
-                  onClickAction=""
+                  onClickAction={()=>alert('bitte gib uns geld!')}
                   type="dark"
                   text="JETZT SPENDEN"
                   style={{display: 'block', margin: '0 auto', marginTop: '1rem', fontWeight: 'bold'}} 

@@ -16,17 +16,21 @@ export default function Alert(props) {
         setHeadLine('');
         setAlertClasses('bg-green-100 border border-green-400 text-green-700');
         break;
+      case 'note':
+        setHeadLine('');
+        setAlertClasses('bg-white-100 border border-gray-400 text-black-700');
+        break;
     }
+
+    console.log(alertType + alertText);
   }, []);
 
   return (
     <>
-
         <div className={"px-4 py-3 m-2 rounded relative " + alertClasses} role="alert">
           <h3 className="font-bold">{headLine}</h3>
           <span className="block sm:inline">{alertText}</span>
         </div>
-
     </>
   )
 }

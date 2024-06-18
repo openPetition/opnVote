@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import { QRCodeCanvas } from 'qrcode.react';
-import styles from '../../styles/GenerateQRCode.module.css';
+import styles from '../styles/GenerateQRCode.module.css';
 import Image from 'next/image';
 import Button from './Button'
 
