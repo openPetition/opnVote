@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-import { modInv } from 'bigint-crypto-utils';
+import { modInv, modPow } from 'bigint-crypto-utils';
 import { Token, R, Signature } from "../types/types";
 import { base64ToHexString, hexStringToBase64, hexStringToBigInt, validateR, validateSignature, validateToken } from "../utils/utils";
 import { Register } from '../config'; 
@@ -188,7 +188,7 @@ export function blindToken(unblindedToken: Token, r: R): Token {
     const rBig: bigint = hexStringToBigInt(r.hexString);
 
     // Perform blinding: (Token_unblinded * r^e) mod N
-    const blindedHexBig = (unblindedTokenBig * rBig ** Register.e) % Register.N;
+    const blindedHexBig = (unblindedTokenBig * modPow(rBig, Register.e, Register.N)) % Register.N;
     const hexLength = Register.NbitLength / 4; // Convert bit length to hex length
 
     const blindedToken = {
