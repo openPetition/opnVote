@@ -1,9 +1,10 @@
 
 import Hex from 'crypto-js/enc-hex';
-import { ElectionCredentials, EncryptedVotes, R, RSAParams, RecastingVotingTransaction, Signature, Token, VotingTransaction } from '../types/types';
+import { ElectionCredentials, EncryptedVotes, EthSignature, R, RSAParams, RecastingVotingTransaction, Signature, Token, VotingTransaction } from '../types/types';
 import Base64 from 'crypto-js/enc-base64';
 import { Register } from '../config';
 import { ethers } from 'ethers';
+import * as crypto from 'crypto';
 
 /**
  * Validates a hexadecimal string.
@@ -11,9 +12,9 @@ import { ethers } from 'ethers';
  * @param expectedLength - The expected length of the hexadecimal string.
  * @throws Will throw an error if the hexadecimal string is invalid or of incorrect length.
  */
-export function validateHexString(hexStringObject: { hexString: string }, expectedLength: number): void {
+export function validateHexString(hexStringObject: { hexString: string }, expectedLength: number, shouldBeLowerCase: boolean = false): void {
 
-    if (hexStringObject.hexString.length !== expectedLength || !isValidHex(hexStringObject.hexString)) {
+    if (hexStringObject.hexString.length !== expectedLength || !isValidHex(hexStringObject.hexString, shouldBeLowerCase)) {
         throw new Error(`Invalid token format or length. Expected length: ${expectedLength} Token: ${hexStringObject.hexString}`);
     }
 }
@@ -24,7 +25,7 @@ export function validateHexString(hexStringObject: { hexString: string }, expect
  * @param str - The string to be checked.
  * @returns True if the string is a valid hexadecimal, false otherwise.
  */
-export function isValidHex(str: string): boolean {
+export function isValidHex(str: string, shouldBeLowerCase: boolean = false): boolean {
     if (str.length < 3) { return false }
 
     str = str.startsWith('0x')
@@ -32,8 +33,17 @@ export function isValidHex(str: string): boolean {
         : str
 
     const regexp = /^[0-9a-fA-F]+$/;
-    return regexp.test(str);
+
+    if (!regexp.test(str)) {
+        return false;
+    }
+    if (shouldBeLowerCase && str !== str.toLowerCase()) {
+        return false;
+    }
+
+    return true;
 }
+
 
 
 /**
@@ -41,7 +51,7 @@ export function isValidHex(str: string): boolean {
  * @param electionID - The election ID to be checked.
  * @throws Will throw an error if election ID is a negative number.
  */
-export function validateElectionID(electionID:number){
+export function validateElectionID(electionID: number) {
     if (electionID < 0) {
         throw new Error("Election ID must be a positive number")
     }
@@ -50,7 +60,7 @@ export function validateElectionID(electionID:number){
 
 /**
  * Converts a hexadecimal string to a Base64 string.
- * 
+ *
  * @param hexStringObject - An object containing a hexadecimal string to be converted.
  * @returns The Base64 string representation of the hexadecimal string.
  */
@@ -76,7 +86,7 @@ export function validateToken(token: Token): void {
         expectedLength = (Register.NbitLength / 4) + 2; // Adjust length for blinded tokens: Convert bit length to hex length and add 2 for '0x' prefix.
     }
 
-    validateHexString(token, expectedLength);
+    validateHexString(token, expectedLength, true);
 }
 
 
@@ -88,7 +98,7 @@ export function validateToken(token: Token): void {
 export function validateR(r: R): void {
 
     const expectedLength = 66; // Default length for R (SHA-256 output)
-    validateHexString(r, expectedLength);
+    validateHexString(r, expectedLength, true);
 }
 
 
@@ -100,9 +110,24 @@ export function validateR(r: R): void {
 export function validateSignature(signature: Signature): void {
 
     const expectedLength = (Register.NbitLength / 4) + 2; // length for signature: Convert bit length to hex length and add 2 for '0x' prefix.
-    validateHexString(signature, expectedLength);
+    validateHexString(signature, expectedLength, true);
 }
 
+/**
+ * Validates an EIP-191 compliant Ethereum signature.
+ * @param ethSignature - The EthSignature to be validated.
+ * @throws Will throw an error if the EthSignature object is invalid or of incorrect length.
+ */
+export function validateEthSignature(ethSignature: EthSignature): void {
+
+    const expectedLength = 132; // Ethereum signature length is 65 bytes, plus 2 for '0x' prefix
+    validateHexString(ethSignature, expectedLength);
+    try {
+        ethers.Signature.from(ethSignature.hexString);
+    } catch (error) {
+        throw new Error("Invalid Ethereum signature");
+    }
+}
 
 /**
  * Validates an EncryptedVotes object.
@@ -188,9 +213,9 @@ export function hexStringToBigInt(hexString: string): bigint {
 }
 
 /**
- * Converts a Base64-encoded string to a hexadecimal string with "0x" prefix. 
- * This function handles the conversion Token, R and Signature types. 
- * 
+ * Converts a Base64-encoded string to a hexadecimal string with "0x" prefix.
+ * This function handles the conversion Token, R and Signature types.
+ *
  * @param base64String - The Base64 string to be converted.
  * @returns A '0x' prefixed hexadecimal string representation of the Base64 input.
  */
@@ -222,7 +247,6 @@ export function validateCredentials(credentials: ElectionCredentials): void {
     if (credentials.unblindedElectionToken.isMaster) {
         throw new Error("Election token must not be a master token.");
     }
- 
 }
 
 
@@ -258,4 +282,25 @@ function powermod(base: bigint, exp: bigint, p: bigint) {
         exp >>= 1n;
     }
     return result;
+}
+
+/**
+ * Returns the bit length of a BigInt value.
+ * @param bigIntValue - The BigInt value to get the bit length of.
+ * @returns The bit length of the BigInt value.
+ */
+export function getBitLength(bigIntValue: BigInt) {
+    return bigIntValue.toString(2).length;
+}
+
+/**
+ * Returns the appropriate SubtleCrypto instance based on the environment (browser or Node.js).
+ * @returns A SubtleCrypto instance.
+ */
+export function getSubtleCrypto(): SubtleCrypto | crypto.webcrypto.SubtleCrypto {
+    if (typeof window !== 'undefined' && typeof window.crypto !== 'undefined') {
+        return window.crypto.subtle;
+    } else {
+        return crypto.webcrypto.subtle;
+    }
 }
