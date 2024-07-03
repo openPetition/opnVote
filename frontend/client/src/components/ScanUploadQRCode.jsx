@@ -108,7 +108,7 @@ export default function ScanUploadQRCode (props) {
   
     return (
       <>
-        <div class="op__contentbox_760">
+        <div className="op__contentbox_760">
           <h3>{headline}</h3>
           {subheadline}
         </div>

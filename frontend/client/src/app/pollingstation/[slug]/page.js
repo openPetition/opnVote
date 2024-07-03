@@ -9,7 +9,7 @@ import HtmlQRCodePlugin from "../../../components/ScanUploadQRCode";
 import Electionheader from "../components/Electionheader";
 import Question from "../components/Question";
 import { qrToElectionCredentials, validateCredentials } from "votingsystem";
-import { useLazyQuery, gql } from '@apollo/client';
+import { useQuery, gql } from '@apollo/client';
 
 export default function Home({ params }) {
 
@@ -29,6 +29,7 @@ export default function Home({ params }) {
     const cookies = new Cookies(null, { path: '/' });
     const [ votingCredentials, setVotingCredentials ] = useState({});
     const [ electionInformations, setElectionInformations ] = useState({});
+    const [ votes, setVotes ] = useState({});
 
     // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
     const [ pollingStationManager, setPollingStationManager ] = useState(pollingStationManagerInit);
@@ -51,7 +52,7 @@ export default function Home({ params }) {
     }`;
 
     const registerForElection = function() {
-        if(data?.election.id) {
+        if (data?.election.id) {
             window.location.href="/register/"+data?.election.id;
         }
     }
@@ -105,7 +106,7 @@ export default function Home({ params }) {
         }
     }
 
-    const [getElection, { loading, data }]  = useLazyQuery(GET_ELECTION, { variables: { id: params.slug } });
+    const { loading, data }  = useQuery(GET_ELECTION, { variables: { id: params.slug } });
 
     const setNoElectionData = () => {
         setPollingStationManager({
@@ -117,11 +118,14 @@ export default function Home({ params }) {
     }
 
     useEffect(() => {
-        // everything that we need to do first is get the election data
-        getElection();
-    }, []);
+        //TODO: check wether we can send the votes and everything is fine -> convert to the array we need
+        console.log(votes);
+        console.log(Object.keys(votes).length);
+    }, [votes]);
 
     useEffect(() => {
+        if (loading) return;
+
         // after we got election data .. check this
         if (data && data?.election && Object.keys(data?.election).length > 0) {
             setElectionInformations(JSON.parse(data.election?.descriptionBlob));
@@ -137,17 +141,20 @@ export default function Home({ params }) {
                 notificationType: ''
             });
         } else {
-            if(!loading)
-                setNoElectionData();
+            setNoElectionData();
         }
     }, [data]);
 
     useEffect(() => {
-        // only if we have the electioninformations its worth to check wether there is some voter informations stored.
+        // only if we have the electioninformations its worth to check
+        // wether there is some voter informations stored.
         let voterQR = cookies.get('voterQR');
-        if(voterQR?.length > 0) {
-            qrCodeToCredentials(voterQR);
+        if (voterQR?.length == 0 || Object.keys(electionInformations).length === 0 || electionInformations.constructor !== Object) {
+            return;
         }
+
+        qrCodeToCredentials(voterQR);
+        
     }, [electionInformations])
 
     return (
@@ -172,7 +179,14 @@ export default function Home({ params }) {
                     {electionInformations.ballot.map((question, index) =>
                         <Question
                             key = {index}
+                            questionKey={index}
                             question = {question}
+                            selectedVote = {votes[index]}
+                            showVoteOptions = {pollingStationManager.allowedToVote}
+                            setVote = {(selection) => setVotes(votes=>({
+                                ...votes,
+                                [index] :selection
+                             }))}
                         />
                     )}
                 </>
