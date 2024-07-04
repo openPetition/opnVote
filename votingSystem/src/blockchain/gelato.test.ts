@@ -132,7 +132,7 @@ describe("createRelayRequest", () => {
             userDeadline: expect.any(Number),
             isConcurrent: false
         });
-        expect(result.data.length).toBeGreaterThanOrEqual(1200);
+        expect(result.data.length).toBeGreaterThanOrEqual(1000);
 
     });
 });

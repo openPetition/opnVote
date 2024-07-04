@@ -1,7 +1,8 @@
 
-import * as crypto from 'crypto';
-import { ElectionCredentials, EncryptedVotes, EthSignature, PrivateKeyDer, PublicKeyDer, RecastingVotingTransaction, Signature, Vote, VoteOption, VotingTransaction, } from "../types/types";
-import { validateElectionID, validateEncryptedVotes, validateEthAddress, validateRecastingVotingTransaction, validateSignature, validateToken, validateVotingTransaction } from '../utils/utils';
+import { ElectionCredentials, EncryptedVotes, EthSignature, PrivateKeyDer, PublicKeyDer, RecastingVotingTransaction, Vote, VoteOption, VotingTransaction, } from "../types/types";
+import { getSubtleCrypto, validateElectionID, validateEncryptedVotes, validateEthAddress, validateRecastingVotingTransaction, validateSignature, validateToken, validateVotingTransaction } from '../utils/utils';
+import * as crypto from 'crypto'
+
 /**
  * Creates a voting transaction without SVS signature.
  * @param {ElectionCredentials} voterCredentials - Credentials of the voter
@@ -99,27 +100,35 @@ export function createVoteRecastTransaction(voterCredentials: ElectionCredential
  * @returns {EncryptedVotes} Encrypted votes
  * @throws {Error} if no votes are provided or if any error occurs during the encryption process
  */
-export function encryptVotes(votes: Array<Vote>, publicKeyHex: PublicKeyDer): EncryptedVotes {
+export async function encryptVotes(votes: Array<Vote>, publicKeyHex: PublicKeyDer): Promise<EncryptedVotes> {
     if (votes.length === 0) {
         throw new Error("Encryption error: No votes provided.");
     }
     try {
+        const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
         const publicKeyBuffer = hexToBuffer(publicKeyHex);
-        const publicKeyObject = crypto.createPublicKey({ key: publicKeyBuffer, format: 'der', type: 'spki' });
-
-        const votesString = votesToString(votes);
-        const buffer = Buffer.from(votesString, 'utf8');
-        const encrypted = crypto.publicEncrypt(
+        const publicKey = await subtle.importKey(
+            'spki',
+            publicKeyBuffer,
             {
-                key: publicKeyObject,
-                padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-                oaepHash: "sha256",
+                name: "RSA-OAEP",
+                hash: "SHA-256"
             },
+            true,
+            ["encrypt"]
+        );
+        const votesString = votesToString(votes);
+        const buffer = new TextEncoder().encode(votesString);
+        const encrypted = await subtle.encrypt(
+            {
+                name: "RSA-OAEP"
+            },
+            publicKey,
             buffer
         );
 
         return {
-            hexString: '0x' + encrypted.toString('hex')
+            hexString: '0x' + Buffer.from(encrypted).toString('hex')
         };
     } catch (error) {
         if (error instanceof Error) {
@@ -133,29 +142,38 @@ export function encryptVotes(votes: Array<Vote>, publicKeyHex: PublicKeyDer): En
 /**
  * Decrypts a string of encrypted votes using RSA-OAEP with SHA-256.
  * @param {EncryptedVotes} encryptedVotes - Encrypted votes
- * @param {PrivateKeyDer} privateKeyHex - Election Private key in DER format 
+ * @param {PrivateKeyDer} privateKeyHex - Election Private key in DER format
  * @returns {Array<Vote>} An array of votes
  * @throws {Error} if no valid encrypted data is provided or if any error occurs during the decryption process.
  */
-export function decryptVotes(encryptedVotes: EncryptedVotes, privateKeyHex: PrivateKeyDer): Array<Vote> {
+export async function decryptVotes(encryptedVotes: EncryptedVotes, privateKeyHex: PrivateKeyDer): Promise<Array<Vote>> {
 
     if (!encryptedVotes.hexString || encryptedVotes.hexString.length <= 2 || !encryptedVotes.hexString.startsWith('0x')) {
         throw new Error("Decryption error: No valid encrypted data provided.");
     }
 
     try {
+        const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
         const privateKeyBuffer = hexToBuffer(privateKeyHex);
-        const privateKeyObject = crypto.createPrivateKey({ key: privateKeyBuffer, format: 'der', type: 'pkcs8' });
-        const encryptedBuf = hexToBuffer(encryptedVotes.hexString)
-        const decrypted = crypto.privateDecrypt(
+        const privateKey = await subtle.importKey(
+            'pkcs8',
+            privateKeyBuffer,
             {
-                key: privateKeyObject,
-                padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-                oaepHash: "sha256",
+                name: "RSA-OAEP",
+                hash: "SHA-256"
             },
+            true,
+            ["decrypt"]
+        );
+        const encryptedBuf = hexToBuffer(encryptedVotes.hexString)
+        const decrypted = await subtle.decrypt(
+            {
+                name: "RSA-OAEP"
+            },
+            privateKey,
             encryptedBuf
         );
-        const votesString = decrypted.toString('utf8');
+        const votesString = new TextDecoder().decode(decrypted);
         return stringToVotes(votesString);
     } catch (error) {
         if (error instanceof Error) {
