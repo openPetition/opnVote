@@ -1,5 +1,7 @@
 import { generateKeyPair, generateKeyPairRaw } from './generateRSAKeys';
-import { isValidHex } from '../utils/utils'
+import { getBitLength, isValidHex, validateRSAParams } from '../utils/utils'
+import { RSAParams } from '../types/types';
+import { RSA_BIT_LENGTH } from '../utils/constants';
 
 describe('generateKeyPair', () => {
     it('should generate a valid RSA key pair', async () => {
@@ -22,25 +24,17 @@ describe('generateKeyPair', () => {
 
 describe('generateKeyPairRaw', () => {
     it('should generate valid raw RSA key pair components', () => {
-        const { e, n, d } = generateKeyPairRaw();
 
-        // Components should be a hex-string
-        expect(e.startsWith('0x')).toBe(true);
-        expect(n.startsWith('0x')).toBe(true);
-        expect(d.startsWith('0x')).toBe(true);
+        const rsaParams: RSAParams = generateKeyPairRaw();
 
-        expect(isValidHex(e)).toBe(true);
-        expect(isValidHex(n)).toBe(true);
-        expect(isValidHex(d)).toBe(true);
+        expect(rsaParams.D).toBeDefined();
+        expect(rsaParams.e).toBeDefined();
 
-        // Check the length of 'e' (usually 0x10001)
-        expect(e.length).toBeGreaterThanOrEqual(7);
-        // Check the length of 'n' (2048 bits, 256 bytes + potential leading zeros)
-        expect(n.length).toBeGreaterThanOrEqual(514);
-        expect(n.length).toBeLessThanOrEqual(516);  // Allowing leading zeros
+        expect(rsaParams.e).toBeGreaterThan(3);
 
-        // Check the length of 'd' (similar size to 'n')
-        expect(d.length).toBeGreaterThanOrEqual(514);
-        expect(d.length).toBeLessThanOrEqual(516); // Allowing leading zeros
+        expect(rsaParams.NbitLength).toBeGreaterThanOrEqual(1024);
+        expect(rsaParams.NbitLength).toBe(RSA_BIT_LENGTH)
+        expect(getBitLength(rsaParams.N)).toBe(rsaParams.NbitLength)
+        expect(() => validateRSAParams(rsaParams)).not.toThrow();
     });
 });

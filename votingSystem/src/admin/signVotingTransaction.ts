@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { EthSignature, Signature, VotingTransaction } from "../types/types";
+import { EthSignature,  VotingTransaction } from "../types/types";
 import { validateVotingTransaction } from "../utils/utils";
 
 /**
@@ -16,7 +16,7 @@ export async function signVotingTransaction(votingTransaction: VotingTransaction
     }
 
     validateVotingTransaction(votingTransaction)
-    
+
     let wallet: ethers.Wallet;
 
     try {

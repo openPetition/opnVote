@@ -4,6 +4,7 @@ import { createVotingTransactionWithoutSVSSignature } from '../voting/voting';
 import { ElectionCredentials, EncryptedVotes, EthSignature, Signature, Token, VotingTransaction } from '../types/types';
 import { isValidHex } from '../utils/utils';
 import * as utils from '../utils/utils';
+import { RSA_BIT_LENGTH } from '../utils/constants';
 
 describe('signVotingTransaction', () => {
     let voterWallet: ethers.Wallet;
@@ -13,9 +14,11 @@ describe('signVotingTransaction', () => {
     let dummyEncryptedVotes: EncryptedVotes;
 
     beforeEach(() => {
+        const expectedHexLength = (RSA_BIT_LENGTH / 4) + 2; // RSA_BIT_LENGTH bits => RSA_BIT_LENGTH / 4 hex characters + 2 for '0x' prefix
+
         voterWallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey);
-        dummyToken = { hexString: "0x0000000000000000000000000000000000000000000000000000000000000000", isMaster: false, isBlinded: false };
-        dummySignature = { hexString: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", isBlinded: false };
+        dummyToken = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false };
+        dummySignature = { hexString: '0x' + '1'.repeat(expectedHexLength - 2), isBlinded: false };
         voterCredentials = {
             electionID: 1,
             voterWallet: voterWallet,
@@ -28,7 +31,7 @@ describe('signVotingTransaction', () => {
     it('should sign a voting transaction successfully', async () => {
         const votingTransaction = createVotingTransactionWithoutSVSSignature(voterCredentials, dummyEncryptedVotes);
 
-        const signature:EthSignature = await signVotingTransaction(votingTransaction, voterWallet.privateKey);
+        const signature: EthSignature = await signVotingTransaction(votingTransaction, voterWallet.privateKey);
 
         expect(signature).toBeDefined();
         expect(isValidHex(signature.hexString)).toBe(true);

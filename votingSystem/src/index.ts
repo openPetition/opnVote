@@ -6,3 +6,4 @@ export * from './voter-credentials/voterCredentials';
 export * from './admin/signVotingTransaction';
 export * from './admin/generateRSAKeys';
 export * from './voting/voting';
+export * from './utils/constants';

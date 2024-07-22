@@ -10,10 +10,10 @@ describe('createVoterCredentials', () => {
     const { masterToken, masterR } = generateMasterTokenAndMasterR();
     const electionID = 0
     const unblindedElectionToken = deriveElectionUnblindedToken(electionID, masterToken);
-    const electionR = deriveElectionR(electionID, masterR, unblindedElectionToken);
-    const blindedElectionToken = blindToken(unblindedElectionToken, electionR)
+    const electionR = deriveElectionR(electionID, masterR, unblindedElectionToken, TestRegister);
+    const blindedElectionToken = blindToken(unblindedElectionToken, electionR, TestRegister)
     const blindedSignature = signToken(blindedElectionToken, TestRegister)
-    const unblindedSignature = unblindSignature(blindedSignature, electionR)
+    const unblindedSignature = unblindSignature(blindedSignature, electionR, TestRegister)
 
     // Creating voter Credentials for specific Election
     const voterCredentials = createVoterCredentials(unblindedSignature, unblindedElectionToken, masterToken, electionID);
@@ -41,18 +41,18 @@ describe('QR Code Encode and Decode', () => {
     const { masterToken, masterR } = generateMasterTokenAndMasterR();
     const electionID = 1;
     const unblindedElectionToken = deriveElectionUnblindedToken(electionID, masterToken);
-    const electionR = deriveElectionR(electionID, masterR, unblindedElectionToken);
-    const blindedElectionToken = blindToken(unblindedElectionToken, electionR);
+    const electionR = deriveElectionR(electionID, masterR, unblindedElectionToken, TestRegister);
+    const blindedElectionToken = blindToken(unblindedElectionToken, electionR, TestRegister);
     const blindedSignature = signToken(blindedElectionToken, TestRegister);
-    const unblindedSignature = unblindSignature(blindedSignature, electionR);
+    const unblindedSignature = unblindSignature(blindedSignature, electionR, TestRegister);
     const originalCredentials = createVoterCredentials(unblindedSignature, unblindedElectionToken, masterToken, electionID);
     expect(() => validateCredentials(originalCredentials)).not.toThrow();
 
 
-    const expectedQrLength = 88 + 2 * 44 + 3 + electionID.toString().length // QR Code length: 88(Sig)+2*44(Token,Privkey) + 3 Delimiter + election ID length 
+    const expectedQrLength = 344 + 2 * 44 + 3 + electionID.toString().length // QR Code length: 344(Sig)+2*44(Token,Privkey) + 3 Delimiter + election ID length
 
     // Encode to QR code
-    const qrCodeString = concatElectionCredentialsForQR(originalCredentials); 
+    const qrCodeString = concatElectionCredentialsForQR(originalCredentials);
 
     expect(qrCodeString.length).toBe(expectedQrLength)
 

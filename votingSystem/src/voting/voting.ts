@@ -1,6 +1,7 @@
 
 import { ElectionCredentials, EncryptedVotes, EthSignature, PrivateKeyDer, PublicKeyDer, RecastingVotingTransaction, Vote, VoteOption, VotingTransaction, } from "../types/types";
-import { getSubtleCrypto, validateElectionID, validateEncryptedVotes, validateEthAddress, validateRecastingVotingTransaction, validateSignature, validateToken, validateVotingTransaction } from '../utils/utils';
+import { RSA_BIT_LENGTH } from "../utils/constants";
+import { getSubtleCrypto, hexToBuffer, stringToVotes, validateCredentials, validateElectionID, validateEncryptedVotes, validateEthAddress, validateEthSignature, validateRecastingVotingTransaction, validateSignature, validateToken, validateVotes, validateVotingTransaction, votesToString } from '../utils/utils';
 import * as crypto from 'crypto'
 
 /**
@@ -8,7 +9,7 @@ import * as crypto from 'crypto'
  * @param {ElectionCredentials} voterCredentials - Credentials of the voter
  * @param {EncryptedVotes} encryptedVotes - Encrypted votes to be included in voting transaction
  * @returns {VotingTransaction} Voting transaction without SVS signature
- * @throws {Error} if any validation (Signature, EncryptedVotes, Token, Signature, ...) fails
+ * @throws {Error} If any validation (Signature, EncryptedVotes, Token, Signature, ...) fails
  */
 export function createVotingTransactionWithoutSVSSignature(voterCredentials: ElectionCredentials, encryptedVotes: EncryptedVotes): VotingTransaction {
 
@@ -51,7 +52,7 @@ export function createVotingTransactionWithoutSVSSignature(voterCredentials: Ele
  * @param {VotingTransaction} votingTransaction - Voting transaction to which the signature will be added
  * @param {EthSignature} svsSignature -  EIP-191 compliant SVS signature to be added to the voting transaction
  * @returns {VotingTransaction} Updated voting transaction with SVS signature
- * @throws {Error} if any validation (Signature, EncryptedVotes, Token, Signature, ...) fails
+ * @throws {Error} If any validation (Signature, EncryptedVotes, Token, Signature, ...) fails
  */
 export function addSVSSignatureToVotingTransaction(votingTransaction: VotingTransaction, svsSignature: EthSignature): VotingTransaction {
 
@@ -60,7 +61,7 @@ export function addSVSSignatureToVotingTransaction(votingTransaction: VotingTran
     }
 
     validateVotingTransaction(votingTransaction)
-    // validateSignature(svsSignature) //todo: Add Validation for EIP 191 compliant Signature
+    validateEthSignature(svsSignature)
 
     return {
         ...votingTransaction,
@@ -74,13 +75,11 @@ export function addSVSSignatureToVotingTransaction(votingTransaction: VotingTran
  * @param {ElectionCredentials} voterCredentials - Credentials of the voter
  * @param {EncryptedVotes} encryptedVotes - Encrypted votes to be included in the recasting voting transaction
  * @returns {RecastingVotingTransaction} Recasting voting transaction
- * @throws {Error} if any validation (ElectionID, EncryptedVotes, EthAddress) fails
+ * @throws {Error} If any validation (ElectionID, EncryptedVotes, EthAddress) fails
  */
 export function createVoteRecastTransaction(voterCredentials: ElectionCredentials, encryptedVotes: EncryptedVotes): RecastingVotingTransaction {
+    validateCredentials(voterCredentials)
     validateEncryptedVotes(encryptedVotes)
-    validateEthAddress(voterCredentials.voterWallet.address)
-    validateElectionID(voterCredentials.electionID)
-
 
     const recastingVotingTransaction: RecastingVotingTransaction = {
         electionID: voterCredentials.electionID,
@@ -105,6 +104,7 @@ export async function encryptVotes(votes: Array<Vote>, publicKeyHex: PublicKeyDe
         throw new Error("Encryption error: No votes provided.");
     }
     try {
+        validateVotes(votes)
         const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
         const publicKeyBuffer = hexToBuffer(publicKeyHex);
         const publicKey = await subtle.importKey(
@@ -117,7 +117,21 @@ export async function encryptVotes(votes: Array<Vote>, publicKeyHex: PublicKeyDe
             true,
             ["encrypt"]
         );
-        const votesString = votesToString(votes);
+
+        // Validate Key size
+        const keyDetails = await subtle.exportKey('jwk', publicKey);
+        if (keyDetails.n) {
+            const keySize = keyDetails.n.length * 6 / 8; // Approximate bit length
+            const expectedKeySize = RSA_BIT_LENGTH / 8;
+            if (Math.abs(keySize - expectedKeySize) > 1) {
+                throw new Error(`Invalid key size. Expected around ${RSA_BIT_LENGTH} bits, but got approximately ${Math.round(keySize * 8)} bits.`);
+            }
+        } else {
+            throw new Error("Unable to determine key size.");
+        }
+
+
+        const votesString: string = votesToString(votes);
         const buffer = new TextEncoder().encode(votesString);
         const encrypted = await subtle.encrypt(
             {
@@ -126,10 +140,10 @@ export async function encryptVotes(votes: Array<Vote>, publicKeyHex: PublicKeyDe
             publicKey,
             buffer
         );
+        const encryptedVotes: EncryptedVotes = { hexString: '0x' + Buffer.from(encrypted).toString('hex') }
+        validateEncryptedVotes(encryptedVotes)
 
-        return {
-            hexString: '0x' + Buffer.from(encrypted).toString('hex')
-        };
+        return encryptedVotes;
     } catch (error) {
         if (error instanceof Error) {
             throw new Error("Failed to encrypt votes: " + error.message);
@@ -144,13 +158,14 @@ export async function encryptVotes(votes: Array<Vote>, publicKeyHex: PublicKeyDe
  * @param {EncryptedVotes} encryptedVotes - Encrypted votes
  * @param {PrivateKeyDer} privateKeyHex - Election Private key in DER format
  * @returns {Array<Vote>} An array of votes
- * @throws {Error} if no valid encrypted data is provided or if any error occurs during the decryption process.
+ * @throws {Error} If no valid encrypted data is provided or if any error occurs during the decryption process.
  */
 export async function decryptVotes(encryptedVotes: EncryptedVotes, privateKeyHex: PrivateKeyDer): Promise<Array<Vote>> {
 
     if (!encryptedVotes.hexString || encryptedVotes.hexString.length <= 2 || !encryptedVotes.hexString.startsWith('0x')) {
         throw new Error("Decryption error: No valid encrypted data provided.");
     }
+    validateEncryptedVotes(encryptedVotes)
 
     try {
         const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
@@ -174,7 +189,10 @@ export async function decryptVotes(encryptedVotes: EncryptedVotes, privateKeyHex
             encryptedBuf
         );
         const votesString = new TextDecoder().decode(decrypted);
-        return stringToVotes(votesString);
+        const votes = stringToVotes(votesString)
+        validateVotes(votes)
+
+        return votes;
     } catch (error) {
         if (error instanceof Error) {
             throw new Error("Failed to decrypt votes: " + error.message);
@@ -183,44 +201,4 @@ export async function decryptVotes(encryptedVotes: EncryptedVotes, privateKeyHex
         }
 
     }
-}
-
-
-/**
- * Helper function to convert an array of votes to string.
- * @param {Array<Vote>} votes - Array of votes to convert.
- * @returns {string} String representation of votes.
- */
-function votesToString(votes: Array<Vote>): string {
-    return votes.reduce((acc, vote) => acc + vote.value.toString(), '');
-}
-
-/**
- * Helper function to convert a string to an array of votes.
- * @param {string} votesString - String representation of votes.
- * @returns {Array<Vote>} Array of votes.
- * @throws {Error} if any character in the votesString is not a valid VoteOption.
- */
-function stringToVotes(votesString: string): Array<Vote> {
-    const votes = [...votesString].map(char => {
-        const voteValue = parseInt(char);
-        if (!Object.values(VoteOption).includes(voteValue)) {
-            throw new Error(`Invalid vote option encountered: ${voteValue}`);
-        }
-        return { value: voteValue as VoteOption };
-    });
-    return votes;
-}
-
-
-/**
- * Converts a hex string into a Buffer. Removes '0x'-prefix is present
- * @param {string} hexString -  hex string to convert
- * @returns {Buffer} Buffer representing binary data
- */
-function hexToBuffer(hexString: string): Buffer {
-    if (hexString.startsWith('0x')) {
-        hexString = hexString.substring(2);
-    }
-    return Buffer.from(hexString, 'hex');
 }

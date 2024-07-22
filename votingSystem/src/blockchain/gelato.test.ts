@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import { createRelayRequest } from "./gelato";
 import { ElectionCredentials, Signature, Token, VotingTransaction } from "../types/types";
+import { RSA_BIT_LENGTH } from "../utils/constants";
 
 describe("createRelayRequest", () => {
     let mockProvider: ethers.JsonRpcProvider;
@@ -32,8 +33,8 @@ describe("createRelayRequest", () => {
     it("should throw an error if transaction sender does not match voter address", async () => {
         const voterAddressWrong: string = "0x0000000000000000000000000000000000000000"
         const voterWallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey)
-        const dummyToken: Token = { hexString: "0x0000000000000000000000000000000000000000000000000000000000000000", isMaster: false, isBlinded: false }
-        const dummySignature: Signature = { hexString: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", isBlinded: false }
+        const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
+        const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
         const credentials: ElectionCredentials = {
             electionID: 1,
             voterWallet: voterWallet,
@@ -66,8 +67,8 @@ describe("createRelayRequest", () => {
 
     it("should calculate the user deadline around 3 days from now", async () => {
         const voterWallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey)
-        const dummyToken: Token = { hexString: "0x0000000000000000000000000000000000000000000000000000000000000000", isMaster: false, isBlinded: false }
-        const dummySignature: Signature = { hexString: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", isBlinded: false }
+        const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
+        const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
         const credentials: ElectionCredentials = {
             electionID: 1,
             voterWallet: voterWallet,
@@ -100,8 +101,8 @@ describe("createRelayRequest", () => {
 
     it("should return a valid CallWithERC2771Request object", async () => {
         const voterWallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey)
-        const dummyToken: Token = { hexString: "0x0000000000000000000000000000000000000000000000000000000000000000", isMaster: false, isBlinded: false }
-        const dummySignature: Signature = { hexString: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", isBlinded: false }
+        const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
+        const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
         const credentials: ElectionCredentials = {
             electionID: 1,
             voterWallet: voterWallet,

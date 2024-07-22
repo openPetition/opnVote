@@ -1,6 +1,7 @@
 import { ElectionCredentials, EncryptedVotes, EthSignature, Signature, Token, Vote, VoteOption, VotingTransaction } from "../types/types";
 import { ethers } from "ethers";
 import { addSVSSignatureToVotingTransaction, createVotingTransactionWithoutSVSSignature } from "./voting";
+import { RSA_BIT_LENGTH } from "../utils/constants";
 
 describe('Encryption and Decryption Integration', () => {
     beforeEach(() => {
@@ -96,8 +97,8 @@ describe('Edge Cases for Encryption and Decryption', () => {
 describe('createVotingTransactionWithoutSVSSignature', () => {
     it('should create a transaction with the correct properties', () => {
         const voterWallet: ethers.Wallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey)
-        const dummyToken: Token = { hexString: "0x0000000000000000000000000000000000000000000000000000000000000000", isMaster: false, isBlinded: false }
-        const dummySignature: Signature = { hexString: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", isBlinded: false }
+        const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
+        const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
         const voterCredentials: ElectionCredentials = {
             electionID: 1,
             voterWallet: voterWallet,
@@ -120,8 +121,8 @@ describe('createVotingTransactionWithoutSVSSignature', () => {
 
 describe('addSVSSignatureToVotingTransaction', () => {
     it('should add an SVS signature correctly', () => {
-        const dummyToken: Token = { hexString: "0x0000000000000000000000000000000000000000000000000000000000000000", isMaster: false, isBlinded: false }
-        const dummySignature: Signature = { hexString: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", isBlinded: false }
+        const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
+        const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
         const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' };
 
         const transaction: VotingTransaction = {
@@ -133,16 +134,17 @@ describe('addSVSSignatureToVotingTransaction', () => {
             svsSignature: null
         };
 
-        const svsSignature: EthSignature = { hexString: dummySignature.hexString };
+        const svsSignature: EthSignature = {hexString: '0x' + '0'.repeat(130) };
         const updatedTransaction: VotingTransaction = addSVSSignatureToVotingTransaction(transaction, svsSignature);
 
         expect(updatedTransaction.svsSignature).toBe(svsSignature);
     });
 
     it('should throw if SVS signature is already present', () => {
-        const dummyToken: Token = { hexString: "0x0000000000000000000000000000000000000000000000000000000000000000", isMaster: false, isBlinded: false }
-        const dummySignature: Signature = { hexString: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", isBlinded: false }
+        const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
+        const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
         const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' };
+        const svsSignature: EthSignature = {hexString: '0x' + '1'.repeat(130) };
 
         const transaction: VotingTransaction = {
             electionID: 1,
@@ -152,8 +154,6 @@ describe('addSVSSignatureToVotingTransaction', () => {
             unblindedSignature: dummySignature,
             svsSignature: dummySignature
         };
-        const svsSignature: EthSignature = { hexString: dummySignature.hexString };
-
         expect(() => addSVSSignatureToVotingTransaction(transaction, svsSignature)).toThrow('Voting Transaction already contains SVS Signature');
     });
 

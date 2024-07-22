@@ -1,9 +1,9 @@
 import { ethers } from "ethers";
-
 import { modInv, modPow } from 'bigint-crypto-utils';
-import { Token, R, Signature } from "../types/types";
-import { base64ToHexString, hexStringToBase64, hexStringToBigInt, validateR, validateSignature, validateToken } from "../utils/utils";
-import { Register } from '../config'; 
+import { Token, R, Signature, RSAParams } from "../types/types";
+import { base64ToHexString, hexStringToBase64, hexStringToBigInt, validateElectionID, validateR, validateRSAParams, validateSignature, validateToken } from "../utils/utils";
+import { PREFIX_BLINDED_TOKEN, PREFIX_UNBLINDED_TOKEN } from "../utils/constants";
+import { shake256 } from 'js-sha3';
 
 
 
@@ -11,10 +11,9 @@ import { Register } from '../config';
 
 
 /**
- * Generates an unblinded master token and a master r
+ * Generates an unblinded master token and a master r.
  * @returns An object containing the masterToken as Token and masterR as R objects.
  */
-
 export function generateMasterTokenAndMasterR(): { masterToken: Token, masterR: R } {
     const masterToken: Token = { hexString: ethers.hexlify(ethers.randomBytes(32)), isMaster: true, isBlinded: false };
     const masterR: R = { hexString: ethers.hexlify(ethers.randomBytes(32)), isMaster: true };
@@ -62,21 +61,23 @@ export function qrToTokenAndR(concatenatedBase64: string, isMaster: Boolean): { 
     return { token, r };
 }
 
-
 /**
- * 
  * Derives deterministically an election-specific R from a master R and an unblinded election token.
  * It iteratively calculates R using the election ID, master R, and a nonce until finding an R that
- * leads to a blinded token starting with '0x1'. 
- * @param electionID - The unique identifier of the election.
- * @param masterR - The master R used for deriving the election-specific R.
- * @param unblindedElectionToken - The unblinded, election-specific token associated, which must not be blinded or a master token.
- * @returns An R object representing the derived election-specific R.
- * @throws Error if invalid inputs are provided or if the input token is a master or already blinded token.
+ * leads to a blinded token starting with '0x1'.
+ *
+ * @param {number} electionID - The unique identifier of the election.
+ * @param {R} masterR - The master R used for deriving the election-specific R.
+ * @param {Token} unblindedElectionToken - The unblinded, election-specific token associated, which must not be blinded or a master token.
+ * @param {RSAParams} rsaParams - The RSA parameters including the modulus.
+ * @returns {R} An R object representing the derived election-specific R.
+ * @throws {Error} If invalid inputs are provided or if the input token is a master or already blinded token.
  */
-export function deriveElectionR(electionID: number, masterR: R, unblindedElectionToken: Token): R {
+export function deriveElectionR(electionID: number, masterR: R, unblindedElectionToken: Token, rsaParams: RSAParams): R {
+    validateElectionID(electionID)
     validateR(masterR)
     validateToken(unblindedElectionToken)
+    validateRSAParams(rsaParams)
 
     if (unblindedElectionToken.isMaster) {
         throw new Error("Master Token cannot be used for R Generation")
@@ -91,12 +92,13 @@ export function deriveElectionR(electionID: number, masterR: R, unblindedElectio
     }
 
 
-    let iterations = 0
+    let iterations: number = 0
     let blindedToken: Token;
     let nonce: bigint = 0n;
 
     // Initial calculation of electionR as bigint
-    let electionRBig: bigint = hexStringToBigInt(ethers.sha256(ethers.toUtf8Bytes(`${electionID}|${masterR.hexString}|${0}`)))
+    let electionRSeed:string = ethers.sha256(ethers.toUtf8Bytes(`${electionID}|${masterR.hexString}|${0}`))
+    let electionRBig: bigint = hexStringToBigInt(padMessage(electionRSeed, rsaParams.NbitLength))
     let electionR: R;
     do {
         iterations++;
@@ -105,30 +107,32 @@ export function deriveElectionR(electionID: number, masterR: R, unblindedElectio
         // Recalculate electionR with an incremented nonce until a valid R, generating a 0x1 prefixed blinded token
         do {
             if (nonce > 0n) {
-                electionRBig = hexStringToBigInt(ethers.sha256(ethers.toUtf8Bytes(`${electionID}|${masterR.hexString}|${nonce}`)))
+                electionRSeed = ethers.sha256(ethers.toUtf8Bytes(`${electionID}|${masterR.hexString}|${nonce}`))
+                electionRBig = hexStringToBigInt(padMessage(electionRSeed, rsaParams.NbitLength))
             }
             nonce = nonce + 1n;
-            electionRBig = electionRBig % Register.N;
-            gcd = gcdBigInt(electionRBig, Register.N);
+            electionRBig = electionRBig % rsaParams.N;
+            gcd = gcdBigInt(electionRBig, rsaParams.N);
         } while (
             gcd !== 1n ||
-            electionRBig >= Register.N ||
+            electionRBig >= rsaParams.N ||
             electionRBig <= 1n
         );
 
+        electionR = { hexString: electionRSeed, isMaster: false }
+        blindedToken = blindToken(unblindedElectionToken, electionR, rsaParams)
 
-        const rHex = electionRBig.toString(16).padStart(64, '0');
-        electionR = { hexString: "0x" + rHex, isMaster: false }
-        blindedToken = blindToken(unblindedElectionToken, electionR)
+        validateToken(blindedToken, false)
 
-    } while (!blindedToken.hexString.startsWith('0x1')); // Ensure blinded token has a '0x1' prefix
+    } while (!blindedToken.hexString.startsWith(PREFIX_BLINDED_TOKEN)); // Ensure blinded token has a '0x1' prefix
 
+    validateR(electionR)
     return electionR;
 }
 
 /**
  * Derives an election-specific, '0x0' prefixed unblinded token from a given master token.
- * 
+ *
  * @param electionID - The unique identifier of the election.
  * @param masterToken - The master token used for derivation.
  * @returns A Token object representing the derived unblinded election-specific token.
@@ -136,6 +140,7 @@ export function deriveElectionR(electionID: number, masterR: R, unblindedElectio
  */
 export function deriveElectionUnblindedToken(electionID: number, masterToken: Token): Token {
 
+    validateElectionID(electionID)
     validateToken(masterToken)
 
     if (!masterToken.isMaster) {
@@ -151,25 +156,25 @@ export function deriveElectionUnblindedToken(electionID: number, masterToken: To
     do {
         tokenHexString = ethers.sha256(ethers.toUtf8Bytes(`${electionID}|${masterToken.hexString}|${nonce}`))
         nonce++;
-    } while (!tokenHexString.startsWith('0x0')); // Ensure token has a '0x0' prefix
+    } while (!tokenHexString.startsWith(PREFIX_UNBLINDED_TOKEN)); // Ensure token has a '0x0' prefix
     return { hexString: tokenHexString, isMaster: false, isBlinded: false }
 }
 
 
-
 /**
- * Performs the blinding of an unblinded token using a given R.
+ * Performs the blinding of an unblinded token using a given R and RSA parameters.
  *
- * @param unblindedToken - The unblinded token to be blinded.
- * @param r - The r used in the blinding process.
- * @returns A Token object representing the blinded token.
- * @throws Error if the provided token is already blinded.
+ * @param {Token} unblindedToken - The unblinded token to be blinded.
+ * @param {R} r - The R value used in the blinding process.
+ * @param {RSAParams} rsaParams - The RSA parameters including the public exponent and modulus.
+ * @returns {Token} A Token object representing the blinded token.
+ * @throws {Error} If the token or R is invalid, or if RSA parameters are missing or invalid.
  */
-export function blindToken(unblindedToken: Token, r: R): Token {
-    if(!Register.e) {throw new Error("Register public Exponent not defined")}
-
+export function blindToken(unblindedToken: Token, r: R, rsaParams: RSAParams): Token {
+    if (!rsaParams.e) { throw new Error("Register public Exponent not defined") }
     validateToken(unblindedToken)
     validateR(r)
+    validateRSAParams(rsaParams)
 
     if (unblindedToken.isBlinded) {
         throw new Error("Only unblinded Tokens can be blinded")
@@ -183,39 +188,64 @@ export function blindToken(unblindedToken: Token, r: R): Token {
         throw new Error("Not allowed to blind with Master R")
     }
 
-    // Convert hex strings to BigInts for calculation
-    const unblindedTokenBig: bigint = hexStringToBigInt(unblindedToken.hexString);
-    const rBig: bigint = hexStringToBigInt(r.hexString);
+    if (!rsaParams.e) {
+        throw new Error("RSA Parameter e not defined")
+    }
 
-    // Perform blinding: (Token_unblinded * r^e) mod N
-    const blindedHexBig = (unblindedTokenBig * modPow(rBig, Register.e, Register.N)) % Register.N;
-    const hexLength = Register.NbitLength / 4; // Convert bit length to hex length
 
-    const blindedToken = {
-        hexString: '0x' + blindedHexBig.toString(16).padStart(hexLength, '0'),
+    // Pad Unblinded Token to be full-domain
+    const unblindedTokenHex: string = unblindedToken.hexString.toLowerCase();
+    const paddedTokenHex: string = padMessage(unblindedTokenHex, rsaParams.NbitLength)
+    const paddedTokenBig: bigint = BigInt(paddedTokenHex);
+
+    if (paddedTokenBig < 3n || paddedTokenBig > rsaParams.N - 1n) {
+        throw new Error("Padded Token out of range")
+    }
+    const paddedRbig: bigint = hexStringToBigInt(padMessage(r.hexString, rsaParams.NbitLength))
+
+    const blindedHexBig: bigint = (paddedTokenBig * modPow(paddedRbig, rsaParams.e, rsaParams.N)) % rsaParams.N;
+    const blindedToken: Token = {
+        hexString: '0x' + blindedHexBig.toString(16).padStart(rsaParams.NbitLength / 4, '0'),
         isMaster: unblindedToken.isMaster,
         isBlinded: true
     }
-
-    validateToken(blindedToken)
-
+    validateToken(blindedToken, false)
     return blindedToken
+}
+
+
+/**
+ * Pads a message using SHAKE256 to a bit length of (bitLength - 1).
+ *
+ * @param {string} message - The message to pad.
+ * @param {number} bitLength - The bit length to pad the message to (actual padding will be to bitLength - 1).
+ * @returns {string} The padded message in hexadecimal format.
+ */
+export function padMessage(message: string, bitLength: number): string {
+    const shake = shake256.create(bitLength - 1);
+    shake.update(message.toLowerCase());
+    return '0x' + shake.hex();
 }
 
 /**
  * Verifies whether an unblinded signature corresponds to a given unblinded token.
- * @param unblindedSignature - The signature object after unblinding.
- * @param unblindedToken - The unblinded token object that was signed
- * @returns Boolean - Returns true if the unblinded signature corresponds to the unblinded token, false otherwise.
- * 
- * @throws Error if the signature is blinded, if the token is a master token, or if the token is blinded.
+ *
+ * @param {Signature} unblindedSignature - The signature object after unblinding.
+ * @param {Token} unblindedToken - The unblinded token object that was signed.
+ * @param {RSAParams} rsaParams - The RSA public key parameters of the signer.
+ * @returns {boolean} Returns true if the unblinded signature corresponds to the unblinded token, false otherwise.
+ *
+ * @throws {Error} If the signature is blinded, if the token is a master token, if the token is blinded, or if RSA parameters are missing.
  */
-export function verifyUnblindedSignature(unblindedSignature: Signature, unblindedToken: Token): Boolean {
-    if(!Register.e) {throw new Error("Register public Exponent not defined")}
+export function verifyUnblindedSignature(unblindedSignature: Signature, unblindedToken: Token, rsaParams: RSAParams): Boolean {
 
     validateSignature(unblindedSignature)
     validateToken(unblindedToken)
+    validateRSAParams(rsaParams)
 
+    if (!rsaParams.e) {
+        throw new Error("Register public Exponent not defined")
+    }
     if (unblindedSignature.isBlinded) {
         throw Error("Must provide unblinded Signature")
     }
@@ -226,30 +256,40 @@ export function verifyUnblindedSignature(unblindedSignature: Signature, unblinde
         throw Error("Unblinded Token must not be blinded")
     }
 
+    const unblindedTokenBig = hexStringToBigInt(unblindedToken.hexString)
+    if (unblindedTokenBig <= 2n || unblindedTokenBig >= rsaParams.N - 1n) {
+        throw new Error("Invalid unblinded token: out of range");
+    }
+    const padHexVerify = padMessage(unblindedToken.hexString.toLowerCase(), rsaParams.NbitLength)
+    const paddedTokenBigVerify = hexStringToBigInt(padHexVerify);
 
     const unblindedSignatureBig = hexStringToBigInt(unblindedSignature.hexString)
-    const unblindedTokenBig = hexStringToBigInt(unblindedToken.hexString)
+    if (unblindedSignatureBig <= 2n || unblindedSignatureBig >= rsaParams.N - 1n) {
+        throw new Error("Invalid unblinded signature: out of range");
+    }
 
+    const expectedTokenBig = modPow(unblindedSignatureBig, rsaParams.e, rsaParams.N)
 
-    const expectedTokenBig = unblindedSignatureBig ** Register.e % Register.N
-
-    const isEqual = expectedTokenBig === unblindedTokenBig;
+    const isEqual = expectedTokenBig === paddedTokenBigVerify;
     return isEqual;
 }
 
 
 
 /**
- * Unblinds a blinded signature using a given R. 
- * @param signature - The blinded signature to be unblinded.
- * @param r - The r used in the unblinding process.
- * @returns A Signature object representing the unblinded signature.
- * @throws Error if the provided signature is not blinded.
+ * Unblinds a blinded signature using a given R.
+ *
+ * @param {Signature} signature - The blinded signature to be unblinded.
+ * @param {R} r - The R value used in the unblinding process.
+ * @param {RSAParams} rsaParams - The RSA parameters including the modulus.
+ * @returns {Signature} A Signature object representing the unblinded signature.
+ * @throws {Error} If the provided signature is not blinded, or if RSA parameters are missing.
  */
-export function unblindSignature(signature: Signature, r: R): Signature {
+export function unblindSignature(signature: Signature, r: R, rsaParams: RSAParams): Signature {
 
     validateSignature(signature)
     validateR(r)
+    validateRSAParams(rsaParams)
 
     if (!signature.isBlinded) {
         throw new Error("Only blinded Signatures can be unblinded")
@@ -260,26 +300,22 @@ export function unblindSignature(signature: Signature, r: R): Signature {
 
     }
 
-    // Convert hex strings to BigInts for calculation
-    const rBig: bigint = hexStringToBigInt(r.hexString);
+    // Pad and convert hex strings to BigInts for calculation
+    const paddedRbig: bigint = hexStringToBigInt(padMessage(r.hexString, rsaParams.NbitLength))
     const signatureBig: bigint = hexStringToBigInt(signature.hexString);
 
     // Perform unblinding: (Signature_blinded * r^-1) mod N
-    const rInverse = modInv(rBig, Register.N);
-    const unblindedSigBig = (signatureBig * rInverse) % Register.N;
-    const hexLength = Register.NbitLength / 4; // Convert bit length to hex length
+    const rInverse = modInv(paddedRbig, rsaParams.N);
+    const unblindedSigBig = (signatureBig * rInverse) % rsaParams.N;
 
-    const unblindedSignature = { hexString: '0x' + unblindedSigBig.toString(16).padStart(hexLength, '0'), isBlinded: false }
+    const unblindedSignature = { hexString: '0x' + unblindedSigBig.toString(16).padStart(rsaParams.NbitLength / 4, '0'), isBlinded: false }
+
     validateSignature(unblindedSignature)
-
     return unblindedSignature
 }
 
 
-
-
 /*** Helpers ***/
-
 
 /**
  * Computes the GCD of two bigint numbers, using Euclidean algorithm.

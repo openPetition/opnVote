@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import { ElectionCredentials, Signature, Token, } from "../types/types";
 import { base64ToHexString, hexStringToBase64, validateCredentials, validateHexString, validateSignature, validateToken } from "../utils/utils";
+import { RSA_BIT_LENGTH } from "../utils/constants";
 
 
 /**
@@ -9,8 +10,8 @@ import { base64ToHexString, hexStringToBase64, validateCredentials, validateHexS
  * @param unblindedElectionToken - The unblinded election token.
  * @param masterToken - The master token of the voter, which must be unblinded and a master token.
  * @param electionID - The ID of the election.
- * @returns ElectionCredentials object containing the voter's credentials.
- * @throws Error if the provided tokens or signature do not meet the required criteria.
+ * @returns {ElectionCredentials} ElectionCredentials object containing the voter's credentials.
+ * @throws {Error} If the provided tokens or signature do not meet the required criteria.
  */
 export function createVoterCredentials(unblindedSignature: Signature, unblindedElectionToken: Token, masterToken: Token, electionID: number): ElectionCredentials {
     if (masterToken.isBlinded) {
@@ -20,9 +21,9 @@ export function createVoterCredentials(unblindedSignature: Signature, unblindedE
         throw new Error("Provided token must be a master token.");
     }
 
+    validateSignature(unblindedSignature);
     validateToken(unblindedElectionToken);
     validateToken(masterToken);
-    validateSignature(unblindedSignature);
 
     // Convert the election ID to hex and validate
     const electionIDHex = { hexString: ethers.toBeHex(electionID, 32) };
@@ -42,16 +43,16 @@ export function createVoterCredentials(unblindedSignature: Signature, unblindedE
 
 /**
  * Encodes voter credentials to a QR code string.
- * Length calculation: 88 (signature) + 2*44 (token and priv key) + 3 (delimiters) + length of election ID.
+ * Length calculation: 344 (signature) + 2*44 (token and priv key) + 3 (delimiters) + length of election ID.
  * @param voterCredentials - The ElectionCredentials to be encoded.
  * @returns A concatenated Base64 string of the encoded credentials.
  */
 export function concatElectionCredentialsForQR(voterCredentials: ElectionCredentials): string {
-
     validateCredentials(voterCredentials)
+    const unblindedSignatureLength = (RSA_BIT_LENGTH / 4) + 2
 
     const voterWalletPrivKey = { hexString: voterCredentials.voterWallet.privateKey }
-    const unblindedSignatureBase64 = hexStringToBase64(voterCredentials.unblindedSignature, 130)
+    const unblindedSignatureBase64 = hexStringToBase64(voterCredentials.unblindedSignature, unblindedSignatureLength)
     const unblindedElectionTokenBase64 = hexStringToBase64(voterCredentials.unblindedElectionToken, 66)
     const voterWalletPrivKeyBase64 = hexStringToBase64(voterWalletPrivKey, 66)
 
@@ -62,7 +63,7 @@ export function concatElectionCredentialsForQR(voterCredentials: ElectionCredent
 /**
  * Decodes a QR code string into voter credentials.
  * @param concatenatedBase64 - The concatenated Base64 string representing the encoded credentials.
- * @returns ElectionCredentials object obtained from the decoded QR code string.
+ * @returns {ElectionCredentials} ElectionCredentials object obtained from the decoded QR code string.
  */
 export function qrToElectionCredentials(concatenatedBase64: string): ElectionCredentials {
 
