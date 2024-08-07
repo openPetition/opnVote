@@ -1,4 +1,12 @@
 import swaggerJsdoc from 'swagger-jsdoc';
+import dotenv from 'dotenv';
+dotenv.config();
+
+const SERVER_URL = process.env.SERVER_URL
+
+if(!SERVER_URL){
+  throw new Error('SERVER_URL is not defined in the environment variables');
+}
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -10,7 +18,7 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:3004', 
+        url: SERVER_URL,
         description: 'Development server',
       },
     ],
