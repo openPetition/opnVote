@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "paths": {
+      "votingsystem": ["./node_modules/votingsystem"]
+    },
     /* Visit https://aka.ms/tsconfig to read more about this file */
 
     /* Projects */
