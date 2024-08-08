@@ -4,12 +4,12 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const SWAGGER_URL = process.env.SWAGGER_URL;
-if (!SWAGGER_URL) {
-    console.error("Missing required environment variable: SWAGGER_URL");
-    process.exit(1);
+const SERVER_URL = process.env.SERVER_URL
+
+if(!SERVER_URL){
+  throw new Error('SERVER_URL is not defined in the environment variables');
 }
-console.log(SWAGGER_URL)
+
 
 const options: swaggerJsdoc.Options = {
     swaggerDefinition: {
@@ -21,7 +21,7 @@ const options: swaggerJsdoc.Options = {
       },
       servers: [
         {
-          url: SWAGGER_URL,
+          url: SERVER_URL,
           description: 'IPFS Data Pinning',
         },
       ],

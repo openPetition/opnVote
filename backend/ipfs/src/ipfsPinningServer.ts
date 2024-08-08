@@ -14,15 +14,14 @@ import fs from 'fs'
 
 require('dotenv').config();
 const IPFS_API = process.env.IPFS_API
-const HTTPS_KEY_PATH = process.env.HTTPS_KEY_PATH
-const HTTPS_CERT_PATH = process.env.HTTPS_CERT_PATH;
-const SWAGGER_URL = process.env.SWAGGER_URL;
+const SSL_KEY_PATH = process.env.SSL_KEY_PATH
+const SSL_CERT_PATH = process.env.SSL_CERT_PATH;
+const SERVER_URL = process.env.SERVER_URL;
 
-if (!IPFS_API || !HTTPS_KEY_PATH || !HTTPS_CERT_PATH || !SWAGGER_URL) {
+if (!IPFS_API || !SSL_KEY_PATH || !SSL_CERT_PATH || !SERVER_URL) {
   console.error("Missing required environment variables");
   process.exit(1);
 }
-
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -48,12 +47,12 @@ const apiLimiter = rateLimit({
 app.use("/pinElectionData", apiLimiter);
 
 const httpsOptions = {
-  key: fs.readFileSync(HTTPS_KEY_PATH),
-  cert: fs.readFileSync(HTTPS_CERT_PATH)
+  key: fs.readFileSync(SSL_KEY_PATH),
+  cert: fs.readFileSync(SSL_CERT_PATH)
 };
 
 https.createServer(httpsOptions, app).listen(PORT, () => {
-  console.log(`Server listening at ${SWAGGER_URL}`);
+  console.log(`Server listening at ${SERVER_URL}`);
 });
 
 
@@ -128,7 +127,7 @@ app.post('/pinElectionData', [
     if (errorMessage === 'Unauthorized') {
       return res.status(400).send('Unauthorized: Signer is not an authorized admin');
     }
-    
+
     res.status(500).send("An internal error occurred, please try again later.");
   }
 

@@ -1,13 +1,2 @@
-# Dependency directories
-node_modules/
-
-# Build output
-build/
-
-# Logs
-logs/
-*.log
-
-# dotenv environment variables file
-.env
-.env.test
+**/.env
+**/keys/
