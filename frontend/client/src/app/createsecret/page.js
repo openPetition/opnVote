@@ -22,14 +22,18 @@ export default function Home() {
                     Die Generierung und Speicherung deines Geheimnisses erfolgt komplett „offline“. Wenn du ganz sicher gehen will, kannst du deine Internetverbindung jetzt deaktivieren und später wieder aktivieren.
                 </div>
             </div>
-            <div className="items-center">
-                <div id="key" className="self-center mx-auto m-2"></div>
-                <div className={loading.length > 0 && loading == 'loaded' ? 'hidden' : ''}>
-                    <button onClick={generateAndCreate} className="items-center bg-op-btn-bg font-bold py-2 px-4 rounded m-2 mx-auto block">
-                        Generieren
-                    </button>
-                </div>
-            </div>
+            {secret.length === 0 && (
+                <>
+                    <div className="items-center">
+                        <div id="key" className="self-center mx-auto m-2"></div>
+                        <div className={loading.length > 0 && loading == 'loaded' ? 'hidden' : ''}>
+                            <button onClick={generateAndCreate} className="items-center bg-op-btn-bg font-bold py-2 px-4 rounded m-2 mx-auto block">
+                                Generieren
+                            </button>
+                        </div>
+                    </div>
+                </>
+            )}
             <div className="m-2  m-5 mx-auto break-words p-5">
                 {secret.length > 0 && (
                     <>

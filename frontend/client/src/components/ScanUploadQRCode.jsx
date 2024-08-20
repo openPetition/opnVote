@@ -23,7 +23,6 @@ export default function ScanUploadQRCode (props) {
       getCameras();
       const oldRegion = document.getElementById("qr-shaded-region");
       oldRegion && oldRegion.remove();
-      console.log(showStopScanBtn);
     }, []);
   
     const startScanClick = () => {

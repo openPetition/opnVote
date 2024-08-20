@@ -21,8 +21,6 @@ export default function Alert(props) {
         setAlertClasses('bg-white-100 border border-gray-400 text-black-700');
         break;
     }
-
-    console.log(alertType + alertText);
   }, []);
 
   return (
