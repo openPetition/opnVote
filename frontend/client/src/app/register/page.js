@@ -8,28 +8,18 @@ import ConfirmPopup from "../../components/ConfirmPopup";
 import HtmlQRCodePlugin from "../../components/ScanUploadQRCode";
 import GenerateQRCode from "../../components/GenerateQRCode";
 import Cookies from 'universal-cookie';
-import { useLazyQuery, gql } from '@apollo/client';
 import Link from 'next/link';
-import axios from 'axios';
+import { getBlindedSignature } from '../../service';
+import { getElectionData } from '../../service-graphql';
 
-import { generateKeyPairRaw, qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, blindToken, unblindSignature, createVoterCredentials, concatElectionCredentialsForQR  } from "votingsystem";
-
-const GET_ELECTION = gql`
-    query election($id: ID!) {
-        election(id: $id)  {
-        id,
-        totalVotes,
-        startTime,
-        endTime,
-        descriptionBlob
-    }
-}`;
+import { qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, blindToken, unblindSignature, createVoterCredentials, concatElectionCredentialsForQR, RSA_BIT_LENGTH } from "votingsystem";
 
 export default function Home() {
 
     const [ decodedValue, setDecodedValue ] = useState("");
     const [ voterQRCodeText, setVoterQRCodeText ] = useState("")
     const [ electionId, setElectionId ] = useState();
+    const [ jwtToken, setJwtToken ] = useState();
 
     // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
     const [ registerState, setRegisterState ] = useState({
@@ -44,30 +34,9 @@ export default function Home() {
         notificationText: '',
         notificationType: ''
     });
-
     const cookies = new Cookies(null, { path: '/' });
 
-    const getBlindedSignature = async function (blindedElectionToken) {
-        // jwt should be get at earlier stage later - now just here for better testing 
-        // no upload and call without jwt token
-        const queryParameters = new URLSearchParams(window.location.search);
-        const token = queryParameters.get("jwt");
-        const blindedElectionTokenFormatted = {token: blindedElectionToken}
-        const signOptions = {
-            method: "POST",
-            headers: new Headers(
-                {
-                    'content-type': 'application/json',
-                    'Authorization': 'Bearer '+ token 
-                }
-            ),
-            body: JSON.stringify(blindedElectionTokenFormatted),
-        };
-     
-        const response = await fetch("https://152.53.65.200:3004/api/sign", signOptions);
 
-        return response.data.blindedSignature;
-    }
 
     const generateVoteCredentials = async function() {
         setRegisterState({
@@ -77,13 +46,19 @@ export default function Home() {
         });
         const electionId = data?.election?.id;
         try {
-            let RSA = await generateKeyPairRaw();
+
+            let registerRSA = {
+                N: BigInt(data?.election?.registerPublicKeyN),
+                e: BigInt(data?.election?.registerPublicKeyE),
+                NbitLength: Number(RSA_BIT_LENGTH),
+            };
+
             let masterTokens  = await qrToTokenAndR(decodedValue, true);
             let unblindedElectionToken = await deriveElectionUnblindedToken(electionId, masterTokens.token);
-            let electionR = await deriveElectionR(data?.election?.id, masterTokens.r, unblindedElectionToken, RSA);
-            let blindedElectionToken = await blindToken(unblindedElectionToken, electionR, RSA);
-            let blindedSignature = await getBlindedSignature(blindedElectionToken);
-            let unblindedSignature = await unblindSignature(blindedSignature, electionR, RSA);
+            let electionR = await deriveElectionR(data?.election?.id, masterTokens.r, unblindedElectionToken, registerRSA);
+            let blindedElectionToken = await blindToken(unblindedElectionToken, electionR, registerRSA);
+            let blindedSignature = await getBlindedSignature(jwtToken, blindedElectionToken);
+            let unblindedSignature = await unblindSignature(blindedSignature, electionR, registerRSA);
             let voterCredentials = await createVoterCredentials(unblindedSignature, unblindedElectionToken, masterTokens.token, electionId);
             let qrVoterCredentials = await concatElectionCredentialsForQR(voterCredentials);
       
@@ -133,7 +108,7 @@ export default function Home() {
         }
     }, [decodedValue]);
 
-    const [getElection, { loading, data }]  = useLazyQuery(GET_ELECTION, { variables: { id: electionId } });
+    const [getElection, { loading, data }]  = getElectionData(electionId);
 
     useEffect(() => {
         if (loading) return;
@@ -164,21 +139,22 @@ export default function Home() {
 
         const queryParameters = new URLSearchParams(window.location.search);
         const getId = queryParameters.get("id");
-        
-        if (queryParameters && getId && !Number.isInteger(parseInt(getId, 10))) {
+        const getJwtToken = queryParameters.get("jwt");
+
+        if (queryParameters  && (!getId || !Number.isInteger(parseInt(getId, 10)) || !getJwtToken)) {
             setRegisterState({
                 ...registerState,
                 showLoading: false,
                 showNotification: true,
-                notificationText: 'Es wurde keine Wahl ID gefunden.',
+                notificationText: 'Fehlerhafter Aufruf. Bitte  gehen Sie zurück und folgen dem vorherigen Link erneut!',
                 notificationType: 'error'
             })
             return;
         }
-        setElectionId(queryParameters.get("id"));
-    }, []);
 
-    
+        setElectionId(getId);
+        setJwtToken(getJwtToken);
+    }, []);
 
     return (
         <>

@@ -41,6 +41,7 @@ export default function Electionheader(props) {
                         className={styles.election_image}
                         width={0}
                         height={0}
+                        alt="election image"
                         sizes="100vw"
                     />
                     <div className={styles.election_informations}>

@@ -8,6 +8,7 @@ export default function Head() {
       <>
         <div className={styles.header}>
           <Image
+            alt="open.vote logo"
             src="/images/opnvote-logo.png" 
             height={68}
             width={194}

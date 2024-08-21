@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Head from "../components/Head";
 import Footer from "../components/Footer"
-
+import { graphConnectUrl } from '../service';
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 
 const client = new ApolloClient({
