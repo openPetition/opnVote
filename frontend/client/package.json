@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.9.11",
-    "axios": "^1.6.8",
+    "axios": "^1.7.4",
     "canvg": "^4.0.1",
     "clsx": "^2.1.1",
     "fs": "^0.0.1-security",

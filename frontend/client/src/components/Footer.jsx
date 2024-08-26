@@ -31,6 +31,7 @@ export default function Footer() {
                     <div>
                         Ein Service von
                         <Image
+                            alt="openpetition logo"
                             src="/images/opnvote-logo.png" 
                             height={68}
                             width={194}

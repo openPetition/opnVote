@@ -37,6 +37,12 @@ checks wether the user is allowed to register for election with help of the crea
 http://localhost:3000/pollingstation/[electionid]
 will contain the voting process (checking the voting authorization card) and the vote (selection of answers, putting them into the voting ballot)
 
+### Deployment
+
+* build (`npm run build`)
+* static content should be now in dist folder ... this is the one you can upload
+* currently we are on https://client-test.opn.vote/
+
 #### TECH
 
 ### frontend 

@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import Cookies from 'universal-cookie';
-import Alert from "../../../components/Alert";
-import Button from '../../../components/Button';
-import NavigationBox from '../../../components/NavigationBox';
-import HtmlQRCodePlugin from "../../../components/ScanUploadQRCode";
-import Electionheader from "../components/Electionheader";
-import Question from "../components/Question";
+import Alert from "../../components/Alert";
+import Button from '../../components/Button';
+import NavigationBox from '../../components/NavigationBox';
+import HtmlQRCodePlugin from "../../components/ScanUploadQRCode";
+import Electionheader from "./components/Electionheader";
+import Question from "./components/Question";
 import { qrToElectionCredentials, validateCredentials } from "votingsystem";
-import { useQuery, gql } from '@apollo/client';
+import { getElectionData } from '../../service-graphql';
 
 export default function Home({ params }) {
 
@@ -30,30 +30,14 @@ export default function Home({ params }) {
     const [ votingCredentials, setVotingCredentials ] = useState({});
     const [ electionInformations, setElectionInformations ] = useState({});
     const [ votes, setVotes ] = useState({});
+    const [ electionId, setElectionId ] = useState(); 
 
     // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
     const [ pollingStationManager, setPollingStationManager ] = useState(pollingStationManagerInit);
 
-    const GET_ELECTION = gql`
-        query election($id: ID!) {
-        election(id: $id)  {
-        id,
-        startTime,
-        endTime,
-        transactionHash,
-        totalVotes,
-        registeredVoterCount,
-        authorizedVoterCount,
-        status,
-        descriptionCID, # ist nun dynamisch
-        descriptionBlob, # ist nun dynamisch
-        publicKey, # hinzugefuegt
-        }
-    }`;
-
     const registerForElection = function() {
         if (data?.election.id) {
-            window.location.href="/register/"+data?.election.id;
+            window.location.href="/register/?id="+data?.election.id;
         }
     }
 
@@ -106,7 +90,7 @@ export default function Home({ params }) {
         }
     }
 
-    const { loading, data }  = useQuery(GET_ELECTION, { variables: { id: params.slug } });
+    const [getElection, { loading, data }]  = getElectionData(electionId);
 
     const setNoElectionData = () => {
         setPollingStationManager({
@@ -116,6 +100,12 @@ export default function Home({ params }) {
             notificationType: 'error'
         })
     }
+
+    useEffect(() => {
+        const queryParameters = new URLSearchParams(window.location.search);
+        setElectionId(queryParameters.get("id"));
+        getElection();
+    }, [])
 
     useEffect(() => {
         //TODO: check wether we can send the votes and everything is fine -> convert to the array we need
@@ -149,14 +139,15 @@ export default function Home({ params }) {
         // only if we have the electioninformations its worth to check
         // wether there is some voter informations stored.
         let voterQR = cookies.get('voterQR');
-        if (voterQR?.length == 0 || Object.keys(electionInformations).length === 0 || electionInformations.constructor !== Object) {
+        if (typeof voterQR === "undefined"  ||  voterQR?.length == 0 || Object.keys(electionInformations).length === 0 || electionInformations.constructor !== Object) {
+            console.log('RETURN');
             return;
         }
 
         qrCodeToCredentials(voterQR);
         
     }, [electionInformations])
-
+    
     return (
         <>
             {pollingStationManager.showElectionInformation && (
