@@ -4,7 +4,7 @@ dotenv.config();
 
 const SERVER_URL = process.env.SERVER_URL
 
-if(!SERVER_URL){
+if (!SERVER_URL) {
   throw new Error('SERVER_URL is not defined in the environment variables');
 }
 
@@ -18,7 +18,7 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-    url: SERVER_URL, 
+        url: SERVER_URL,
         description: 'Development server',
       },
     ],

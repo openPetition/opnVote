@@ -74,7 +74,7 @@ https.createServer(httpsOptions, app).listen(port, () => {
 
 
 // Load database
-// dataSource.initialize().then(() => {
+dataSource.initialize().then(() => {
 
   app.use(express.json());
 
@@ -87,6 +87,6 @@ https.createServer(httpsOptions, app).listen(port, () => {
     res.redirect('/api-docs');
   });
 
-// }).catch((err) => {
-//   console.error("Error during Data Source initialization", err);
-// });
+}).catch((err) => {
+  console.error("Error during Data Source initialization", err);
+});

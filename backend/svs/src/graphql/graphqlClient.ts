@@ -17,7 +17,7 @@ const client = new GraphQLClient(endpoint);
  * @return {Promise<ElectionStatusResponse | null>} Resolves to current on-chain election status and end time, or null if election not found.
  */
 export async function fetchElectionEndTimeStatus(electionId: number): Promise<ElectionStatusResponse | null> {
-    const query = gql`
+  const query = gql`
     query GetElectionStatus($id: ID!) {
       election(id: $id) {
         status,
@@ -26,21 +26,21 @@ export async function fetchElectionEndTimeStatus(electionId: number): Promise<El
     }
   `;
 
-    const variables = { id: electionId };
+  const variables = { id: electionId };
 
-    try {
-        const response: { election: ElectionStatusResponse | null } = await client.request(query, variables);
-        return response.election;
-    } catch (error) {
-        console.error('GraphQL Error:', (error as Error).message);
-        throw error;
-    }
+  try {
+    const response: { election: ElectionStatusResponse | null } = await client.request(query, variables);
+    return response.election;
+  } catch (error) {
+    console.error('GraphQL Error:', (error as Error).message);
+    throw error;
+  }
 }
 
 
 
 export async function fetchElectionRegisterPublicKey(electionId: number): Promise<ElectionRegisterPublicKeyResponse | null> {
-    const query = gql`
+  const query = gql`
       query GetElectionRegisterPublicKey($id: ID!) {
         election(id: $id) {
           registerPublicKeyE,
@@ -49,14 +49,14 @@ export async function fetchElectionRegisterPublicKey(electionId: number): Promis
       }
     `;
 
-    const variables = { id: electionId };
+  const variables = { id: electionId };
 
-    try {
-        const response: { election: ElectionRegisterPublicKeyResponse | null } = await client.request(query, variables);
-        return response.election;
-    } catch (error) {
-        console.error('GraphQL Error:', (error as Error).message);
-        throw error;
-    }
+  try {
+    const response: { election: ElectionRegisterPublicKeyResponse | null } = await client.request(query, variables);
+    return response.election;
+  } catch (error) {
+    console.error('GraphQL Error:', (error as Error).message);
+    throw error;
+  }
 }
 

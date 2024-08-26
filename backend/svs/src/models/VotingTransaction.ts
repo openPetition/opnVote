@@ -9,19 +9,19 @@ export class VotingTransactionEntity {
     @Column()
     electionID!: number;
 
-    @Column()
+    @Column({ length: 42 })
     voterAddress!: string;
 
-    @Column('text')
+    @Column({ type: 'varchar', length: 1026 })
     encryptedVote!: string;
 
     @Column()
     unblindedElectionToken!: string;
 
-    @Column()
+    @Column({ type: 'varchar', length: 1026 })
     unblindedSignature!: string;
 
-    @Column()
+    @Column({ length: 132 })  // 65 bytes in hex + '0x' prefix
     svsSignature!: string;
 
     @Column({
@@ -39,4 +39,10 @@ export class VotingTransactionEntity {
 
     @CreateDateColumn()
     timestamp!: Date;
+
+    @Column({ type: "timestamp", nullable: true, default: null })
+    lastRelayAttempt!: Date | null;
+
+    @Column({ type: "varchar", length: 66, nullable: true, default: null })
+    gelatoTaskId?: string | null;
 }

@@ -8,7 +8,7 @@ export interface ElectionStatusResponse {
   endTime: string;
 }
 
-
+//todo: add jsdoc
 export interface ElectionRegisterPublicKeyResponse {
     registerPublicKeyE: string;
     registerPublicKeyN: string;

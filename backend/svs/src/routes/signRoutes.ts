@@ -129,12 +129,11 @@ router.post('/sign',
     validateParameters, // checks if voting transaction and voter signature are set correctly
     checkVoterSignature, // checks if voting transaction has been signed correctly
     checkElectionStatus,  // Confirms that election status is Pending or Open
-    validateBlindSignature, //Validates Blind Signature
-    // checkForExistingSVSSignature, //! todo implement & test
+    validateBlindSignature, // Validates Blind Signature
+    checkForExistingSVSSignature, //! todo implement & test
     async (req: Request, res: Response) => {
         try {
             const votingTransaction = req.body.votingTransaction as VotingTransaction;
-
             if (!votingTransaction) {
                 return res.status(401).json({
                     data: null,
@@ -166,9 +165,8 @@ router.post('/sign',
             signedTransaction.voterAddress = votingTransaction.voterAddress
 
 
-
-            // const repository = dataSource.getRepository(VotingTransactionEntity);
-            // await repository.save(signedTransaction);
+            const repository = dataSource.getRepository(VotingTransactionEntity);
+            await repository.save(signedTransaction);
 
             return res.status(200).json({
                 data: svsSignature,
