@@ -21,17 +21,6 @@ describe('checkVoterSignature Middleware', () => {
         nextFunction = jest.fn();
     });
 
-    it('should return 401 if votingTransaction or voterSignature is missing', async () => {
-        await checkVoterSignature(mockReq as Request, mockRes as Response, nextFunction);
-
-        expect(mockRes.status).toHaveBeenCalledWith(401);
-        expect(mockRes.json).toHaveBeenCalledWith({
-            data: null,
-            error: 'Unauthorized or missing Voter Signature'
-        });
-        expect(nextFunction).not.toHaveBeenCalled();
-    });
-
     it('should return 401 if the signature is invalid', async () => {
 
         const voterWallet = ethers.Wallet.createRandom()

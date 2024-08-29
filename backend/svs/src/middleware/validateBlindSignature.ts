@@ -1,40 +1,42 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApiResponse } from '../types/apiResponses';
-import { EthSignature, RSAParams, Signature, Token, VotingTransaction, validateEthAddress, validateVotingTransaction, verifyUnblindedSignature } from 'votingsystem';
-import { ethers } from 'ethers';
+import { RSAParams, Signature, Token, VotingTransaction, validateRSAParams, verifyUnblindedSignature } from 'votingsystem';
 import { ElectionService } from '../services/electionService';
 
 
 /**
- * Middleware to...
- * Ensures ..
+ * Middleware to validate the blind signature in the voting transaction.
+ * 
+ * This function verifies that the unblinded signature provided in the voting transaction
+ * is valid according to the election's register public key. It ensures that the voter has received
+ * a legitimate blind signature from the register.
+ *
+ * @param {Request} req - Express request object containing the voting transaction and signature.
+ * @param {Response} res - Express response object.
+ * @param {NextFunction} next - Express next middleware function.
+ * @returns {Promise<void | Response>}
  */
-//! todo: test
-//! Add format check
-export async function validateBlindSignature(req: Request, res: Response, next: NextFunction) {
-    // Parameters are already validated in previous middleware
+export async function validateBlindSignature(req: Request, res: Response, next: NextFunction): Promise<void | Response> {
+
+    // Voting transaction should be validated by previous middleware
     const votingTransaction = req.body.votingTransaction as VotingTransaction;
-    const voterSignature = req.body.voterSignature as EthSignature;
-    if (!votingTransaction || !voterSignature) {
-        return res.status(401).json({
-            data: null,
-            error: 'Unauthorized or missing Voter Signature'
-        });
-    }
+
     try {
         const electionID: number = votingTransaction.electionID
         const unblindedSignature: Signature = votingTransaction.unblindedSignature
         const unblindedElectionToken: Token = votingTransaction.unblindedElectionToken
+
+        // Retrieve the register public key for the election
         const registerPubKey: RSAParams | null = await ElectionService.getElectionRegisterPublicKey(electionID)
         if (!registerPubKey) {
             return res.status(500).json({
                 error: `Could not retrieve Register Public Key for Election ${electionID}. Please try again later.`
             });
         }
+        validateRSAParams(registerPubKey)
 
-
-
-        const isValidSignature: Boolean = verifyUnblindedSignature(unblindedSignature, unblindedElectionToken, registerPubKey) //! Fix, throws in some cases even with correct input
+        // Verify the unblinded signature using the election's register public key
+        const isValidSignature: Boolean = verifyUnblindedSignature(unblindedSignature, unblindedElectionToken, registerPubKey)
         if (!isValidSignature) {
             return res.status(401).json({
                 data: null,

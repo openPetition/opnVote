@@ -1,10 +1,10 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { validateBlindSignature } from './validateBlindSignature';
 import { ElectionService } from '../services/electionService';
-import { RSA_BIT_LENGTH, EncryptedVotes, EthSignature, RSAParams, Signature, TestRegister, Token, VotingTransaction, blindToken, deriveElectionR, deriveElectionUnblindedToken, generateKeyPairRaw, generateMasterTokenAndMasterR, getBitLength, signToken, unblindSignature, verifyUnblindedSignature } from 'votingsystem';
+import { RSA_BIT_LENGTH, EncryptedVotes, EthSignature, RSAParams, Signature, TestRegister, Token, VotingTransaction, blindToken, deriveElectionR, deriveElectionUnblindedToken, generateKeyPairRaw, generateMasterTokenAndMasterR, signToken, unblindSignature } from 'votingsystem';
 import { ethers } from 'ethers';
 
 jest.mock('../services/electionService');
@@ -25,17 +25,6 @@ describe('validateBlindSignature Middleware', () => {
         nextFunction = jest.fn();
     });
 
-    it('should return 401 if votingTransaction or voterSignature is missing', async () => {
-        await validateBlindSignature(mockReq as Request, mockRes as Response, nextFunction);
-
-        expect(mockRes.status).toHaveBeenCalledWith(401);
-        expect(mockRes.json).toHaveBeenCalledWith({
-            data: null,
-            error: 'Unauthorized or missing Voter Signature'
-        });
-        expect(nextFunction).not.toHaveBeenCalled();
-    });
-
     it('should return 500 if ElectionStatusService.getElectionRegisterPublicKey returns null', async () => {
         const voterWallet = ethers.Wallet.createRandom();
         const svsSignature: EthSignature = {
@@ -44,7 +33,7 @@ describe('validateBlindSignature Middleware', () => {
 
         const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
         const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
-        const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' };
+        const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)) };
 
         const votingTransaction: VotingTransaction = {
             electionID: 1,
@@ -80,7 +69,7 @@ describe('validateBlindSignature Middleware', () => {
 
         const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
         const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
-        const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' };
+        const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)) };
 
         const votingTransaction: VotingTransaction = {
             electionID: 1,
@@ -125,17 +114,17 @@ describe('validateBlindSignature Middleware', () => {
         const unblindedElectionR = deriveElectionR(electionID, masterR, unblindedElectionToken, TestRegister)
 
         //Sign unblidned Token
-        const blindedElectionToken = blindToken(unblindedElectionToken, unblindedElectionR, TestRegister) //! add PubKeyHere
+        const blindedElectionToken = blindToken(unblindedElectionToken, unblindedElectionR, TestRegister)
 
         // Sign blinded Election Token and obtain blinded Signature
         const blindedSignature = signToken(blindedElectionToken, TestRegister)
-        const unblindedSignature = unblindSignature(blindedSignature, unblindedElectionR, TestRegister) //! add PubKeyHere 
+        const unblindedSignature = unblindSignature(blindedSignature, unblindedElectionR, TestRegister)
 
         const voterWallet = ethers.Wallet.createRandom();
         const svsSignature: EthSignature = {
             hexString: await voterWallet.signMessage("randomMock")
         };
-        const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' };
+        const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)) };
 
         const votingTransaction: VotingTransaction = {
             electionID: 1,
@@ -165,7 +154,7 @@ describe('validateBlindSignature Middleware', () => {
     it('should return 401 if verifyUnblindedSignature returns false', async () => {
         const registerRSAParamsRaw = generateKeyPairRaw()
         expect(registerRSAParamsRaw.e).toBeDefined()
-        const mockRSAParams:RSAParams = {N:BigInt(registerRSAParamsRaw.N), e:BigInt(registerRSAParamsRaw.e!), NbitLength: registerRSAParamsRaw.NbitLength}
+        const mockRSAParams: RSAParams = { N: BigInt(registerRSAParamsRaw.N), e: BigInt(registerRSAParamsRaw.e!), NbitLength: registerRSAParamsRaw.NbitLength }
 
         const generatedTokens = generateMasterTokenAndMasterR();
         const masterToken = generatedTokens.masterToken;
@@ -176,17 +165,17 @@ describe('validateBlindSignature Middleware', () => {
         const unblindedElectionR = deriveElectionR(electionID, masterR, unblindedElectionToken, TestRegister)
 
         //Sign unblidned Token
-        const blindedElectionToken = blindToken(unblindedElectionToken, unblindedElectionR, TestRegister) //! add PubKeyHere
+        const blindedElectionToken = blindToken(unblindedElectionToken, unblindedElectionR, TestRegister)
 
         // Sign blinded Election Token and obtain blinded Signature
         const blindedSignature = signToken(blindedElectionToken, TestRegister)
-        const unblindedSignature = unblindSignature(blindedSignature, unblindedElectionR, TestRegister) //! add PubKeyHere 
+        const unblindedSignature = unblindSignature(blindedSignature, unblindedElectionR, TestRegister)
 
         const voterWallet = ethers.Wallet.createRandom();
         const svsSignature: EthSignature = {
             hexString: await voterWallet.signMessage("randomMock")
         };
-        const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' };
+        const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)) };
 
         const votingTransaction: VotingTransaction = {
             electionID: 1,

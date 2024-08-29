@@ -1,22 +1,15 @@
 import { Request, Response, Router } from 'express';
-// import { jwtTokenValidator } from '../validation/authvalidation';
-// import authenticateJWT from '../middleware/authenticateJWT';
-// import { checkElectionStatus } from '../middleware/checkElectionStatus';
-// import { blindedTokenValidationRules } from '../validation/ovTokenValidation';
-// import checkForExistingBlindedSignature from '../middleware/checkExistingBlindSignatures';
-// import { RSAParams, signToken, Signature, Token } from 'votingsystem';
-// import { BlindedSignature } from '../models/BlindedSignature';
-// import { dataSource } from '../database';
 import { ApiResponse } from '../types/apiResponses';
-import { EthSignature, Signature, VotingTransaction, signVotingTransaction, validateVotingTransaction } from 'votingsystem';
+import { EthSignature, VotingTransaction, normalizeEthAddress, normalizeHexString, signVotingTransaction, validateEthSignature } from 'votingsystem';
 import { checkVoterSignature } from '../middleware/checkVoterSignature';
 import { validateParameters } from '../middleware/validateParameters';
 import { checkElectionStatus } from '../middleware/checkElectionStatus';
 import { validateBlindSignature } from '../middleware/validateBlindSignature';
-import checkForExistingSVSSignature from '../middleware/checkForExistingSVSSignature';
+import { checkForExistingSVSSignature } from '../middleware/checkForExistingSVSSignature';
 import { dataSource } from '../database';
 import { VotingTransactionEntity } from '../models/VotingTransaction';
 import { TransactionStatus } from '../types/transactionTypes';
+import { checkVoterHasNotVoted } from '../middleware/checkVoterHasNotVoted';
 
 
 
@@ -25,11 +18,9 @@ const router = Router();
  * @openapi
  * /api/votingTransaction/sign:
  *   post:
- *     summary: Validate and sign the voting votingTransaction.
- *     description: Validates the voting votingTransaction and signs it
+ *     summary: Sign a voting transaction
+ *     description: Validates and signs a voting transaction, ensuring the voter hasn't already voted and the election is still open.
  *     tags: [Voting]
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -38,99 +29,32 @@ const router = Router();
  *             type: object
  *             properties:
  *               votingTransaction:
- *                 type: object
- *                 properties:
- *                   electionID:
- *                     type: number
- *                     description: "ID of the election."
- *                     example: 123
- *                   voterAddress:
- *                     type: string
- *                     description: "Ethereum address of the voter."
- *                     example: "0x1234567890abcdef1234567890abcdef12345678"
- *                   encryptedVote:
- *                     type: object
- *                     properties:
- *                       hexString:
- *                         type: string
- *                         description: "Hex string of the encrypted vote."
- *                         example: "0xabcdef..."
- *                   unblindedElectionToken:
- *                     type: object
- *                     properties:
- *                       hexString:
- *                         type: string
- *                         description: "Hex string of the unblinded election token."
- *                         example: "0x1...[130 characters]"
- *                       isMaster:
- *                         type: boolean
- *                         description: "Indicates if the token is a master token."
- *                         example: false
- *                       isBlinded:
- *                         type: boolean
- *                         description: "Indicates if the token is blinded."
- *                         example: false
- *                   unblindedSignature:
- *                     type: object
- *                     properties:
- *                       hexString:
- *                         type: string
- *                         description: "Hex string of the unblinded signature."
- *                         example: "0x2...[signed hex]"
- *                       isBlinded:
- *                         type: boolean
- *                         description: "Indicates if the signature is blinded."
- *                         example: false
- *                   svsSignature:
- *                     type: object
- *                     properties:
- *                       hexString:
- *                         type: string
- *                         description: "Hex string of the SVS signature."
- *                         example: "0x3...[signed hex]"
- *                       isBlinded:
- *                         type: boolean
- *                         description: "Indicates if the signature is blinded."
- *                         example: true
+ *                 $ref: '#/components/schemas/VotingTransaction'
+ *               voterSignature:
+ *                 $ref: '#/components/schemas/EthSignature'
  *     responses:
  *       200:
- *         description: Transaction successfully signed.
+ *         description: Successfully signed the voting transaction
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 signature:
- *                   type: object
- *                   properties:
- *                     hexString:
- *                       type: string
- *                       description: "Hex string of the signed transaction."
- *                       example: "0x4...[signed hex]"
- *                     isBlinded:
- *                       type: boolean
- *                       description: "Indicates if the signature is blinded."
- *                       example: true
+ *               $ref: '#/components/schemas/ApiResponse'
  *       400:
- *         description: Parameter validation failed or user has already registered a different token.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: "Parameter validation failed or already registered."
+ *         description: Bad request (e.g., invalid parameters, voter has already voted)
+ *       401:
+ *         description: Unauthorized (e.g., invalid voter signature)
+ *       403:
+ *         description: Forbidden (e.g., election is closed)
  *       500:
- *         description: Internal server error due to configuration issues or database errors.
+ *         description: Internal server error
  */
-//! todo: add unblinded token check (import from votingsystem?)
 router.post('/sign',
-    validateParameters, // checks if voting transaction and voter signature are set correctly
-    checkVoterSignature, // checks if voting transaction has been signed correctly
-    checkElectionStatus,  // Confirms that election status is Pending or Open
-    validateBlindSignature, // Validates Blind Signature
-    checkForExistingSVSSignature, //! todo implement & test
+    validateParameters,           // Validates the structure and format of the request parameters
+    checkVoterSignature,          // Verifies that the voting transaction is correctly signed by the voter
+    checkElectionStatus,          // Ensures that the election is still open for voting
+    validateBlindSignature,       // Validates the blind signature from the register
+    checkForExistingSVSSignature, // Checks if an SVS signature already exists for this transaction
+    checkVoterHasNotVoted,        // Verifies that the voter hasn't already cast a vote in this election
     async (req: Request, res: Response) => {
         try {
             const votingTransaction = req.body.votingTransaction as VotingTransaction;
@@ -141,7 +65,7 @@ router.post('/sign',
                 } as ApiResponse<null>);
             }
 
-            // Sign Token
+            // Retrieve the SVS signing key from the application context
             const signingKey = req.app.get('SVS_SIGN_KEY');
             if (!signingKey) {
                 return res.status(500).json({
@@ -150,9 +74,11 @@ router.post('/sign',
                 } as ApiResponse<null>);
             }
 
+            // Sign the voting transaction with the SVS key
             const svsSignature: EthSignature = await signVotingTransaction(votingTransaction, signingKey);
+            validateEthSignature(svsSignature);
 
-
+            // Create a new VotingTransactionEntity to store in the database
             const signedTransaction = new VotingTransactionEntity();
             signedTransaction.electionID = votingTransaction.electionID
             signedTransaction.encryptedVote = votingTransaction.encryptedVote.hexString
@@ -160,18 +86,19 @@ router.post('/sign',
             signedTransaction.svsSignature = svsSignature.hexString
             signedTransaction.txStatus = TransactionStatus.WAITING
             signedTransaction.txHash = null
-            signedTransaction.unblindedElectionToken = votingTransaction.unblindedElectionToken.hexString.toLowerCase()
-            signedTransaction.unblindedSignature = votingTransaction.unblindedSignature.hexString.toLowerCase()
-            signedTransaction.voterAddress = votingTransaction.voterAddress
+            signedTransaction.unblindedElectionToken = normalizeHexString(votingTransaction.unblindedElectionToken.hexString.toLowerCase())
+            signedTransaction.unblindedSignature = normalizeHexString(votingTransaction.unblindedSignature.hexString.toLowerCase())
+            signedTransaction.voterAddress = normalizeEthAddress(votingTransaction.voterAddress)
 
-
+            // Save the signed transaction to the database
             const repository = dataSource.getRepository(VotingTransactionEntity);
             await repository.save(signedTransaction);
 
+            // Return the SVS signature to the client
             return res.status(200).json({
                 data: svsSignature,
                 error: null
-            } as ApiResponse<Signature>);
+            } as ApiResponse<EthSignature>);
 
 
         }

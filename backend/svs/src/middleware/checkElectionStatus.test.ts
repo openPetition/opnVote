@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { ElectionService } from '../services/electionService';
 import { checkElectionStatus } from './checkElectionStatus';
 import { EthSignature, VotingTransaction } from 'votingsystem';
@@ -70,19 +70,6 @@ describe('checkElectionStatus Middleware', () => {
         expect(mockRes.status).toHaveBeenCalledWith(403);
         expect(mockRes.json).toHaveBeenCalledWith({
             error: 'Election is closed',
-        });
-    });
-
-    it('should return 401 if votingTransaction or voterSignature is missing', async () => {
-        mockReq.body = {};
-
-        await checkElectionStatus(mockReq as Request, mockRes as Response, nextFunction);
-
-        expect(nextFunction).not.toHaveBeenCalled();
-        expect(mockRes.status).toHaveBeenCalledWith(401);
-        expect(mockRes.json).toHaveBeenCalledWith({
-            data: null,
-            error: 'Unauthorized or missing Voter Signature',
         });
     });
 

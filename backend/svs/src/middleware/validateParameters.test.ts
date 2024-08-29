@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { validateParameters } from './validateParameters';
-import { RSA_BIT_LENGTH, EncryptedVotes, EthSignature, Signature, Token, VotingTransaction, validateEthSignature } from 'votingsystem';
+import { RSA_BIT_LENGTH, EncryptedVotes, EthSignature, Signature, Token, VotingTransaction } from 'votingsystem';
 import { ethers } from 'ethers';
 
 describe('validateParameters Middleware', () => {
@@ -32,13 +32,13 @@ describe('validateParameters Middleware', () => {
 
     it('should return 401 if svsSignature is already set', async () => {
         const voterWallet = ethers.Wallet.createRandom();
-        const svsSignature:EthSignature = {
+        const svsSignature: EthSignature = {
             hexString: await voterWallet.signMessage("randomMock")
         };
 
         const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
         const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
-        const dummyEncryptedVotes:EncryptedVotes = { hexString: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' };
+        const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)) };
 
         const votingTransaction: VotingTransaction = {
             electionID: 1,
@@ -49,7 +49,7 @@ describe('validateParameters Middleware', () => {
             svsSignature: svsSignature
         };
 
-        const voterSignature:EthSignature = {
+        const voterSignature: EthSignature = {
             hexString: await voterWallet.signMessage(JSON.stringify(votingTransaction))
         };
 
@@ -71,7 +71,7 @@ describe('validateParameters Middleware', () => {
 
         const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
         const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
-        const dummyEncryptedVotes:EncryptedVotes = { hexString: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' };
+        const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)) };
 
         const votingTransaction: VotingTransaction = {
             electionID: 1,
@@ -82,7 +82,7 @@ describe('validateParameters Middleware', () => {
             svsSignature: null
         };
 
-        const voterSignature:EthSignature = {
+        const voterSignature: EthSignature = {
             hexString: await voterWallet.signMessage(JSON.stringify(votingTransaction))
         };
 
@@ -99,7 +99,7 @@ describe('validateParameters Middleware', () => {
         const voterWallet = ethers.Wallet.createRandom();
         const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
         const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
-        const dummyEncryptedVotes:EncryptedVotes = { hexString: '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000' };
+        const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)) };
 
         const votingTransaction: VotingTransaction = {
             electionID: 1,
@@ -110,7 +110,7 @@ describe('validateParameters Middleware', () => {
             svsSignature: null
         };
 
-        const voterSignature:EthSignature = {
+        const voterSignature: EthSignature = {
             hexString: "0x0" // Invalid signature
         };
 
