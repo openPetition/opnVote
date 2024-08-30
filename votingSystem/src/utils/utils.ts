@@ -15,19 +15,27 @@ import { modPow } from 'bigint-crypto-utils';
  */
 export function validateHexString(hexStringObject: { hexString: string }, expectedLength: number, shouldBeLowerCase: boolean = false): void {
 
-    if (hexStringObject.hexString.length !== expectedLength || !isValidHex(hexStringObject.hexString, shouldBeLowerCase)) {
-        throw new Error(`Invalid token format or length. Expected length: ${expectedLength} Token: ${hexStringObject.hexString}`);
+    if (hexStringObject.hexString.length !== expectedLength) {
+        throw new Error(`Invalid token length. Expected length: ${expectedLength}, but got: ${hexStringObject.hexString.length}. Token: ${hexStringObject.hexString}`);
+    }
+
+    if (!isValidHex(hexStringObject.hexString, shouldBeLowerCase)) {
+        throw new Error(`Invalid token format. Token: ${hexStringObject.hexString}`);
     }
 }
 
 
 /**
- * Checks if a string is a valid hexadecimal format.
+ * Checks if a string is a valid non-null, non-zero hexadecimal format.
+ * A null, empty, or zero value hex string is not allowed.
  * @param str - The string to be checked.
- * @returns True if the string is a valid hexadecimal, false otherwise.
+ * @param shouldBeLowerCase - If true, checks if the string is in lowercase.
+ * @returns True if the string is a valid non-zero hexadecimal, false otherwise.
  */
 export function isValidHex(str: string, shouldBeLowerCase: boolean = false): boolean {
-    if (str.length < 3) { return false }
+    if (!str || str.length < 3) {
+        return false;
+    }
 
     str = str.startsWith('0x')
         ? str.substring(2)
@@ -38,7 +46,12 @@ export function isValidHex(str: string, shouldBeLowerCase: boolean = false): boo
     if (!regexp.test(str)) {
         return false;
     }
+
     if (shouldBeLowerCase && str !== str.toLowerCase()) {
+        return false;
+    }
+
+    if (BigInt(`0x${str}`) === BigInt(0)) {
         return false;
     }
 
@@ -51,6 +64,10 @@ export function isValidHex(str: string, shouldBeLowerCase: boolean = false): boo
  * @throws Will throw an error if election ID is a negative number or bigger than 1,000,000.
  */
 export function validateElectionID(electionID: number) {
+    if (!Number.isInteger(electionID)) {
+        throw new Error(`Invalid election ID: ${electionID}. Must be an integer.`);
+    }
+
     if (electionID < 0 || electionID > 1000000) {
         throw new Error("Election ID out of range")
     }
@@ -290,6 +307,46 @@ export function validateEthAddress(address: string): void {
     if (!ethers.isAddress(address)) {
         throw new Error("Invalid Ethereum address provided.");
     }
+}
+
+/**
+ * Normalizes and validates an Ethereum address.
+ * 
+ * @param address - The Ethereum address to process.
+ * @returns The normalized address in checksum format.
+ * @throws If the address is invalid or fails checksum validation.
+ */
+export function normalizeEthAddress(address: string): string {
+    validateEthAddress(address)
+    return ethers.getAddress(address);
+
+}
+
+/**
+ * Normalizes a hexadecimal string by removing the '0x' prefix,
+ * converting to lowercase, and removing leading zeros.
+ * Throws an error if the string represents zero.
+ * 
+ * @param hexString - The hexadecimal string to normalize.
+ * @returns The normalized hexadecimal string.
+ * @throws Error if the resulting string is empty after normalization.
+ */
+export function normalizeHexString(hexString: string): string {
+    isValidHex(hexString)
+    // Remove '0x' prefix if present and convert to lowercase
+    const cleanHex = hexString.toLowerCase().replace(/^0x/, '');
+
+    isValidHex(cleanHex, true);
+
+    const bigIntValue = BigInt('0x' + cleanHex);
+
+    let normalized = bigIntValue.toString(16);
+
+    if (normalized === '0') {
+        throw new Error('Hexadecimal string represents zero');
+    }
+
+    return normalized;
 }
 
 

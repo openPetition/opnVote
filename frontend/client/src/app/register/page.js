@@ -2,65 +2,89 @@
 
 import React, { useState, useEffect } from "react";
 
-import Alert from "../../../components/Alert";
-import Loading from "../../../components/Loading";
-import ConfirmPopup from "../../../components/ConfirmPopup";
-import HtmlQRCodePlugin from "../../../components/ScanUploadQRCode";
-import GenerateQRCode from "../../../components/GenerateQRCode";
-
+import Alert from "../../components/Alert";
+import Loading from "../../components/Loading";
+import ConfirmPopup from "../../components/ConfirmPopup";
+import HtmlQRCodePlugin from "../../components/ScanUploadQRCode";
+import GenerateQRCode from "../../components/GenerateQRCode";
 import Cookies from 'universal-cookie';
-import { useLazyQuery, gql } from '@apollo/client';
 import Link from 'next/link';
-import axios from 'axios';
+import { getBlindedSignature } from '../../service';
+import { getElectionData } from '../../service-graphql';
 
-import { qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, blindToken, unblindSignature, createVoterCredentials, concatElectionCredentialsForQR  } from "votingsystem";
+import { qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, blindToken, unblindSignature, createVoterCredentials, concatElectionCredentialsForQR, RSA_BIT_LENGTH } from "votingsystem";
 
-const GET_ELECTION = gql`
-    query election($id: ID!) {
-        election(id: $id)  {
-        id,
-        totalVotes,
-        startTime,
-        endTime,
-        descriptionBlob
-    }
-}`;
+export default function Home() {
 
-export default function Home({ params }) {
     const [ decodedValue, setDecodedValue ] = useState("");
     const [ voterQRCodeText, setVoterQRCodeText ] = useState("")
+    const [ electionId, setElectionId ] = useState();
+    const [ jwtToken, setJwtToken ] = useState();
 
-    // 'INIT', 'UPLOADSECRET', 'GENERATING', 'GENERATED'
-    const [ registerStateStep, setRegisterStateStep] = useState('INIT');
-    const [ showContinueModal, setShowContinueModal ] = useState(false);
+    // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
+    const [ registerState, setRegisterState ] = useState({
+        showLoading: true,
+        showStartProcessScreen: false,
+        showElectionInformation: false,
+        showElection: false,
+        showQRCodeUploadPlugin: false,
+        showBallot: false,
+        showContinueModal: false,
+        showNotification: false,
+        notificationText: '',
+        notificationType: ''
+    });
     const cookies = new Cookies(null, { path: '/' });
 
-    const getBlindedSignature = async function (blindedElectionToken) {
-        let respnse = await axios.post(`http://localhost:3001/sign`, blindedElectionToken);
 
-        return respnse.data.Signature;
-    }
 
     const generateVoteCredentials = async function() {
-        setRegisterStateStep('GENERATING');
+        setRegisterState({
+            ...registerState,
+            showLoading: true,
+            showNotification: false,
+        });
         const electionId = data?.election?.id;
-        let masterTokens  = await qrToTokenAndR(decodedValue, true);
-        let unblindedElectionToken = await deriveElectionUnblindedToken(electionId, masterTokens.token);
-        let electionR = await deriveElectionR(data?.election?.id, masterTokens.r, unblindedElectionToken);
-        let blindedElectionToken = await blindToken(unblindedElectionToken, electionR);
-        let blindedSignature = await getBlindedSignature(blindedElectionToken);
-        let unblindedSignature = await unblindSignature(blindedSignature, electionR);
-        let voterCredentials = await createVoterCredentials(unblindedSignature, unblindedElectionToken, masterTokens.token, electionId);
-        let qrVoterCredentials = await concatElectionCredentialsForQR(voterCredentials);
-        setVoterQRCodeText(qrVoterCredentials);
-        setRegisterStateStep('GENERATED');
+        try {
+
+            let registerRSA = {
+                N: BigInt(data?.election?.registerPublicKeyN),
+                e: BigInt(data?.election?.registerPublicKeyE),
+                NbitLength: Number(RSA_BIT_LENGTH),
+            };
+
+            let masterTokens  = await qrToTokenAndR(decodedValue, true);
+            let unblindedElectionToken = await deriveElectionUnblindedToken(electionId, masterTokens.token);
+            let electionR = await deriveElectionR(data?.election?.id, masterTokens.r, unblindedElectionToken, registerRSA);
+            let blindedElectionToken = await blindToken(unblindedElectionToken, electionR, registerRSA);
+            let blindedSignature = await getBlindedSignature(jwtToken, blindedElectionToken);
+            let unblindedSignature = await unblindSignature(blindedSignature, electionR, registerRSA);
+            let voterCredentials = await createVoterCredentials(unblindedSignature, unblindedElectionToken, masterTokens.token, electionId);
+            let qrVoterCredentials = await concatElectionCredentialsForQR(voterCredentials);
+      
+            setVoterQRCodeText(qrVoterCredentials);
+            setRegisterState({
+                ...registerState,
+                showLoading: false,
+                showBallot: true,
+                showQRCodeUploadPlugin: false,
+            });
+        } catch (error) {
+            setRegisterState({
+                ...registerState,
+                showLoading: false,
+                showNotification: true,
+                notificationText: 'Fehler bei der Verarbeitung des QR Code. ',
+                notificationType: 'error'
+            })
+        };
     }
 
     const goToElection = function() {
         //set cookie with election data
         cookies.set('voterQR', voterQRCodeText);
         // will be changed to dynamic election location when its more clear where we go
-        window.location.href="/pollingstation/0"
+        window.location.href = "/pollingstation?id=" + electionId;
     }
 
     const voteLater = function() {
@@ -68,44 +92,80 @@ export default function Home({ params }) {
         window.location.href = "https://openpetition.de/";
     }
 
-    const stepForward = () => {
-        setRegisterStateStep('UPLOADSECRET');
+    const activateQRCodeUpload = () => {
+        setRegisterState({
+            ...registerState,
+            showStartProcessScreen: false,
+            showQRCodeUploadPlugin: true,
+            showNotification: false,
+        })
     }
 
     useEffect(() => {
         // work with qr code value / decoded value in next step
-        if(decodedValue && decodedValue.length > 0)
-        {
+        if (decodedValue && decodedValue.length > 0) {
             generateVoteCredentials()
         }
     }, [decodedValue]);
 
-    const [getElection, { loading, data }]  = useLazyQuery(GET_ELECTION, { variables: { id: params.slug } });
+    const [getElection, { loading, data }]  = getElectionData(electionId);
 
     useEffect(() => {
+        if (loading) return;
+
+        // after we got election data .. check this
+        if (data && data?.election && Object.keys(data?.election).length > 0) {
+            setRegisterState({
+                ...registerState,
+                showElectionData: true,
+                showStartProcessScreen: true,
+                showLoading: false,
+                showNotification: false,
+            })
+        }
+    }, [data])
+
+    useEffect(() => {
+        if (!electionId) {
+            return;
+        }
         getElection();
+    }, [electionId]);
+
+    useEffect(() => {
+        if (electionId || !window) {
+            return;
+        }
+
+        const queryParameters = new URLSearchParams(window.location.search);
+        const getId = queryParameters.get("id");
+        const getJwtToken = queryParameters.get("jwt");
+
+        if (queryParameters  && (!getId || !Number.isInteger(parseInt(getId, 10)) || !getJwtToken)) {
+            setRegisterState({
+                ...registerState,
+                showLoading: false,
+                showNotification: true,
+                notificationText: 'Fehlerhafter Aufruf. Bitte  gehen Sie zurück und folgen dem vorherigen Link erneut!',
+                notificationType: 'error'
+            })
+            return;
+        }
+
+        setElectionId(getId);
+        setJwtToken(getJwtToken);
     }, []);
 
     return (
         <>
-            {(loading || registerStateStep == 'GENERATING') && (
+            {(loading || registerState.showLoading) && (
                 <>
                     <Loading loadingText="Loading"/>
                 </>
             )}
 
-            {!loading && !data?.election && (
+            {registerState.showElectionData && (
                 <>
-                    <Alert
-                        alertType="error"
-                        alertText="keine Wahldaten vorhanden!"
-                    />
-                </>
-            )}
-
-            {!loading && data?.election && (
-                <>
-
                     <div className="bg-op-grey-light">
                         <div className="p-4">
                             <h3 className="text-center font-bold py-2">Wahlschein bestellen</h3>
@@ -115,10 +175,23 @@ export default function Home({ params }) {
                             <p>Abstimmungsdaten: {data?.election?.descriptionBlob}</p>
                         </div>
                     </div>
+                </>
+            )}
 
-                    {registerStateStep == "INIT" && (
+            {registerState.showNotification && (
+                <>
+                    <Alert
+                        alertType={registerState.notificationType}
+                        alertText={registerState.notificationText}
+                    />
+                </>
+            )}
+
+            {registerState.showElectionData && (
+                <>
+                    {registerState.showStartProcessScreen && (
                         <>
-                            <button onClick={stepForward} className="m-2 p-3 bg-op-blue-main border border-op-blue-main font-bold text-white hover:op-grey-light rounded">
+                            <button onClick={activateQRCodeUpload} className="m-2 p-3 bg-op-blue-main border border-op-blue-main font-bold text-white hover:op-grey-light rounded">
                                 WAHLSCHEIN GENERIEREN
                             </button>
                             <div className="flex items-center justify-center">
@@ -132,7 +205,7 @@ export default function Home({ params }) {
                         </>
                     )}
 
-                    {registerStateStep == "UPLOADSECRET" && (
+                    {registerState.showQRCodeUploadPlugin && (
                         <>
                             <HtmlQRCodePlugin
                                 headline = "Wahlgeheimnis prüfen"
@@ -142,10 +215,9 @@ export default function Home({ params }) {
                                 onResult={(res) => setDecodedValue(res)}
                             />
                         </>
-                    )
-                    }
+                    )}
 
-                    {registerStateStep == "GENERATED" && voterQRCodeText.length > 0 && (
+                    {registerState.showBallot && (
                         <>
                             <GenerateQRCode
                                 headline="Bild speichern"
@@ -171,11 +243,15 @@ export default function Home({ params }) {
                             </div>
 
                             <ConfirmPopup
-                                showModal = {showContinueModal}
+                                showModal = {registerState.showContinueModal}
                                 modalText = "Haben Sie Ihren Anonymen Wahlschein wirklich gespeichert oder ggf. abfotografiert? Nur mit Ihrem Anonymen Wahlschein können Sie an der Wahl teilnehmen."
                                 modalHeader = "Haben Sie an alles gedacht?"
                                 modalConfirmFunction = {voteLater}
-                                modalAbortFunction = {()=>{setShowContinueModal(false)}}
+                                modalAbortFunction = {
+                                    ()=>{setRegisterState({
+                                        ...registerState,
+                                        showContinueModal: false,
+                                    })}}
                                 shouldConfirm = {true}
                                 confirmMessage = "Ja, ich habe meinen Anonymen Wahlschein gespeichert."
                             />
