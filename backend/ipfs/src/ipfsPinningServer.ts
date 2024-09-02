@@ -9,6 +9,7 @@ import cors from 'cors';
 import { body, validationResult } from 'express-validator';
 import swaggerSpec from './swaggerConfig';
 import helmet from 'helmet';
+import http from 'http';
 import https from 'https';
 import fs from 'fs'
 
@@ -46,16 +47,20 @@ const apiLimiter = rateLimit({
 });
 app.use("/pinElectionData", apiLimiter);
 
-const httpsOptions = {
-  key: fs.readFileSync(SSL_KEY_PATH),
-  cert: fs.readFileSync(SSL_CERT_PATH)
-};
+if (SSL_KEY_PATH && SSL_CERT_PATH) {
+  const httpsOptions = {
+    key: fs.readFileSync(SSL_KEY_PATH),
+    cert: fs.readFileSync(SSL_CERT_PATH)
+  };
 
-https.createServer(httpsOptions, app).listen(PORT, () => {
-  console.log(`Server listening at ${SERVER_URL}`);
-});
-
-
+  https.createServer(httpsOptions, app).listen(PORT, () => {
+    console.log(`Server listening at ${SERVER_URL}`);
+  });
+} else {
+  http.createServer({}, app).listen(PORT, () => {
+    console.log(`Server listening at ${SERVER_URL}`);
+  });
+}
 
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);
@@ -136,7 +141,7 @@ app.post('/pinElectionData', [
 
 /**
  * Uploads and pins JSON data to IPFS after signature validation.
- * 
+ *
  * @param {ElectionData} electionData - The election data to be pinned, containing description, summary, and ballot.
  * @param {string} signature - Ethereum signature used to verify that the electionData is signed by an authorized admin.
  * @returns {Promise<string>} The hash of the pinned data on IPFS.
