@@ -2,10 +2,6 @@
 import { Agent } from 'https';
 import { Signature } from "votingsystem";
 
-const httpsAgent =  new Agent({
-    rejectUnauthorized: false,
- });
-
 /** @returns {Signature} */
 export async function getBlindedSignature(jwttoken, blindedElectionToken) {
     const blindedElectionTokenFormatted = {token: blindedElectionToken};
@@ -17,8 +13,7 @@ export async function getBlindedSignature(jwttoken, blindedElectionToken) {
                 'Authorization': 'Bearer ' + jwttoken 
             }
         ),
-        body: JSON.stringify(blindedElectionTokenFormatted),
-        agent: httpsAgent
+        body: JSON.stringify(blindedElectionTokenFormatted)
     };
  
     const response = await fetch(process.env.blindedSignatureUrl, signOptions);
@@ -34,8 +29,8 @@ export async function signTransaction(votingTransaction, voterSignatureObject) {
     const signOptions = {
         method: "POST",
         headers: signHeader,
-        body: JSON.stringify({votingTransactionToSign, voterSignature: voterSignatureObject}),
-        agent: httpsAgent
+        body: JSON.stringify({votingTransaction, voterSignature: voterSignatureObject}),
+
     };
 
     try {
@@ -46,3 +41,36 @@ export async function signTransaction(votingTransaction, voterSignatureObject) {
         console.error(error);
     }
 };
+
+export async function gelatoForward(signatureDataInitialSerialized) {
+    const gelatoHeader= new Headers();
+    gelatoHeader.append("Content-Type", "application/json");
+    const options = {
+        method: "POST",
+        headers: gelatoHeader,
+        body: signatureDataInitialSerialized,
+    };
+    try {
+        const response = await fetch(process.env.gelatoForwardUrl, options);
+        const jsondata = await response.json()
+        return jsondata.data;
+    } catch(error) {
+        console.error(error);
+    }
+}
+
+export async function getAbi() {
+    const getHeader= new Headers();
+    getHeader.append("Content-Type", "application/json");
+    const options = {
+        method: "GET",
+        headers: getHeader,
+    };
+    try {
+        const response = await fetch(process.env.abiConfigUrl, options);
+        const jsondata = await response.json()
+        return jsondata;
+    } catch(error) {
+        console.error(error);
+    }
+}

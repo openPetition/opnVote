@@ -14,12 +14,7 @@ VotingSystem includes the calculations for all our steps. e.g. it returns and ch
 * then create a so called link - locally this package needs to be linked to the frontend - `npm link`
 (for more information about linking you can read https://medium.com/dailyjs/how-to-use-npm-link-7375b6219557)
 
-# 2. Start the mock server for registration
-* cd into mock 'frontend/mock-servers/register'
-* run `npm install` to install packages
-* and start registration server with `npm start
-
-# 3. Start opnreg
+# 2. Start opnreg
 * take a new shell
 * cd into 'frontend/opnreg'
 * first install dependencies `npm install`
@@ -31,10 +26,11 @@ Open [http://localhost:3000](http://localhost:3000) (or wherever it started) in 
 http://localhost:3000/createsecret
 creating the user secret (qr code) that confirms the identity of the user and that he is allowed to register for elections
 
-http://localhost:3000/register/[electionid]
+http://localhost:3000/register?id=[electionid]
 checks wether the user is allowed to register for election with help of the created secret from step one and creates a voting authorization card (qr code or as cookie when user wants to go to election directly)
+(would not work without jwt!!)
 
-http://localhost:3000/pollingstation/[electionid]
+http://localhost:3000/pollingstation?id=[electionid]
 will contain the voting process (checking the voting authorization card) and the vote (selection of answers, putting them into the voting ballot)
 
 ### Deployment
