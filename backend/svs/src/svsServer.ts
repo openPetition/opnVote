@@ -13,6 +13,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swaggerConfig';
 import https from 'https';
 import fs from 'fs'
+import http from 'http';
 
 require('dotenv').config();
 const SSL_KEY_PATH = process.env.SSL_KEY_PATH;
@@ -26,8 +27,9 @@ const gelatoSponsorApiKey = process.env.GELATO_SPONSOR_API_KEY;
 if (!SERVER_URL) {
   throw new Error('SERVER_URL is not defined in the environment variables');
 }
-if (!SSL_KEY_PATH || !SSL_CERT_PATH) {
-  throw new Error('SSL_KEY_PATH or SSL_CERT_PATH is not defined in the environment variables');
+
+if ((SSL_KEY_PATH && !SSL_CERT_PATH) || (!SSL_KEY_PATH && SSL_CERT_PATH)) {
+  throw new Error('SSL_KEY_PATH and SSL_CERT_PATH must be provided for HTTPS');
 }
 
 if (!SVS_SIGN_KEY) {
@@ -58,18 +60,22 @@ const gelatoRelay = new GelatoRelay();
 app.set('gelatoRelay', gelatoRelay);
 
 
-// Load HTTPS options
-const httpsOptions = {
-  key: fs.readFileSync(SSL_KEY_PATH),
-  cert: fs.readFileSync(SSL_CERT_PATH)
-};
+if (SSL_KEY_PATH && SSL_CERT_PATH) {
+  // Load HTTPS options
+  const httpsOptions = {
+    key: fs.readFileSync(SSL_KEY_PATH),
+    cert: fs.readFileSync(SSL_CERT_PATH)
+  };
 
-
-// Start HTTPS server
-https.createServer(httpsOptions, app).listen(port, () => {
-  console.log(`⚡️[server]: Server is running at ${SERVER_URL}`);
-});
-
+  // Start HTTPS server
+  https.createServer(httpsOptions, app).listen(port, () => {
+    console.log(`⚡️[server]: Server is running at ${SERVER_URL}`);
+  });
+} else {
+  http.createServer({}, app).listen(port, () => {
+    console.log(`⚡️[server]: Server is running at ${SERVER_URL}`);
+  });
+}
 
 
 
