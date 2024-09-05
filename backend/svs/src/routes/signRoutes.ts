@@ -8,7 +8,6 @@ import { validateBlindSignature } from '../middleware/validateBlindSignature';
 import { checkForExistingSVSSignature } from '../middleware/checkForExistingSVSSignature';
 import { dataSource } from '../database';
 import { VotingTransactionEntity } from '../models/VotingTransaction';
-import { TransactionStatus } from '../types/transactionTypes';
 import { checkVoterHasNotVoted } from '../middleware/checkVoterHasNotVoted';
 
 
@@ -82,10 +81,7 @@ router.post('/sign',
             const signedTransaction = new VotingTransactionEntity();
             signedTransaction.electionID = votingTransaction.electionID
             signedTransaction.encryptedVote = votingTransaction.encryptedVote.hexString
-            signedTransaction.rateLimited = false
             signedTransaction.svsSignature = svsSignature.hexString
-            signedTransaction.txStatus = TransactionStatus.WAITING
-            signedTransaction.txHash = null
             signedTransaction.unblindedElectionToken = normalizeHexString(votingTransaction.unblindedElectionToken.hexString.toLowerCase())
             signedTransaction.unblindedSignature = normalizeHexString(votingTransaction.unblindedSignature.hexString.toLowerCase())
             signedTransaction.voterAddress = normalizeEthAddress(votingTransaction.voterAddress)

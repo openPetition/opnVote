@@ -1,8 +1,10 @@
 import { Request, Response, Router } from 'express';
 import { ApiResponse } from '../types/apiResponses';
 import { GelatoRelay, RelayResponse, SignatureData } from "@gelatonetwork/relay-sdk";
-
-
+import { dataSource } from '../database';
+import { GelatoQueueEntity } from '../models/GelatoQueue';
+import { ethers } from 'ethers';
+import { GelatoQueueStatus } from '../types/gelato';
 
 const router = Router();
 
@@ -85,6 +87,9 @@ const router = Router();
  *           example: "0x792bad99..."
  */
 router.post('/forward', async (req: Request, res: Response) => {
+        //! todo: Validate signatureData structure (calling contract, svs signature)
+        //! todo: svs signature check
+        //! todo: check if already in queue
     try {
         const signatureData = req.body as SignatureData;
 
@@ -94,38 +99,30 @@ router.post('/forward', async (req: Request, res: Response) => {
                 error: 'Bad request: Missing required signature data'
             });
         }
-        //! todo: Validate signatureData structure
-        //! todo: Validate signatureData with eth_Call
 
-        const sponsorApiKey = req.app.get('GELATO_SPONSOR_API_KEY');
-        if (!sponsorApiKey) {
-            return res.status(500).json({
-                data: null,
-                error: 'Gelato Sponsor API key not configured'
-            });
-        }
-        const gelatoRelay = req.app.get('gelatoRelay') as GelatoRelay;
+        // Generate a unique hash for this request
+        const requestHash = ethers.id(JSON.stringify(signatureData));
 
-        const relayResponse: RelayResponse = await gelatoRelay.sponsoredCallERC2771WithSignature(
-            signatureData.struct,
-            signatureData.signature,
-            sponsorApiKey
-        );
+        const queueEntry = new GelatoQueueEntity();
+        queueEntry.signatureData = JSON.stringify(signatureData);
+        queueEntry.status = GelatoQueueStatus.QUEUED
+        queueEntry.requestHash = requestHash;
 
-        return res.status(200).json({
-            data: relayResponse,
-            error: null
+        const repository = dataSource.getRepository(GelatoQueueEntity);
+        await repository.save(queueEntry);
+
+        return res.status(202).json({
+            data: { requestHash },
+            error: null,
         });
 
     } catch (error) {
-        console.error('Error forwarding request to gelato:', error);
+        console.error('Error queueing Gelato request:', error);
         res.status(500).json({
             data: null,
-            error: 'Failed to forward request to Gelato. Error: ' + error
+            error: 'Failed to queue Gelato request. Error: ' + error
         } as ApiResponse<null>);
-    };
+    }
 });
-
-
 
 export default router;

@@ -1,5 +1,4 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
-import { TransactionStatus } from '../types/transactionTypes';
 
 @Entity('votingTransactions')
 export class VotingTransactionEntity {
@@ -24,25 +23,6 @@ export class VotingTransactionEntity {
     @Column({ length: 132 })  // 65 bytes in hex + '0x' prefix
     svsSignature!: string;
 
-    @Column({
-        type: 'enum',
-        enum: TransactionStatus,
-        default: TransactionStatus.WAITING
-    })
-    txStatus!: TransactionStatus;
-
-    @Column({ type: "varchar", nullable: true, default: null })
-    txHash?: string | null;
-
-    @Column({ default: false })
-    rateLimited!: boolean;
-
     @CreateDateColumn()
     timestamp!: Date;
-
-    @Column({ type: "timestamp", nullable: true, default: null })
-    lastRelayAttempt!: Date | null;
-
-    @Column({ type: "varchar", length: 66, nullable: true, default: null })
-    gelatoTaskId?: string | null;
 }
