@@ -19,9 +19,12 @@ const SSL_KEY_PATH = process.env.SSL_KEY_PATH
 const SSL_CERT_PATH = process.env.SSL_CERT_PATH;
 const SERVER_URL = process.env.SERVER_URL;
 
-if (!IPFS_API || !SSL_KEY_PATH || !SSL_CERT_PATH || !SERVER_URL) {
-  console.error("Missing required environment variables");
-  process.exit(1);
+if (!IPFS_API || !SERVER_URL) {
+  throw new Error("Missing required environment variables");
+}
+
+if ((SSL_KEY_PATH && !SSL_CERT_PATH) || (!SSL_KEY_PATH && SSL_CERT_PATH)) {
+  throw new Error('SSL_KEY_PATH and SSL_CERT_PATH must be provided for HTTPS');
 }
 
 const app = express();
