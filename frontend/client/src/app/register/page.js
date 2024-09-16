@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 
-import Alert from "../../components/Alert";
+import Notification from "../../components/Notification";
 import Loading from "../../components/Loading";
 import ConfirmPopup from "../../components/ConfirmPopup";
 import HtmlQRCodePlugin from "../../components/ScanUploadQRCode";
 import GenerateQRCode from "../../components/GenerateQRCode";
+import NavigationBox from "../../components/NavigationBox";
 import Cookies from 'universal-cookie';
 import Link from 'next/link';
 import { getBlindedSignature } from '../../service';
@@ -85,6 +86,10 @@ export default function Home() {
         cookies.set('voterQR', voterQRCodeText);
         // will be changed to dynamic election location when its more clear where we go
         window.location.href = "/pollingstation?id=" + electionId;
+    }
+
+    const goToCreatesecret = () => {
+        window.location.href = "/createsecret?id=" + electionId + '&jwt=' + jwtToken; 
     }
 
     const voteLater = function() {
@@ -180,9 +185,9 @@ export default function Home() {
 
             {registerState.showNotification && (
                 <>
-                    <Alert
-                        alertType={registerState.notificationType}
-                        alertText={registerState.notificationText}
+                    <Notification
+                        type={registerState.notificationType}
+                        text={registerState.notificationText}
                     />
                 </>
             )}
@@ -196,10 +201,12 @@ export default function Home() {
                             </button>
                             <div className="flex items-center justify-center">
                                 <div>
-                                    <Link className="inline-block m-2 p-2 bg-stone-100 border border-stone-300 text-black hover:border-transparent rounded" href="/createsecret">
-                                        <h2 className="text-sm font-semibold">Ich habe kein Wahlgeheimnis oder möchte ein neues generieren</h2>
-                                        <p className="text-xs">Wenn Sie noch kein Wahlgeheimnis besitzen oder es verloren haben, können Sie sich in wenigen Schritten eines generieren.</p>
-                                    </Link>
+                                    <NavigationBox
+                                        onClickAction={() => goToCreatesecret()}
+                                        head="Ich habe keinen Wahlschlüssel oder möchte einen neuen generieren"
+                                        text="Wenn Sie noch keinen Wahlschlüssel besitzen oder es verloren haben, können Sie sich in wenigen Schritten eines generieren."
+                                        type="primary"
+                                    />
                                 </div>
                             </div>
                         </>
@@ -208,10 +215,10 @@ export default function Home() {
                     {registerState.showQRCodeUploadPlugin && (
                         <>
                             <HtmlQRCodePlugin
-                                headline = "Wahlgeheimnis prüfen"
-                                subheadline = "Bitte wählen Sie Ihr gespeichertes Wahlgeheimnis aus, um dessen Besitz nachzuweisen!"
-                                uploadSubHeadline = "Sie können Ihr Wahlgeheimnis ganz einfach hier als Bild laden und prüfen lassen."
-                                scanSubHeadline = "Sie können Ihr Wahlgeheimnis ganz einfach über Ihre Geräte-Kamera prüfen lassen."
+                                headline = "Wahlschlüssel prüfen"
+                                subheadline = "Bitte wählen Sie Ihren gespeicherten Wahlschlüssel aus, um dessen Besitz nachzuweisen!"
+                                uploadSubHeadline = "Sie können Ihren Wahlschlüssel ganz einfach hier als Bild laden und prüfen lassen."
+                                scanSubHeadline = "Sie können Ihren Wahlschlüssel ganz einfach über Ihre Geräte-Kamera prüfen lassen."
                                 onResult={(res) => setDecodedValue(res)}
                             />
                         </>

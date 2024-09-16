@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Cookies from 'universal-cookie';
-import Alert from "../../components/Alert";
+import Notification from "../../components/Notification";
 import Button from '../../components/Button';
 import NavigationBox from '../../components/NavigationBox';
 import HtmlQRCodePlugin from "../../components/ScanUploadQRCode";
@@ -74,8 +74,8 @@ export default function Home() {
                         showVotingSlipSelection: false,
                         showNotification: true,
                         allowedToVote: true,
-                        notificationType: 'note',
-                        notificationText: 'Ihr Wahlschein für diese Wahl wurde anerkannt. Sie können jetzt Ihre Auswahl treffen.'
+                        notificationType: 'success',
+                        notificationText: 'Das Register hat Ihren Wahlschein erkannt. Sie sind nun startklar für die Abstimmung!'
                     })
                 }
             }
@@ -153,9 +153,9 @@ export default function Home() {
             )}
             {pollingStationState.showNotification && (
                 <>
-                    <Alert
-                        alertType={pollingStationState.notificationType}
-                        alertText={pollingStationState.notificationText}
+                    <Notification
+                        type={pollingStationState.notificationType}
+                        text={pollingStationState.notificationText}
                     />
                 </>
             )}
@@ -180,7 +180,7 @@ export default function Home() {
 
             {pollingStationState.showVotingSlipSelection && (
                 <>
-                    <div className="op__contentbox_760 op__padding_standard_top_bottom">
+                    <div className="op__padding_standard_top_bottom">
                         <h4>Zur Abstimmung benötigen Sie einen Wahlschein</h4>
                     </div>
                     <div>
@@ -221,7 +221,7 @@ export default function Home() {
                         }}
                     />
 
-                    <div className="op__contentbox_760 op__center_align">
+                    <div className="op__center_align">
                         <Button
                             onClickAction={() =>
                                 setPollingStationState({

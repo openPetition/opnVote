@@ -25,7 +25,7 @@ export default function GenerateQRCode(props) {
     textCanvasContext.drawImage(qrCodeCanvasContext, 0, 100,200,200);
     const dataURL = textCanvas.toDataURL("image/png");
     const link = document.createElement('a');
-    link.download = "wahlschein.png";
+    link.download = downloadHeadline + ".png";
     link.href = textCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
     link.click();
   }
