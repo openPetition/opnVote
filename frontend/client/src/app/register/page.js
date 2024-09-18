@@ -8,8 +8,8 @@ import ConfirmPopup from "../../components/ConfirmPopup";
 import HtmlQRCodePlugin from "../../components/ScanUploadQRCode";
 import GenerateQRCode from "../../components/GenerateQRCode";
 import NavigationBox from "../../components/NavigationBox";
+import Button from "../../components/Button";
 import Cookies from 'universal-cookie';
-import Link from 'next/link';
 import { getBlindedSignature } from '../../service';
 import { getElectionData } from '../../service-graphql';
 
@@ -36,9 +36,6 @@ export default function Home() {
         notificationType: ''
     });
     const cookies = new Cookies(null, { path: '/' });
-
-
-
     const generateVoteCredentials = async function() {
         setRegisterState({
             ...registerState,
@@ -89,7 +86,9 @@ export default function Home() {
     }
 
     const goToCreatesecret = () => {
-        window.location.href = "/createsecret?id=" + electionId + '&jwt=' + jwtToken; 
+        if (electionId && jwtToken) {
+            window.location.href = "/createsecret?id=" + electionId + '&jwt=' + jwtToken; 
+        }
     }
 
     const voteLater = function() {
@@ -163,109 +162,117 @@ export default function Home() {
 
     return (
         <>
-            {(loading || registerState.showLoading) && (
-                <>
-                    <Loading loadingText="Loading"/>
-                </>
-            )}
+            <div className="op__contentbox_760">
+                {(loading || registerState.showLoading) && (
+                    <>
+                        <Loading loadingText="Loading"/>
+                    </>
+                )}
 
-            {registerState.showElectionData && (
-                <>
-                    <div className="bg-op-grey-light">
-                        <div className="p-4">
-                            <h3 className="text-center font-bold py-2">Wahlschein bestellen</h3>
-                            <p>
-                                Mithilfe des Wahlscheins prüft die Wahlleitung Ihre Wahlberechtigung. Daui wird ihr Wahlgeheimnis lokal verschlüsselt und dann an die Wahlleitung hochgeladen.
-                            </p>
-                            <p>Abstimmungsdaten: {data?.election?.descriptionBlob}</p>
+                {registerState.showElectionData && (
+                    <>
+                        <h3>Wahlschein bestellen</h3>
+                        <p>
+                            Mithilfe des Wahlscheins prüft die Wahlleitung Ihre Wahlberechtigung. Dazu wird Ihr Wahlgeheimnis lokal verschlüsselt und dann an die Wahlleitung hochgeladen.
+                        </p>
+                        <div className="op__outerbox_grey">
+                            <h3>{data?.election?.descriptionBlob}</h3>
                         </div>
-                    </div>
-                </>
-            )}
+                    </>
+                )}
 
-            {registerState.showNotification && (
-                <>
-                    <Notification
-                        type={registerState.notificationType}
-                        text={registerState.notificationText}
-                    />
-                </>
-            )}
+                {registerState.showNotification && (
+                    <>
+                        <Notification
+                            type={registerState.notificationType}
+                            text={registerState.notificationText}
+                        />
+                    </>
+                )}
 
-            {registerState.showElectionData && (
-                <>
-                    {registerState.showStartProcessScreen && (
-                        <>
-                            <button onClick={activateQRCodeUpload} className="m-2 p-3 bg-op-blue-main border border-op-blue-main font-bold text-white hover:op-grey-light rounded">
-                                WAHLSCHEIN GENERIEREN
-                            </button>
-                            <div className="flex items-center justify-center">
+                {registerState.showElectionData && (
+                    <>
+                        {registerState.showStartProcessScreen && (
+                            <>
+                                <Button
+                                    onClickAction={activateQRCodeUpload}
+                                    text="Wahlschein generieren"
+                                    type="primary"
+                                />
+                                <div className="flex items-center justify-center">
+                                    <div>
+                                        <NavigationBox
+                                            onClickAction={goToCreatesecret}
+                                            head="Ich habe keinen Wahlschlüssel oder möchte einen neuen generieren"
+                                            text="Wenn Sie noch keinen Wahlschlüssel besitzen oder es verloren haben, können Sie sich in wenigen Schritten eines generieren."
+                                            type="primary"
+                                        />
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {registerState.showQRCodeUploadPlugin && (
+                            <>
+                                <HtmlQRCodePlugin
+                                    headline = "Wahlschlüssel prüfen"
+                                    subheadline = "Bitte wählen Sie Ihren gespeicherten Wahlschlüssel aus, um dessen Besitz nachzuweisen!"
+                                    uploadSubHeadline = "Sie können Ihren Wahlschlüssel ganz einfach hier als Bild laden und prüfen lassen."
+                                    scanSubHeadline = "Sie können Ihren Wahlschlüssel ganz einfach über Ihre Geräte-Kamera prüfen lassen."
+                                    onResult={(res) => setDecodedValue(res)}
+                                />
+                            </>
+                        )}
+
+                        {registerState.showBallot && (
+                            <>
+                                <GenerateQRCode
+                                    headline="Bild speichern"
+                                    subheadline="Sie können den QR-Code mit dem Wahlschein als Bild speichern."
+                                    text={voterQRCodeText}
+                                    downloadHeadline="Wahlschein"
+                                />
+                                
                                 <div>
-                                    <NavigationBox
-                                        onClickAction={() => goToCreatesecret()}
-                                        head="Ich habe keinen Wahlschlüssel oder möchte einen neuen generieren"
-                                        text="Wenn Sie noch keinen Wahlschlüssel besitzen oder es verloren haben, können Sie sich in wenigen Schritten eines generieren."
+                                    <Button
+                                        onClickAction={goToElection}
+                                        text="Zur Wahlkabine"
+                                        type="secondary"
+                                    />
+                                </div>
+
+                                <div>
+                                    <Button
+                                        onClickAction={() => setShowContinueModal(true)}
+                                        text="Später abstimmen"
                                         type="primary"
                                     />
                                 </div>
-                            </div>
-                        </>
-                    )}
 
-                    {registerState.showQRCodeUploadPlugin && (
-                        <>
-                            <HtmlQRCodePlugin
-                                headline = "Wahlschlüssel prüfen"
-                                subheadline = "Bitte wählen Sie Ihren gespeicherten Wahlschlüssel aus, um dessen Besitz nachzuweisen!"
-                                uploadSubHeadline = "Sie können Ihren Wahlschlüssel ganz einfach hier als Bild laden und prüfen lassen."
-                                scanSubHeadline = "Sie können Ihren Wahlschlüssel ganz einfach über Ihre Geräte-Kamera prüfen lassen."
-                                onResult={(res) => setDecodedValue(res)}
-                            />
-                        </>
-                    )}
+                                <Notification
+                                    type="info"
+                                    headline="Achtung:"
+                                    text="Wenn Sie nun direkt abstimmen, kann ggf. eine Verbindung zwischen Ihrer Stimme zu Ihrer Identität hergestellt werden. Stimmen Sie zu einem späteren Zeitpunkt und von einer anderen Internetverbindung ab, um eine geheime Wahl garantieren zu können und um Ihre Privatsphäre besser zu schützen."
+                                />
 
-                    {registerState.showBallot && (
-                        <>
-                            <GenerateQRCode
-                                headline="Bild speichern"
-                                subheadline="Sie können den QR-Code mit dem Wahlschein als Bild speichern."
-                                text={voterQRCodeText}
-                                downloadHeadline="Wahlschein"
-                            />
-                            <button onClick={goToElection} className="m-2 p-3 bg-white border border-op-blue-main font-bold text-op-blue-main hover:op-grey-light rounded">
-                                ZUR WAHLKABINE
-                            </button>
-                            <button onClick={()=> {setShowContinueModal(true)}}  className="m-2 p-3 bg-op-blue-main border border-op-blue-main font-bold text-white hover:op-grey-light rounded">
-                                SPÄTER ABSTIMMEN
-                            </button>
-
-                            <div className="flex p-2 m-2 text-sm text-black rounded w-[calc(100%-1rem)] bg-op-blue-light inline-block" role="alert">
-                                <svg className="flex-shrink-0 inline w-4 h-4 me-3 mt-[2px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-                                </svg>
-                                <div>
-                                    <span className="font-bold">Achtung: </span>
-                                    Wenn Sie nun direkt abstimmen, kann ggf. eine Verbindung zwischen Ihrer Stimme zu Ihrer Identität hergestellt werden. Stimmen Sie zu einem späteren Zeitpunkt und von einer anderen Internetverbindung ab, um eine geheime Wahl garantieren zu können und um Ihre Privatsphäre besser zu schützen.
-                                </div>
-                            </div>
-
-                            <ConfirmPopup
-                                showModal = {registerState.showContinueModal}
-                                modalText = "Haben Sie Ihren Anonymen Wahlschein wirklich gespeichert oder ggf. abfotografiert? Nur mit Ihrem Anonymen Wahlschein können Sie an der Wahl teilnehmen."
-                                modalHeader = "Haben Sie an alles gedacht?"
-                                modalConfirmFunction = {voteLater}
-                                modalAbortFunction = {
-                                    ()=>{setRegisterState({
-                                        ...registerState,
-                                        showContinueModal: false,
-                                    })}}
-                                shouldConfirm = {true}
-                                confirmMessage = "Ja, ich habe meinen Anonymen Wahlschein gespeichert."
-                            />
-                        </>
-                    )}
-                </>
-            )}
+                                <ConfirmPopup
+                                    showModal = {registerState.showContinueModal}
+                                    modalText = "Haben Sie Ihren Anonymen Wahlschein wirklich gespeichert oder ggf. abfotografiert? Nur mit Ihrem Anonymen Wahlschein können Sie an der Wahl teilnehmen."
+                                    modalHeader = "Haben Sie an alles gedacht?"
+                                    modalConfirmFunction = {voteLater}
+                                    modalAbortFunction = {() => {
+                                        setRegisterState({
+                                            ...registerState,
+                                            showContinueModal: false
+                                        })}}
+                                    shouldConfirm = {true}
+                                    confirmMessage = "Ja, ich habe meinen Anonymen Wahlschein gespeichert."
+                                />
+                            </>
+                        )}
+                    </>
+                )}
+            </div>
         </>
     );
 }

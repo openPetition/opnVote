@@ -57,11 +57,11 @@ export default function Electionheader(props) {
                         <div className={styles.timer_mainbox}>
                             <div className={styles.timer_headline}>Abstimmung läuft noch:</div>
                             <div className={styles.timer}>
-                                <div className={styles.timer_item}><h4>{timeLeft.days}</h4>Tage</div>
-                                <div className={styles.timer_item_between}><h4>:</h4></div>
-                                <div className={styles.timer_item}><h4>{timeLeft.hours}</h4>Stunden</div>
-                                <div className={styles.timer_item_between}><h4>:</h4></div>
-                                <div className={styles.timer_item}><h4>{timeLeft.minutes}</h4>Minuten</div>
+                                <div className={styles.timer_item}><h3>{timeLeft.days}</h3>Tage</div>
+                                <div className={styles.timer_item_between}><h3>:</h3></div>
+                                <div className={styles.timer_item}><h3>{timeLeft.hours}</h3>Stunden</div>
+                                <div className={styles.timer_item_between}><h3>:</h3></div>
+                                <div className={styles.timer_item}><h3>{timeLeft.minutes}</h3>Minuten</div>
                             </div>
                         </div>
                     )}

@@ -20,6 +20,11 @@ body {
   color: #3e3d40;
 }
 
+a {
+  color: #29b0cc;
+  font-weight: bold;
+}
+
 h3 {
   font-weight: bold; 
 }

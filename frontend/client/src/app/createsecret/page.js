@@ -11,7 +11,7 @@ export default function Home() {
     const [ electionId, setElectionId ] = useState();
     const [ jwt, setJwt ] = useState();
 
-    const [ createSecretStationState, setCcreateSecretStationState ] = useState({
+    const [ createSecretState, setCreateSecretState ] = useState({
         loadingAnimation: false,
         showSecret: false,
         showNotification: false,
@@ -30,8 +30,8 @@ export default function Home() {
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
     async function generateAndCreate() {
-        setCcreateSecretStationState({
-            ...createSecretStationState,
+        setCreateSecretState({
+            ...createSecretState,
             loadingAnimation: true,
         })
         
@@ -40,8 +40,8 @@ export default function Home() {
         await delay(1000); // one second for loading the key
         if (createdSecret) {
             setSecret(createdSecret);
-            setCcreateSecretStationState({
-                ...createSecretStationState,
+            setCreateSecretState({
+                ...createSecretState,
                 loadingAnimation: false,
                 showQuestions: true,
                 showSecret: true,
@@ -69,35 +69,16 @@ export default function Home() {
             </div>
 
             <main className="op__contentbox_760">
-                {!createSecretStationState.showSecret && (
+                {!createSecretState.showSecret && (
                     <>
                         <LoadKey
                             onClickAction={generateAndCreate}
                             animationDuration={1}
-                            showLoadingAnimation={createSecretStationState.loadingAnimation}
+                            showLoadingAnimation={createSecretState.loadingAnimation}
                         />
-                        {electionId && (
-                            <>
-                                <h3>Sie haben bereits Ihren Wahlschlüssel?</h3>
-                                {jwt && (
-                                    <NavigationBox
-                                        onClickAction={() => goToRegister()}
-                                        head="Wahlschein bestellen"
-                                        text="Ich habe noch keinen Wahlschein und möchte einen bestellen"
-                                        type="primary"
-                                    />
-                                )}
-                                <NavigationBox
-                                    onClickAction={() => goToPollingstation()}
-                                    head="Direkt abstimmen"
-                                    text="Ich habe meinen Wahlschein und möchte direkt abstimmen."
-                                    type="primary"
-                                />
-                            </>
-                        )}
                     </>
                 )}
-                {createSecretStationState.showSecret && (
+                {createSecretState.showSecret && (
                     <>
                         <Notification
                             type="success"
@@ -114,6 +95,24 @@ export default function Home() {
                             subheadline="Sie können den QR-Code mit dem persönlichen Wahlschlüssel als Bild speichern."
                             text={secret}
                             downloadHeadline="Wahlschlüssel"
+                        />
+                    </>
+                )}
+                {electionId && (
+                    <>
+                        {jwt && (
+                            <NavigationBox
+                                onClickAction={() => goToRegister()}
+                                head="Wahlschein bestellen"
+                                text="Ich möchte meinen Wahlschein bestellen."
+                                type="primary"
+                            />
+                        )}
+                        <NavigationBox
+                            onClickAction={() => goToPollingstation()}
+                            head="Direkt abstimmen"
+                            text="Ich habe meinen Wahlschein und möchte direkt abstimmen."
+                            type="primary"
                         />
                     </>
                 )}

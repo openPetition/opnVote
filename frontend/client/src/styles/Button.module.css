@@ -10,6 +10,12 @@
     background-color: var(--op-blue-main);
 }
 
+.secondary {
+    background-color: white;
+    color: var(--op-blue-main);
+    border: 1px solid var(--op-blue-main);
+}
+
 .dark {
     color: white;
     background-color: var(--op-blue-dark);

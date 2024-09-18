@@ -43,7 +43,5 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey) {
 
     const signatureDataInitialSerialized = JSON.stringify(signatureDataInitial, replacer);
     const gelatoForwardResult = await gelatoForward(signatureDataInitialSerialized);
-    console.log(gelatoForwardResult); //we get task id - stored in blockcain. / we still have to check wether all is good ( already voted or other)
-    // https://api.gelato.digital/tasks/status/0x49706c72b75170f5445ad4b5c96cd13afe7a5c4a90859e992279a9074d293170 to check next?
-    return;
+    return gelatoForwardResult?.data?.taskId;
 }
