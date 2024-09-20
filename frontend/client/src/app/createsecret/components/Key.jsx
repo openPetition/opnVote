@@ -1,8 +1,13 @@
 'use client';
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styles from './Key.module.css';
+import { useTranslation } from 'next-i18next';
+
 export default function LoadKey(props) {
+    const [ isRendered, setIsRendered ] = useState(false);
+    const { t } = useTranslation();
     const { showLoadingAnimation, animationDuration, onClickAction } = props;
+
     const startAnimation = () => {
         var elements = document.getElementsByClassName('animatefirst');
         for (var i = 0; i < elements.length; i++) {
@@ -10,16 +15,26 @@ export default function LoadKey(props) {
         }
       }
 
-      useEffect(() => {
+    useEffect(() => {
         if  (showLoadingAnimation) {
-         startAnimation();
+            startAnimation();
         }
     }, [showLoadingAnimation])
 
+    useEffect(() => {
+        if (!isRendered) {
+            setIsRendered(true);
+        }
+    }, [])
+
     return (
     <>
+
         <div className="op__padding_standard_top_bottom">
-            <h3>Schlüssel anklicken und Wahlgeheimnis generieren</h3>
+            {isRendered && (
+                <>
+                
+                <h3>{t('secret.key.headline')}</h3>
             <button 
                 className={styles.key_circle_button}
                 onClick={onClickAction}
@@ -64,6 +79,8 @@ export default function LoadKey(props) {
                     </g>
                 </svg>
             </button>
+            </>
+            )}
         </div>
     </>
     );

@@ -5,9 +5,12 @@ import GenerateQRCode from "../../components/GenerateQRCode";
 import NavigationBox from "@/components/NavigationBox";
 import Notification from "../../components/Notification";
 import LoadKey from "./components/Key";
+import { useTranslation } from "next-i18next";
 
 export default function Home() {
-    const [secret, setSecret] = useState('');
+    const { t } = useTranslation();
+
+    const [ secret, setSecret ] = useState('');
     const [ electionId, setElectionId ] = useState();
     const [ jwt, setJwt ] = useState();
 
@@ -15,8 +18,6 @@ export default function Home() {
         loadingAnimation: false,
         showSecret: false,
         showNotification: false,
-        notificationText: '',
-        notificationType: ''
     });
 
     const goToRegister = () => {
@@ -46,8 +47,6 @@ export default function Home() {
                 showQuestions: true,
                 showSecret: true,
                 showNotification: true,
-                notificationType: 'confirm',
-                notificationText: 'Ihr Wahlschein für diese Wahl wurde anerkannt. Sie können jetzt Ihre Auswahl treffen.'
             })
         }
     }
@@ -59,8 +58,7 @@ export default function Home() {
     }, [])
 
     return (
-        <>
-            
+        <>        
             <div className="bg-op-blue">
                 <div className="flex-col items-center justify-between p-5 text-sm">
                     Dieser Part wird noch extrahiert.... nur zur Einteilung..
@@ -76,42 +74,51 @@ export default function Home() {
                             animationDuration={1}
                             showLoadingAnimation={createSecretState.loadingAnimation}
                         />
-                    </>
+
+                        {electionId && jwt &&(
+                            <NavigationBox
+                                onClickAction={() => goToRegister()}
+                                head={t("secret.navigationbox.gotoregister.beforegenerated.head")}
+                                text={t("secret.navigationbox.gotoregister.beforegenerated.text")}
+                                type="primary"
+                            />
+                        )}
+                    </>  
                 )}
                 {createSecretState.showSecret && (
                     <>
                         <Notification
                             type="success"
-                            text="Ihr Wahlschlüssel wurde erfolgreich generiert. Jetzt müssen Sie es nur noch sicher ablegen."
+                            text={t("secret.notification.success.text.key-generated")}
                         />
-                        <h4>Ihren Wahlschlüssel speichern</h4>
+                        <h4>{t("secret.headline.savekey")}</h4>
                         <Notification
                             type="info"
-                            headline="Wichtig:"
-                            text="Legen Sie ihren Wahlschlüssel lokal und sicher ab. Das Speichern ist sehr wichtig, denn ein einmal gespeichertes und verlorengegangenes Geheimnis kann von uns nicht wiederhergestellt werden und würde bedeuten, dass Sie ihre Stimme verlieren."
+                            headline={t("secret.notification.info.headline.important")}
+                            text={t("secret.notification.info.text.important")}
                         />
                         <GenerateQRCode
-                            headline="Als Bild speichern"
-                            subheadline="Sie können den QR-Code mit dem persönlichen Wahlschlüssel als Bild speichern."
+                            headline={t("secret.generateqrcode.headline")}
+                            subheadline={t("secret.generateqrcode.subheadline")}
                             text={secret}
-                            downloadHeadline="Wahlschlüssel"
+                            downloadHeadline={t("secret.generateqrcode.downloadHeadline")}
                         />
-                    </>
-                )}
-                {electionId && (
-                    <>
-                        {jwt && (
+                        {electionId && jwt && (
                             <NavigationBox
                                 onClickAction={() => goToRegister()}
-                                head="Wahlschein bestellen"
-                                text="Ich möchte meinen Wahlschein bestellen."
+                                head={t("secret.navigationbox.gotoregister.aftergenerated.head")}
+                                text={t("secret.navigationbox.gotoregister.aftergenerated.text")}
                                 type="primary"
                             />
                         )}
+                        </>
+                )}
+                {electionId && (
+                    <>
                         <NavigationBox
                             onClickAction={() => goToPollingstation()}
-                            head="Direkt abstimmen"
-                            text="Ich habe meinen Wahlschein und möchte direkt abstimmen."
+                            head={t("secret.navigationbox.goToPollingstation.head")}
+                            text={t("secret.navigationbox.goToPollingstation.text")}
                             type="primary"
                         />
                     </>

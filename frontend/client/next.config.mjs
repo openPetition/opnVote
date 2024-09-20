@@ -1,4 +1,6 @@
+const { i18n } = import('./next-i18next.config.js');
 const devConfig = {
+  i18n,
   env: {
     abiConfigUrl: 'https://localhost:3000/api/abi.json',
     blindedSignatureUrl: 'https://register.opn.vote/api/sign',
@@ -12,6 +14,7 @@ const devConfig = {
 }
 
 const prodConfig = {
+  i18n,
   env: {
     abiConfigUrl: 'https://client-test.opn.vote/api/abi.json',
     blindedSignatureUrl: 'https://register.opn.vote/api/sign',

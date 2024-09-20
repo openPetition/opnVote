@@ -12,8 +12,10 @@ import Question from "./components/Question";
 import { getElectionData } from '../../service-graphql';
 import { qrToElectionCredentials, validateCredentials } from "votingsystem";
 import { sendVotes } from "./sendVotes";
+import { useTranslation } from 'next-i18next';
 
 export default function Home() {
+    const { t } = useTranslation();
     const cookies = new Cookies(null, { path: '/' });
     const [ votingCredentials, setVotingCredentials ] = useState({});
     const [ electionInformations, setElectionInformations ] = useState({});
@@ -76,7 +78,7 @@ export default function Home() {
                         showVotingSlipSelection: true,
                         allowedToVote: false,
                         showNotification: true,
-                        notificationText: 'Die Daten des gespeicherten Wahlscheins passen nicht zu dieser Wahl.',
+                        notificationText: t("pollingstation.notification.error.ballotnotfitting"),
                         notificationType: 'error'
                     });
                 } else {
@@ -91,7 +93,7 @@ export default function Home() {
                         showNotification: true,
                         allowedToVote: true,
                         notificationType: 'success',
-                        notificationText: 'Das Register hat Ihren Wahlschein erkannt. Sie sind nun startklar für die Abstimmung!'
+                        notificationText: t("pollingstation.notification.success.ballotfits")
                     })
                 }
             }
@@ -103,7 +105,7 @@ export default function Home() {
                 showVotingSlipUpload: false,
                 showVotingSlipSelection: true,
                 showNotification: true,
-                notificationText: 'Die Daten dieses Wahlscheins konnten nicht verarbeitet werden.',
+                notificationText: t("pollingstation.notification.error.ballotdatacorrupt"),
                 notificationType: 'error'
             });
         }
@@ -115,7 +117,7 @@ export default function Home() {
         setPollingStationState({
             ...pollingStationState,
             showNotification: true,
-            notificationText: 'Es wurden keine Wahldaten gefunden.',
+            notificationText: t("Es wurden keine Wahldaten gefunden"),
             notificationType: 'error'
         })
     }
@@ -199,13 +201,13 @@ export default function Home() {
                 {pollingStationState.showVotingSlipSelection && (
                     <>
                         <div className="op__padding_standard_top_bottom">
-                            <h4>Zur Abstimmung benötigen Sie einen Wahlschein</h4>
+                            <h4>{t("pollingstation.headline.ballotneeded")}</h4>
                         </div>
                         <div>
                             <NavigationBox
                                 onClickAction={() => registerForElection()}
-                                head="Wahlschein bestellen"
-                                text="Ich habe noch keinen Wahlschein und möchte einen bestellen"
+                                head={t("pollingstation.navigationbox.registerforelection.head")}
+                                text={t("pollingstation.navigationbox.registerforelection.text")}
                                 type="primary"
                             />
                         </div>
@@ -220,8 +222,8 @@ export default function Home() {
                                         showNotification: false,
                                     })
                                 }
-                                head="Direkt abstimmen"
-                                text="Ich habe meinen Wahlschein und möchte direkt abstimmen"
+                                head={t("pollingstation.navigationbox.continuetovote.head")}
+                                text={t("pollingstation.navigationbox.continuetovote.text")}
                                 type="primary"
                             />
                         </div>
@@ -230,10 +232,10 @@ export default function Home() {
                 {pollingStationState.showVotingSlipUpload && (
                     <>
                         <HtmlQRCodePlugin
-                            headline = "Wahlschein prüfen"
-                            subheadline = "Mithilfe des Wahlscheins prüft die Wahlleitung Ihre Wahlberechtigung.!"
-                            uploadSubHeadline = "Sie können Ihren Wahlschein ganz einfach hier als Bild laden und prüfen lassen."
-                            scanSubHeadline = "Sie können Ihren Wahlschein ganz einfach über Ihre Geräte-Kamera prüfen lassen."
+                            headline = {t("pollingstation.uploadqrcode.headline")}
+                            subheadline = {t("pollingstation.uploadqrcode.subheadline")}
+                            uploadSubHeadline = {t("pollingstation.uploadqrcode.uploadSubHeadline")}
+                            scanSubHeadline = {t("pollingstation.uploadqrcode.scanSubHeadline")}
                             onResult={(res) => {
                                 qrCodeToCredentials(res)
                             }}
@@ -249,7 +251,7 @@ export default function Home() {
                                         showVotingSlipSelection: true,
                                     })
                                 }
-                                text="Eingabe abbrechen"
+                                text={t("pollingstation.button.cancel")}
                                 type="primary"
                             />
                         </div>
@@ -261,7 +263,7 @@ export default function Home() {
                         <div>
                             <Button
                                 onClickAction={saveVotes}
-                                text="Wahl absenden"
+                                text={t("pollingstation.button.savevotes")}
                                 type="primary"
                             />                    
                         </div>
