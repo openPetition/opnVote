@@ -1,6 +1,10 @@
 'use client'
 import { Signature } from "votingsystem";
 
+export class AuthorizationError extends Error {}
+export class AlreadyVotedError extends Error {}
+export class ServerError extends Error {}
+
 /** @returns {Signature} */
 export async function getBlindedSignature(jwttoken, blindedElectionToken) {
     const blindedElectionTokenFormatted = {token: blindedElectionToken};
@@ -36,13 +40,21 @@ export async function getTransactionState(taskId) {
         ),
     };
     const response = await fetch(transactionStateUrl, options);
+    if (response.status !== 200) {
+        throw new ServerError();
+    } 
+
     const transactionResult = await response.json();
     const taskState = transactionResult.task.taskState;
+    if ('lastCheckMessage' in transactionResult.task && transactionResult.task.lastCheckMessage.match(/(Execution error|Task failed after [0-9]+ retries): .*:Already Voted/i)) {
+        throw new AlreadyVotedError();
+    }
 
     return {
         status: taskStatesSuccess.includes(taskState) ? 'success' : taskStatesCancelled.includes(taskState) ? 'cancelled' : 'pending',
-        transactionHash: transactionResult.task.transactionHash ? transactionResult?.task?.transactionHash : '',
-        transactionViewUrl: transactionResult.task.transactionHash ? 'https://gnosisscan.io/tx/' + transactionResult?.task?.transactionHash : '',
+        error: null,
+        transactionHash: transactionResult?.task?.transactionHash ? transactionResult.task.transactionHash : '',
+        transactionViewUrl: transactionResult?.task?.transactionHash ? 'https://gnosisscan.io/tx/' + transactionResult.task.transactionHash : '',
     };
 }
 
@@ -55,16 +67,20 @@ export async function signTransaction(votingTransaction, voterSignatureObject) {
         method: "POST",
         headers: signHeader,
         body: JSON.stringify({votingTransaction, voterSignature: voterSignatureObject}),
-
     };
 
-    try {
-        const response = await fetch(process.env.signVotingTransactionUrl, signOptions);
-        const jsondata = await response.json()
-        return jsondata.data;
-    } catch(error) {
-        console.error(error);
+    const response = await fetch(process.env.signVotingTransactionUrl, signOptions);
+    if (response.status !== 200) {
+        throw new ServerError();
     }
+    const jsondata = await response.json();
+    if (jsondata?.data?.blindedSignature) {
+        return jsondata.data.blindedSignature;
+    }
+    if (jsondata?.data?.hexString) {
+        return jsondata.data;
+    }
+    return jsondata;
 };
 
 export async function gelatoForward(signatureDataInitialSerialized) {
@@ -75,12 +91,15 @@ export async function gelatoForward(signatureDataInitialSerialized) {
         headers: gelatoHeader,
         body: signatureDataInitialSerialized,
     };
+
+    const response = await fetch(process.env.gelatoForwardUrl, options);
+    if (response.status >= 500) {
+        throw new ServerError();
+    } 
     try {
-        const response = await fetch(process.env.gelatoForwardUrl, options);
-        const jsondata = await response.json()
-        return jsondata;
-    } catch(error) {
-        console.error(error);
+        return await response.json();
+    } catch (e) {
+        throw new ServerError();
     }
 }
 
@@ -95,7 +114,7 @@ export async function getAbi() {
         const response = await fetch(process.env.abiConfigUrl, options);
         const jsondata = await response.json()
         return jsondata;
-    } catch(error) {
-        console.error(error);
+    } catch (error) {
+        throw new ServerError();
     }
 }

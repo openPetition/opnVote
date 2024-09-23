@@ -12,6 +12,7 @@ import Question from "./components/Question";
 import { getElectionData } from '../../service-graphql';
 import { qrToElectionCredentials, validateCredentials } from "votingsystem";
 import { sendVotes } from "./sendVotes";
+import { ServerError } from "@/service";
 import { useTranslation } from 'next-i18next';
 
 export default function Home() {
@@ -20,7 +21,7 @@ export default function Home() {
     const [ votingCredentials, setVotingCredentials ] = useState({});
     const [ electionInformations, setElectionInformations ] = useState({});
     const [ votes, setVotes ] = useState({});
-    const [ electionId, setElectionId ] = useState(); 
+    const [ electionId, setElectionId ] = useState();
 
     // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
     const [ pollingStationState, setPollingStationState ] = useState({
@@ -32,6 +33,8 @@ export default function Home() {
         showVotingSlipSelection: false,
         showNotification: false,
         showQuestions: false,
+        showSendError: false,
+        pending: false,
         allowedToVote: false,
         notificationText: '',
         notificationType: ''
@@ -42,23 +45,37 @@ export default function Home() {
             window.location.href="/register/?id="+data?.election.id;
         }
     }
-      
+
     const saveVotes = async () => {
+        setPollingStationState({...pollingStationState, pending: true});
         //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
-        const taskId = await sendVotes(votes, votingCredentials, data.election.publicKey);
-        if (taskId) {
-            cookies.remove('voterQR');
+        try {
+            const taskId = await sendVotes(votes, votingCredentials, data.election.publicKey);
+            if (taskId) {
+                cookies.remove('voterQR');
+                setPollingStationState({
+                    ...pollingStationState,
+                    taskId: taskId,
+                    showElectionInformation: false,
+                    showQuestions: false,
+                    showElection: false,
+                    showVotingSlipUpload: false,
+                    showVotingSlipSelection: false,
+                    allowedToVote: false,
+                    showNotification: false,
+                    pending: false,
+                });
+            }
+        } catch (e) {
             setPollingStationState({
                 ...pollingStationState,
-                taskId: taskId,
-                showElectionInformation: false,
-                showQuestions: false,
-                showElection: false,
-                showVotingSlipUpload: false,
-                showVotingSlipSelection: false,
-                allowedToVote: false,
-                showNotification: false,
+                showSendError: t('pollingstation.button.errormessage'),
+                allowedToVote: true,
+                pending: true,
             });
+            setTimeout(() => {
+                setPollingStationState({...pollingStationState, pending: false});
+            }, 10000);
         }
     }
 
@@ -117,7 +134,7 @@ export default function Home() {
         setPollingStationState({
             ...pollingStationState,
             showNotification: true,
-            notificationText: t("Es wurden keine Wahldaten gefunden"),
+            notificationText: t("pollingstation.notification.error.noelectiondatafound"),
             notificationType: 'error'
         })
     }
@@ -158,9 +175,9 @@ export default function Home() {
             return;
         }
         qrCodeToCredentials(voterQR);
-        
+
     }, [electionInformations])
-    
+
     return (
         <>
             {pollingStationState.showElectionInformation && (
@@ -263,10 +280,14 @@ export default function Home() {
                         <div>
                             <Button
                                 onClickAction={saveVotes}
+                                isDisabled={pollingStationState.pending}
                                 text={t("pollingstation.button.savevotes")}
                                 type="primary"
-                            />                    
+                            />
                         </div>
+                        {pollingStationState.showSendError && (
+                            <Notification type="error" text={pollingStationState.showSendError} />
+                        )}
                     </>
                 )}
                 {pollingStationState.taskId && (

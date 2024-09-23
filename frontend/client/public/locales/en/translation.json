@@ -61,5 +61,16 @@
   "pollingstation.uploadqrcode.uploadSubHeadline": "You can easily upload your ballot paper here as an image and have it checked.",
   "pollingstation.uploadqrcode.scanSubHeadline": "You can easily have your ballot paper checked via your device camera.",
   "pollingstation.button.cancel": "Cancel input",
-  "pollingstation.button.savevotes": "Send vote"
+  "pollingstation.button.savevotes": "Send vote",
+  "pollingstation.button.errormessage": "An error occured during vote processing. Please try again in a few seconds. If the problem persists please contact election officials.",
+  "votetransactionstate.status": "Status",
+  "votetransactionstate.status.pending": "Processing...",
+  "votetransactionstate.status.success": "Success",
+  "votetransactionstate.status.error": "Error",
+  "votetransactionstate.status.checking": "Checking...",
+  "votetransactionstate.transaction": "Blockchain transaction",
+  "votetransactionstate.error.transaction": "The transaction was malformed. Please contact election officials.",
+  "votetransactionstate.error.alreadyvoted": "You already voted.",
+  "votetransactionstate.error.servererror": "Connection to server failed.",
+  "votetransactionstate.info.success": "Your vote was successfully processed and immutably written to the blockchain."
 }

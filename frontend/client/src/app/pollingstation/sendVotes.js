@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { ethers } from "ethers";
 import { signTransaction, gelatoForward, getAbi } from '../../service';
@@ -43,5 +43,6 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey) {
 
     const signatureDataInitialSerialized = JSON.stringify(signatureDataInitial, replacer);
     const gelatoForwardResult = await gelatoForward(signatureDataInitialSerialized);
-    return gelatoForwardResult?.data?.taskId;
+        
+    return gelatoForwardResult.data.taskId;
 }

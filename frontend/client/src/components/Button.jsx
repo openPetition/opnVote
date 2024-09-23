@@ -9,7 +9,7 @@ export default function Button(props) {
     <>
         <button 
             onClick={onClickAction}
-            disabled=""
+            disabled={isDisabled}
             className={`${styles.btn} ${styles[type]}`}
             style={style}
         >

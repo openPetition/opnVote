@@ -61,5 +61,16 @@
   "pollingstation.uploadqrcode.uploadSubHeadline": "Sie können Ihren Wahlschein ganz einfach hier als Bild laden und prüfen lassen.",
   "pollingstation.uploadqrcode.scanSubHeadline": "Sie können Ihren Wahlschein ganz einfach über Ihre Geräte-Kamera prüfen lassen.",
   "pollingstation.button.cancel": "Eingabe abbrechen",
-  "pollingstation.button.savevotes": "Wahl absenden"
+  "pollingstation.button.savevotes": "Wahl absenden",
+  "pollingstation.button.errormessage": "Bei der Verarbeitung der Stimme ist ein Fehler aufgetreten. Bitte probieren Sie es in ein paar Sekunden nochmal. Sollte das Problem weiterhin bestehen, wenden Sie sich bitte an die Wahlleitung.",
+  "votetransactionstate.status": "Status",
+  "votetransactionstate.status.pending": "In Verarbeitung...",
+  "votetransactionstate.status.success": "Erfolg",
+  "votetransactionstate.status.error": "Fehler",
+  "votetransactionstate.status.checking": "Wird Abgefragt",
+  "votetransactionstate.transaction": "Blockchain Transaktion",
+  "votetransactionstate.error.transaction": "Die Transaktion ist fehlerhaft. Bitte wenden Sie sich an die Wahlleitung.",
+  "votetransactionstate.error.alreadyvoted": "Mit dieser Wahlberechtigung wurde bereits abgestimmt.",
+  "votetransactionstate.error.servererror": "Der Server konnte nicht erreicht werden.",
+  "votetransactionstate.info.success": "Ihre Stimme wurde erfolgreich abgegeben, verschlüsselt und unveränderlich in die Blockchain geschrieben."
 }

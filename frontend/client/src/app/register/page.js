@@ -42,7 +42,7 @@ export default function Home() {
             showLoading: true,
             showNotification: false,
         });
-        const electionId = data?.election?.id;
+        
         try {
 
             let registerRSA = {
@@ -53,7 +53,7 @@ export default function Home() {
 
             let masterTokens  = await qrToTokenAndR(decodedValue, true);
             let unblindedElectionToken = await deriveElectionUnblindedToken(electionId, masterTokens.token);
-            let electionR = await deriveElectionR(data?.election?.id, masterTokens.r, unblindedElectionToken, registerRSA);
+            let electionR = await deriveElectionR(electionId, masterTokens.r, unblindedElectionToken, registerRSA);
             let blindedElectionToken = await blindToken(unblindedElectionToken, electionR, registerRSA);
             let blindedSignature = await getBlindedSignature(jwtToken, blindedElectionToken);
             let unblindedSignature = await unblindSignature(blindedSignature, electionR, registerRSA);
@@ -74,7 +74,7 @@ export default function Home() {
                 showNotification: true,
                 notificationText: 'Fehler bei der Verarbeitung des QR Code. ',
                 notificationType: 'error'
-            })
+            });
         };
     }
 
@@ -156,7 +156,7 @@ export default function Home() {
             return;
         }
 
-        setElectionId(getId);
+        setElectionId(parseInt(getId));
         setJwtToken(getJwtToken);
     }, []);
 

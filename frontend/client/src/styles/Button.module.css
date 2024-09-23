@@ -10,6 +10,11 @@
     background-color: var(--op-blue-main);
 }
 
+.primary:disabled {
+    color: lightgray;
+    background-color: var(--op-blue-dark);
+}
+
 .secondary {
     background-color: white;
     color: var(--op-blue-main);
