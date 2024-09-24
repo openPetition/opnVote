@@ -1,0 +1,16 @@
+.key_circle_button {
+    width: 250px;
+    height: 250px;
+    border: 4px solid var(--unnamed-color-d4eff5);
+    border: 4px solid #D4EFF5;
+    opacity: 1;
+    border-radius: 50%;
+    margin: 0.5rem auto;
+    text-align: center;
+    display: block;
+}
+
+#key_svg {
+    margin: 0 auto;
+    display: block;
+}

@@ -1,10 +1,12 @@
+const { i18n } = import('./next-i18next.config.js');
 const devConfig = {
+  i18n,
   env: {
     abiConfigUrl: 'https://localhost:3000/api/abi.json',
-    blindedSignatureUrl: 'https://152.53.65.200:3004/api/sign',
-    signVotingTransactionUrl: 'https://152.53.65.200:3005/api/votingTransaction/sign',
-    graphConnectUrl: 'https://netcup.opn.vote:18000/subgraphs/name/opnvote-001',
-    gelatoForwardUrl: 'https://152.53.65.200:3005/api/gelato/forward',
+    blindedSignatureUrl: 'https://register.opn.vote/api/sign',
+    signVotingTransactionUrl: 'https://svs.opn.vote/api/votingTransaction/sign',
+    graphConnectUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-001',
+    gelatoForwardUrl: 'https://svs.opn.vote/api/gelato/forward',
   },
   images: {
     domains: ['localhost', 'static.openpetition.de'],
@@ -12,12 +14,13 @@ const devConfig = {
 }
 
 const prodConfig = {
+  i18n,
   env: {
     abiConfigUrl: 'https://client-test.opn.vote/api/abi.json',
-    blindedSignatureUrl: 'https://152.53.65.200:3004/api/sign',
-    signVotingTransactionUrl: 'https://152.53.65.200:3005/api/votingTransaction/sign',
-    graphConnectUrl: 'https://netcup.opn.vote:18000/subgraphs/name/opnvote-001',
-    gelatoForwardUrl: 'https://152.53.65.200:3005/api/gelato/forward',
+    blindedSignatureUrl: 'https://register.opn.vote/api/sign',
+    signVotingTransactionUrl: 'https://svs.opn.vote/api/votingTransaction/sign',
+    graphConnectUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-001',
+    gelatoForwardUrl: 'https://svs.opn.vote/api/gelato/forward',
   },
 
   output: 'export',

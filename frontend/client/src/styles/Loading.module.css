@@ -1,0 +1,24 @@
+.loadingbox {
+    padding: 0.5rem;
+    text-align: center;
+}
+
+.loader {
+    border: 5px solid var(--op-blue);
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+    width: 40px;
+    height: 40px;
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

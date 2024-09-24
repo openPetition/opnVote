@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
+  <g id="icon" transform="translate(-304 -546)">
+    <circle id="Ellipse_173" data-name="Ellipse 173" cx="15" cy="15" r="15" transform="translate(304 546)" fill="#df2e48"/>
+    <g id="Gruppe_164" data-name="Gruppe 164" transform="translate(490.02 -61.354) rotate(45)">
+      <path id="Pfad_263" data-name="Pfad 263" d="M340,554v14" transform="translate(-21)" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2"/>
+      <path id="Pfad_264" data-name="Pfad 264" d="M0,0V14" transform="translate(326 561) rotate(90)" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2"/>
+    </g>
+  </g>
+</svg>

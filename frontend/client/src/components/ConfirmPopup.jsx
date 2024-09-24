@@ -1,10 +1,11 @@
 'use client';
 import React, { useState, useEffect } from "react";
+import { useTranslation } from 'next-i18next';
 
 export default function ConfirmPopup(props) {
   const { showModal, modalText, modalHeader, modalConfirmFunction, modalAbortFunction, shouldConfirm, confirmMessage } = props;
+  const { t } = useTranslation();
   const [ continueActive, setContinueActive ] = useState(shouldConfirm ? false : true);
-
 
   useEffect(() => {
     setContinueActive(shouldConfirm ? false : true)
@@ -48,10 +49,10 @@ export default function ConfirmPopup(props) {
                         onClick={modalConfirmFunction} 
                         className={`${continueActive ? ' bg-op-blue-main ' : 'bg-gray-300'} + m-2 p-3 border border-op-blue-main font-bold text-white hover:op-grey-light rounded`}
                       >
-                        Weiter 
+                        {t('common.continue')}
                       </button>
                       <button onClick={modalAbortFunction} className="m-2 p-3 bg-white border border-op-blue-main font-bold text-op-blue-main hover:op-grey-light rounded">
-                        Abbrechen
+                        {t('common.abort')}
                       </button>
                     </div>
                 </div>

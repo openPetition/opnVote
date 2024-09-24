@@ -1,12 +1,14 @@
 'use client';
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { QRCodeCanvas } from 'qrcode.react';
 import styles from '../styles/GenerateQRCode.module.css';
 import Image from 'next/image';
 import Button from './Button'
+import { useTranslation } from 'next-i18next';
 
 export default function GenerateQRCode(props) {
   const { headline, subheadline, text, downloadHeadline } = props;
+  const { t } = useTranslation();
 
   const DownloadAsPng = () => {
     const textCanvas = document.getElementById("canvas");
@@ -25,7 +27,7 @@ export default function GenerateQRCode(props) {
     textCanvasContext.drawImage(qrCodeCanvasContext, 0, 100,200,200);
     const dataURL = textCanvas.toDataURL("image/png");
     const link = document.createElement('a');
-    link.download = "wahlschein.png";
+    link.download = downloadHeadline + ".png";
     link.href = textCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
     link.click();
   }
@@ -93,16 +95,10 @@ export default function GenerateQRCode(props) {
                 <Button 
                   onClickAction={DownloadAsPng} 
                   type="primary"
-                  text="Bild speichern"
+                  text={t("common.saveimage")}
                   style={{display: 'block', width: '100%'}} 
                 />
 
-                <Button 
-                  onClickAction={PrintPng} 
-                  type="primary"
-                  text="Bild drucken"
-                  style={{display: 'block', width: '100%'}} 
-                />
               </div>
           </div>
         </div>
