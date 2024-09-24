@@ -105,11 +105,13 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
  */
 
 interface ElectionData {
+  title: string;
   description: string;
   summary: string;
   ballot: string[];
 }
 app.post('/pinElectionData', [
+  body('electionData.title').isString(),
   body('electionData.description').isString(),
   body('electionData.summary').isString(),
   body('electionData.ballot').isArray(),
