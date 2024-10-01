@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import styles from '../styles/Footer.module.css';
-import Button from './Button'
+import Button from './Button';
 import Image from 'next/image';
 
 export default function Footer() {
@@ -14,11 +14,11 @@ export default function Footer() {
                 <p className={styles.textblock}>
                 Helfen Sie uns Demokratische Online-Wahlen möglich zu machen. Um die Platform kostenlos für alle bereitzustellen und gemeinnützige Wahlausrichter zu unterstützen, sind wir auf Spenden angewiesen.
                 </p>
-                <Button 
-                  onClickAction={()=>alert('bitte gib uns geld!')}
+                <Button
+                  onClickAction={()=>{window.location = 'https://openpetition.org/spenden';}}
                   type="dark"
                   text="JETZT SPENDEN"
-                  style={{display: 'block', margin: '0 auto', marginTop: '1rem', fontWeight: 'bold'}} 
+                  style={{display: 'block', margin: '0 auto', marginTop: '1rem', fontWeight: 'bold'}}
                 />
             </div>
             <div className={styles.greyblock}>
@@ -32,10 +32,10 @@ export default function Footer() {
                         Ein Service von
                         <Image
                             alt="openpetition logo"
-                            src="/images/opnvote-logo.png" 
+                            src="/images/openpetition-logo.png"
                             height={68}
                             width={194}
-                            style={{margin: ".2rem"}} 
+                            style={{margin: ".2rem"}}
                         />
                     </div>
                 </div>
