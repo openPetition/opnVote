@@ -76,10 +76,18 @@ h4 {
   position: relative;
 }
 
+.op_innerbox_border-text {
+  border: 1px solid #000;
+  position: relative;
+  margin: 5px;
+}
+
 .op__mob_padding_standard_left_right {
   padding-left: .5rem;
   padding-right: .5rem;
 }
+
+
 
 @media only screen and (min-width: 800px) 
 {
@@ -110,7 +118,6 @@ h4 {
     text-wrap: balance;
   }
 }
-
 
 @media screen
 {

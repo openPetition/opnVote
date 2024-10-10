@@ -19,7 +19,7 @@ VotingSystem includes the calculations for all our steps. e.g. it returns and ch
 * cd into 'frontend/opnreg'
 * first install dependencies `npm install`
 * link the votingsystem: `npm link votingsystem`
-* start server: `npm run dev`
+* start server: `npx next dev --experimental-https` (as we have to use http npm run dev ist not enough)
 
 Open [http://localhost:3000](http://localhost:3000) (or wherever it started) in your browser.
 
@@ -51,5 +51,9 @@ for styling we are using styled components
 * really global styles we put into globals.css and we try to keep it short as possible with css variables mainly
 * all other styles from components we put into corresponding .module.css .. it should have name of the component (e.g. "Button.jsx" - "Buttton.module.css")
 * next js is creating namespace for this components with its modules. So module css can only be used inside of the component.
+
+### coding style
+* rules for editor are set in `.editorconfig` for the whole openvote project
+* in openreg you can run `npx eslint src/**/*.js*` in openreg or `npx eslint filepath` for one file
 
 doc for better understanding: https://nextjs.org/docs/app/building-your-application/styling/css-modules

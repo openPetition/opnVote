@@ -45,7 +45,7 @@ export default function Electionheader(props) {
                         sizes="100vw"
                     />
                     <div className={styles.election_informations}>
-                        <h4>{electionInformations.summary}</h4>
+                        <h4>{electionInformations.title}</h4>
                         Status: {election.status}<br />
                         Stimmen: {election.totalVotes}
                     </div>

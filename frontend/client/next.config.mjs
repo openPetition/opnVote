@@ -2,6 +2,7 @@ const { i18n } = import('./next-i18next.config.js');
 const devConfig = {
   i18n,
   env: {
+    basicUrl: 'https://localhost:3000',
     abiConfigUrl: 'https://localhost:3000/api/abi.json',
     blindedSignatureUrl: 'https://register.opn.vote/api/sign',
     signVotingTransactionUrl: 'https://svs.opn.vote/api/votingTransaction/sign',
@@ -16,6 +17,7 @@ const devConfig = {
 const prodConfig = {
   i18n,
   env: {
+    basicUrl: 'https://client-test.opn.vote',
     abiConfigUrl: 'https://client-test.opn.vote/api/abi.json',
     blindedSignatureUrl: 'https://register.opn.vote/api/sign',
     signVotingTransactionUrl: 'https://svs.opn.vote/api/votingTransaction/sign',

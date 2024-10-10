@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import { useTranslation } from 'next-i18next';
+import styles from '../styles/ConfirmPopup.module.css';
 
 export default function ConfirmPopup(props) {
   const { showModal, modalText, modalHeader, modalConfirmFunction, modalAbortFunction, shouldConfirm, confirmMessage } = props;
@@ -14,8 +15,8 @@ export default function ConfirmPopup(props) {
   return (
     <>
       {showModal && (
-        <div className="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 max-h-full">
-            <div className="relative p-4 w-full max-w-md max-h-full">
+        <div className={`overflow-y-auto overflow-x-hidden fixed top-0 right-0 bottom-0 left-0 z-50 justify-center items-center w-full md:inset-0 max-h-full ${styles.popupBackgroundwrapper}`}>
+            <div className={`relative p-4 w-full max-w-md max-h-full ${styles.popupBox}`}>
                 <div className="relative bg-white rounded-lg shadow ">
                     <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-600">
                         <h3 className="text-xl font-semibold text-gray-900 ">

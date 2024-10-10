@@ -102,6 +102,8 @@ export default function Home() {
                             subheadline={t("secret.generateqrcode.subheadline")}
                             text={secret}
                             downloadHeadline={t("secret.generateqrcode.downloadHeadline")}
+                            headimage="secret"
+                            saveButtonText={t("common.save")}
                         />
                         {electionId && jwt && (
                             <NavigationBox

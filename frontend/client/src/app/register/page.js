@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 
+import NextImage from 'next/image';
 import Notification from "../../components/Notification";
 import Loading from "../../components/Loading";
 import ConfirmPopup from "../../components/ConfirmPopup";
@@ -20,20 +21,22 @@ export default function Home() {
     const [ decodedValue, setDecodedValue ] = useState("");
     const [ voterQRCodeText, setVoterQRCodeText ] = useState("")
     const [ electionId, setElectionId ] = useState();
+    const [ electionInformation, setElectionInformation ] = useState();
     const [ jwtToken, setJwtToken ] = useState();
-
+    const delay = ms => new Promise(res => setTimeout(res, ms));
     // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
     const [ registerState, setRegisterState ] = useState({
         showLoading: true,
         showStartProcessScreen: false,
         showElectionInformation: false,
-        showElection: false,
         showQRCodeUploadPlugin: false,
         showBallot: false,
         showContinueModal: false,
         showNotification: false,
         notificationText: '',
-        notificationType: ''
+        notificationType: '',
+        showQRLoadingAnimation: false,
+        showVoteLater: false,
     });
     const cookies = new Cookies(null, { path: '/' });
     const generateVoteCredentials = async function() {
@@ -42,9 +45,8 @@ export default function Home() {
             showLoading: true,
             showNotification: false,
         });
-        
-        try {
 
+        try {
             let registerRSA = {
                 N: BigInt(data?.election?.registerPublicKeyN),
                 e: BigInt(data?.election?.registerPublicKeyE),
@@ -59,13 +61,21 @@ export default function Home() {
             let unblindedSignature = await unblindSignature(blindedSignature, electionR, registerRSA);
             let voterCredentials = await createVoterCredentials(unblindedSignature, unblindedElectionToken, masterTokens.token, electionId);
             let qrVoterCredentials = await concatElectionCredentialsForQR(voterCredentials);
-      
+
             setVoterQRCodeText(qrVoterCredentials);
             setRegisterState({
                 ...registerState,
                 showLoading: false,
-                showBallot: true,
+                showBallot: false,
                 showQRCodeUploadPlugin: false,
+                showQRLoadingAnimation: true
+            });
+            await delay(1000);
+            setRegisterState({
+                ...registerState,
+                showQRCodeUploadPlugin: false,
+                showBallot: true,
+                showQRLoadingAnimation: false,
             });
         } catch (error) {
             setRegisterState({
@@ -78,6 +88,10 @@ export default function Home() {
         };
     }
 
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(process.env.basicUrl+'/pollingstation?id='+electionId);
+    }
+
     const goToElection = function() {
         //set cookie with election data
         cookies.set('voterQR', voterQRCodeText);
@@ -87,13 +101,21 @@ export default function Home() {
 
     const goToCreatesecret = () => {
         if (electionId && jwtToken) {
-            window.location.href = "/createsecret?id=" + electionId + '&jwt=' + jwtToken; 
+            window.location.href = "/createsecret?id=" + electionId + '&jwt=' + jwtToken;
         }
     }
 
     const voteLater = function() {
         // later maybe redirect to overview of elections
-        window.location.href = "https://openpetition.de/";
+        setRegisterState({
+            ...registerState,
+            showElectionInformation: false,
+            showStartProcessScreen: false,
+            showQRCodeUploadPlugin: false,
+            showNotification: false,
+            showBallot: false,
+            showVoteLater: true,
+        });
     }
 
     const activateQRCodeUpload = () => {
@@ -102,32 +124,35 @@ export default function Home() {
             showStartProcessScreen: false,
             showQRCodeUploadPlugin: true,
             showNotification: false,
-        })
+        });
     }
 
     useEffect(() => {
         // work with qr code value / decoded value in next step
         if (decodedValue && decodedValue.length > 0) {
-            generateVoteCredentials()
+            generateVoteCredentials();
         }
     }, [decodedValue]);
 
     const [getElection, { loading, data }]  = getElectionData(electionId);
 
     useEffect(() => {
-        if (loading) return;
+        if (loading) {
+            return;
+        }
 
         // after we got election data .. check this
         if (data && data?.election && Object.keys(data?.election).length > 0) {
+            setElectionInformation(JSON.parse(data.election?.descriptionBlob));
             setRegisterState({
                 ...registerState,
-                showElectionData: true,
+                showElectionInformation: true,
                 showStartProcessScreen: true,
                 showLoading: false,
                 showNotification: false,
-            })
+            });
         }
-    }, [data])
+    }, [data]);
 
     useEffect(() => {
         if (!electionId) {
@@ -152,7 +177,7 @@ export default function Home() {
                 showNotification: true,
                 notificationText: t("register.notification.error.noelection.text"),
                 notificationType: 'error'
-            })
+            });
             return;
         }
 
@@ -169,14 +194,14 @@ export default function Home() {
                     </>
                 )}
 
-                {registerState.showElectionData && (
+                {registerState.showElectionInformation && electionInformation && (
                     <>
                         <h3>{t("register.headline.orderballot")}</h3>
                         <p>
                             {t("register.text.ballotdescription")}
                         </p>
                         <div className="op__outerbox_grey">
-                            <h3>{data?.election?.descriptionBlob}</h3>
+                            <h3>{electionInformation.title}</h3>
                         </div>
                     </>
                 )}
@@ -190,7 +215,7 @@ export default function Home() {
                     </>
                 )}
 
-                {registerState.showElectionData && (
+                {registerState.showElectionInformation && (
                     <>
                         {registerState.showStartProcessScreen && (
                             <>
@@ -224,15 +249,24 @@ export default function Home() {
                             </>
                         )}
 
+                        {registerState.showQRLoadingAnimation && (
+                            <Loading loadingText={t("common.loading.text")}/>
+                        )}
+
                         {registerState.showBallot && (
                             <>
-                                <GenerateQRCode
-                                    headline={t("register.generateqrcode.headline")}
-                                    subheadline={t("register.generateqrcode.subheadline")}
-                                    text={voterQRCodeText}
-                                    downloadHeadline={t("register.generateqrcode.downloadHeadline")}
+                                <Notification
+                                    type="success"
+                                    headline={t("register.notification.success.ballotcreated.headline")}
+                                    text={t("register.notification.success.ballotcreated.text")}
                                 />
-                                
+
+                                <Notification
+                                    type="info"
+                                    headline={t("register.notification.attention.headline")}
+                                    text={t("register.notification.attention.text")}
+                                />
+
                                 <div>
                                     <Button
                                         onClickAction={goToElection}
@@ -241,9 +275,21 @@ export default function Home() {
                                     />
                                 </div>
 
+                                <GenerateQRCode
+                                    headline={t("register.generateqrcode.headline")}
+                                    subheadline={t("register.generateqrcode.subheadline")}
+                                    text={voterQRCodeText}
+                                    downloadHeadline={t("register.generateqrcode.downloadHeadline")}
+                                    downloadSubHeadline={electionInformation.title}
+                                    headimage="ballot"
+                                    saveButtonText={t("register.generateqrcode.savebuttontext")}
+                                />
+
+
+
                                 <div>
                                     <Button
-                                        onClickAction={() =>                                         
+                                        onClickAction={() =>
                                             setRegisterState({
                                             ...registerState,
                                             showContinueModal: true
@@ -253,18 +299,13 @@ export default function Home() {
                                     />
                                 </div>
 
-                                <Notification
-                                    type="info"
-                                    headline={t("register.notification.attention.headline")}
-                                    text={t("register.notification.attention.text")}
-                                />
-
                                 <ConfirmPopup
                                     showModal = {registerState.showContinueModal}
                                     modalText = {t("register.confirmpopup.modaltext")}
                                     modalHeader = {t("register.confirmpopup.modalheader")}
                                     modalConfirmFunction = {voteLater}
                                     modalAbortFunction = {() => {
+                                        window.scrollTo(0, 0);
                                         setRegisterState({
                                             ...registerState,
                                             showContinueModal: false
@@ -274,6 +315,48 @@ export default function Home() {
                                 />
                             </>
                         )}
+                    </>
+                )}
+                {registerState.showVoteLater && (
+                    <>
+                        <Notification
+                            type="info"
+                            headline={t("register.notification.info.votelater.headline")}
+                            text={t("register.notification.info.votelater.text")}
+                        />
+
+                        <div className="op__outerbox_grey">
+                            <input
+                                type="text"
+                                readOnly={true}
+                                defaultValue={`${process.env.basicUrl}/pollingstation?id=${electionId}`}
+                                style={{
+                                    width: '90%',
+                                    display: 'inline-block',
+                                    paddingLeft: '10px',
+                                    border: '1px solid #999',
+                                    borderRadius: "5px",
+                                    backgroundColor: '#eee'
+                                }}
+                            />
+                            <NextImage
+                                priority
+                                src="/images/copy-clipboard.svg"
+                                height={36}
+                                width={36}
+                                alt="Follow us on Twitter"
+                                onClick={copyToClipboard}
+                                style={{display: 'inline-block', paddingLeft: '10px'}}
+                            />
+                        </div>
+
+                        <div>
+                            <Button
+                                onClickAction={goToElection}
+                                text={t("register.button.gotoelection.text")}
+                                type="secondary"
+                            />
+                        </div>
                     </>
                 )}
             </div>
