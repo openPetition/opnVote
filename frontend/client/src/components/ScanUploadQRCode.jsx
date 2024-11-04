@@ -2,15 +2,15 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import Image from 'next/image';
-import Button from './Button'
+import Button from './Button';
 import styles from '../styles/ScanUploadQRCode.module.css';
+import { useTranslation } from 'next-i18next';
 
 const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
 let html5QrCode;
 
 export default function ScanUploadQRCode (props) {
-
+    const { t } = useTranslation();
     const { headline, subheadline, uploadSubHeadline, scanSubHeadline } = props;
 
     const fileRef = useRef(null);
@@ -24,7 +24,7 @@ export default function ScanUploadQRCode (props) {
       const oldRegion = document.getElementById("qr-shaded-region");
       oldRegion && oldRegion.remove();
     }, []);
-  
+
     const startScanClick = () => {
       setShowStopScanBtn(true);
       const qrCodeSuccessCallback = (decodedText, decodedResult) => {
@@ -84,13 +84,13 @@ export default function ScanUploadQRCode (props) {
     const scanLocalFile = () => {
       fileRef.current.click();
     };
-    
+
     const scanFile = (e) => {
       if (e.target.files.length === 0) {
         // No file there -> do nothing for now
         return;
       }
-  
+
       // Use the first item in the list
       const imageFile = e.target.files[0];
       html5QrCode
@@ -104,7 +104,7 @@ export default function ScanUploadQRCode (props) {
           console.debug(`Error scanning file. Reason: ${err}`);
         });
     };
-  
+
     return (
       <>
         <div className="op__contentbox_760">
@@ -115,16 +115,16 @@ export default function ScanUploadQRCode (props) {
           <div className={styles.header}>
             <div className={styles.qrbg}></div>
             <div>
-              <h3>QR Code hochladen</h3>
+              <h3>{t('scanuploadqrcode.image.headline')}</h3>
               <p>{uploadSubHeadline}</p>
             </div>
           </div>
           <div className={styles.innerbox}>
-            <p>QR Code über den Button auswählen</p>
-            <Button 
-              onClickAction={scanLocalFile} 
+            <p>{t('scanuploadqrcode.image.instruction')}</p>
+            <Button
+              onClickAction={scanLocalFile}
               type="primary"
-              text="Bild auswählen"
+              text={t('scanuploadqrcode.image.select')}
             />
             <input
               type="file"
@@ -140,31 +140,31 @@ export default function ScanUploadQRCode (props) {
         <div className={styles.header}>
             <div className={styles.qrbg}></div>
             <div>
-              <h3>QR Code Scannen</h3>
+              <h3>{t('scanuploadqrcode.camera.headline')}</h3>
               <p>{scanSubHeadline}</p>
             </div>
           </div>
           <div className={styles.innerbox}>
-            <p>Kamera starten und QR Code vor die Linse halten</p>
+            <p>{t('scanuploadqrcode.camera.instruction')}</p>
             <div id="reader" width="100%"></div>
-            <Button 
-              onClickAction={() => startScanClick()} 
+            <Button
+              onClickAction={() => startScanClick()}
               type={`${showStopScanBtn ? "hide" : "primary"}`}
-              text="Kamera starten"
+              text={t('scanuploadqrcode.camera.start')}
             />
             <Button
               onClickAction={() => handleStop()}
               type={`${showStopScanBtn ? "primary" : "hide"}`}
-              text="Karmera stoppen"
+              text={t('scanuploadqrcode.camera.stop')}
             />
             <p>
-            <Button 
-              onClickAction={getCameras} 
-              text="Geräte-Kameras neu erkennen"
+            <Button
+              onClickAction={getCameras}
+              text={t('scanuploadqrcode.camera.detect')}
               type="primary"
             />
             </p>
-        {cameraList.length == 0 && (<div className="">Keine Kameras erkannt oder Zugriff auf Kameras verweigert</div>)}
+        {cameraList.length == 0 && (<div className="">{t('scanuploadqrcode.camera.detecterror')}</div>)}
         {cameraList.length > 1 && (
           <select onChange={onCameraChange}>
             {cameraList.map((li) => (
@@ -180,9 +180,6 @@ export default function ScanUploadQRCode (props) {
         )}
         </div>
       </div>
-  
-
-
       </>
     );
   };

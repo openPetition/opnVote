@@ -2,51 +2,51 @@
 
 import React, { useState, useEffect } from "react";
 
-import Alert from "../../components/Alert";
+import NextImage from 'next/image';
+import Notification from "../../components/Notification";
 import Loading from "../../components/Loading";
 import ConfirmPopup from "../../components/ConfirmPopup";
 import HtmlQRCodePlugin from "../../components/ScanUploadQRCode";
 import GenerateQRCode from "../../components/GenerateQRCode";
+import NavigationBox from "../../components/NavigationBox";
+import Button from "../../components/Button";
 import Cookies from 'universal-cookie';
-import Link from 'next/link';
 import { getBlindedSignature } from '../../service';
 import { getElectionData } from '../../service-graphql';
-
+import { useTranslation } from 'next-i18next';
 import { qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, blindToken, unblindSignature, createVoterCredentials, concatElectionCredentialsForQR, RSA_BIT_LENGTH } from "votingsystem";
 
 export default function Home() {
-
+    const { t } = useTranslation();
     const [ decodedValue, setDecodedValue ] = useState("");
     const [ voterQRCodeText, setVoterQRCodeText ] = useState("")
     const [ electionId, setElectionId ] = useState();
+    const [ electionInformation, setElectionInformation ] = useState();
     const [ jwtToken, setJwtToken ] = useState();
-
+    const delay = ms => new Promise(res => setTimeout(res, ms));
     // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
     const [ registerState, setRegisterState ] = useState({
         showLoading: true,
         showStartProcessScreen: false,
         showElectionInformation: false,
-        showElection: false,
         showQRCodeUploadPlugin: false,
         showBallot: false,
         showContinueModal: false,
         showNotification: false,
         notificationText: '',
-        notificationType: ''
+        notificationType: '',
+        showQRLoadingAnimation: false,
+        showVoteLater: false,
     });
     const cookies = new Cookies(null, { path: '/' });
-
-
-
     const generateVoteCredentials = async function() {
         setRegisterState({
             ...registerState,
             showLoading: true,
             showNotification: false,
         });
-        const electionId = data?.election?.id;
-        try {
 
+        try {
             let registerRSA = {
                 N: BigInt(data?.election?.registerPublicKeyN),
                 e: BigInt(data?.election?.registerPublicKeyE),
@@ -55,19 +55,27 @@ export default function Home() {
 
             let masterTokens  = await qrToTokenAndR(decodedValue, true);
             let unblindedElectionToken = await deriveElectionUnblindedToken(electionId, masterTokens.token);
-            let electionR = await deriveElectionR(data?.election?.id, masterTokens.r, unblindedElectionToken, registerRSA);
+            let electionR = await deriveElectionR(electionId, masterTokens.r, unblindedElectionToken, registerRSA);
             let blindedElectionToken = await blindToken(unblindedElectionToken, electionR, registerRSA);
             let blindedSignature = await getBlindedSignature(jwtToken, blindedElectionToken);
             let unblindedSignature = await unblindSignature(blindedSignature, electionR, registerRSA);
             let voterCredentials = await createVoterCredentials(unblindedSignature, unblindedElectionToken, masterTokens.token, electionId);
             let qrVoterCredentials = await concatElectionCredentialsForQR(voterCredentials);
-      
+
             setVoterQRCodeText(qrVoterCredentials);
             setRegisterState({
                 ...registerState,
                 showLoading: false,
-                showBallot: true,
+                showBallot: false,
                 showQRCodeUploadPlugin: false,
+                showQRLoadingAnimation: true
+            });
+            await delay(1000);
+            setRegisterState({
+                ...registerState,
+                showQRCodeUploadPlugin: false,
+                showBallot: true,
+                showQRLoadingAnimation: false,
             });
         } catch (error) {
             setRegisterState({
@@ -76,8 +84,12 @@ export default function Home() {
                 showNotification: true,
                 notificationText: 'Fehler bei der Verarbeitung des QR Code. ',
                 notificationType: 'error'
-            })
+            });
         };
+    }
+
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(process.env.basicUrl+'/pollingstation?id='+electionId);
     }
 
     const goToElection = function() {
@@ -87,9 +99,23 @@ export default function Home() {
         window.location.href = "/pollingstation?id=" + electionId;
     }
 
+    const goToCreatesecret = () => {
+        if (electionId && jwtToken) {
+            window.location.href = "/createsecret?id=" + electionId + '&jwt=' + jwtToken;
+        }
+    }
+
     const voteLater = function() {
         // later maybe redirect to overview of elections
-        window.location.href = "https://openpetition.de/";
+        setRegisterState({
+            ...registerState,
+            showElectionInformation: false,
+            showStartProcessScreen: false,
+            showQRCodeUploadPlugin: false,
+            showNotification: false,
+            showBallot: false,
+            showVoteLater: true,
+        });
     }
 
     const activateQRCodeUpload = () => {
@@ -98,32 +124,35 @@ export default function Home() {
             showStartProcessScreen: false,
             showQRCodeUploadPlugin: true,
             showNotification: false,
-        })
+        });
     }
 
     useEffect(() => {
         // work with qr code value / decoded value in next step
         if (decodedValue && decodedValue.length > 0) {
-            generateVoteCredentials()
+            generateVoteCredentials();
         }
     }, [decodedValue]);
 
     const [getElection, { loading, data }]  = getElectionData(electionId);
 
     useEffect(() => {
-        if (loading) return;
+        if (loading) {
+            return;
+        }
 
         // after we got election data .. check this
         if (data && data?.election && Object.keys(data?.election).length > 0) {
+            setElectionInformation(JSON.parse(data.election?.descriptionBlob));
             setRegisterState({
                 ...registerState,
-                showElectionData: true,
+                showElectionInformation: true,
                 showStartProcessScreen: true,
                 showLoading: false,
                 showNotification: false,
-            })
+            });
         }
-    }, [data])
+    }, [data]);
 
     useEffect(() => {
         if (!electionId) {
@@ -146,119 +175,191 @@ export default function Home() {
                 ...registerState,
                 showLoading: false,
                 showNotification: true,
-                notificationText: 'Fehlerhafter Aufruf. Bitte  gehen Sie zurück und folgen dem vorherigen Link erneut!',
+                notificationText: t("register.notification.error.noelection.text"),
                 notificationType: 'error'
-            })
+            });
             return;
         }
 
-        setElectionId(getId);
+        setElectionId(parseInt(getId));
         setJwtToken(getJwtToken);
     }, []);
 
     return (
         <>
-            {(loading || registerState.showLoading) && (
-                <>
-                    <Loading loadingText="Loading"/>
-                </>
-            )}
+            <div className="op__contentbox_760">
+                {(loading || registerState.showLoading) && (
+                    <>
+                        <Loading loadingText={t("common.loading.text")}/>
+                    </>
+                )}
 
-            {registerState.showElectionData && (
-                <>
-                    <div className="bg-op-grey-light">
-                        <div className="p-4">
-                            <h3 className="text-center font-bold py-2">Wahlschein bestellen</h3>
-                            <p>
-                                Mithilfe des Wahlscheins prüft die Wahlleitung Ihre Wahlberechtigung. Daui wird ihr Wahlgeheimnis lokal verschlüsselt und dann an die Wahlleitung hochgeladen.
-                            </p>
-                            <p>Abstimmungsdaten: {data?.election?.descriptionBlob}</p>
+                {registerState.showElectionInformation && electionInformation && (
+                    <>
+                        <h3>{t("register.headline.orderballot")}</h3>
+                        <p>
+                            {t("register.text.ballotdescription")}
+                        </p>
+                        <div className="op__outerbox_grey">
+                            <h3>{electionInformation.title}</h3>
                         </div>
-                    </div>
-                </>
-            )}
+                    </>
+                )}
 
-            {registerState.showNotification && (
-                <>
-                    <Alert
-                        alertType={registerState.notificationType}
-                        alertText={registerState.notificationText}
-                    />
-                </>
-            )}
+                {registerState.showNotification && (
+                    <>
+                        <Notification
+                            type={registerState.notificationType}
+                            text={registerState.notificationText}
+                        />
+                    </>
+                )}
 
-            {registerState.showElectionData && (
-                <>
-                    {registerState.showStartProcessScreen && (
-                        <>
-                            <button onClick={activateQRCodeUpload} className="m-2 p-3 bg-op-blue-main border border-op-blue-main font-bold text-white hover:op-grey-light rounded">
-                                WAHLSCHEIN GENERIEREN
-                            </button>
-                            <div className="flex items-center justify-center">
-                                <div>
-                                    <Link className="inline-block m-2 p-2 bg-stone-100 border border-stone-300 text-black hover:border-transparent rounded" href="/createsecret">
-                                        <h2 className="text-sm font-semibold">Ich habe kein Wahlgeheimnis oder möchte ein neues generieren</h2>
-                                        <p className="text-xs">Wenn Sie noch kein Wahlgeheimnis besitzen oder es verloren haben, können Sie sich in wenigen Schritten eines generieren.</p>
-                                    </Link>
+                {registerState.showElectionInformation && (
+                    <>
+                        {registerState.showStartProcessScreen && (
+                            <>
+                                <Button
+                                    onClickAction={activateQRCodeUpload}
+                                    text={t("register.button.orderballot")}
+                                    type="primary"
+                                />
+                                <div className="flex items-center justify-center">
+                                    <div>
+                                        <NavigationBox
+                                            onClickAction={goToCreatesecret}
+                                            head={t("register.navigationbox.gotocreatesecret.head")}
+                                            text={t("register.navigationbox.gotocreatesecret.text")}
+                                            type="primary"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                        </>
-                    )}
+                            </>
+                        )}
 
-                    {registerState.showQRCodeUploadPlugin && (
-                        <>
-                            <HtmlQRCodePlugin
-                                headline = "Wahlgeheimnis prüfen"
-                                subheadline = "Bitte wählen Sie Ihr gespeichertes Wahlgeheimnis aus, um dessen Besitz nachzuweisen!"
-                                uploadSubHeadline = "Sie können Ihr Wahlgeheimnis ganz einfach hier als Bild laden und prüfen lassen."
-                                scanSubHeadline = "Sie können Ihr Wahlgeheimnis ganz einfach über Ihre Geräte-Kamera prüfen lassen."
-                                onResult={(res) => setDecodedValue(res)}
-                            />
-                        </>
-                    )}
+                        {registerState.showQRCodeUploadPlugin && (
+                            <>
+                                <HtmlQRCodePlugin
+                                    headline = {t("register.uploadqrcode.headline")}
+                                    subheadline = {t("register.uploadqrcode.subheadline")}
+                                    uploadSubHeadline = {t("register.uploadqrcode.uploadSubHeadline")}
+                                    scanSubHeadline = {t("register.uploadqrcode.scanSubHeadline")}
+                                    onResult={(res) => setDecodedValue(res)}
+                                />
+                            </>
+                        )}
 
-                    {registerState.showBallot && (
-                        <>
-                            <GenerateQRCode
-                                headline="Bild speichern"
-                                subheadline="Sie können den QR-Code mit dem Wahlschein als Bild speichern."
-                                text={voterQRCodeText}
-                                downloadHeadline="Wahlschein"
-                            />
-                            <button onClick={goToElection} className="m-2 p-3 bg-white border border-op-blue-main font-bold text-op-blue-main hover:op-grey-light rounded">
-                                ZUR WAHLKABINE
-                            </button>
-                            <button onClick={()=> {setShowContinueModal(true)}}  className="m-2 p-3 bg-op-blue-main border border-op-blue-main font-bold text-white hover:op-grey-light rounded">
-                                SPÄTER ABSTIMMEN
-                            </button>
+                        {registerState.showQRLoadingAnimation && (
+                            <Loading loadingText={t("common.loading.text")}/>
+                        )}
 
-                            <div className="flex p-2 m-2 text-sm text-black rounded w-[calc(100%-1rem)] bg-op-blue-light inline-block" role="alert">
-                                <svg className="flex-shrink-0 inline w-4 h-4 me-3 mt-[2px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-                                </svg>
+                        {registerState.showBallot && (
+                            <>
+                                <Notification
+                                    type="success"
+                                    headline={t("register.notification.success.ballotcreated.headline")}
+                                    text={t("register.notification.success.ballotcreated.text")}
+                                />
+
+                                <Notification
+                                    type="info"
+                                    headline={t("register.notification.attention.headline")}
+                                    text={t("register.notification.attention.text")}
+                                />
+
                                 <div>
-                                    <span className="font-bold">Achtung: </span>
-                                    Wenn Sie nun direkt abstimmen, kann ggf. eine Verbindung zwischen Ihrer Stimme zu Ihrer Identität hergestellt werden. Stimmen Sie zu einem späteren Zeitpunkt und von einer anderen Internetverbindung ab, um eine geheime Wahl garantieren zu können und um Ihre Privatsphäre besser zu schützen.
+                                    <Button
+                                        onClickAction={goToElection}
+                                        text={t("register.button.gotoelection.text")}
+                                        type="secondary"
+                                    />
                                 </div>
-                            </div>
 
-                            <ConfirmPopup
-                                showModal = {registerState.showContinueModal}
-                                modalText = "Haben Sie Ihren Anonymen Wahlschein wirklich gespeichert oder ggf. abfotografiert? Nur mit Ihrem Anonymen Wahlschein können Sie an der Wahl teilnehmen."
-                                modalHeader = "Haben Sie an alles gedacht?"
-                                modalConfirmFunction = {voteLater}
-                                modalAbortFunction = {
-                                    ()=>{setRegisterState({
-                                        ...registerState,
-                                        showContinueModal: false,
-                                    })}}
-                                shouldConfirm = {true}
-                                confirmMessage = "Ja, ich habe meinen Anonymen Wahlschein gespeichert."
+                                <GenerateQRCode
+                                    headline={t("register.generateqrcode.headline")}
+                                    subheadline={t("register.generateqrcode.subheadline")}
+                                    text={voterQRCodeText}
+                                    downloadHeadline={t("register.generateqrcode.downloadHeadline")}
+                                    downloadSubHeadline={electionInformation.title}
+                                    headimage="ballot"
+                                    saveButtonText={t("register.generateqrcode.savebuttontext")}
+                                />
+
+
+
+                                <div>
+                                    <Button
+                                        onClickAction={() =>
+                                            setRegisterState({
+                                            ...registerState,
+                                            showContinueModal: true
+                                        })}
+                                        text={t("register.button.votelater.text")}
+                                        type="primary"
+                                    />
+                                </div>
+
+                                <ConfirmPopup
+                                    showModal = {registerState.showContinueModal}
+                                    modalText = {t("register.confirmpopup.modaltext")}
+                                    modalHeader = {t("register.confirmpopup.modalheader")}
+                                    modalConfirmFunction = {voteLater}
+                                    modalAbortFunction = {() => {
+                                        window.scrollTo(0, 0);
+                                        setRegisterState({
+                                            ...registerState,
+                                            showContinueModal: false
+                                        })}}
+                                    shouldConfirm = {true}
+                                    confirmMessage = {t("register.confirmpopup.confirmmessage")}
+                                />
+                            </>
+                        )}
+                    </>
+                )}
+                {registerState.showVoteLater && (
+                    <>
+                        <Notification
+                            type="info"
+                            headline={t("register.notification.info.votelater.headline")}
+                            text={t("register.notification.info.votelater.text")}
+                        />
+
+                        <div className="op__outerbox_grey">
+                            <input
+                                type="text"
+                                readOnly={true}
+                                defaultValue={`${process.env.basicUrl}/pollingstation?id=${electionId}`}
+                                style={{
+                                    width: '90%',
+                                    display: 'inline-block',
+                                    paddingLeft: '10px',
+                                    border: '1px solid #999',
+                                    borderRadius: "5px",
+                                    backgroundColor: '#eee'
+                                }}
                             />
-                        </>
-                    )}
-                </>
-            )}
+                            <NextImage
+                                priority
+                                src="/images/copy-clipboard.svg"
+                                height={36}
+                                width={36}
+                                alt="Follow us on Twitter"
+                                onClick={copyToClipboard}
+                                style={{display: 'inline-block', paddingLeft: '10px'}}
+                            />
+                        </div>
+
+                        <div>
+                            <Button
+                                onClickAction={goToElection}
+                                text={t("register.button.gotoelection.text")}
+                                type="secondary"
+                            />
+                        </div>
+                    </>
+                )}
+            </div>
         </>
     );
 }

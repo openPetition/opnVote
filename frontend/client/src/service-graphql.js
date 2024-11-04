@@ -1,6 +1,5 @@
 'use client'
 
-export const graphConnectUrl = 'http://152.53.65.200:8000/subgraphs/name/opnvote-001';
 
 import { useLazyQuery, gql } from '@apollo/client';
 

@@ -2,18 +2,30 @@
 
 import React, { useState, useEffect } from "react";
 import Cookies from 'universal-cookie';
-import Alert from "../../components/Alert";
+import Notification from "../../components/Notification";
 import Button from '../../components/Button';
 import NavigationBox from '../../components/NavigationBox';
 import HtmlQRCodePlugin from "../../components/ScanUploadQRCode";
+import VoteTransactionState from "./components/VoteTransactionState";
 import Electionheader from "./components/Electionheader";
 import Question from "./components/Question";
-import { qrToElectionCredentials, validateCredentials } from "votingsystem";
 import { getElectionData } from '../../service-graphql';
+import { qrToElectionCredentials, validateCredentials } from "votingsystem";
+import { sendVotes } from "./sendVotes";
+import { ServerError } from "@/service";
+import { useTranslation } from 'next-i18next';
 
-export default function Home({ params }) {
+export default function Home() {
+    const { t } = useTranslation();
+    const cookies = new Cookies(null, { path: '/' });
+    const [ votingCredentials, setVotingCredentials ] = useState({});
+    const [ electionInformations, setElectionInformations ] = useState({});
+    const [ votes, setVotes ] = useState({});
+    const [ electionId, setElectionId ] = useState();
 
-    const pollingStationManagerInit = {
+    // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
+    const [ pollingStationState, setPollingStationState ] = useState({
+        taskId: '',
         showElectionInformation: false,
         showElection: false,
         showVotingSlipUpload: false,
@@ -21,23 +33,49 @@ export default function Home({ params }) {
         showVotingSlipSelection: false,
         showNotification: false,
         showQuestions: false,
+        showSendError: false,
+        pending: false,
         allowedToVote: false,
         notificationText: '',
         notificationType: ''
-    }
-
-    const cookies = new Cookies(null, { path: '/' });
-    const [ votingCredentials, setVotingCredentials ] = useState({});
-    const [ electionInformations, setElectionInformations ] = useState({});
-    const [ votes, setVotes ] = useState({});
-    const [ electionId, setElectionId ] = useState(); 
-
-    // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
-    const [ pollingStationManager, setPollingStationManager ] = useState(pollingStationManagerInit);
+    });
 
     const registerForElection = function() {
         if (data?.election.id) {
             window.location.href="/register/?id="+data?.election.id;
+        }
+    }
+
+    const saveVotes = async () => {
+        setPollingStationState({...pollingStationState, pending: true});
+        //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
+        try {
+            const taskId = await sendVotes(votes, votingCredentials, data.election.publicKey);
+            if (taskId) {
+                cookies.remove('voterQR');
+                setPollingStationState({
+                    ...pollingStationState,
+                    taskId: taskId,
+                    showElectionInformation: false,
+                    showQuestions: false,
+                    showElection: false,
+                    showVotingSlipUpload: false,
+                    showVotingSlipSelection: false,
+                    allowedToVote: false,
+                    showNotification: false,
+                    pending: false,
+                });
+            }
+        } catch (e) {
+            setPollingStationState({
+                ...pollingStationState,
+                showSendError: t('pollingstation.button.errormessage'),
+                allowedToVote: true,
+                pending: true,
+            });
+            setTimeout(() => {
+                setPollingStationState({...pollingStationState, pending: false});
+            }, 10000);
         }
     }
 
@@ -48,8 +86,8 @@ export default function Home({ params }) {
             if (Object.keys(credentials).length > 0) {
                 await validateCredentials(credentials);
                 if (parseInt(credentials?.electionID) !== parseInt(data?.election.id)) {
-                    setPollingStationManager({
-                        ...pollingStationManager,
+                    setPollingStationState({
+                        ...pollingStationState,
                         showElectionInformation: true,
                         showQuestions: true,
                         showElection: false,
@@ -57,13 +95,13 @@ export default function Home({ params }) {
                         showVotingSlipSelection: true,
                         allowedToVote: false,
                         showNotification: true,
-                        notificationText: 'Die Daten des gespeicherten Wahlscheins passen nicht zu dieser Wahl.',
+                        notificationText: t("pollingstation.notification.error.ballotnotfitting"),
                         notificationType: 'error'
                     });
                 } else {
                     setVotingCredentials(credentials);
-                    setPollingStationManager({
-                        ...pollingStationManager,
+                    setPollingStationState({
+                        ...pollingStationState,
                         showElectionInformation: true,
                         showQuestions: true,
                         showElection: true,
@@ -71,47 +109,41 @@ export default function Home({ params }) {
                         showVotingSlipSelection: false,
                         showNotification: true,
                         allowedToVote: true,
-                        notificationType: 'note',
-                        notificationText: 'Ihr Wahlschein für diese Wahl wurde anerkannt. Sie können jetzt Ihre Auswahl treffen.'
+                        notificationType: 'success',
+                        notificationText: t("pollingstation.notification.success.ballotfits")
                     })
                 }
             }
         } catch(err) {
-            setPollingStationManager({
-                ...pollingStationManager,
+            setPollingStationState({
+                ...pollingStationState,
                 showElection: false,
                 showQuestions: true,
                 showVotingSlipUpload: false,
                 showVotingSlipSelection: true,
                 showNotification: true,
-                notificationText: 'Die Daten dieses Wahlscheins konnten nicht verarbeitet werden.',
+                notificationText: t("pollingstation.notification.error.ballotdatacorrupt"),
                 notificationType: 'error'
             });
         }
     }
 
-    const [getElection, { loading, data }]  = getElectionData(electionId);
+    const [ getElection, { loading, data } ]  = getElectionData(electionId);
 
     const setNoElectionData = () => {
-        setPollingStationManager({
-            ...pollingStationManager,
+        setPollingStationState({
+            ...pollingStationState,
             showNotification: true,
-            notificationText: 'Es wurden keine Wahldaten gefunden.',
+            notificationText: t("pollingstation.notification.error.noelectiondatafound"),
             notificationType: 'error'
         })
     }
 
     useEffect(() => {
-        const queryParameters = new URLSearchParams(window.location.search);
-        setElectionId(queryParameters.get("id"));
-        getElection();
+            const queryParameters = new URLSearchParams(window.location.search);
+            setElectionId(queryParameters.get("id"));
+            getElection();
     }, [])
-
-    useEffect(() => {
-        //TODO: check wether we can send the votes and everything is fine -> convert to the array we need
-        console.log(votes);
-        console.log(Object.keys(votes).length);
-    }, [votes]);
 
     useEffect(() => {
         if (loading) return;
@@ -119,7 +151,7 @@ export default function Home({ params }) {
         // after we got election data .. check this
         if (data && data?.election && Object.keys(data?.election).length > 0) {
             setElectionInformations(JSON.parse(data.election?.descriptionBlob));
-            setPollingStationManager({
+            setPollingStationState({
                 showElectionInformation: true,
                 showQuestions: true,
                 showElection: false,
@@ -140,116 +172,130 @@ export default function Home({ params }) {
         // wether there is some voter informations stored.
         let voterQR = cookies.get('voterQR');
         if (typeof voterQR === "undefined"  ||  voterQR?.length == 0 || Object.keys(electionInformations).length === 0 || electionInformations.constructor !== Object) {
-            console.log('RETURN');
             return;
         }
-
         qrCodeToCredentials(voterQR);
-        
+
     }, [electionInformations])
-    
+
     return (
         <>
-            {pollingStationManager.showElectionInformation && (
+            {pollingStationState.showElectionInformation && (
                 <Electionheader
                     election={data?.election}
                     electionInformations={electionInformations}
                 />
             )}
-            {pollingStationManager.showNotification && (
-                <>
-                    <Alert
-                        alertType={pollingStationManager.notificationType}
-                        alertText={pollingStationManager.notificationText}
-                    />
-                </>
-            )}
 
-            {pollingStationManager.showQuestions && (
-                <>
-                    {electionInformations.ballot.map((question, index) =>
-                        <Question
-                            key = {index}
-                            questionKey={index}
-                            question = {question}
-                            selectedVote = {votes[index]}
-                            showVoteOptions = {pollingStationManager.allowedToVote}
-                            setVote = {(selection) => setVotes(votes=>({
-                                ...votes,
-                                [index] :selection
-                             }))}
+            <div className="op__contentbox_760">
+                {pollingStationState.showNotification && (
+                    <>
+                        <Notification
+                            type={pollingStationState.notificationType}
+                            text={pollingStationState.notificationText}
                         />
-                    )}
-                </>
-            )}
+                    </>
+                )}
 
-            {pollingStationManager.showVotingSlipSelection && (
-                <>
-                    <div className="op__contentbox_760 op__padding_standard_top_bottom">
-                        <h4>Zur Abstimmung benötigen Sie einen Wahlschein</h4>
-                    </div>
-                    <div>
-                        <NavigationBox
-                            onClickAction={() => registerForElection()}
-                            head="Wahlschein bestellen"
-                            text="Ich habe noch keinen Wahlschein und möchte einen bestellen"
-                            type="primary"
-                        />
-                    </div>
-                    <div>
-                        <NavigationBox
-                            onClickAction={() =>
-                                setPollingStationManager({
-                                    ...pollingStationManager,
-                                    showVotingSlipUpload: true,
-                                    showVotingSlipSelection: false,
-                                    showQuestions: false,
-                                    showNotification: false,
-                                })
-                            }
-                            head="Direkt abstimmen"
-                            text="Ich habe meinen Wahlschein und möchte direkt abstimmen"
-                            type="primary"
-                        />
-                    </div>
-                </>
-            )}
-            {pollingStationManager.showVotingSlipUpload && (
-                <>
-                    <HtmlQRCodePlugin
-                        headline = "Wahlschein prüfen"
-                        subheadline = "Mithilfe des Wahlscheins prüft die Wahlleitung Ihre Wahlberechtigung.!"
-                        uploadSubHeadline = "Sie können Ihren Wahlschein ganz einfach hier als Bild laden und prüfen lassen."
-                        scanSubHeadline = "Sie können Ihren Wahlschein ganz einfach über Ihre Geräte-Kamera prüfen lassen."
-                        onResult={(res) => {
-                            qrCodeToCredentials(res)
-                        }}
-                    />
+                {pollingStationState.showQuestions && (
+                    <>
+                        {electionInformations.ballot.map((question, index) =>
+                            <Question
+                                key = {index}
+                                questionKey={index}
+                                question = {question}
+                                selectedVote = {votes[index]}
+                                showVoteOptions = {pollingStationState.allowedToVote}
+                                setVote = {(selection) => setVotes(votes=>({
+                                    ...votes,
+                                    [index] :selection
+                                }))}
+                            />
+                        )}
+                    </>
+                )}
 
-                    <div className="op__contentbox_760 op__center_align">
-                        <Button
-                            onClickAction={() =>
-                                setPollingStationManager({
-                                    ...pollingStationManager,
-                                    showVotingSlipUpload: false,
-                                    showQuestions: true,
-                                    showVotingSlipSelection: true,
-                                })
-                            }
-                            text="Eingabe abbrechen"
-                            type="primary"
+                {pollingStationState.showVotingSlipSelection && (
+                    <>
+                        <div className="op__padding_standard_top_bottom">
+                            <h4>{t("pollingstation.headline.ballotneeded")}</h4>
+                        </div>
+                        <div>
+                            <NavigationBox
+                                onClickAction={() => registerForElection()}
+                                head={t("pollingstation.navigationbox.registerforelection.head")}
+                                text={t("pollingstation.navigationbox.registerforelection.text")}
+                                type="primary"
+                            />
+                        </div>
+                        <div>
+                            <NavigationBox
+                                onClickAction={() =>
+                                    setPollingStationState({
+                                        ...pollingStationState,
+                                        showVotingSlipUpload: true,
+                                        showVotingSlipSelection: false,
+                                        showQuestions: false,
+                                        showNotification: false,
+                                    })
+                                }
+                                head={t("pollingstation.navigationbox.continuetovote.head")}
+                                text={t("pollingstation.navigationbox.continuetovote.text")}
+                                type="primary"
+                            />
+                        </div>
+                    </>
+                )}
+                {pollingStationState.showVotingSlipUpload && (
+                    <>
+                        <HtmlQRCodePlugin
+                            headline = {t("pollingstation.uploadqrcode.headline")}
+                            subheadline = {t("pollingstation.uploadqrcode.subheadline")}
+                            uploadSubHeadline = {t("pollingstation.uploadqrcode.uploadSubHeadline")}
+                            scanSubHeadline = {t("pollingstation.uploadqrcode.scanSubHeadline")}
+                            onResult={(res) => {
+                                qrCodeToCredentials(res)
+                            }}
                         />
-                    </div>
 
-                </>
-            )}
-            {pollingStationManager.showElection && pollingStationManager.allowedToVote && (
-                <>
-                    <div>
-                        Wahlschein erkannt. Weitermachen mit dem nächsten Ticket
-                    </div>
-                </>
-            )}
+                        <div className="op__center_align">
+                            <Button
+                                onClickAction={() =>
+                                    setPollingStationState({
+                                        ...pollingStationState,
+                                        showVotingSlipUpload: false,
+                                        showQuestions: true,
+                                        showVotingSlipSelection: true,
+                                    })
+                                }
+                                text={t("pollingstation.button.cancel")}
+                                type="primary"
+                            />
+                        </div>
+
+                    </>
+                )}
+                {pollingStationState.showElection && pollingStationState.allowedToVote && (
+                    <>
+                        <div>
+                            <Button
+                                onClickAction={saveVotes}
+                                isDisabled={pollingStationState.pending}
+                                text={t("pollingstation.button.savevotes")}
+                                type="primary"
+                            />
+                        </div>
+                        {pollingStationState.showSendError && (
+                            <Notification type="error" text={pollingStationState.showSendError} />
+                        )}
+                    </>
+                )}
+                {pollingStationState.taskId && (
+                    <>
+                        <VoteTransactionState taskId={pollingStationState.taskId} />
+                    </>
+                )}
+            </div>
         </>
     );
 }

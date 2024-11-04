@@ -2,10 +2,12 @@
 import Hex from 'crypto-js/enc-hex';
 import { ElectionCredentials, EncryptedVotes, EthSignature, R, RSAParams, RecastingVotingTransaction, Signature, Token, Vote, VoteOption, VotingTransaction } from '../types/types';
 import Base64 from 'crypto-js/enc-base64';
-import { ethers } from 'ethers';
+import { ethers, verifyTypedData } from 'ethers';
 import * as crypto from 'crypto';
 import { RSA_BIT_LENGTH, PREFIX_BLINDED_TOKEN, PREFIX_UNBLINDED_TOKEN } from './constants';
 import { modPow } from 'bigint-crypto-utils';
+import { SignatureData } from '@gelatonetwork/relay-sdk';
+import { gelatoRelayDomain, gelatoRelayTypes } from '../config';
 
 /**
  * Validates a hexadecimal string.
@@ -261,6 +263,10 @@ export function validateVotes(votes: Array<Vote>): void {
  */
 export function validateVotingTransaction(votingTransaction: VotingTransaction): void {
 
+    if (!votingTransaction.unblindedElectionToken || !votingTransaction.unblindedSignature) {
+        throw new Error("Invalid voting transaction: missing required properties");
+    }
+
     validateElectionID(votingTransaction.electionID)
     validateEthAddress(votingTransaction.voterAddress)
     validateEncryptedVotes(votingTransaction.encryptedVote)
@@ -494,4 +500,38 @@ export function hexToBuffer(hexString: string): Buffer {
         hexString = hexString.substring(2);
     }
     return Buffer.from(hexString, 'hex');
+}
+
+/**
+ * Validates a Gelato ERC2771 signature for sponsored calls.
+ * @param signatureData - The signature data containing the struct and signature.
+ * @throws Will throw an error if the signature data is invalid.
+ */
+export function validateGelatoSignature(signatureData: SignatureData) {
+    try {
+
+        const signer = signatureData.struct.user;
+        const signature: EthSignature = { hexString: signatureData.signature };
+        validateEthAddress(signer);
+        validateEthSignature(signature);
+
+        const recoveredAddress = verifyTypedData(
+            gelatoRelayDomain,
+            gelatoRelayTypes,
+            signatureData.struct,
+            signatureData.signature
+        );
+
+        const isValid = recoveredAddress.toLowerCase() === signer.toLowerCase();
+
+        if (!isValid) {
+            throw new Error(`Signature signer mismatch. Expected: ${signer}, got: ${recoveredAddress}`);
+        }
+
+    } catch (error) {
+        if (error instanceof Error) {
+            throw new Error(`Gelato signature validation failed: ${error.message}`);
+        }
+        throw new Error('Gelato signature validation failed with unknown error');
+    }
 }

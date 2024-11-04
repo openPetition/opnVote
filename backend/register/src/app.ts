@@ -14,6 +14,7 @@ import authRoutes from './routes/authRoutes';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swaggerConfig';
 import https from 'https';
+import http from 'http';
 
 if (!process.env.REGISTER_N || !process.env.REGISTER_D || !process.env.REGISTER_N_LENGTH) { throw new Error("RSA Parameters not set") }
 const REGISTER_N = BigInt(process.env.REGISTER_N);
@@ -28,11 +29,12 @@ if (!AP_JWT_PUBLIC_KEY_PATH) {
   throw new Error('AP_JWT_PUBLIC_KEY_PATH is not defined in the environment variables');
 }
 
-if(!SERVER_URL){
+if (!SERVER_URL) {
   throw new Error('SERVER_URL is not defined in the environment variables');
 }
-if(!SSL_KEY_PATH || !SSL_CERT_PATH){
-  throw new Error('SSL_KEY_PATH or SSL_CERT_PATH is not defined in the environment variables');
+
+if ((SSL_KEY_PATH && !SSL_CERT_PATH) || (!SSL_KEY_PATH && SSL_CERT_PATH)) {
+  throw new Error('SSL_KEY_PATH and SSL_CERT_PATH must be provided for HTTPS');
 }
 
 const RegisterSigner: RSAParams = {
@@ -58,17 +60,22 @@ app.locals.RegisterSigner = RegisterSigner;
 const AP_JWT_PUBLIC_KEY = fs.readFileSync(path.resolve(AP_JWT_PUBLIC_KEY_PATH), 'utf8');
 app.set('AP_JWT_PUBLIC_KEY', AP_JWT_PUBLIC_KEY);
 
+if (SSL_KEY_PATH && SSL_CERT_PATH) {
+  // Load HTTPS options
+  const httpsOptions = {
+    key: fs.readFileSync(SSL_KEY_PATH),
+    cert: fs.readFileSync(SSL_CERT_PATH)
+  };
 
-// Load HTTPS options
-const httpsOptions = {
-  key: fs.readFileSync(SSL_KEY_PATH),
-  cert: fs.readFileSync(SSL_CERT_PATH)
-};
-
-// Start HTTPS server
-https.createServer(httpsOptions, app).listen(port, () => {
-  console.log(`⚡️[server]: Server is running at ${SERVER_URL}`);
-});
+  // Start HTTPS server
+  https.createServer(httpsOptions, app).listen(port, () => {
+    console.log(`⚡️[server]: Server is running at ${SERVER_URL}`);
+  });
+} else {
+  http.createServer({}, app).listen(port, () => {
+    console.log(`⚡️[server]: Server is running at ${SERVER_URL}`);
+  });
+}
 
 // Load database
 dataSource.initialize().then(() => {
