@@ -1,5 +1,4 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { VotingTransactionEntity } from './VotingTransaction';
 import { GelatoQueueStatus } from '../types/gelato';
 
 
@@ -7,13 +6,6 @@ import { GelatoQueueStatus } from '../types/gelato';
 export class GelatoQueueEntity {
     @PrimaryGeneratedColumn()
     id!: number;
-
-    @ManyToOne(() => VotingTransactionEntity)
-    @JoinColumn({ name: 'votingTransactionId' })
-    votingTransaction!: VotingTransactionEntity;
-
-    @Column()
-    votingTransactionId!: number;
 
     @Column('json')
     signatureData!: string;
@@ -24,6 +16,9 @@ export class GelatoQueueEntity {
         default: GelatoQueueStatus.QUEUED
     })
     status!: GelatoQueueStatus;
+
+    @Column({ length: 42 })
+    gelatoUserAddress!: string;
 
     @Column({ type: "varchar", nullable: true })
     gelatoTaskId?: string | null;

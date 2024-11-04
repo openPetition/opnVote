@@ -39,7 +39,7 @@ export async function checkElectionStatus(req: Request, res: Response, next: Nex
 
         next();
     } catch (error) {
-        // console.error('Error checking election status:', error);
+        // logger.error('Error checking election status:', error);
         return res.status(500).json({
             error: 'Failed to check election status',
         } as ApiResponse<null>);

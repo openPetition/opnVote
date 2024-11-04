@@ -2,9 +2,9 @@ import { Request, Response } from 'express';
 import { checkVoterHasNotVoted } from './checkVoterHasNotVoted';
 import { dataSource } from '../database';
 import { VotingTransaction } from 'votingsystem';
+import { VotingTransactionEntity } from '../models/VotingTransaction';
+import { logger } from '../utils/logger';
 
-jest.mock('../database');
-jest.mock('../models/VotingTransaction');
 
 describe('checkVoterHasNotVoted Middleware', () => {
     let mockReq: Partial<Request>;
@@ -21,27 +21,28 @@ describe('checkVoterHasNotVoted Middleware', () => {
             json: jest.fn().mockReturnThis(),
         };
         nextFunction = jest.fn();
+
         mockRepository = {
-            findOne: jest.fn(),
+            findOne: jest.fn()
         };
-        (dataSource.getRepository as jest.Mock).mockReturnValue(mockRepository);
+        (dataSource.getRepository as jest.Mock) = jest.fn().mockReturnValue(mockRepository);
+        (logger.error as jest.Mock) = jest.fn();
+        (logger.info as jest.Mock) = jest.fn();
+        (logger.warn as jest.Mock) = jest.fn();
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    it('should call next if the voter has not voted', async () => {
+    it('should call next if voter has not voted', async () => {
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: '0x1234567890123456789012345678901234567890',
             encryptedVote: {} as any,
             unblindedElectionToken: {} as any,
             unblindedSignature: {} as any,
-            svsSignature: null,
+            svsSignature: null
         };
+
         mockReq.body = { votingTransaction };
-        mockRepository.findOne.mockResolvedValue(null);
+        mockRepository.findOne.mockResolvedValueOnce(null);
 
         await checkVoterHasNotVoted(mockReq as Request, mockRes as Response, nextFunction);
 
@@ -50,7 +51,30 @@ describe('checkVoterHasNotVoted Middleware', () => {
         expect(mockRes.json).not.toHaveBeenCalled();
     });
 
-    it('should return 400 if the voter has already voted', async () => {
+    it('should return 400 if voter has already voted', async () => {
+        const votingTransaction: VotingTransaction = {
+            electionID: 1,
+            voterAddress: '0x1234567890123456789012345678901234567890',
+            encryptedVote: {} as any,
+            unblindedElectionToken: {} as any,
+            unblindedSignature: {} as any,
+            svsSignature: null
+        };
+
+        mockReq.body = { votingTransaction };
+        mockRepository.findOne.mockResolvedValueOnce(new VotingTransactionEntity());
+
+        await checkVoterHasNotVoted(mockReq as Request, mockRes as Response, nextFunction);
+
+        expect(mockRes.status).toHaveBeenCalledWith(400);
+        expect(mockRes.json).toHaveBeenCalledWith({
+            data: null,
+            error: 'Voter has already submitted a transaction for this election'
+        });
+        expect(nextFunction).not.toHaveBeenCalled();
+    });
+
+    it('should return 500 if there is a database error', async () => {
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: '0x1234567890123456789012345678901234567890',
@@ -60,30 +84,9 @@ describe('checkVoterHasNotVoted Middleware', () => {
             svsSignature: null,
         };
         mockReq.body = { votingTransaction };
-        mockRepository.findOne.mockResolvedValue({ id: 1 });
+        const dbError = new Error('Database error');
+        mockRepository.findOne.mockRejectedValue(dbError);
 
-        await checkVoterHasNotVoted(mockReq as Request, mockRes as Response, nextFunction);
-
-        expect(nextFunction).not.toHaveBeenCalled();
-        expect(mockRes.status).toHaveBeenCalledWith(400);
-        expect(mockRes.json).toHaveBeenCalledWith({
-            data: null,
-            error: 'Voter has already submitted a transaction for this election',
-        });
-    });
-
-    it('should return 500 if there is a database error', async () => {
-        const votingTransaction: VotingTransaction = {
-            electionID: 1,
-            voterAddress: '0x1234567890123456789012345678901234567890', // mocked valid non-normalized ethereum address
-            encryptedVote: {} as any,
-            unblindedElectionToken: {} as any,
-            unblindedSignature: {} as any,
-            svsSignature: null,
-        };
-        mockReq.body = { votingTransaction };
-        mockRepository.findOne.mockRejectedValue(new Error('Database error'));
-        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
         await checkVoterHasNotVoted(mockReq as Request, mockRes as Response, nextFunction);
 
         expect(nextFunction).not.toHaveBeenCalled();
@@ -92,9 +95,9 @@ describe('checkVoterHasNotVoted Middleware', () => {
             data: null,
             error: 'Internal server error',
         });
-        expect(consoleSpy).toHaveBeenCalledWith('Database error:', expect.any(Error));
-
+        expect(logger.error).toHaveBeenCalledWith('Database error:', dbError);
     });
+
 
     it('should normalize the voter address', async () => {
         const votingTransaction: VotingTransaction = {
@@ -117,4 +120,5 @@ describe('checkVoterHasNotVoted Middleware', () => {
         });
         expect(nextFunction).toHaveBeenCalled();
     });
-});
+
+}); 

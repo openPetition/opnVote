@@ -1,19 +1,25 @@
 import { Request, Response, Router } from 'express';
-import { ApiResponse } from '../types/apiResponses';
+import { ethers } from 'ethers';
 import { GelatoRelay, RelayResponse, SignatureData } from "@gelatonetwork/relay-sdk";
+import { normalizeEthAddress } from 'votingsystem';
+import { ApiResponse } from '../types/apiResponses';
 import { dataSource } from '../database';
 import { GelatoQueueEntity } from '../models/GelatoQueue';
-import { ethers } from 'ethers';
 import { GelatoQueueStatus } from '../types/gelato';
+import { checkEligibility } from '../middleware/checkEligibility';
+import { checkForwardLimit } from '../middleware/checkForwardLimit';
+import { checkEthCall } from '../middleware/checkEthCall';
+import { logger } from '../utils/logger';
 
 const router = Router();
+const GELATO_USE_QUEUE_ERROR = 'GELATO_USE_QUEUE is not set in the environment variables.';
 
 /**
  * @openapi
  * /api/gelato/forward:
  *   post:
- *     summary: Forwards a signature request to Gelato network.
- *     description: Validates and forwards the signature data to the Gelato relay for processing.
+ *     summary: Forwards a transaction to Gelato network
+ *     description: Validates and forwards the transaction either directly to Gelato relay or to an internal queue for processing
  *     tags: [Gelato Relay]
  *     security:
  *       - bearerAuth: []
@@ -25,28 +31,160 @@ const router = Router();
  *             $ref: '#/components/schemas/SignatureData'
  *     responses:
  *       200:
- *         description: Request successfully forwarded and processed by Gelato.
+ *         description: Request successfully handled (either forwarded or queued)
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 taskId:
- *                   type: string
- *                   description: "A unique identifier for the task processed by Gelato."
- *                   example: "task_123456"
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       400:
- *         description: Bad request due to missing or malformed data.
+ *         description: Validation error
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
+ *                 data:
+ *                   type: null
  *                 error:
  *                   type: string
- *                   example: "Missing required signature data"
+ *                   example: "Bad request: Invalid calldata"
  *       500:
- *         description: Internal server error or configuration issue.
+ *         description: Server configuration error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: null
+ *                 error:
+ *                   type: string
+ *                   example: "GELATO_USE_QUEUE is not set in the environment variables"
+ */
+router.post('/forward',
+    checkEligibility,    // Validates if the transaction is eligible for sponsorship
+    checkEthCall,        // Validates if the eth_call simulation succeeds
+    checkForwardLimit,   // Enforces per-user forwarding rate limits
+    async (req: Request, res: Response) => {
+        try {
+
+            const signatureData = req.body as SignatureData;
+            const GELATO_USE_QUEUE = req.app.get('GELATO_USE_QUEUE');
+
+            if (!signatureData?.struct || !signatureData.signature) {
+                return res.status(400).json({
+                    data: null,
+                    error: 'Bad request: Missing required signature data'
+                });
+            }
+            const userAddress = normalizeEthAddress(signatureData.struct.user);
+
+            if (GELATO_USE_QUEUE === undefined) {
+                return res.status(500).json({
+                    data: null,
+                    error: GELATO_USE_QUEUE_ERROR
+                });
+            }
+
+            if (GELATO_USE_QUEUE) {
+
+                const repository = dataSource.getRepository(GelatoQueueEntity);
+                // Generate a unique requestHash
+                const timestamp = Date.now().toString();
+                const requestHash = ethers.id(JSON.stringify(signatureData) + timestamp);
+
+                const queueEntry = new GelatoQueueEntity();
+                queueEntry.signatureData = JSON.stringify(signatureData);
+                queueEntry.status = GelatoQueueStatus.QUEUED
+                queueEntry.requestHash = requestHash;
+                queueEntry.gelatoUserAddress = userAddress;
+                await repository.save(queueEntry);
+
+                return res.status(200).json({
+                    data: { requestHash },
+                    error: null,
+                });
+
+            } else {
+
+                // Forwarding directly to Gelato utilizing Gelato auto-scaling
+                const sponsorApiKey = req.app.get('GELATO_SPONSOR_API_KEY');
+                if (!sponsorApiKey) {
+                    return res.status(500).json({
+                        data: null,
+                        error: 'Gelato Sponsor API key not configured'
+                    });
+                }
+                const gelatoRelay = req.app.get('gelatoRelay') as GelatoRelay;
+                const relayResponse: RelayResponse = await gelatoRelay.sponsoredCallERC2771WithSignature(
+                    signatureData.struct,
+                    signatureData.signature,
+                    sponsorApiKey
+                );
+
+                return res.status(200).json({
+                    data: relayResponse,
+                    error: null
+                })
+            }
+
+        } catch (error) {
+            logger.error('[GelatoRoute] Failed to process request Error:', error);
+            res.status(500).json({
+                data: null,
+                error: 'Failed to queue Gelato request'
+            } as ApiResponse<null>);
+        }
+    });
+
+/**
+ * @openapi
+ * /api/gelato/tasks/{taskId}:
+ *   get:
+ *     summary: Retrieves the status of a requested Gelato task
+ *     tags: [Gelato Relay]
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: taskId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The unique identifier of the task (requestHash)
+ *     responses:
+ *       200:
+ *         description: Task status retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   enum: [QUEUED, PROCESSING, COMPLETED, FAILED]
+ *                 gelatoTaskId:
+ *                   type: string
+ *                   nullable: true
+ *                   description: "Gelato's task identifier once forwarded"
+ *                 txHash:
+ *                   type: string
+ *                   nullable: true
+ *                   description: "Transaction hash once processed"
+ *                 retryCount:
+ *                   type: number
+ *                   description: "Number of retry attempts"
+ *                 failureReason:
+ *                   type: string
+ *                   nullable: true
+ *                   description: "Reason for failure if status is FAILED"
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *       400:
+ *         description: Queue processing is not enabled
  *         content:
  *           application/json:
  *             schema:
@@ -54,75 +192,70 @@ const router = Router();
  *               properties:
  *                 error:
  *                   type: string
- *                   example: "Gelato Sponsor API key not configured"
- * components:
- *   schemas:
- *     SignatureData:
- *       type: object
- *       properties:
- *         struct:
- *           type: object
- *           description: "Structure of the request to be signed and sent."
- *           properties:
- *             userDeadline:
- *               type: integer
- *               example: 1717658887
- *             chainId:
- *               type: integer
- *               example: 100
- *             target:
- *               type: string
- *               example: "0xB2971419Bb6437856Eb9Ec8CA3e56958Af45Eee9"
- *             data:
- *               type: string
- *               example: "0xff6cc66e..."
- *             user:
- *               type: string
- *               example: "0x38120f5abb96c54B3d6127Dd0be7B049ecE0D0FD"
- *             userNonce:
- *               type: integer
- *               example: 0
- *         signature:
- *           type: string
- *           example: "0x792bad99..."
+ *                   example: "Queue processing is not enabled"
+ *       404:
+ *         description: Task not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Task not found"
+ *       500:
+ *         description: Server configuration error or internal error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "GELATO_USE_QUEUE is not set in the environment variables"
  */
-router.post('/forward', async (req: Request, res: Response) => {
-        //! todo: Validate signatureData structure (calling contract, svs signature)
-        //! todo: svs signature check
-        //! todo: check if already in queue
+router.get('/tasks/:taskId', async (req: Request, res: Response) => {
+    const { taskId } = req.params;
     try {
-        const signatureData = req.body as SignatureData;
-
-        if (!signatureData || !signatureData.struct || !signatureData.signature) {
-            return res.status(400).json({
+        const GELATO_USE_QUEUE = req.app.get('GELATO_USE_QUEUE')
+        if (GELATO_USE_QUEUE === undefined) {
+            return res.status(500).json({
                 data: null,
-                error: 'Bad request: Missing required signature data'
+                error: GELATO_USE_QUEUE_ERROR
             });
         }
 
-        // Generate a unique hash for this request
-        const requestHash = ethers.id(JSON.stringify(signatureData));
-
-        const queueEntry = new GelatoQueueEntity();
-        queueEntry.signatureData = JSON.stringify(signatureData);
-        queueEntry.status = GelatoQueueStatus.QUEUED
-        queueEntry.requestHash = requestHash;
+        if (!GELATO_USE_QUEUE) {
+            return res.status(500).json({
+                error: 'Queue processing is not enabled'
+            });
+        }
 
         const repository = dataSource.getRepository(GelatoQueueEntity);
-        await repository.save(queueEntry);
+        const task = await repository.findOne({ where: { requestHash: taskId } });
 
-        return res.status(202).json({
-            data: { requestHash },
-            error: null,
-        });
+        if (!task) {
+            return res.status(404).json({ error: 'Task not found' });
+        }
 
+        const response = {
+            status: task.status,
+            gelatoTaskId: task.gelatoTaskId || null,
+            txHash: task.txHash || null,
+            retryCount: task.retryCount,
+            failureReason: task.failureReason || null,
+            createdAt: task.createdAt,
+            updatedAt: task.updatedAt
+        };
+
+        res.status(200).json(response);
     } catch (error) {
-        console.error('Error queueing Gelato request:', error);
+        logger.error('[GelatoRoute] Failed to retrieve task Error:', error);
         res.status(500).json({
-            data: null,
-            error: 'Failed to queue Gelato request. Error: ' + error
-        } as ApiResponse<null>);
+            error: 'Failed to retrieve task'
+        });
     }
 });
+
 
 export default router;

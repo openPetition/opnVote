@@ -3,6 +3,7 @@ import { dataSource } from '../database';
 import { ApiResponse } from '../types/apiResponses';
 import { normalizeEthAddress, VotingTransaction } from 'votingsystem';
 import { VotingTransactionEntity } from '../models/VotingTransaction';
+import { logger } from '../utils/logger';
 
 
 /**
@@ -41,7 +42,7 @@ export async function checkVoterHasNotVoted(req: Request, res: Response, next: N
 
         next();
     } catch (error) {
-        console.error('Database error:', error);
+        logger.error('Database error:', error);
         return res.status(500).json({
             data: null,
             error: 'Internal server error',

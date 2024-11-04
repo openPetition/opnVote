@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { checkForExistingSVSSignature } from './checkForExistingSVSSignature';
 import { dataSource } from '../database';
 import { EthSignature, VotingTransaction, Token } from 'votingsystem';
+import { logger } from '../utils/logger';
 
 jest.mock('../database');
 jest.mock('../models/VotingTransaction');
@@ -25,6 +26,9 @@ describe('checkForExistingSVSSignature Middleware', () => {
             findOne: jest.fn(),
         };
         (dataSource.getRepository as jest.Mock).mockReturnValue(mockRepository);
+        (logger.error as jest.Mock) = jest.fn();
+        (logger.info as jest.Mock) = jest.fn();
+        (logger.warn as jest.Mock) = jest.fn();
     });
 
     it('should return 200 with existing signature if found', async () => {
@@ -41,7 +45,7 @@ describe('checkForExistingSVSSignature Middleware', () => {
         };
         const mockVoterSignature: EthSignature = { hexString: '0x2345' };
         mockReq.body = { votingTransaction: mockVotingTransaction, voterSignature: mockVoterSignature };
-        
+
         // Mock constant signature to pass validateEthSignature(ethSignature)
         const mockExistingTransaction = {
             svsSignature: "0xd4810d1ba4c299209b9b98c5623efdcbff269bb91d40247355e81ae087c32fb55ce42815ff163f61589886233542b4b95a65fb7d4235cc827e7a09e4d97e3f3f1b"
@@ -105,8 +109,8 @@ describe('checkForExistingSVSSignature Middleware', () => {
         const mockVoterSignature: EthSignature = { hexString: '0x2345' };
         mockReq.body = { votingTransaction: mockVotingTransaction, voterSignature: mockVoterSignature };
 
-        mockRepository.findOne.mockRejectedValue(new Error('Database error'));
-        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
+        const dbError = new Error('Database error');
+        mockRepository.findOne.mockRejectedValue(dbError);
 
         await checkForExistingSVSSignature(mockReq as Request, mockRes as Response, nextFunction);
 
@@ -116,7 +120,7 @@ describe('checkForExistingSVSSignature Middleware', () => {
             error: 'Internal server error',
         });
         expect(nextFunction).not.toHaveBeenCalled();
-        expect(consoleSpy).toHaveBeenCalledWith('Database error:', expect.any(Error));
+        expect(logger.error).toHaveBeenCalledWith('Database error:', dbError);
 
     });
 });

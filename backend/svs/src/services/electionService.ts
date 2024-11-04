@@ -1,6 +1,7 @@
 import { RSAParams, getBitLength, validateRSAParams } from "votingsystem";
 import { fetchElectionEndTimeStatus, fetchElectionRegisterPublicKey } from "../graphql/graphqlClient";
 import { ElectionStatusResponse } from "../types/graphql";
+import { logger } from "../utils/logger";
 //todo: add javdoc
 export class ElectionService {
 
@@ -8,7 +9,7 @@ export class ElectionService {
     * Fetches the election Public Key using GraphQL.
     *
     * @param {number} electionId - Identifier for the election.
-    * @returns {Promise<ElectionStatusResponse | null>} //!Resolves to current on-chain election status and end time, or null if election not found.
+    * @returns {Promise<ElectionStatusResponse | null>} // Resolves to current on-chain election status and end time, or null if election not found.
     */
     static async getElectionRegisterPublicKey(electionId: number): Promise<RSAParams | null> {
         try {
@@ -22,7 +23,7 @@ export class ElectionService {
             validateRSAParams(rsaParams)
             return rsaParams;
         } catch (error) {
-            console.error('Error fetching election status:', error);
+            logger.error('Error fetching election status:', error);
             return null;
         }
     }
@@ -40,7 +41,7 @@ export class ElectionService {
             const electionData: ElectionStatusResponse | null = await fetchElectionEndTimeStatus(electionId);
             return electionData;
         } catch (error) {
-            // console.error('Error fetching election status:', error);
+            // logger.error('Error fetching election status:', error);
             return null;
         }
     }

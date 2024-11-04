@@ -1,11 +1,8 @@
 import { GraphQLClient, gql } from 'graphql-request';
 import { ElectionRegisterPublicKeyResponse, ElectionStatusResponse } from '../types/graphql';
+import { getEnvVar } from '../utils/utils';
 
-const endpoint = process.env.GRAPHQL_ENDPOINT;
-
-if (!endpoint) {
-  throw new Error('GRAPHQL_ENDPOINT is not defined in the environment variables');
-}
+const endpoint = getEnvVar<string>('GRAPHQL_ENDPOINT', 'string');
 
 // Initialize new GraphQL client
 const client = new GraphQLClient(endpoint);

@@ -45,8 +45,14 @@ export async function validateBlindSignature(req: Request, res: Response, next: 
         }
 
         next();
-    } catch (error) {
-        // console.error('Error processing signature validation:', error);
+    } catch (error: any) {
+        if (error.message && error.message.includes("out of range")) {
+            return res.status(401).json({
+                data: null,
+                error: 'Blinded Signature is not valid'
+            });
+        }
+        // logger.error('Error processing signature validation:', error);
         return res.status(500).json({
             error: 'Failed to validate Blind Signature',
         } as ApiResponse<null>);

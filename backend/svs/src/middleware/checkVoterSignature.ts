@@ -40,7 +40,7 @@ export async function checkVoterSignature(req: Request, res: Response, next: Nex
 
         next();
     } catch (error) {
-        // console.error('Error processing signature validation:', error);
+        // logger.error('Error processing signature validation:', error);
         return res.status(500).json({
             error: 'Failed to validate Voter Signature',
         } as ApiResponse<null>);

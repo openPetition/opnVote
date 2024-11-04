@@ -9,6 +9,7 @@ import { checkForExistingSVSSignature } from '../middleware/checkForExistingSVSS
 import { dataSource } from '../database';
 import { VotingTransactionEntity } from '../models/VotingTransaction';
 import { checkVoterHasNotVoted } from '../middleware/checkVoterHasNotVoted';
+import { logger } from '../utils/logger';
 
 
 
@@ -92,14 +93,13 @@ router.post('/sign',
 
             // Return the SVS signature to the client
             return res.status(200).json({
-                data: svsSignature,
+                data: { blindedSignature: svsSignature },
                 error: null
-            } as ApiResponse<EthSignature>);
-
+            } as ApiResponse<{ blindedSignature: EthSignature }>);
 
         }
         catch (error) {
-            console.error('Error signing token:', error);
+            logger.error('Error signing token:', error);
             res.status(500).json({
                 data: null,
                 error: 'Failed to sign Transaction. Error: ' + error

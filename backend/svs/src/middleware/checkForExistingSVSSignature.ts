@@ -3,6 +3,7 @@ import { dataSource } from '../database';
 import { ApiResponse } from '../types/apiResponses';
 import { EthSignature, normalizeHexString, Token, validateEthSignature, VotingTransaction } from 'votingsystem';
 import { VotingTransactionEntity } from '../models/VotingTransaction';
+import { logger } from '../utils/logger';
 
 /**
  * Middleware to check for an existing SVS signature.
@@ -58,7 +59,7 @@ export async function checkForExistingSVSSignature(req: Request, res: Response, 
         });
 
         if (partialMatch) {
-            console.error('Inconsistent data found:', partialMatch);
+            logger.error('Inconsistent data found:', partialMatch);
             return res.status(409).json({
                 data: null,
                 error: 'Inconsistent voting data detected. Please contact support.'
@@ -67,7 +68,7 @@ export async function checkForExistingSVSSignature(req: Request, res: Response, 
 
         next();
     } catch (error) {
-        console.error('Database error:', error);
+        logger.error('Database error:', error);
         return res.status(500).json({
             data: null,
             error: 'Internal server error',
