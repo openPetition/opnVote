@@ -46,7 +46,6 @@ describe('checkForExistingSVSSignature Middleware', () => {
         const mockVoterSignature: EthSignature = { hexString: '0x2345' };
         mockReq.body = { votingTransaction: mockVotingTransaction, voterSignature: mockVoterSignature };
 
-        // Mock constant signature to pass validateEthSignature(ethSignature)
         const mockExistingTransaction = {
             svsSignature: "0xd4810d1ba4c299209b9b98c5623efdcbff269bb91d40247355e81ae087c32fb55ce42815ff163f61589886233542b4b95a65fb7d4235cc827e7a09e4d97e3f3f1b"
         };
@@ -54,7 +53,6 @@ describe('checkForExistingSVSSignature Middleware', () => {
 
         await checkForExistingSVSSignature(mockReq as Request, mockRes as Response, nextFunction);
 
-        // Mock constant signature to pass validateEthSignature(ethSignature)
         const mockResBlindedSignature: EthSignature = {
             hexString: '0xd4810d1ba4c299209b9b98c5623efdcbff269bb91d40247355e81ae087c32fb55ce42815ff163f61589886233542b4b95a65fb7d4235cc827e7a09e4d97e3f3f1b',
         };

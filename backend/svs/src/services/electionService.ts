@@ -2,7 +2,7 @@ import { RSAParams, getBitLength, validateRSAParams } from "votingsystem";
 import { fetchElectionEndTimeStatus, fetchElectionRegisterPublicKey } from "../graphql/graphqlClient";
 import { ElectionStatusResponse } from "../types/graphql";
 import { logger } from "../utils/logger";
-//todo: add javdoc
+
 export class ElectionService {
 
     /**

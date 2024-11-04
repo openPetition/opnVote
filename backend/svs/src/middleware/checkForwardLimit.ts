@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ApiResponse } from '../types/apiResponses';
 import { SignatureData } from '@gelatonetwork/relay-sdk';
-import { CallWithERC2771Struct } from '@gelatonetwork/relay-sdk/dist/lib/erc2771/types';
+import { CallWithConcurrentERC2771Struct, CallWithERC2771Struct } from '@gelatonetwork/relay-sdk/dist/lib/erc2771/types';
 import { normalizeEthAddress } from 'votingsystem';
 import { dataSource } from '../database';
 import { ForwardedTransactionEntity } from '../models/ForwardedTransaction';
@@ -21,10 +21,10 @@ export async function checkForwardLimit(req: Request, res: Response, next: NextF
         }
 
 
-        const erc2771Request: CallWithERC2771Struct = signatureData.struct
+        const erc2771Request: CallWithERC2771Struct | CallWithConcurrentERC2771Struct = signatureData.struct
         const senderAddress = normalizeEthAddress(erc2771Request.user);
         const MAX_FORWARDS = req.app.get('GELATO_MAX_FORWARDS') || 10;
-        
+
         const queryRunner = dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();

@@ -125,8 +125,6 @@ export async function updateTaskStates(gelatoRelay: GelatoRelay, repository: Rep
                             break;
                         case TaskState.ExecReverted:
                         case TaskState.Cancelled:
-                        case TaskState.Blacklisted:
-                        case TaskState.NotFound:
                             if (task.retryCount < MAX_RETRIES) {
                                 task.status = GelatoQueueStatus.RETRY;
                                 task.retryCount += 1;

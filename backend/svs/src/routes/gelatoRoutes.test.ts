@@ -113,7 +113,7 @@ describe('POST /api/gelato/forward', () => {
         expect(response.body.data).toBeNull();
     });
 
-    it('should return 500 when GELATO_SPONSOR_API_KEY is missing in direct mode', async () => {
+    it('should return 500 when GELATO_SPONSOR_API_KEY is missing in non-queue-mode', async () => {
         app.set('GELATO_USE_QUEUE', false);
         app.set('GELATO_SPONSOR_API_KEY', undefined);
 

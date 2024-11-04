@@ -6,7 +6,7 @@ import opnvoteAbi from '../abi/opnvote-0.0.1.json';
 import { validateGelatoSignature } from 'votingsystem';
 jest.mock('./checkEligibility', () => jest.requireActual('./checkEligibility'));
 jest.mock('votingsystem', () => ({
-    validateGelatoSignature: jest.fn() // Mocking the module with no return value
+    validateGelatoSignature: jest.fn()
 }));
 
 describe('checkEligibility Middleware', () => {
@@ -35,7 +35,7 @@ describe('checkEligibility Middleware', () => {
             json: jest.fn().mockReturnThis(),
         };
         nextFunction = jest.fn();
-        (validateGelatoSignature as jest.Mock) = jest.fn().mockResolvedValue(true); // This line needs to be changed
+        (validateGelatoSignature as jest.Mock) = jest.fn().mockResolvedValue(true);
     });
 
     it('should pass when all checks are valid', () => {

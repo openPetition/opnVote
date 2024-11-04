@@ -9,11 +9,11 @@ describe('checkEthCall Middleware', () => {
     let mockRes: Partial<Response>;
     let nextFunction: jest.Mock;
     let mockProvider: jest.Mocked<ethers.JsonRpcProvider>;
-    
+
     const mockContractAddress = '0x0000000000000000000000000000000000000000';
     const opnVoteInterface = new ethers.Interface(opnvoteAbi);
     const mockVoter = new ethers.Wallet('0x0000000000000000000000000000000000000000000000000000000000000002');
-    
+
     const mockElectionId = 1;
     const mockSvsSignature = '0x0000000000000000000000000000000000000000000000000000000000000002';
     const mockVoteEncrypted = '0x0000000000000000000000000000000000000000000000000000000000000003';
@@ -31,12 +31,12 @@ describe('checkEthCall Middleware', () => {
                 get: jest.fn().mockReturnValue(mockProvider)
             } as any
         };
-        
+
         mockRes = {
             status: jest.fn().mockReturnThis(),
             json: jest.fn().mockReturnThis(),
         };
-        
+
         nextFunction = jest.fn();
     });
 

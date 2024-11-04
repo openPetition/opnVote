@@ -25,7 +25,7 @@ export async function checkElectionStatus(req: Request, res: Response, next: Nex
         validateElectionID(electionID)
 
         // Validate election status
-        // On-chain status might differ from the current çreal election status due to delayed status update by election coordinator
+        // On-chain status might differ from the current real election status due to delayed status update by election coordinator
         const electionData: ElectionStatusResponse | null = await ElectionService.getElectionStatus(
             electionID
         );

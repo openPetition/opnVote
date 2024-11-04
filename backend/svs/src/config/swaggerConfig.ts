@@ -19,7 +19,7 @@ const options: swaggerJsdoc.Options = {
     servers: [
       {
         url: SERVER_URL,
-        description: 'Development server',
+        description: `SVS Server`,
       },
     ],
     components: {

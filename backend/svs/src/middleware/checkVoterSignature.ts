@@ -7,7 +7,7 @@ import { ethers } from 'ethers';
 /**
  * Middleware to verify the voter's signature on the voting transaction.
  * 
- * This function ensures that the voting transaction was signed by the claimed voter.
+ * This function ensures that the voting transaction was signed by the voter.
  *
  * @param {Request} req - Express request object containing the voting transaction and signature.
  * @param {Response} res - Express response object.
@@ -22,15 +22,12 @@ export async function checkVoterSignature(req: Request, res: Response, next: Nex
 
     try {
 
-        // Create a message hash from the stringified voting transaction
         const voterAddress = votingTransaction.voterAddress;
         const message = JSON.stringify(votingTransaction);
         const messageHash = ethers.hashMessage(message);
 
-        // Recover the signer's address from the signature
         const recoveredAddress = ethers.verifyMessage(messageHash, voterSignature.hexString);
 
-        // Compare the recovered address with the claimed voter address
         if (recoveredAddress.toLowerCase() !== voterAddress.toLowerCase()) {
             return res.status(401).json({
                 data: null,

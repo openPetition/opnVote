@@ -6,12 +6,6 @@ import { EthSignature, VotingTransaction, validateEthSignature, validateVotingTr
 /**
  * Middleware to validate the parameters of a voting transaction request.
  * 
- * This function ensures that:
- * 1. Both votingTransaction and voterSignature are present in the request body.
- * 2. The votingTransaction object is valid according to the votingsystem's validation rules.
- * 3. The voterSignature is a valid Ethereum signature.
- * 4. The SVS signature is not already set.
- *
  * @param {Request} req - Express request object containing the voting transaction and signature.
  * @param {Response} res - Express response object.
  * @param {NextFunction} next - Express next middleware function.

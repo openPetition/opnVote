@@ -35,7 +35,12 @@ export async function fetchElectionEndTimeStatus(electionId: number): Promise<El
 }
 
 
-
+/**
+ * Fetches the Register Public Key for a given election ID.
+ *
+ * @param {number} electionId - Identifier of election.
+ * @return {Promise<ElectionRegisterPublicKeyResponse | null>} Resolves to RSA Public Key components (E, N) or null if election not found.
+ */
 export async function fetchElectionRegisterPublicKey(electionId: number): Promise<ElectionRegisterPublicKeyResponse | null> {
   const query = gql`
       query GetElectionRegisterPublicKey($id: ID!) {

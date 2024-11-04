@@ -159,7 +159,7 @@ describe('POST /api/votingTransaction/sign', () => {
     });
 
     it('should return 500 when transaction contains invalid hex strings', async () => {
-        
+
         // The same validation applies to unblindedSignature
         const invalidTransaction = {
             ...mockVotingTransaction,
@@ -182,7 +182,7 @@ describe('POST /api/votingTransaction/sign', () => {
     it('should accept valid lowercase hex strings', async () => {
         const validTransaction = {
             ...mockVotingTransaction,
-            unblindedElectionToken: { hexString: "0x00ab" + BigInt(3).toString(16).padStart(60, '0'), isMaster: false, isBlinded: false } // all provided tokens 0-prefixed lower case hex string
+            unblindedElectionToken: { hexString: "0x00ab" + BigInt(3).toString(16).padStart(60, '0'), isMaster: false, isBlinded: false }
         };
 
         const response = await request(app)

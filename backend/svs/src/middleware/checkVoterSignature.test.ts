@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { checkVoterSignature } from './checkVoterSignature';
-import { VotingTransaction, validateEthSignature } from 'votingsystem';
+import { VotingTransaction } from 'votingsystem';
 import { ethers } from 'ethers';
 
 

@@ -113,10 +113,8 @@ describe('validateBlindSignature Middleware', () => {
         const unblindedElectionToken = deriveElectionUnblindedToken(electionID, masterToken);
         const unblindedElectionR = deriveElectionR(electionID, masterR, unblindedElectionToken, TestRegister)
 
-        //Sign unblidned Token
         const blindedElectionToken = blindToken(unblindedElectionToken, unblindedElectionR, TestRegister)
 
-        // Sign blinded Election Token and obtain blinded Signature
         const blindedSignature = signToken(blindedElectionToken, TestRegister)
         const unblindedSignature = unblindSignature(blindedSignature, unblindedElectionR, TestRegister)
 
@@ -164,10 +162,8 @@ describe('validateBlindSignature Middleware', () => {
         const unblindedElectionToken = deriveElectionUnblindedToken(electionID, masterToken);
         const unblindedElectionR = deriveElectionR(electionID, masterR, unblindedElectionToken, TestRegister)
 
-        //Sign unblidned Token
         const blindedElectionToken = blindToken(unblindedElectionToken, unblindedElectionR, TestRegister)
 
-        // Sign blinded Election Token and obtain blinded Signature
         const blindedSignature = signToken(blindedElectionToken, TestRegister)
         const unblindedSignature = unblindSignature(blindedSignature, unblindedElectionR, TestRegister)
 

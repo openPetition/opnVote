@@ -65,7 +65,6 @@ router.post('/sign',
                 } as ApiResponse<null>);
             }
 
-            // Retrieve the SVS signing key from the application context
             const signingKey = req.app.get('SVS_SIGN_KEY');
             if (!signingKey) {
                 return res.status(500).json({
@@ -74,11 +73,9 @@ router.post('/sign',
                 } as ApiResponse<null>);
             }
 
-            // Sign the voting transaction with the SVS key
             const svsSignature: EthSignature = await signVotingTransaction(votingTransaction, signingKey);
             validateEthSignature(svsSignature);
 
-            // Create a new VotingTransactionEntity to store in the database
             const signedTransaction = new VotingTransactionEntity();
             signedTransaction.electionID = votingTransaction.electionID
             signedTransaction.encryptedVote = votingTransaction.encryptedVote.hexString
@@ -87,11 +84,9 @@ router.post('/sign',
             signedTransaction.unblindedSignature = normalizeHexString(votingTransaction.unblindedSignature.hexString.toLowerCase())
             signedTransaction.voterAddress = normalizeEthAddress(votingTransaction.voterAddress)
 
-            // Save the signed transaction to the database
             const repository = dataSource.getRepository(VotingTransactionEntity);
             await repository.save(signedTransaction);
 
-            // Return the SVS signature to the client
             return res.status(200).json({
                 data: { blindedSignature: svsSignature },
                 error: null
