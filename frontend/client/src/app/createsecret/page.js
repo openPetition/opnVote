@@ -10,18 +10,18 @@ import { useTranslation } from "next-i18next";
 export default function Home() {
     const { t } = useTranslation();
 
-    const [ secret, setSecret ] = useState('');
-    const [ electionId, setElectionId ] = useState();
-    const [ jwt, setJwt ] = useState();
+    const [secret, setSecret] = useState('');
+    const [electionId, setElectionId] = useState();
+    const [jwt, setJwt] = useState();
 
-    const [ createSecretState, setCreateSecretState ] = useState({
+    const [createSecretState, setCreateSecretState] = useState({
         loadingAnimation: false,
         showSecret: false,
         showNotification: false,
     });
 
     const goToRegister = () => {
-        window.location.href = "/register?id=" + electionId + '&jwt=' + jwt; 
+        window.location.href = "/register?id=" + electionId + '&jwt=' + jwt;
     }
 
     const goToPollingstation = () => {
@@ -35,7 +35,7 @@ export default function Home() {
             ...createSecretState,
             loadingAnimation: true,
         })
-        
+
         const masterTokenAndR = await generateMasterTokenAndMasterR();
         const createdSecret = await concatTokenAndRForQR(masterTokenAndR.masterToken, masterTokenAndR.masterR);
         await delay(1000); // one second for loading the key
@@ -58,7 +58,7 @@ export default function Home() {
     }, [])
 
     return (
-        <>        
+        <>
             <div className="bg-op-blue">
                 <div className="flex-col items-center justify-between p-5 text-sm">
                     Dieser Part wird noch extrahiert.... nur zur Einteilung..
@@ -75,7 +75,7 @@ export default function Home() {
                             showLoadingAnimation={createSecretState.loadingAnimation}
                         />
 
-                        {electionId && jwt &&(
+                        {electionId && jwt && (
                             <NavigationBox
                                 onClickAction={() => goToRegister()}
                                 head={t("secret.navigationbox.gotoregister.beforegenerated.head")}
@@ -83,7 +83,7 @@ export default function Home() {
                                 type="primary"
                             />
                         )}
-                    </>  
+                    </>
                 )}
                 {createSecretState.showSecret && (
                     <>
@@ -113,7 +113,7 @@ export default function Home() {
                                 type="primary"
                             />
                         )}
-                        </>
+                    </>
                 )}
                 {electionId && (
                     <>
@@ -127,7 +127,7 @@ export default function Home() {
                 )}
 
             </main>
-                
+
         </>
     );
 }

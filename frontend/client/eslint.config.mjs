@@ -26,6 +26,14 @@ export default [
   },
   {
     rules: {
+      "no-unused-vars": ["error", {
+        "vars": "all",
+        "args": "after-used",
+        "caughtErrors": "none",
+        "ignoreRestSiblings": false,
+        "reportUsedIgnorePattern": false
+      }],
+      "react/prop-types": "off",
       '@stylistic/js/brace-style': ["error", "1tbs", { "allowSingleLine": true }],
       '@stylistic/js/indent': ['error', 4],
       '@stylistic/js/no-trailing-spaces': ["error"]

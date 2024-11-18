@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Cookies from 'universal-cookie';
 import Notification from "../../components/Notification";
 import Button from '../../components/Button';
@@ -12,24 +12,22 @@ import Question from "./components/Question";
 import { getElectionData } from '../../service-graphql';
 import { qrToElectionCredentials, validateCredentials } from "votingsystem";
 import { sendVotes } from "./sendVotes";
-import { ServerError } from "@/service";
 import { useTranslation } from 'next-i18next';
 
 export default function Home() {
     const { t } = useTranslation();
     const cookies = new Cookies(null, { path: '/' });
-    const [ votingCredentials, setVotingCredentials ] = useState({});
-    const [ electionInformations, setElectionInformations ] = useState({});
-    const [ votes, setVotes ] = useState({});
-    const [ electionId, setElectionId ] = useState();
+    const [votingCredentials, setVotingCredentials] = useState({});
+    const [electionInformations, setElectionInformations] = useState({});
+    const [votes, setVotes] = useState({});
+    const [electionId, setElectionId] = useState();
 
     // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
-    const [ pollingStationState, setPollingStationState ] = useState({
+    const [pollingStationState, setPollingStationState] = useState({
         taskId: '',
         showElectionInformation: false,
         showElection: false,
         showVotingSlipUpload: false,
-        showNotification: false,
         showVotingSlipSelection: false,
         showNotification: false,
         showQuestions: false,
@@ -40,14 +38,14 @@ export default function Home() {
         notificationType: ''
     });
 
-    const registerForElection = function() {
+    const registerForElection = function () {
         if (data?.election.id) {
-            window.location.href="/register/?id="+data?.election.id;
+            window.location.href = "/register/?id=" + data?.election.id;
         }
     }
 
     const saveVotes = async () => {
-        setPollingStationState({...pollingStationState, pending: true});
+        setPollingStationState({ ...pollingStationState, pending: true });
         //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
         try {
             const taskId = await sendVotes(votes, votingCredentials, data.election.publicKey);
@@ -74,7 +72,7 @@ export default function Home() {
                 pending: true,
             });
             setTimeout(() => {
-                setPollingStationState({...pollingStationState, pending: false});
+                setPollingStationState({ ...pollingStationState, pending: false });
             }, 10000);
         }
     }
@@ -114,7 +112,7 @@ export default function Home() {
                     })
                 }
             }
-        } catch(err) {
+        } catch (err) {
             setPollingStationState({
                 ...pollingStationState,
                 showElection: false,
@@ -128,7 +126,7 @@ export default function Home() {
         }
     }
 
-    const [ getElection, { loading, data } ]  = getElectionData(electionId);
+    const [getElection, { loading, data }] = getElectionData(electionId);
 
     const setNoElectionData = () => {
         setPollingStationState({
@@ -140,9 +138,9 @@ export default function Home() {
     }
 
     useEffect(() => {
-            const queryParameters = new URLSearchParams(window.location.search);
-            setElectionId(queryParameters.get("id"));
-            getElection();
+        const queryParameters = new URLSearchParams(window.location.search);
+        setElectionId(queryParameters.get("id"));
+        getElection();
     }, [])
 
     useEffect(() => {
@@ -156,7 +154,6 @@ export default function Home() {
                 showQuestions: true,
                 showElection: false,
                 showVotingSlipUpload: false,
-                showNotification: false,
                 showVotingSlipSelection: true,
                 showNotification: false,
                 notificationText: '',
@@ -171,7 +168,7 @@ export default function Home() {
         // only if we have the electioninformations its worth to check
         // wether there is some voter informations stored.
         let voterQR = cookies.get('voterQR');
-        if (typeof voterQR === "undefined"  ||  voterQR?.length == 0 || Object.keys(electionInformations).length === 0 || electionInformations.constructor !== Object) {
+        if (typeof voterQR === "undefined" || voterQR?.length == 0 || Object.keys(electionInformations).length === 0 || electionInformations.constructor !== Object) {
             return;
         }
         qrCodeToCredentials(voterQR);
@@ -201,14 +198,14 @@ export default function Home() {
                     <>
                         {electionInformations.ballot.map((question, index) =>
                             <Question
-                                key = {index}
+                                key={index}
                                 questionKey={index}
-                                question = {question}
-                                selectedVote = {votes[index]}
-                                showVoteOptions = {pollingStationState.allowedToVote}
-                                setVote = {(selection) => setVotes(votes=>({
+                                question={question}
+                                selectedVote={votes[index]}
+                                showVoteOptions={pollingStationState.allowedToVote}
+                                setVote={(selection) => setVotes(votes => ({
                                     ...votes,
-                                    [index] :selection
+                                    [index]: selection
                                 }))}
                             />
                         )}
@@ -249,10 +246,10 @@ export default function Home() {
                 {pollingStationState.showVotingSlipUpload && (
                     <>
                         <HtmlQRCodePlugin
-                            headline = {t("pollingstation.uploadqrcode.headline")}
-                            subheadline = {t("pollingstation.uploadqrcode.subheadline")}
-                            uploadSubHeadline = {t("pollingstation.uploadqrcode.uploadSubHeadline")}
-                            scanSubHeadline = {t("pollingstation.uploadqrcode.scanSubHeadline")}
+                            headline={t("pollingstation.uploadqrcode.headline")}
+                            subheadline={t("pollingstation.uploadqrcode.subheadline")}
+                            uploadSubHeadline={t("pollingstation.uploadqrcode.uploadSubHeadline")}
+                            scanSubHeadline={t("pollingstation.uploadqrcode.scanSubHeadline")}
                             onResult={(res) => {
                                 qrCodeToCredentials(res)
                             }}

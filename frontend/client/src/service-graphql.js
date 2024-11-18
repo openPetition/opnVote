@@ -23,7 +23,6 @@ const GET_ELECTION = gql`
     }
 }`;
 
-export function getElectionData(electionId) {  
-    const query = GET_ELECTION;
-    return useLazyQuery(GET_ELECTION, { variables: { id: electionId } }) 
+export function getElectionData(electionId) {
+    return useLazyQuery(GET_ELECTION, { variables: { id: electionId } })
 }

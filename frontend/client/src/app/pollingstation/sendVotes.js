@@ -7,7 +7,7 @@ import { createSignatureData,createRelayRequest, encryptVotes, createVotingTrans
 
 const replacer = function(key, value) {
     if (typeof value === 'bigint') {
-      return value.toString();
+        return value.toString();
     }
     return value;
 }
@@ -30,9 +30,9 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey) {
         hexString: voterSignature
     };
     const svsSignature = await signTransaction(votingTransaction, voterSignatureObject);
-    
+
     const votingTransactionFull = addSVSSignatureToVotingTransaction(votingTransaction, svsSignature);
-    
+
     const abiData = await getAbi();
     const opnVoteInterface = new ethers.Interface(abiData['abi']);
 
@@ -43,6 +43,6 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey) {
 
     const signatureDataInitialSerialized = JSON.stringify(signatureDataInitial, replacer);
     const gelatoForwardResult = await gelatoForward(signatureDataInitialSerialized);
-        
+
     return gelatoForwardResult.data.taskId;
 }

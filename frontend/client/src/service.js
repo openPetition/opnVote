@@ -1,33 +1,35 @@
 'use client'
-import { Signature } from "votingsystem";
+import { Signature } from "votingsystem"; // eslint-disable-line
+import Config from "../next.config.mjs";
 
-export class AuthorizationError extends Error {}
-export class AlreadyVotedError extends Error {}
-export class ServerError extends Error {}
+
+export class AuthorizationError extends Error { }
+export class AlreadyVotedError extends Error { }
+export class ServerError extends Error { }
 
 /** @returns {Signature} */
 export async function getBlindedSignature(jwttoken, blindedElectionToken) {
-    const blindedElectionTokenFormatted = {token: blindedElectionToken};
+    const blindedElectionTokenFormatted = { token: blindedElectionToken };
     const signOptions = {
         method: "POST",
         headers: new Headers(
             {
                 'content-type': 'application/json',
-                'Authorization': 'Bearer ' + jwttoken 
+                'Authorization': 'Bearer ' + jwttoken
             }
         ),
         body: JSON.stringify(blindedElectionTokenFormatted)
     };
- 
-    const response = await fetch(process.env.blindedSignatureUrl, signOptions);
+
+    const response = await fetch(Config.env.blindedSignatureUrl, signOptions);
     const jsondata = await response.json();
-    return {hexString: jsondata.data.blindedSignature, isBlinded: true};
+    return { hexString: jsondata.data.blindedSignature, isBlinded: true };
 }
 
 export async function getTransactionState(taskId) {
 
-    const taskStatesSuccess = [ "ExecSuccess" ];
-    const taskStatesCancelled = [  "ExecReverted", "Cancelled" ];
+    const taskStatesSuccess = ["ExecSuccess"];
+    const taskStatesCancelled = ["ExecReverted", "Cancelled"];
 
     const transactionStateUrl = 'https://api.gelato.digital/tasks/status/' + taskId;
     const options = {
@@ -42,7 +44,7 @@ export async function getTransactionState(taskId) {
     const response = await fetch(transactionStateUrl, options);
     if (response.status !== 200) {
         throw new ServerError();
-    } 
+    }
 
     const transactionResult = await response.json();
     const taskState = transactionResult.task.taskState;
@@ -59,17 +61,16 @@ export async function getTransactionState(taskId) {
 }
 
 export async function signTransaction(votingTransaction, voterSignatureObject) {
-    const votingTransactionToSign = {"votingTransaction": JSON.stringify(votingTransaction)};
-    const signHeader= new Headers();
+    const signHeader = new Headers();
     signHeader.append("Content-Type", "application/json");
 
     const signOptions = {
         method: "POST",
         headers: signHeader,
-        body: JSON.stringify({votingTransaction, voterSignature: voterSignatureObject}),
+        body: JSON.stringify({ votingTransaction, voterSignature: voterSignatureObject }),
     };
 
-    const response = await fetch(process.env.signVotingTransactionUrl, signOptions);
+    const response = await fetch(Config.env.signVotingTransactionUrl, signOptions);
     if (response.status !== 200) {
         throw new ServerError();
     }
@@ -84,7 +85,7 @@ export async function signTransaction(votingTransaction, voterSignatureObject) {
 };
 
 export async function gelatoForward(signatureDataInitialSerialized) {
-    const gelatoHeader= new Headers();
+    const gelatoHeader = new Headers();
     gelatoHeader.append("Content-Type", "application/json");
     const options = {
         method: "POST",
@@ -92,26 +93,26 @@ export async function gelatoForward(signatureDataInitialSerialized) {
         body: signatureDataInitialSerialized,
     };
 
-    const response = await fetch(process.env.gelatoForwardUrl, options);
+    const response = await fetch(Config.env.gelatoForwardUrl, options);
     if (response.status >= 500) {
         throw new ServerError();
-    } 
+    }
     try {
         return await response.json();
-    } catch (e) {
+    } catch (error) {
         throw new ServerError();
     }
 }
 
 export async function getAbi() {
-    const getHeader= new Headers();
+    const getHeader = new Headers();
     getHeader.append("Content-Type", "application/json");
     const options = {
         method: "GET",
         headers: getHeader,
     };
     try {
-        const response = await fetch(process.env.abiConfigUrl, options);
+        const response = await fetch(Config.env.abiConfigUrl, options);
         const jsondata = await response.json()
         return jsondata;
     } catch (error) {

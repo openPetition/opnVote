@@ -28,18 +28,18 @@ const prodConfig = {
   output: 'export',
   // Optional: Change links `/me` -> `/me/` and emit `/me.html` -> `/me/index.html`
   trailingSlash: true,
-  
+
   //Optional: Prevent automatic `/me` -> `/me/`, instead preserve `href`
   skipTrailingSlashRedirect: false,
   assetPrefix: "https://client-test.opn.vote/",
-  
+
   // Optional: Change the output directory `out` -> `dist`
   distDir: 'dist',
   reactStrictMode: true,
   images: {
-      unoptimized: true,
-      domains: ['localhost', 'static.openpetition.de'],
-    },
+    unoptimized: true,
+    domains: ['localhost', 'static.openpetition.de'],
+  },
 }
 
 /** @type {import('next').NextConfig} **/

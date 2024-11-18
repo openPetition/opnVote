@@ -6,9 +6,10 @@ import Head from "../components/Head";
 import Footer from "../components/Footer"
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 import './i18n';
+import Config from "../../next.config.mjs"
 
 const client = new ApolloClient({
-    uri: process.env.graphConnectUrl,
+    uri: Config.env.graphConnectUrl,
     cache: new InMemoryCache(),
 });
 
