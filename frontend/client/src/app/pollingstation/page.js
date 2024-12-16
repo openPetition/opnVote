@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Cookies from 'universal-cookie';
 import Notification from "../../components/Notification";
 import Button from '../../components/Button';
@@ -9,10 +9,11 @@ import HtmlQRCodePlugin from "../../components/ScanUploadQRCode";
 import VoteTransactionState from "./components/VoteTransactionState";
 import Electionheader from "./components/Electionheader";
 import Question from "./components/Question";
-import { getElectionData } from '../../service-graphql';
+import { getElectionData, getVoteCastsData } from '../../service-graphql';
 import { qrToElectionCredentials, validateCredentials } from "votingsystem";
 import { sendVotes } from "./sendVotes";
 import { useTranslation } from 'next-i18next';
+import Config from "../../../next.config.mjs";
 
 export default function Home() {
     const { t } = useTranslation();
@@ -21,6 +22,9 @@ export default function Home() {
     const [electionInformations, setElectionInformations] = useState({});
     const [votes, setVotes] = useState({});
     const [electionId, setElectionId] = useState();
+
+    const [getElection, { data: dataElection, loading: loadingElection }] = getElectionData(electionId);
+    const [getVoteCasts, { data: dataVotings, loading: loadingVotings }] = getVoteCastsData(votingCredentials?.voterWallet?.address, electionId);
 
     // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
     const [pollingStationState, setPollingStationState] = useState({
@@ -35,12 +39,13 @@ export default function Home() {
         pending: false,
         allowedToVote: false,
         notificationText: '',
-        notificationType: ''
+        notificationType: '',
+        isVoteRecast: false
     });
 
     const registerForElection = function () {
-        if (data?.election.id) {
-            window.location.href = "/register/?id=" + data?.election.id;
+        if (dataElection?.election.id) {
+            window.location.href = "/register/?id=" + dataElection?.election.id;
         }
     }
 
@@ -48,7 +53,7 @@ export default function Home() {
         setPollingStationState({ ...pollingStationState, pending: true });
         //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
         try {
-            const taskId = await sendVotes(votes, votingCredentials, data.election.publicKey);
+            const taskId = await sendVotes(votes, votingCredentials, dataElection.election.publicKey, pollingStationState.isVoteRecast);
             if (taskId) {
                 cookies.remove('voterQR');
                 setPollingStationState({
@@ -83,7 +88,7 @@ export default function Home() {
 
             if (Object.keys(credentials).length > 0) {
                 await validateCredentials(credentials);
-                if (parseInt(credentials?.electionID) !== parseInt(data?.election.id)) {
+                if (parseInt(credentials?.electionID) !== parseInt(dataElection?.election.id)) {
                     setPollingStationState({
                         ...pollingStationState,
                         showElectionInformation: true,
@@ -104,11 +109,7 @@ export default function Home() {
                         showQuestions: true,
                         showElection: true,
                         showVotingSlipUpload: false,
-                        showVotingSlipSelection: false,
-                        showNotification: true,
-                        allowedToVote: true,
-                        notificationType: 'success',
-                        notificationText: t("pollingstation.notification.success.ballotfits")
+                        showVotingSlipSelection: false
                     })
                 }
             }
@@ -126,8 +127,6 @@ export default function Home() {
         }
     }
 
-    const [getElection, { loading, data }] = getElectionData(electionId);
-
     const setNoElectionData = () => {
         setPollingStationState({
             ...pollingStationState,
@@ -144,16 +143,18 @@ export default function Home() {
     }, [])
 
     useEffect(() => {
-        if (loading) return;
+        if (loadingElection) return;
 
         // after we got election data .. check this
-        if (data && data?.election && Object.keys(data?.election).length > 0) {
-            setElectionInformations(JSON.parse(data.election?.descriptionBlob));
+        if (dataElection && dataElection?.election && Object.keys(dataElection?.election).length > 0) {
+            setElectionInformations(JSON.parse(dataElection.election?.descriptionBlob));
             setPollingStationState({
+                ...pollingStationState,
                 showElectionInformation: true,
                 showQuestions: true,
                 showElection: false,
                 showVotingSlipUpload: false,
+                allowedToVote: false,
                 showVotingSlipSelection: true,
                 showNotification: false,
                 notificationText: '',
@@ -162,7 +163,39 @@ export default function Home() {
         } else {
             setNoElectionData();
         }
-    }, [data]);
+    }, [dataElection]);
+
+    useEffect(() => {
+        if (loadingVotings) return;
+
+        if (dataVotings && dataVotings?.voteUpdateds && Object.keys(dataVotings?.voteUpdateds).length >= Config.env.maxVoteRecasts) {
+            setPollingStationState({
+                ...pollingStationState,
+                allowedToVote: false,
+                showNotification: true,
+                notificationText: 'Eine Änderung der Stimmabgabe ist nicht mehr möglich',
+                notificationType: 'error',
+                showVotingSlipUpload: false,
+                showVotingSlipSelection: false,
+            });
+            return;
+        }
+
+        let isVoteRecast = false;
+        // after we got voteCasts data .. check this
+        if (dataVotings && dataVotings?.voteCasts && Object.keys(dataVotings?.voteCasts).length > 0) {
+            isVoteRecast = true;
+        }
+
+        setPollingStationState({
+            ...pollingStationState,
+            allowedToVote: true,
+            isVoteRecast: isVoteRecast,
+            showNotification: true,
+            notificationType: 'success',
+            notificationText: t("pollingstation.notification.success.ballotfits")
+        });
+    }, [dataVotings]);
 
     useEffect(() => {
         // only if we have the electioninformations its worth to check
@@ -175,11 +208,19 @@ export default function Home() {
 
     }, [electionInformations])
 
+    useEffect(() => {
+        // here we have to see wether voter already voted to prepare for vote-recast
+        if (Object.keys(votingCredentials).length > 0 && electionId && Object.keys(electionInformations).length > 0) {
+            getVoteCasts();
+        }
+
+    }, [votingCredentials])
+
     return (
         <>
             {pollingStationState.showElectionInformation && (
                 <Electionheader
-                    election={data?.election}
+                    election={dataElection?.election}
                     electionInformations={electionInformations}
                 />
             )}

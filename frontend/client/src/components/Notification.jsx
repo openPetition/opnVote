@@ -10,7 +10,7 @@ import styles from '../styles/Notification.module.css';
  */
 export default function Notification(props) {
     const { type, text, headline } = props;
-    const [ NotificationIcon, setNotifcationIcon ] = useState('');
+    const [NotificationIcon, setNotifcationIcon] = useState('');
 
     const iconComponents = {
         success: '/images/notificationicons/icon_success.svg',

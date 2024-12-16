@@ -8,6 +8,7 @@ const devConfig = {
     signVotingTransactionUrl: 'https://svs.opn.vote/api/votingTransaction/sign',
     graphConnectUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-001',
     gelatoForwardUrl: 'https://svs.opn.vote/api/gelato/forward',
+    maxVoteRecasts: 2,
   },
   images: {
     domains: ['localhost', 'static.openpetition.de'],
@@ -23,6 +24,7 @@ const prodConfig = {
     signVotingTransactionUrl: 'https://svs.opn.vote/api/votingTransaction/sign',
     graphConnectUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-001',
     gelatoForwardUrl: 'https://svs.opn.vote/api/gelato/forward',
+    maxVoteRecasts: 2,
   },
 
   output: 'export',
