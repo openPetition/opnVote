@@ -33,6 +33,9 @@ checks wether the user is allowed to register for election with help of the crea
 http://localhost:3000/pollingstation?id=[electionid]
 will contain the voting process (checking the voting authorization card) and the vote (selection of answers, putting them into the voting ballot)
 
+if you want to go through the whole user flow you can start at https://www.dev-openpetition.de/opn-vote (running local dev server from OP) 
+it mocks the user verification from OP for now and hands over jwt token (with random user id and election id 6)
+
 ### Deployment
 
 * build (`npm run build`)

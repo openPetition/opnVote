@@ -29,7 +29,7 @@ export default function VoteResultView(props) {
                 setTransactionHash(transactionResult.transactionHash);
                 setTransactionViewUrl(transactionResult.transactionViewUrl);
             }
-    
+
             if (transactionResult.status === 'pending') {
                 let transactionPendingDelay = 1000;
                 setVoteResultState({
@@ -43,7 +43,7 @@ export default function VoteResultView(props) {
                     checkTransaction();
                 }, transactionPendingDelay);
             }
-    
+
             if (transactionResult.status === 'success') {
                 setVoteResultState({
                     ...voteResultState,
@@ -54,7 +54,7 @@ export default function VoteResultView(props) {
                     notificationType: 'success',
                 });
             }
-    
+
             if (transactionResult.status === 'cancelled') {
                 setVoteResultState({
                     ...voteResultState,
@@ -67,7 +67,7 @@ export default function VoteResultView(props) {
             }
         } catch (error) {
             let notificationText;
-            let errorDelay = 10000; // reload after 
+            let errorDelay = 10000; // reload after
             if (error instanceof ServerError) {
                 notificationText = t('votetransactionstate.error.servererror');
             } else if (error instanceof AlreadyVotedError) {
@@ -95,7 +95,7 @@ export default function VoteResultView(props) {
                 notificationText: notificationText,
             });
         }
-    } 
+    }
 
     useEffect(() => {
         if (taskId?.length > 0) {
@@ -104,7 +104,7 @@ export default function VoteResultView(props) {
     }, [taskId]);
 
     return (
-      <>
+        <>
             {voteResultState.showNotification && (
                 <Notification type={voteResultState.notificationType} text={voteResultState.notificationText} />
             )}
@@ -124,15 +124,15 @@ export default function VoteResultView(props) {
                             {transactionHash}
                         </Link>
                     )}
-                     {!transactionHash && (
+                    {!transactionHash && (
                         <span className={styles.itemvalue}>
-                             ---
+                            ---
                         </span>
                     )}
                     <h3 className={styles.itemheadline}>{t('votetransactionstate.transaction')}</h3>
                 </div>
             </div>
-      </>
+        </>
     )
 }
 

@@ -3,36 +3,39 @@
 import { ethers } from "ethers";
 import { signTransaction, gelatoForward, getAbi } from '../../service';
 import { GelatoRelay } from "@gelatonetwork/relay-sdk";
-import { createSignatureData,createRelayRequest, encryptVotes, createVotingTransactionWithoutSVSSignature, addSVSSignatureToVotingTransaction } from "votingsystem";
+import { createSignatureData, createRelayRequest, encryptVotes, createVotingTransactionWithoutSVSSignature, addSVSSignatureToVotingTransaction, createVoteRecastTransaction } from "votingsystem";
 
-const replacer = function(key, value) {
+const replacer = function (key, value) {
     if (typeof value === 'bigint') {
-      return value.toString();
+        return value.toString();
     }
     return value;
 }
 
-export async function sendVotes(votes, votingCredentials, electionPublicKey) {
+export async function sendVotes(votes, votingCredentials, electionPublicKey, isRecast) {
     // map votes into needed format
     let newVoteArray = [];
     Object.keys(votes).map((key) => {
-        newVoteArray[key]  = {value: votes[key]};
+        newVoteArray[key] = { value: votes[key] };
     });
     const encryptedVotes = await encryptVotes(newVoteArray, electionPublicKey);
+    let votingTransaction, votingTransactionFull;
+    if (isRecast) {
+        votingTransactionFull = createVoteRecastTransaction(votingCredentials, encryptedVotes);
+    } else {
+        votingTransaction = createVotingTransactionWithoutSVSSignature(votingCredentials, encryptedVotes);
+        const voterWallet = new ethers.Wallet(votingCredentials.voterWallet.privateKey);
+        const message = JSON.stringify(votingTransaction);
+        const messageHash = ethers.hashMessage(message);
 
-    const votingTransaction = createVotingTransactionWithoutSVSSignature(votingCredentials, encryptedVotes);
-    const voterWallet = new ethers.Wallet(votingCredentials.voterWallet.privateKey);
-    const message = JSON.stringify(votingTransaction);
-    const messageHash = ethers.hashMessage(message);
+        const voterSignature = await voterWallet.signMessage(messageHash);
+        const voterSignatureObject = {
+            hexString: voterSignature
+        };
+        const svsSignature = await signTransaction(votingTransaction, voterSignatureObject);
+        votingTransactionFull = addSVSSignatureToVotingTransaction(votingTransaction, svsSignature);
+    }
 
-    const voterSignature = await voterWallet.signMessage(messageHash);
-    const voterSignatureObject = {
-        hexString: voterSignature
-    };
-    const svsSignature = await signTransaction(votingTransaction, voterSignatureObject);
-    
-    const votingTransactionFull = addSVSSignatureToVotingTransaction(votingTransaction, svsSignature);
-    
     const abiData = await getAbi();
     const opnVoteInterface = new ethers.Interface(abiData['abi']);
 
@@ -43,6 +46,6 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey) {
 
     const signatureDataInitialSerialized = JSON.stringify(signatureDataInitial, replacer);
     const gelatoForwardResult = await gelatoForward(signatureDataInitialSerialized);
-        
+
     return gelatoForwardResult.data.taskId;
 }

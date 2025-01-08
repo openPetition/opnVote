@@ -6,22 +6,26 @@ import NavigationBox from "@/components/NavigationBox";
 import Notification from "../../components/Notification";
 import LoadKey from "./components/Key";
 import { useTranslation } from "next-i18next";
+import { useOpnVoteStore } from "../../opnVoteStore";
+
 
 export default function Home() {
     const { t } = useTranslation();
 
-    const [ secret, setSecret ] = useState('');
-    const [ electionId, setElectionId ] = useState();
-    const [ jwt, setJwt ] = useState();
-
-    const [ createSecretState, setCreateSecretState ] = useState({
+    const [secret, setSecret] = useState('');
+    const [electionId, setElectionId] = useState();
+    const [jwt, setJwt] = useState();
+    const [createSecretState, setCreateSecretState] = useState({
         loadingAnimation: false,
         showSecret: false,
         showNotification: false,
     });
 
+    const { user, updateUserKey } = useOpnVoteStore((state) => state);
+
+
     const goToRegister = () => {
-        window.location.href = "/register?id=" + electionId + '&jwt=' + jwt; 
+        window.location.href = "/register?id=" + electionId + '&jwt=' + jwt;
     }
 
     const goToPollingstation = () => {
@@ -35,12 +39,13 @@ export default function Home() {
             ...createSecretState,
             loadingAnimation: true,
         })
-        
+
         const masterTokenAndR = await generateMasterTokenAndMasterR();
         const createdSecret = await concatTokenAndRForQR(masterTokenAndR.masterToken, masterTokenAndR.masterR);
         await delay(1000); // one second for loading the key
         if (createdSecret) {
             setSecret(createdSecret);
+            updateUserKey(createdSecret);
             setCreateSecretState({
                 ...createSecretState,
                 loadingAnimation: false,
@@ -58,11 +63,12 @@ export default function Home() {
     }, [])
 
     return (
-        <>        
+        <>
             <div className="bg-op-blue">
                 <div className="flex-col items-center justify-between p-5 text-sm">
                     Dieser Part wird noch extrahiert.... nur zur Einteilung..
                     Die Generierung und Speicherung deines Geheimnisses erfolgt komplett „offline“. Wenn du ganz sicher gehen will, kannst du deine Internetverbindung jetzt deaktivieren und später wieder aktivieren.
+                    {user?.key && (<>{user.key}</>)}
                 </div>
             </div>
 
@@ -75,7 +81,7 @@ export default function Home() {
                             showLoadingAnimation={createSecretState.loadingAnimation}
                         />
 
-                        {electionId && jwt &&(
+                        {electionId && jwt && (
                             <NavigationBox
                                 onClickAction={() => goToRegister()}
                                 head={t("secret.navigationbox.gotoregister.beforegenerated.head")}
@@ -83,7 +89,7 @@ export default function Home() {
                                 type="primary"
                             />
                         )}
-                    </>  
+                    </>
                 )}
                 {createSecretState.showSecret && (
                     <>
@@ -113,7 +119,7 @@ export default function Home() {
                                 type="primary"
                             />
                         )}
-                        </>
+                    </>
                 )}
                 {electionId && (
                     <>
@@ -127,7 +133,7 @@ export default function Home() {
                 )}
 
             </main>
-                
+
         </>
     );
 }

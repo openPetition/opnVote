@@ -15,17 +15,18 @@ import { getBlindedSignature } from '../../service';
 import { getElectionData } from '../../service-graphql';
 import { useTranslation } from 'next-i18next';
 import { qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, blindToken, unblindSignature, createVoterCredentials, concatElectionCredentialsForQR, RSA_BIT_LENGTH } from "votingsystem";
+import Config from "../../../next.config.mjs"
 
 export default function Home() {
     const { t } = useTranslation();
-    const [ decodedValue, setDecodedValue ] = useState("");
-    const [ voterQRCodeText, setVoterQRCodeText ] = useState("")
-    const [ electionId, setElectionId ] = useState();
-    const [ electionInformation, setElectionInformation ] = useState();
-    const [ jwtToken, setJwtToken ] = useState();
+    const [decodedValue, setDecodedValue] = useState("");
+    const [voterQRCodeText, setVoterQRCodeText] = useState("")
+    const [electionId, setElectionId] = useState();
+    const [electionInformation, setElectionInformation] = useState();
+    const [jwtToken, setJwtToken] = useState();
     const delay = ms => new Promise(res => setTimeout(res, ms));
     // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
-    const [ registerState, setRegisterState ] = useState({
+    const [registerState, setRegisterState] = useState({
         showLoading: true,
         showStartProcessScreen: false,
         showElectionInformation: false,
@@ -39,7 +40,7 @@ export default function Home() {
         showVoteLater: false,
     });
     const cookies = new Cookies(null, { path: '/' });
-    const generateVoteCredentials = async function() {
+    const generateVoteCredentials = async function () {
         setRegisterState({
             ...registerState,
             showLoading: true,
@@ -53,7 +54,7 @@ export default function Home() {
                 NbitLength: Number(RSA_BIT_LENGTH),
             };
 
-            let masterTokens  = await qrToTokenAndR(decodedValue, true);
+            let masterTokens = await qrToTokenAndR(decodedValue, true);
             let unblindedElectionToken = await deriveElectionUnblindedToken(electionId, masterTokens.token);
             let electionR = await deriveElectionR(electionId, masterTokens.r, unblindedElectionToken, registerRSA);
             let blindedElectionToken = await blindToken(unblindedElectionToken, electionR, registerRSA);
@@ -89,10 +90,10 @@ export default function Home() {
     }
 
     const copyToClipboard = () => {
-        navigator.clipboard.writeText(process.env.basicUrl+'/pollingstation?id='+electionId);
+        navigator.clipboard.writeText(Config.env.basicUrl + '/pollingstation?id=' + electionId);
     }
 
-    const goToElection = function() {
+    const goToElection = function () {
         //set cookie with election data
         cookies.set('voterQR', voterQRCodeText);
         // will be changed to dynamic election location when its more clear where we go
@@ -105,7 +106,7 @@ export default function Home() {
         }
     }
 
-    const voteLater = function() {
+    const voteLater = function () {
         // later maybe redirect to overview of elections
         setRegisterState({
             ...registerState,
@@ -134,7 +135,7 @@ export default function Home() {
         }
     }, [decodedValue]);
 
-    const [getElection, { loading, data }]  = getElectionData(electionId);
+    const [getElection, { loading, data }] = getElectionData(electionId);
 
     useEffect(() => {
         if (loading) {
@@ -170,7 +171,7 @@ export default function Home() {
         const getId = queryParameters.get("id");
         const getJwtToken = queryParameters.get("jwt");
 
-        if (queryParameters  && (!getId || !Number.isInteger(parseInt(getId, 10)) || !getJwtToken)) {
+        if (queryParameters && (!getId || !Number.isInteger(parseInt(getId, 10)) || !getJwtToken)) {
             setRegisterState({
                 ...registerState,
                 showLoading: false,
@@ -190,7 +191,7 @@ export default function Home() {
             <div className="op__contentbox_760">
                 {(loading || registerState.showLoading) && (
                     <>
-                        <Loading loadingText={t("common.loading.text")}/>
+                        <Loading loadingText={t("common.loading.text")} />
                     </>
                 )}
 
@@ -240,17 +241,17 @@ export default function Home() {
                         {registerState.showQRCodeUploadPlugin && (
                             <>
                                 <HtmlQRCodePlugin
-                                    headline = {t("register.uploadqrcode.headline")}
-                                    subheadline = {t("register.uploadqrcode.subheadline")}
-                                    uploadSubHeadline = {t("register.uploadqrcode.uploadSubHeadline")}
-                                    scanSubHeadline = {t("register.uploadqrcode.scanSubHeadline")}
+                                    headline={t("register.uploadqrcode.headline")}
+                                    subheadline={t("register.uploadqrcode.subheadline")}
+                                    uploadSubHeadline={t("register.uploadqrcode.uploadSubHeadline")}
+                                    scanSubHeadline={t("register.uploadqrcode.scanSubHeadline")}
                                     onResult={(res) => setDecodedValue(res)}
                                 />
                             </>
                         )}
 
                         {registerState.showQRLoadingAnimation && (
-                            <Loading loadingText={t("common.loading.text")}/>
+                            <Loading loadingText={t("common.loading.text")} />
                         )}
 
                         {registerState.showBallot && (
@@ -285,33 +286,32 @@ export default function Home() {
                                     saveButtonText={t("register.generateqrcode.savebuttontext")}
                                 />
 
-
-
                                 <div>
                                     <Button
                                         onClickAction={() =>
                                             setRegisterState({
-                                            ...registerState,
-                                            showContinueModal: true
-                                        })}
+                                                ...registerState,
+                                                showContinueModal: true
+                                            })}
                                         text={t("register.button.votelater.text")}
                                         type="primary"
                                     />
                                 </div>
 
                                 <ConfirmPopup
-                                    showModal = {registerState.showContinueModal}
-                                    modalText = {t("register.confirmpopup.modaltext")}
-                                    modalHeader = {t("register.confirmpopup.modalheader")}
-                                    modalConfirmFunction = {voteLater}
-                                    modalAbortFunction = {() => {
+                                    showModal={registerState.showContinueModal}
+                                    modalText={t("register.confirmpopup.modaltext")}
+                                    modalHeader={t("register.confirmpopup.modalheader")}
+                                    modalConfirmFunction={voteLater}
+                                    modalAbortFunction={() => {
                                         window.scrollTo(0, 0);
                                         setRegisterState({
                                             ...registerState,
                                             showContinueModal: false
-                                        })}}
-                                    shouldConfirm = {true}
-                                    confirmMessage = {t("register.confirmpopup.confirmmessage")}
+                                        })
+                                    }}
+                                    shouldConfirm={true}
+                                    confirmMessage={t("register.confirmpopup.confirmmessage")}
                                 />
                             </>
                         )}
@@ -329,7 +329,7 @@ export default function Home() {
                             <input
                                 type="text"
                                 readOnly={true}
-                                defaultValue={`${process.env.basicUrl}/pollingstation?id=${electionId}`}
+                                defaultValue={`${Config.env.basicUrl}/pollingstation?id=${electionId}`}
                                 style={{
                                     width: '90%',
                                     display: 'inline-block',
@@ -346,7 +346,7 @@ export default function Home() {
                                 width={36}
                                 alt="Follow us on Twitter"
                                 onClick={copyToClipboard}
-                                style={{display: 'inline-block', paddingLeft: '10px'}}
+                                style={{ display: 'inline-block', paddingLeft: '10px' }}
                             />
                         </div>
 
