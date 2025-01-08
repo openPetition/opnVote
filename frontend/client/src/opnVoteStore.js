@@ -7,14 +7,18 @@ export const useOpnVoteStore = create(
             user: {
                 key: ''
             },
-            userelection: {
+            voting: {
+                electionId: null,
                 election: {},
-                jwt: {},
+                jwt: '',
                 ballotpaper: {},
                 vote: {},
                 revote: {}
             },
-            updateUserKey: (key) => set(() => ({ user: { ...get().user, key: key } }))
+            updateUserKey: (key) => set(() => ({ user: { ...get().user, key: key } })),
+            updateVoting: (updates) => set(() => ({
+                voting: { ...get().voting, ...updates }
+            })),
         }),
         {
             name: 'opnvote-storage',

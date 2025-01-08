@@ -24,6 +24,7 @@ export default function Home() {
     const [electionId, setElectionId] = useState();
     const [electionInformation, setElectionInformation] = useState();
     const [jwtToken, setJwtToken] = useState();
+
     const delay = ms => new Promise(res => setTimeout(res, ms));
     // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
     const [registerState, setRegisterState] = useState({

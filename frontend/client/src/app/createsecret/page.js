@@ -8,28 +8,23 @@ import LoadKey from "./components/Key";
 import { useTranslation } from "next-i18next";
 import { useOpnVoteStore } from "../../opnVoteStore";
 
-
 export default function Home() {
     const { t } = useTranslation();
 
-    const [secret, setSecret] = useState('');
-    const [electionId, setElectionId] = useState();
-    const [jwt, setJwt] = useState();
     const [createSecretState, setCreateSecretState] = useState({
         loadingAnimation: false,
         showSecret: false,
         showNotification: false,
     });
 
-    const { user, updateUserKey } = useOpnVoteStore((state) => state);
-
+    const { user, voting, updateUserKey } = useOpnVoteStore((state) => state);
 
     const goToRegister = () => {
-        window.location.href = "/register?id=" + electionId + '&jwt=' + jwt;
+        window.location.href = "/register?id=" + voting.electionId + '&jwt=' + voting.jwt;
     }
 
     const goToPollingstation = () => {
-        window.location.href = "/pollingstation?id=" + electionId;
+        window.location.href = "/pollingstation?id=" + voting.electionId;
     }
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -44,23 +39,29 @@ export default function Home() {
         const createdSecret = await concatTokenAndRForQR(masterTokenAndR.masterToken, masterTokenAndR.masterR);
         await delay(1000); // one second for loading the key
         if (createdSecret) {
-            setSecret(createdSecret);
             updateUserKey(createdSecret);
-            setCreateSecretState({
-                ...createSecretState,
-                loadingAnimation: false,
-                showQuestions: true,
-                showSecret: true,
-                showNotification: true,
-            })
         }
     }
 
     useEffect(() => {
-        const queryParameters = new URLSearchParams(window.location.search);
-        setElectionId(queryParameters.get("id"));
-        setJwt(queryParameters.get("jwt"));
-    }, [])
+        if (user?.key?.length === 0) {
+            setCreateSecretState({
+                ...createSecretState,
+                loadingAnimation: false,
+                showSecret: false,
+                showNotification: false,
+            })
+        }
+
+        if (user?.key?.length > 0) {
+            setCreateSecretState({
+                ...createSecretState,
+                loadingAnimation: false,
+                showSecret: true,
+                showNotification: true,
+            })
+        }
+    }, [user]);
 
     return (
         <>
@@ -68,7 +69,6 @@ export default function Home() {
                 <div className="flex-col items-center justify-between p-5 text-sm">
                     Dieser Part wird noch extrahiert.... nur zur Einteilung..
                     Die Generierung und Speicherung deines Geheimnisses erfolgt komplett „offline“. Wenn du ganz sicher gehen will, kannst du deine Internetverbindung jetzt deaktivieren und später wieder aktivieren.
-                    {user?.key && (<>{user.key}</>)}
                 </div>
             </div>
 
@@ -81,7 +81,7 @@ export default function Home() {
                             showLoadingAnimation={createSecretState.loadingAnimation}
                         />
 
-                        {electionId && jwt && (
+                        {voting.electionId && voting.jwt && (
                             <NavigationBox
                                 onClickAction={() => goToRegister()}
                                 head={t("secret.navigationbox.gotoregister.beforegenerated.head")}
@@ -106,12 +106,12 @@ export default function Home() {
                         <GenerateQRCode
                             headline={t("secret.generateqrcode.headline")}
                             subheadline={t("secret.generateqrcode.subheadline")}
-                            text={secret}
+                            text={user.key}
                             downloadHeadline={t("secret.generateqrcode.downloadHeadline")}
                             headimage="secret"
                             saveButtonText={t("common.save")}
                         />
-                        {electionId && jwt && (
+                        {voting.electionId && voting.jwt && (
                             <NavigationBox
                                 onClickAction={() => goToRegister()}
                                 head={t("secret.navigationbox.gotoregister.aftergenerated.head")}
@@ -121,7 +121,7 @@ export default function Home() {
                         )}
                     </>
                 )}
-                {electionId && (
+                {voting.electionId && (
                     <>
                         <NavigationBox
                             onClickAction={() => goToPollingstation()}
