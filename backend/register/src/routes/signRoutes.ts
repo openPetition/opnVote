@@ -8,6 +8,7 @@ import { RSAParams, signToken, Signature, Token } from 'votingsystem';
 import { BlindedSignature } from '../models/BlindedSignature';
 import { dataSource } from '../database';
 import { ApiResponse } from '../types/apiResponses';
+import { RegisterKeyService } from '../services/registerKeyService';
 
 const router = Router();
 
@@ -99,21 +100,23 @@ router.post('/',
         } as ApiResponse<null>);
       }
 
-      const registerSigner = req.app.locals.RegisterSigner as RSAParams;
+      const { userID, electionID } = req.user;
+      const registerSigner: RSAParams | null = await RegisterKeyService.getKeysByElectionId(electionID);
+
       if (!registerSigner) {
+        console.error(` No register keys configured for election ${electionID}`);
+
         return res.status(500).json({
           data: null,
-          error: 'RegisterSigner configuration not found'
+          error: 'Register not properly configured for this election. Please contact the election administrator.'
         } as ApiResponse<null>);
       }
-
 
       // Sign Token
       const blindedToken = req.body.token as Token;
       const blindedSignature: Signature = signToken(blindedToken, registerSigner);
 
       // Store signed tokens in local database
-      const { userID, electionID } = req.user;
       const jwtToken = authHeader.split(' ')[1];
 
       const signatureRecord = new BlindedSignature();
