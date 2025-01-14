@@ -13,6 +13,7 @@
   "scanuploadqrcode.image.headline": "QR Code aus Bild-Datei laden",
   "scanuploadqrcode.image.instruction": "Bild-Datei mit QR Code auswählen",
   "scanuploadqrcode.image.select": "Bild auswählen",
+  "scanuploadqrcode.cameraaction.failed": "Aktion abgebrochen. Bitte überprüfen Sie die Kameraberechtigungen Ihres Gerätes.",
   "secret.key.headline": "Schlüssel anklicken und Wahlschlüssel bestellen",
   "secret.notification.success.text.key-generated": "Ihr Wahlschlüssel wurde erfolgreich erstellt. Jetzt müssen Sie es nur noch sicher ablegen.",
   "secret.notification.info.headline.important": "Wichtig:",

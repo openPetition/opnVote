@@ -9,6 +9,7 @@
     align-items: center;
     justify-content: flex-start;
     margin: 0.5rem 0;
+    text-align: left;
 }
 
 .icon {

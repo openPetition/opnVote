@@ -13,6 +13,7 @@
   "scanuploadqrcode.image.headline": "Load QR Code from image file",
   "scanuploadqrcode.image.instruction": "Select an image from which to load the QR Code",
   "scanuploadqrcode.image.select": "Select image",
+  "scanuploadqrcode.cameraaction.failed": "Action aborted. Camera might not be authorized. Please check your media permissions settings ",
   "secret.key.headline": "Click on the key and order the election secret",
   "secret.notification.success.text.key-generated": "Your election secret has been successfully created. Now you just need to store it securely.",
   "secret.notification.info.headline.important": "Important:",
