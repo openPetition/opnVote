@@ -10,6 +10,7 @@ export const useOpnVoteStore = create(
             voting: {
                 electionId: null,
                 election: {},
+                electionInformation: {},
                 jwt: '',
                 ballotpaper: {},
                 vote: {},

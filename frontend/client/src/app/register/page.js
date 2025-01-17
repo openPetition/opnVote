@@ -12,25 +12,25 @@ import NavigationBox from "../../components/NavigationBox";
 import Button from "../../components/Button";
 import Cookies from 'universal-cookie';
 import { getBlindedSignature } from '../../service';
-import { getElectionData } from '../../service-graphql';
 import { useTranslation } from 'next-i18next';
 import { qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, blindToken, unblindSignature, createVoterCredentials, concatElectionCredentialsForQR, RSA_BIT_LENGTH } from "votingsystem";
 import Config from "../../../next.config.mjs"
+import { useOpnVoteStore } from "../../opnVoteStore";
 
 export default function Home() {
     const { t } = useTranslation();
+    const { voting } = useOpnVoteStore((state) => state);
+
     const [decodedValue, setDecodedValue] = useState("");
     const [voterQRCodeText, setVoterQRCodeText] = useState("")
-    const [electionId, setElectionId] = useState();
-    const [electionInformation, setElectionInformation] = useState();
-    const [jwtToken, setJwtToken] = useState();
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
     // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
+
     const [registerState, setRegisterState] = useState({
-        showLoading: true,
-        showStartProcessScreen: false,
-        showElectionInformation: false,
+        showLoading: false,
+        showStartProcessScreen: true,
+        showElectionInformation: true,
         showQRCodeUploadPlugin: false,
         showBallot: false,
         showContinueModal: false,
@@ -50,20 +50,19 @@ export default function Home() {
 
         try {
             let registerRSA = {
-                N: BigInt(data?.election?.registerPublicKeyN),
-                e: BigInt(data?.election?.registerPublicKeyE),
+                N: BigInt(voting.election.registerPublicKeyN),
+                e: BigInt(voting.election.registerPublicKeyE),
                 NbitLength: Number(RSA_BIT_LENGTH),
             };
 
             let masterTokens = await qrToTokenAndR(decodedValue, true);
-            let unblindedElectionToken = await deriveElectionUnblindedToken(electionId, masterTokens.token);
-            let electionR = await deriveElectionR(electionId, masterTokens.r, unblindedElectionToken, registerRSA);
+            let unblindedElectionToken = await deriveElectionUnblindedToken(voting.electionId, masterTokens.token);
+            let electionR = await deriveElectionR(voting.electionId, masterTokens.r, unblindedElectionToken, registerRSA);
             let blindedElectionToken = await blindToken(unblindedElectionToken, electionR, registerRSA);
-            let blindedSignature = await getBlindedSignature(jwtToken, blindedElectionToken);
+            let blindedSignature = await getBlindedSignature(voting.jwt, blindedElectionToken);
             let unblindedSignature = await unblindSignature(blindedSignature, electionR, registerRSA);
-            let voterCredentials = await createVoterCredentials(unblindedSignature, unblindedElectionToken, masterTokens.token, electionId);
+            let voterCredentials = await createVoterCredentials(unblindedSignature, unblindedElectionToken, masterTokens.token, voting.electionId);
             let qrVoterCredentials = await concatElectionCredentialsForQR(voterCredentials);
-
             setVoterQRCodeText(qrVoterCredentials);
             setRegisterState({
                 ...registerState,
@@ -91,20 +90,18 @@ export default function Home() {
     }
 
     const copyToClipboard = () => {
-        navigator.clipboard.writeText(Config.env.basicUrl + '/pollingstation?id=' + electionId);
+        navigator.clipboard.writeText(Config.env.basicUrl + '/pollingstation?id=' + voting.electionId);
     }
 
     const goToElection = function () {
         //set cookie with election data
         cookies.set('voterQR', voterQRCodeText);
         // will be changed to dynamic election location when its more clear where we go
-        window.location.href = "/pollingstation?id=" + electionId;
+        window.location.href = "/pollingstation?id=" + voting.electionId;
     }
 
     const goToCreatesecret = () => {
-        if (electionId && jwtToken) {
-            window.location.href = "/createsecret?id=" + electionId + '&jwt=' + jwtToken;
-        }
+        window.location.href = "/createsecret?id=" + voting.electionId + '&jwt=' + voting.jwt;
     }
 
     const voteLater = function () {
@@ -136,74 +133,23 @@ export default function Home() {
         }
     }, [decodedValue]);
 
-    const [getElection, { loading, data }] = getElectionData(electionId);
-
-    useEffect(() => {
-        if (loading) {
-            return;
-        }
-
-        // after we got election data .. check this
-        if (data && data?.election && Object.keys(data?.election).length > 0) {
-            setElectionInformation(JSON.parse(data.election?.descriptionBlob));
-            setRegisterState({
-                ...registerState,
-                showElectionInformation: true,
-                showStartProcessScreen: true,
-                showLoading: false,
-                showNotification: false,
-            });
-        }
-    }, [data]);
-
-    useEffect(() => {
-        if (!electionId) {
-            return;
-        }
-        getElection();
-    }, [electionId]);
-
-    useEffect(() => {
-        if (electionId || !window) {
-            return;
-        }
-
-        const queryParameters = new URLSearchParams(window.location.search);
-        const getId = queryParameters.get("id");
-        const getJwtToken = queryParameters.get("jwt");
-
-        if (queryParameters && (!getId || !Number.isInteger(parseInt(getId, 10)) || !getJwtToken)) {
-            setRegisterState({
-                ...registerState,
-                showLoading: false,
-                showNotification: true,
-                notificationText: t("register.notification.error.noelection.text"),
-                notificationType: 'error'
-            });
-            return;
-        }
-
-        setElectionId(parseInt(getId));
-        setJwtToken(getJwtToken);
-    }, []);
-
     return (
         <>
             <div className="op__contentbox_760">
-                {(loading || registerState.showLoading) && (
+                {(registerState.showLoading) && (
                     <>
                         <Loading loadingText={t("common.loading.text")} />
                     </>
                 )}
 
-                {registerState.showElectionInformation && electionInformation && (
+                {registerState.showElectionInformation && (
                     <>
                         <h3>{t("register.headline.orderballot")}</h3>
                         <p>
                             {t("register.text.ballotdescription")}
                         </p>
                         <div className="op__outerbox_grey">
-                            <h3>{electionInformation.title}</h3>
+                            <h3>{voting.electionInformation.title}</h3>
                         </div>
                     </>
                 )}
@@ -282,7 +228,7 @@ export default function Home() {
                                     subheadline={t("register.generateqrcode.subheadline")}
                                     text={voterQRCodeText}
                                     downloadHeadline={t("register.generateqrcode.downloadHeadline")}
-                                    downloadSubHeadline={electionInformation.title}
+                                    downloadSubHeadline={voting.electionInformation.title}
                                     headimage="ballot"
                                     saveButtonText={t("register.generateqrcode.savebuttontext")}
                                 />
@@ -330,7 +276,7 @@ export default function Home() {
                             <input
                                 type="text"
                                 readOnly={true}
-                                defaultValue={`${Config.env.basicUrl}/pollingstation?id=${electionId}`}
+                                defaultValue={`${Config.env.basicUrl}/pollingstation?id=${voting.electionId}`}
                                 style={{
                                     width: '90%',
                                     display: 'inline-block',

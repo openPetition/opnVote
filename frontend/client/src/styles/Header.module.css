@@ -24,7 +24,7 @@
 .headerbar_point:after {
     padding: var(--op-padding-standard) 0;
     color: var(--op-grey-dark);
-    border-bottom: 1px solid #ccc;
+    border-bottom: none;
     content: '';
     text-align: right;
 }
