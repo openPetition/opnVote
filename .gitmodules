@@ -10,3 +10,6 @@
 [submodule "backend/smart-contracts/0.0.1/lib/openzeppelin-contracts"]
 	path = backend/smart-contracts/0.0.1/lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "backend/smart-contracts/paperTests/lib/forge-std"]
+	path = backend/smart-contracts/paperTests/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
