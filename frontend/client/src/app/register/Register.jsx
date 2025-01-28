@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 import NextImage from 'next/image';
 import Notification from "../../components/Notification";
@@ -14,15 +14,15 @@ import Cookies from 'universal-cookie';
 import { getBlindedSignature } from '../../service';
 import { useTranslation } from 'next-i18next';
 import { qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, blindToken, unblindSignature, createVoterCredentials, concatElectionCredentialsForQR, RSA_BIT_LENGTH } from "votingsystem";
-import Config from "../../../next.config.mjs"
+import Config from "../../../next.config.mjs";
 import { useOpnVoteStore } from "../../opnVoteStore";
+import globalConst from "@/constants";
 
-export default function Home() {
+export default function Register() {
     const { t } = useTranslation();
-    const { voting } = useOpnVoteStore((state) => state);
-
+    const { voting, updatePage } = useOpnVoteStore((state) => state);
     const [decodedValue, setDecodedValue] = useState("");
-    const [voterQRCodeText, setVoterQRCodeText] = useState("")
+    const [voterQRCodeText, setVoterQRCodeText] = useState("");
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
     // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
@@ -87,22 +87,21 @@ export default function Home() {
                 notificationType: 'error'
             });
         };
-    }
+    };
 
     const copyToClipboard = () => {
-        navigator.clipboard.writeText(Config.env.basicUrl + '/pollingstation?id=' + voting.electionId);
-    }
+        navigator.clipboard.writeText(Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation');
+    };
 
     const goToElection = function () {
         //set cookie with election data
         cookies.set('voterQR', voterQRCodeText);
-        // will be changed to dynamic election location when its more clear where we go
-        window.location.href = "/pollingstation?id=" + voting.electionId;
-    }
+        updatePage({ current: globalConst.pages.POLLINGSTATION });
+    };
 
     const goToCreatesecret = () => {
-        window.location.href = "/createsecret?id=" + voting.electionId + '&jwt=' + voting.jwt;
-    }
+        updatePage({ current: globalConst.pages.CREATEKEY });
+    };
 
     const voteLater = function () {
         // later maybe redirect to overview of elections
@@ -115,7 +114,7 @@ export default function Home() {
             showBallot: false,
             showVoteLater: true,
         });
-    }
+    };
 
     const activateQRCodeUpload = () => {
         setRegisterState({
@@ -124,7 +123,7 @@ export default function Home() {
             showQRCodeUploadPlugin: true,
             showNotification: false,
         });
-    }
+    };
 
     useEffect(() => {
         // work with qr code value / decoded value in next step
@@ -255,7 +254,7 @@ export default function Home() {
                                         setRegisterState({
                                             ...registerState,
                                             showContinueModal: false
-                                        })
+                                        });
                                     }}
                                     shouldConfirm={true}
                                     confirmMessage={t("register.confirmpopup.confirmmessage")}
@@ -276,7 +275,7 @@ export default function Home() {
                             <input
                                 type="text"
                                 readOnly={true}
-                                defaultValue={`${Config.env.basicUrl}/pollingstation?id=${voting.electionId}`}
+                                defaultValue={`${Config.env.basicUrl}/?id=${voting.electionId}#pollingstation`}
                                 style={{
                                     width: '90%',
                                     display: 'inline-block',

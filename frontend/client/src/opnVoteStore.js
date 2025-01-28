@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware'
+import globalConst from "@/constants";
 
 export const useOpnVoteStore = create(
     persist(
@@ -16,10 +17,16 @@ export const useOpnVoteStore = create(
                 vote: {},
                 revote: {}
             },
+            page: {
+                current: globalConst.pages.LOADING
+            },
             updateUserKey: (key) => set(() => ({ user: { ...get().user, key: key } })),
             updateVoting: (updates) => set(() => ({
                 voting: { ...get().voting, ...updates }
             })),
+            updatePage: (updates) => set(() => ({
+                page: { ...get().page, ...updates }
+            }))
         }),
         {
             name: 'opnvote-storage',

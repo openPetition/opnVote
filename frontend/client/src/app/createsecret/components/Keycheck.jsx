@@ -5,11 +5,12 @@ import { useOpnVoteStore } from "../../../opnVoteStore";
 import HtmlQRCodePlugin from "@/components/ScanUploadQRCode";
 import Popup from "@/components/Popup";
 import Notification from "@/components/Notification";
+import globalConst from "@/constants";
 
 export default function Keycheck() {
     const { t } = useTranslation();
     const [decodedValue, setDecodedValue] = useState("");
-    const { user, voting } = useOpnVoteStore((state) => state);
+    const { user, updatePage } = useOpnVoteStore((state) => state);
 
     const [keyCheckState, setKeyCheckState] = useState({
         showNotification: false,
@@ -60,7 +61,7 @@ export default function Keycheck() {
                 headerText={t("keycheck.popup.header")}
                 buttonText={t("keycheck.popup.button")}
                 buttonFunction={() => {
-                    window.location.href = "/register?id=" + voting.electionId + '&jwt=' + voting.jwt;
+                    updatePage({ current: globalConst.pages.REGISTER });
                 }}
                 notificationType="success"
             />

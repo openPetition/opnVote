@@ -14,8 +14,11 @@ import { qrToElectionCredentials, validateCredentials } from "votingsystem";
 import { sendVotes } from "./sendVotes";
 import { useTranslation } from 'next-i18next';
 import Config from "../../../next.config.mjs";
+import { useOpnVoteStore } from "../../opnVoteStore";
+import globalConst from "@/constants";
 
-export default function Home() {
+export default function Pollingstation() {
+    const { updatePage } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const cookies = new Cookies(null, { path: '/' });
     const [votingCredentials, setVotingCredentials] = useState({});
@@ -44,10 +47,8 @@ export default function Home() {
     });
 
     const registerForElection = function () {
-        if (dataElection?.election.id) {
-            window.location.href = "/register/?id=" + dataElection?.election.id;
-        }
-    }
+        updatePage({ current: globalConst.pages.REGISTER });
+    };
 
     const saveVotes = async () => {
         setPollingStationState({ ...pollingStationState, pending: true });
@@ -80,7 +81,7 @@ export default function Home() {
                 setPollingStationState({ ...pollingStationState, pending: false });
             }, 10000);
         }
-    }
+    };
 
     const qrCodeToCredentials = async (code) => {
         try {
@@ -110,7 +111,7 @@ export default function Home() {
                         showElection: true,
                         showVotingSlipUpload: false,
                         showVotingSlipSelection: false
-                    })
+                    });
                 }
             }
         } catch (err) {
@@ -125,7 +126,7 @@ export default function Home() {
                 notificationType: 'error'
             });
         }
-    }
+    };
 
     const setNoElectionData = () => {
         setPollingStationState({
@@ -133,14 +134,14 @@ export default function Home() {
             showNotification: true,
             notificationText: t("pollingstation.notification.error.noelectiondatafound"),
             notificationType: 'error'
-        })
-    }
+        });
+    };
 
     useEffect(() => {
         const queryParameters = new URLSearchParams(window.location.search);
         setElectionId(queryParameters.get("id"));
         getElection();
-    }, [])
+    }, []);
 
     useEffect(() => {
         if (loadingElection) return;
@@ -206,7 +207,7 @@ export default function Home() {
         }
         qrCodeToCredentials(voterQR);
 
-    }, [electionInformations])
+    }, [electionInformations]);
 
     useEffect(() => {
         // here we have to see wether voter already voted to prepare for vote-recast
@@ -214,7 +215,7 @@ export default function Home() {
             getVoteCasts();
         }
 
-    }, [votingCredentials])
+    }, [votingCredentials]);
 
     return (
         <>
@@ -292,7 +293,7 @@ export default function Home() {
                             uploadSubHeadline={t("pollingstation.uploadqrcode.uploadSubHeadline")}
                             scanSubHeadline={t("pollingstation.uploadqrcode.scanSubHeadline")}
                             onResult={(res) => {
-                                qrCodeToCredentials(res)
+                                qrCodeToCredentials(res);
                             }}
                         />
 

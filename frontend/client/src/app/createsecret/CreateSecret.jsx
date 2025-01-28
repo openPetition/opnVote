@@ -9,8 +9,9 @@ import Keycheck from "./components/Keycheck";
 import Button from "@/components/Button";
 import { useTranslation } from "next-i18next";
 import { useOpnVoteStore } from "../../opnVoteStore";
+import globalConst from "@/constants";
 
-export default function Home() {
+export default function CreateSecret() {
     const { t } = useTranslation();
 
     const [createSecretState, setCreateSecretState] = useState({
@@ -20,14 +21,14 @@ export default function Home() {
         showKeyCheck: false,
     });
 
-    const { user, voting, updateUserKey } = useOpnVoteStore((state) => state);
+    const { user, voting, updateUserKey, updatePage } = useOpnVoteStore((state) => state);
 
     const goToRegister = () => {
-        window.location.href = "/register?id=" + voting.electionId + '&jwt=' + voting.jwt;
+        updatePage({ current: globalConst.pages.REGISTER });
     }
 
     const goToPollingstation = () => {
-        window.location.href = "/pollingstation?id=" + voting.electionId;
+        updatePage({ current: globalConst.pages.POLLINGSTATION });
     }
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
