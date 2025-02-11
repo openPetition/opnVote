@@ -74,6 +74,65 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     Question:
+ *       type: object
+ *       required:
+ *         - text
+ *         - imageUrl
+ *       properties:
+ *         text:
+ *           type: string
+ *           description: The text of the question
+ *         imageUrl:
+ *           type: string
+ *           description: URL of the question's image
+ *     ElectionData:
+ *       type: object
+ *       required:
+ *         - title
+ *         - headerImage
+ *         - description
+ *         - summary
+ *         - questions
+ *       properties:
+ *         title:
+ *           type: string
+ *           description: Title of the election
+ *         headerImage:
+ *           type: object
+ *           properties:
+ *             large:
+ *               type: string
+ *               description: Large header image URL for desktop
+ *             small:
+ *               type: string
+ *               description: Small header image URL for mobile
+ *         description:
+ *           type: string
+ *           description: Detailed description of the election
+ *         summary:
+ *           type: string
+ *           description: Brief summary of the election
+ *         questions:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Question'
+ *         backLink:
+ *           type: string
+ *           description: Backlink to the election coordinator
+ *     PinElectionDataRequest:
+ *       type: object
+ *       required:
+ *         - electionData
+ *         - signature
+ *       properties:
+ *         electionData:
+ *           $ref: '#/components/schemas/ElectionData'
+ *         signature:
+ *           type: string
+ *           description: Ethereum signature of the election data
  * /pinElectionData:
  *   post:
  *     summary: Pins election data to IPFS
@@ -104,17 +163,34 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
  *         description: Server error or unauthorized admin signature.
  */
 
+interface Question {
+  text: string;
+  imageUrl: string;
+}
+
 interface ElectionData {
   title: string;
+  headerImage: {
+    large: string;
+    small: string;
+  };
   description: string;
   summary: string;
-  ballot: string[];
+  questions: Question[];
+  backLink: string;
 }
+
 app.post('/pinElectionData', [
   body('electionData.title').isString(),
+  body('electionData.headerImage').isObject(),
+  body('electionData.headerImage.large').isString(),
+  body('electionData.headerImage.small').isString(),
   body('electionData.description').isString(),
   body('electionData.summary').isString(),
-  body('electionData.ballot').isArray(),
+  body('electionData.questions').isArray(),
+  body('electionData.questions.*.text').isString(),
+  body('electionData.questions.*.imageUrl').isString(),
+  body('electionData.backLink').isString(),
   body('signature').isString(),
 ], async (req: Request, res: Response) => {
   const errors = validationResult(req);
@@ -132,7 +208,7 @@ app.post('/pinElectionData', [
     res.json({ success: true, message: "Election data pinned successfully", cid: hash });
   } catch (error) {
     const errorMessage = (error as Error).message;
-    console.error('Error verifying admin signature', errorMessage);
+    console.error('Error verifying admin signature: ' + errorMessage);
 
     if (errorMessage === 'Unauthorized') {
       return res.status(400).send('Unauthorized: Signer is not an authorized admin');
@@ -153,10 +229,8 @@ app.post('/pinElectionData', [
  * @throws {Error} Throws an error if the signature verification fails, the sender is not an authorized admin, or the IPFS add operation fails.
  */
 async function uploadAndPinJSONData(electionData: ElectionData, signature: string): Promise<string> {
-
   try {
     const message = JSON.stringify(electionData);
-
     const signerAddress = ethers.verifyMessage(message, signature).toLowerCase();
     const admin = allowedAuthors.find(admin => admin.walletAddress.toLowerCase() === signerAddress);
 
@@ -164,23 +238,29 @@ async function uploadAndPinJSONData(electionData: ElectionData, signature: strin
       throw new Error("Unauthorized");
     }
 
-    const dataWithAuthor = { ...electionData, author: admin.name };
+    const dataWithAuthor = { ...electionData, author: admin.name, authorWalletAddress: admin.walletAddress };
     const formData = new FormData();
     const jsonData = JSON.stringify(dataWithAuthor);
     formData.append('file', Buffer.from(jsonData), { filename: 'electionData.json', contentType: 'application/json' });
 
-    const addResponse = await fetch(`${IPFS_API}/add`, {
-      method: 'POST',
-      body: formData,
-    });
+    try {
+      const addResponse = await fetch(`${IPFS_API}/add`, {
+        method: 'POST',
+        body: formData,
+      });
 
-    if (!addResponse.ok) {
-      throw new Error(`IPFS add failed: ${addResponse.statusText}`);
+      if (!addResponse.ok) {
+        throw new Error(`IPFS add failed: ${addResponse.statusText}`);
+      }
+
+      const addResult = await addResponse.json() as { Hash: string };
+      return addResult.Hash;
+    } catch (fetchError) {
+      console.error('IPFS Connection Error:', fetchError);
+      throw new Error(`Cannot connect to IPFS at ${IPFS_API}. Please ensure IPFS daemon is running)`);
     }
-
-    const addResult = await addResponse.json() as { Hash: string };
-    return addResult.Hash;
   } catch (error) {
+    console.error('Error in uploadAndPinJSONData:', error);
     throw error;
   }
 }

@@ -1,4 +1,3 @@
-
 import swaggerJsdoc from 'swagger-jsdoc';
 import dotenv from 'dotenv';
 
@@ -27,13 +26,41 @@ const options: swaggerJsdoc.Options = {
     ],
     components: {
       schemas: {
+        Question: {
+          type: 'object',
+          required: ['text', 'imageUrl'],
+          properties: {
+            text: {
+              type: 'string',
+              description: 'The text of the question.',
+            },
+            imageUrl: {
+              type: 'string',
+              description: 'URL of the question\'s image.',
+            },
+          },
+        },
         ElectionData: {
           type: 'object',
-          required: ['title', 'description', 'summary', 'ballot'],
+          required: ['title', 'headerImage', 'description', 'summary', 'questions', 'backLink'],
           properties: {
             title: {
               type: 'string',
               description: 'Title of the election.',
+            },
+            headerImage: {
+              type: 'object',
+              required: ['large', 'small'],
+              properties: {
+                large: {
+                  type: 'string',
+                  description: 'Large header image URL for desktop.',
+                },
+                small: {
+                  type: 'string',
+                  description: 'Small header image URL for mobile.',
+                },
+              },
             },
             description: {
               type: 'string',
@@ -43,12 +70,16 @@ const options: swaggerJsdoc.Options = {
               type: 'string',
               description: 'Summary of the election description.',
             },
-            ballot: {
+            questions: {
               type: 'array',
               items: {
-                type: 'string',
+                $ref: '#/components/schemas/Question',
               },
-              description: 'List of ballot questions.',
+              description: 'List of questions for the election.',
+            },
+            backLink: {
+              type: 'string',
+              description: 'URL to return to the election coordinator',
             },
           },
         },
