@@ -26,7 +26,7 @@ a {
 }
 
 h3 {
-  font-weight: bold; 
+  font-weight: bold;
 }
 
 h4 {
@@ -46,6 +46,10 @@ h4 {
 
 .op__padding_standard_top_bottom {
   padding: .5rem 0;
+}
+
+.op__padding_standard_left_right {
+  padding: 0 .5rem;
 }
 
 .op__contentbox_760 {
@@ -87,10 +91,14 @@ h4 {
   padding-right: .5rem;
 }
 
+.hover {
+  cursor: pointer;
+}
 
 
-@media only screen and (min-width: 800px) 
-{
+
+@media only screen and (min-width: 800px) {
+
   .op__contentbox_760,
   .op__mob_padding_standard_left_right {
     padding-left: 0;
@@ -119,14 +127,18 @@ h4 {
   }
 }
 
-@media screen
-{
-    .noPrint{}
-    .noScreen{display:none;}
+@media screen {
+  .noPrint {}
+
+  .noScreen {
+    display: none;
+  }
 }
 
-@media print
-{
-    .noPrint{display:none;}
-    .noScreen{}
+@media print {
+  .noPrint {
+    display: none;
+  }
+
+  .noScreen {}
 }

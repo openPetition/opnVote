@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "./node_modules/mocha/bin/mocha"
   },
   "dependencies": {
     "@apollo/client": "^3.9.11",
@@ -24,6 +25,7 @@
     "i18next-http-backend": "^2.6.1",
     "i18next-resources-to-backend": "^1.2.1",
     "jsqr-es6": "^1.4.0-1",
+    "lucide-react": "^0.468.0",
     "next": "^14.2.3",
     "next-i18next": "^15.3.1",
     "qrcode.react": "^3.1.0",
@@ -38,10 +40,13 @@
     "@eslint/js": "^9.12.0",
     "@stylistic/eslint-plugin-js": "^2.9.0",
     "autoprefixer": "^10.0.1",
+    "chromedriver": "^132.0.1",
     "eslint": "^9.12.0",
     "eslint-plugin-react": "^7.37.1",
     "globals": "^15.10.0",
+    "mocha": "^6.1.4",
     "postcss": "^8",
+    "selenium-webdriver": "^4.0.0-alpha.3",
     "tailwindcss": "^3.3.0"
   }
 }

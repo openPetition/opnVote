@@ -1,13 +1,14 @@
 'use client';
-
-import React from "react";
+import { useEffect } from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Head from "../components/Head";
-import Footer from "../components/Footer"
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 import './i18n';
-import Config from "../../next.config.mjs"
+import Config from "../../next.config.mjs";
+import { useOpnVoteStore } from "../opnVoteStore";
+import Head from "@/components/Head";
+import Footer from "@/components/Footer"
+import DataLoad from "@/components/DataLoad";
 
 const client = new ApolloClient({
     uri: Config.env.graphConnectUrl,
@@ -17,18 +18,18 @@ const client = new ApolloClient({
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }) {
+
     return (
         <html>
             <body className={inter.className}>
-                <Head />
-
-                <main>
-                    <ApolloProvider client={client}>
+                <ApolloProvider client={client}>
+                    <Head />
+                    <DataLoad />
+                    <main>
                         {children}
-                    </ApolloProvider>
-                </main>
-
-                <Footer />
+                    </main>
+                    <Footer />
+                </ApolloProvider>
             </body>
         </html>
     );

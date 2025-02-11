@@ -5,6 +5,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import Button from './Button';
 import styles from '../styles/ScanUploadQRCode.module.css';
 import { useTranslation } from 'next-i18next';
+import Notification from "./Notification";
 
 const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
 let html5QrCode;
@@ -14,18 +15,17 @@ export default function ScanUploadQRCode(props) {
     const { headline, subheadline, uploadSubHeadline, scanSubHeadline } = props;
 
     const fileRef = useRef(null);
-    const [cameraList, setCameraList] = useState([]);
-    const [activeCamera, setActiveCamera] = useState();
     const [showStopScanBtn, setShowStopScanBtn] = useState(false);
+    const [showScanNotification, setShowScanNotification] = useState(false);
 
     useEffect(() => {
         html5QrCode = new Html5Qrcode("reader");
-        getCameras();
         const oldRegion = document.getElementById("qr-shaded-region");
         oldRegion && oldRegion.remove();
     }, []);
 
     const startScanClick = () => {
+        setShowScanNotification(false);
         setShowStopScanBtn(true);
         const qrCodeSuccessCallback = (decodedText, decodedResult) => {
             console.info(decodedResult, decodedText);
@@ -41,29 +41,10 @@ export default function ScanUploadQRCode(props) {
                 if (oldRegion) {
                     oldRegion.innerHTML = "";
                 }
+            }).catch((err) => {
+                setShowScanNotification(true);
+                setShowStopScanBtn(false);
             });
-    };
-
-    const getCameras = () => {
-        Html5Qrcode.getCameras()
-            .then((devices) => {
-                if (devices && devices.length) {
-                    setCameraList(devices);
-                    setActiveCamera(devices[0]);
-                }
-            })
-            .catch((err) => {
-                console.debug(`Error get camera device list. Reason: ${err}`);
-                setCameraList([]);
-            });
-    };
-
-    const onCameraChange = (e) => {
-        if (e.target.selectedIndex) {
-            let selectedCamera = e.target.options[e.target.selectedIndex];
-            let cameraId = selectedCamera.dataset.key;
-            setActiveCamera(cameraList.find((cam) => cam.id === cameraId));
-        }
     };
 
     const handleStop = () => {
@@ -148,6 +129,15 @@ export default function ScanUploadQRCode(props) {
                 <div className={styles.innerbox}>
                     <p>{t('scanuploadqrcode.camera.instruction')}</p>
                     <div id="reader" width="100%"></div>
+                    {showScanNotification && (
+                        <>
+                            <Notification
+                                type="error"
+                                text={t('scanuploadqrcode.cameraaction.failed')}
+                            />
+                        </>
+                    )}
+
                     <Button
                         onClickAction={() => startScanClick()}
                         type={`${showStopScanBtn ? "hide" : "primary"}`}
@@ -158,27 +148,6 @@ export default function ScanUploadQRCode(props) {
                         type={`${showStopScanBtn ? "primary" : "hide"}`}
                         text={t('scanuploadqrcode.camera.stop')}
                     />
-                    <p>
-                        <Button
-                            onClickAction={getCameras}
-                            text={t('scanuploadqrcode.camera.detect')}
-                            type="primary"
-                        />
-                    </p>
-                    {cameraList.length == 0 && (<div className="">{t('scanuploadqrcode.camera.detecterror')}</div>)}
-                    {cameraList.length > 1 && (
-                        <select onChange={onCameraChange}>
-                            {cameraList.map((li) => (
-                                <option
-                                    key={li.id}
-                                    id={li.id}
-                                    defaultValue={activeCamera && activeCamera.id === li.id}
-                                >
-                                    {li.label}
-                                </option>
-                            ))}
-                        </select>
-                    )}
                 </div>
             </div>
         </>
