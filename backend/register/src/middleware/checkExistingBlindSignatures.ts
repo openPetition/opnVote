@@ -9,18 +9,18 @@ import { Token } from 'votingsystem';
 /**
  * Middleware to check if user already received a blinded Signature for election ID
  */
-export async function checkForExistingBlindedSignature(req: Request, res: Response, next: NextFunction) { 
+export async function checkForExistingBlindedSignature(req: Request, res: Response, next: NextFunction) {
 
-  // Assumes user has already been authorized by JWT check
-  const reqWithUser = req as RequestWithUser; 
+  // Assumes userid, electionid, blindedToken have been checked for and provided in the request body
+  const reqWithUser = req as RequestWithUser;
 
   if (!reqWithUser.user) {
     return res.status(401).json({
       data: null,
       error: "User not authorized",
     } as ApiResponse<null>);
-    }
-  
+  }
+
   const userID = reqWithUser.user.userID;
   const electionID = reqWithUser.user.electionID;
   const blindedToken = req.body.token as Token;
@@ -41,7 +41,7 @@ export async function checkForExistingBlindedSignature(req: Request, res: Respon
         return res.status(200).json({
           data: {
             message: 'Existing blinded signature found.',
-            blindedSignature: existingSignature.blindedSignature,
+            blindedSignature: existingSignature.blindedSignature.toLowerCase(),
           },
           error: null
         } as ApiResponse<{ message: string, blindedSignature: string }>);
@@ -63,5 +63,37 @@ export async function checkForExistingBlindedSignature(req: Request, res: Respon
     } as ApiResponse<null>);
   }
 };
+
+/**
+ * Middleware to check if user already received a blinded Signature for election ID
+ * This middleware is unauthenticated and does not require a JWT
+ */
+export async function unauthenticatedCheckForExistingBlindSignature(req: Request, res: Response, next: NextFunction) {
+  const blindedToken = req.body.token as Token;
+  try {
+    const repository = dataSource.getRepository(BlindedSignature);
+    const existingSignature = await repository.findOne({
+      where: { blindedToken: blindedToken.hexString.toLowerCase() }
+    });
+
+    if (existingSignature) {
+      return res.status(200).json({
+        data: {
+          message: 'Existing blinded signature found.',
+          blindedSignature: existingSignature.blindedSignature.toLowerCase(),
+        },
+        error: null
+      });
+    }
+    next();
+  } catch (error) {
+    console.error('Database error:', error);
+    return res.status(500).json({
+      data: null,
+      error: 'Internal server error',
+    } as ApiResponse<null>);
+  }
+}
+
 
 export default checkForExistingBlindedSignature;

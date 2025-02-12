@@ -9,7 +9,7 @@ export class RegisterKey extends BaseEntity {
     N!: string;
 
     @Column("text")
-    D!: string; 
+    D!: string;
 
     @Column("text")
     E!: string;

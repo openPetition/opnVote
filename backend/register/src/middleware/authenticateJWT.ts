@@ -19,7 +19,7 @@ export function authenticateJWT(req: Request, res: Response, next: NextFunction)
         error: 'Authorization header must be Bearer [token]',
       } as ApiResponse<null>);
     }
-    
+
     // Retrieve AP public key
 
     const apPubKey = req.app.get('AP_JWT_PUBLIC_KEY');

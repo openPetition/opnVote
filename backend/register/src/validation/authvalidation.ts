@@ -6,10 +6,10 @@ export const jwtTokenValidator = () => [
     header('authorization')
         .exists({ checkFalsy: true })
         .withMessage('Authorization header is required')
-        .bail()  
+        .bail()
         .matches(/^Bearer\s[\w-]+\.[\w-]+\.[\w-]+$/)
         .withMessage('Authorization header must be in Bearer token format'),
-    (req:Request, res:Response, next:NextFunction) => {
+    (req: Request, res: Response, next: NextFunction) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({

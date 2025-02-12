@@ -223,7 +223,7 @@ app.post('/pinElectionData', [
 /**
  * Uploads and pins JSON data to IPFS after signature validation.
  *
- * @param {ElectionData} electionData - The election data to be pinned, containing description, summary, and ballot.
+ * @param {ElectionData} electionData - The election data to be pinned, containing description, summary, and questions.
  * @param {string} signature - Ethereum signature used to verify that the electionData is signed by an authorized admin.
  * @returns {Promise<string>} The hash of the pinned data on IPFS.
  * @throws {Error} Throws an error if the signature verification fails, the sender is not an authorized admin, or the IPFS add operation fails.

@@ -59,7 +59,7 @@ describe('authenticateJWT Middleware', () => {
     });
 
     it('should return 401 if the authorization header is malformed', () => {
-        mockReq.headers!.authorization = 'WrongFormatToken123'; 
+        mockReq.headers!.authorization = 'WrongFormatToken123';
 
         authenticateJWT(mockReq as Request, mockRes as Response, nextFunction);
 
@@ -88,9 +88,9 @@ describe('authenticateJWT Middleware', () => {
 
     it('should return 403 if userID in JWT payload is not positive numbers', () => {
         (jwt.verify as jest.Mock).mockReturnValue({ userID: -1, electionID: 0 });
-    
+
         authenticateJWT(mockReq as Request, mockRes as Response, nextFunction);
-    
+
         expect(nextFunction).not.toHaveBeenCalled();
         expect(mockRes.status).toHaveBeenCalledWith(403);
         expect(mockRes.json).toHaveBeenCalledWith({
@@ -101,9 +101,9 @@ describe('authenticateJWT Middleware', () => {
 
     it('should return 403 if electionID in JWT payload is not positive numbers', () => {
         (jwt.verify as jest.Mock).mockReturnValue({ userID: 0, electionID: -1 });
-    
+
         authenticateJWT(mockReq as Request, mockRes as Response, nextFunction);
-    
+
         expect(nextFunction).not.toHaveBeenCalled();
         expect(mockRes.status).toHaveBeenCalledWith(403);
         expect(mockRes.json).toHaveBeenCalledWith({
@@ -114,9 +114,9 @@ describe('authenticateJWT Middleware', () => {
 
     it('should return 403 if userID or electionID in JWT payload is not positive numbers', () => {
         (jwt.verify as jest.Mock).mockReturnValue({ userID: "0", electionID: -1 });
-    
+
         authenticateJWT(mockReq as Request, mockRes as Response, nextFunction);
-    
+
         expect(nextFunction).not.toHaveBeenCalled();
         expect(mockRes.status).toHaveBeenCalledWith(403);
         expect(mockRes.json).toHaveBeenCalledWith({
@@ -124,7 +124,7 @@ describe('authenticateJWT Middleware', () => {
             error: 'Failed to authenticate JWT',
         });
     });
-    
+
 
 
 });

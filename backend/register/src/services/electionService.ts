@@ -10,12 +10,12 @@ import { ElectionStatusResponse } from "../types/graphql";
  */
 export class ElectionStatusService {
 
-   /**
-   * Fetches the election status and end time for a given election ID using GraphQL.
-   * 
-   * @param {number} electionId - Identifier for the election.
-   * @returns {Promise<ElectionStatusResponse | null>} Resolves to current on-chain election status and end time, or null if election not found.
-   */
+  /**
+  * Fetches the election status and end time for a given election ID using GraphQL.
+  * 
+  * @param {number} electionId - Identifier for the election.
+  * @returns {Promise<ElectionStatusResponse | null>} Resolves to current on-chain election status and end time, or null if election not found.
+  */
   static async getElectionStatus(electionId: number): Promise<ElectionStatusResponse | null> {
     try {
       const electionData = await fetchElectionEndTimeStatus(electionId);
@@ -33,7 +33,7 @@ export class ElectionStatusService {
    * @returns {boolean} `true` if the election is closed, `false` otherwise.
    */
   static isElectionClosed(electionData: ElectionStatusResponse | null): boolean {
- 
+
     // Closed if no election data present
     if (!electionData) {
       return true;
@@ -48,7 +48,7 @@ export class ElectionStatusService {
     // 2 - Ended
     // 3 - ResultsPublished
     // 4 - Canceled
-    
+
     // If the status is Ended, ResultsPublished, or Canceled, the election is closed
     if (electionData.status > 1 && electionData.status <= 4) {
       return true;

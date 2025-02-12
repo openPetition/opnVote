@@ -6,7 +6,7 @@ export const ormConfig = {
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   entities: [
-    "dist/models/**/*.js" 
+    "dist/models/**/*.js"
   ],
   synchronize: true,
   logging: false

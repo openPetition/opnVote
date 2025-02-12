@@ -9,7 +9,7 @@ import { ApiResponse } from '../types/apiResponses';
  */
 export async function checkElectionStatus(req: Request, res: Response, next: NextFunction) {
     try {
-
+        
         if (!req.user || req.user.electionID === undefined || req.user.electionID === null) {
             return res.status(401).json({
                 data: null,
@@ -22,7 +22,7 @@ export async function checkElectionStatus(req: Request, res: Response, next: Nex
         const electionData = await ElectionStatusService.getElectionStatus(
             req.user.electionID
         );
-        
+
         // validate election status (on-chain election status might differ from real election status)
         if (ElectionStatusService.isElectionClosed(electionData)) {
             return res.status(403).json({
