@@ -39,7 +39,7 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     const abiData = await getAbi();
     const opnVoteInterface = new ethers.Interface(abiData['abi']);
 
-    const provider = new ethers.JsonRpcProvider("https://distinguished-solitary-surf.xdai.quiknode.pro/77a783462f3e4f1756cf55e4023fd0db6fdebf8b/"); // lets talk where to put all this stuff in biweekly - its on the list
+    const provider = new ethers.JsonRpcProvider("https://gnosis-mainnet.g.alchemy.com/v2/MBXWJJ3MwzGKwdgULrX7vgJd5BF_pDsZ"); // lets talk where to put all this stuff in biweekly - its on the list
     const relayRequest = await createRelayRequest(votingTransactionFull, votingCredentials, "0xB2971419Bb6437856Eb9Ec8CA3e56958Af45Eee9", opnVoteInterface, provider);
     const relay = new GelatoRelay();
     const signatureDataInitial = await createSignatureData(relayRequest, votingCredentials, relay, provider);
