@@ -6,6 +6,7 @@ import Button from './Button';
 import styles from '../styles/ScanUploadQRCode.module.css';
 import { useTranslation } from 'next-i18next';
 import Notification from "./Notification";
+import NextImage from 'next/image';
 
 const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
 let html5QrCode;
@@ -95,7 +96,15 @@ export default function ScanUploadQRCode(props) {
             </div>
             <div className="op__outerbox_grey">
                 <div className={styles.header}>
-                    <div className={styles.qrbg}></div>
+                    <div className={styles.qrbg}>
+                        <NextImage
+                            priority
+                            src="/images/load-picture.svg"
+                            height={60}
+                            width={60}
+                            alt=""
+                        />
+                    </div>
                     <div>
                         <h3>{t('scanuploadqrcode.image.headline')}</h3>
                         <p>{uploadSubHeadline}</p>
@@ -120,7 +129,15 @@ export default function ScanUploadQRCode(props) {
 
             <div className="op__outerbox_grey">
                 <div className={styles.header}>
-                    <div className={styles.qrbg}></div>
+                    <div className={styles.qrbg}>
+                        <NextImage
+                            priority
+                            src="/images/scan-qrcode.svg"
+                            height={55}
+                            width={55}
+                            alt=""
+                        />
+                    </div>
                     <div>
                         <h3>{t('scanuploadqrcode.camera.headline')}</h3>
                         <p>{scanSubHeadline}</p>
