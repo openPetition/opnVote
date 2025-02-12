@@ -177,6 +177,7 @@ export default function Register() {
                                             onClickAction={goToCreatesecret}
                                             head={t("register.navigationbox.gotocreatesecret.head")}
                                             text={t("register.navigationbox.gotocreatesecret.text")}
+                                            buttonText={t("register.navigationbox.gotocreatesecret.buttonText")}
                                             type="primary"
                                         />
                                     </div>

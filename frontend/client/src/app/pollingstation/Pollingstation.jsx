@@ -264,6 +264,7 @@ export default function Pollingstation() {
                                 onClickAction={() => registerForElection()}
                                 head={t("pollingstation.navigationbox.registerforelection.head")}
                                 text={t("pollingstation.navigationbox.registerforelection.text")}
+                                buttonText={t("pollingstation.navigationbox.registerforelection.buttonText")}
                                 type="primary"
                             />
                         </div>
@@ -280,6 +281,7 @@ export default function Pollingstation() {
                                 }
                                 head={t("pollingstation.navigationbox.continuetovote.head")}
                                 text={t("pollingstation.navigationbox.continuetovote.text")}
+                                buttonText={t("pollingstation.navigationbox.continuetovote.buttonText")}
                                 type="primary"
                             />
                         </div>

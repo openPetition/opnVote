@@ -30,3 +30,12 @@
     display: none;
     visibility: hidden;
 }
+
+.secondary-arrow {
+    background-color: white;
+    color: var(--op-blue-main);
+    border: 1px solid var(--op-blue-main);
+    background-repeat: no-repeat;
+    padding-right: 2rem;
+    background-position: right 10px center;
+}

@@ -92,6 +92,7 @@ export default function CreateSecret() {
                                         onClickAction={() => goToRegister()}
                                         head={t("secret.navigationbox.gotoregister.beforegenerated.head")}
                                         text={t("secret.navigationbox.gotoregister.beforegenerated.text")}
+                                        buttonText={t("secret.navigationbox.gotoregister.beforegenerated.buttonText")}
                                         type="primary"
                                     />
                                 )}
@@ -131,6 +132,7 @@ export default function CreateSecret() {
                                         onClickAction={() => goToRegister()}
                                         head={t("secret.navigationbox.gotoregister.aftergenerated.head")}
                                         text={t("secret.navigationbox.gotoregister.aftergenerated.text")}
+                                        buttonText={t("secret.navigationbox.gotoregister.aftergenerated.buttonText")}
                                         type="primary"
                                     />
                                 )}
@@ -158,6 +160,7 @@ export default function CreateSecret() {
                             onClickAction={() => goToPollingstation()}
                             head={t("secret.navigationbox.goToPollingstation.head")}
                             text={t("secret.navigationbox.goToPollingstation.text")}
+                            buttonText={t("secret.navigationbox.goToPollingstation.buttonText")}
                             type="primary"
                         />
                     </>
