@@ -16,18 +16,20 @@ export type PrivateKeyDer = string;
  * @property {Signature} unblindedSignature - The unblinded signature of the voter.
  * @property {Token} unblindedElectionToken - The unblinded election token of the voter.
  * @property {ethers.Wallet} voterWallet - The Ethereum wallet of the voter.
+ * @property {EncryptionKey} encryptionKey - The encryption key for vote encryption.
  * @property {number} electionID - The ID of the specific election.
  */
 export type ElectionCredentials = {
     unblindedSignature: Signature;
     unblindedElectionToken: Token;
     voterWallet: ethers.Wallet;
+    encryptionKey: EncryptionKey;
     electionID: number;
 };
 
 /**
  * Represents a Token
- * @property {string} hexValue - The token value, encoded as a hexadecimal string (must be "0x" prefixed).
+ * @property {string} hexString - The token value as a hexadecimal string with '0x' prefix.
  * @property {boolean} isMaster - Indicates if the token is a master token. 
  * @property {boolean} isBlinded - Indicates if the token is blinded or unblinded. 
  * 
@@ -40,7 +42,7 @@ export type Token = {
 
 /**
  * Represents r in RSA Blind Signature Scheme
- * @property {string} hexString - The value of r, encoded as a hexadecimal string (must be "0x" prefixed).
+ * @property {string} hexString - The value of r as a hexadecimal string with '0x' prefix.
  * @property {boolean} isMaster - Indicates if the r is a master r.  
  */
 export type R = {
@@ -50,7 +52,7 @@ export type R = {
 
 /**
  * Represents a RSA signed Message
- * @property {string} hexString - The signature, encoded as a hexadecimal string (must be "0x" prefixed).
+ * @property {string} hexString - The signature as a hexadecimal string with '0x' prefix.
  * @property {boolean} isBlinded - Indicates if the signature is blinded or unblinded. 
  */
 export type Signature = {
@@ -59,8 +61,24 @@ export type Signature = {
 };
 
 /**
- * Represents an EIP-191 compliant Signature, signed by an ethereum wallet
- * @property {string} hexString - The EIP-191 signature, encoded as a hexadecimal string (must be "0x" prefixed).
+ * Represents an encryption key for user encrypted votes.
+ * @property {string} hexString - The encryption key as a hexadecimal string with '0x' prefix.
+ */
+export type EncryptionKey = {
+    hexString: string;
+};
+
+/**
+ * Represents a wallet private key
+ * @property {string} hexString - The private key as a hexadecimal string with '0x' prefix.
+ */
+export type WalletPrivateKey = {
+    hexString: string;
+};
+
+/**
+ * Represents an EIP-191 compliant Signature
+ * @property {string} hexString - The EIP-191 signature as a hexadecimal string with '0x' prefix.
  */
 export type EthSignature = {
     hexString: string;
@@ -83,12 +101,20 @@ export type RSAParams = {
 }
 
 /**
- *  Collection of encrypted votes
- * @property {string} hexString - Encrypted votes
+ * Collection of encrypted votes
+ * @property {string} hexString - The encrypted votes as a hexadecimal string with '0x' prefix
+ * @property {EncryptionType} encryptionType - The type of encryption used
  */
 export type EncryptedVotes = {
     hexString: string;
+    encryptionType: EncryptionType;
 };
+
+
+export enum EncryptionType {
+    AES = "AES",
+    RSA = "RSA"
+}
 
 /**
  * Voting transaction to be send to Blockchain

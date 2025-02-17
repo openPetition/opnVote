@@ -3,6 +3,7 @@ import { blindToken, deriveElectionR, deriveElectionUnblindedToken, generateMast
 import { signToken, validateCredentials } from "../utils/utils";
 import { concatElectionCredentialsForQR, createVoterCredentials, qrToElectionCredentials } from "./voterCredentials";
 import { TestRegister } from "../config";
+import { ElectionCredentials, EncryptionKey, WalletPrivateKey } from "../types/types";
 
 
 describe('createVoterCredentials', () => {
@@ -16,10 +17,11 @@ describe('createVoterCredentials', () => {
     const unblindedSignature = unblindSignature(blindedSignature, electionR, TestRegister)
 
     // Creating voter Credentials for specific Election
-    const voterCredentials = createVoterCredentials(unblindedSignature, unblindedElectionToken, masterToken, electionID);
+    const voterCredentials: ElectionCredentials = createVoterCredentials(unblindedSignature, unblindedElectionToken, masterToken, electionID);
 
     // Validating created voter Credentials
-    const expectedVoterWalletPrivKey = ethers.sha256('0x' + masterToken.hexString.substring(2) + ethers.toBeHex(electionID, 32).substring(2));
+    const expectedVoterWalletPrivKey: WalletPrivateKey = { hexString: ethers.sha256(ethers.toUtf8Bytes('0x' + masterToken.hexString.substring(2) + "|Ethereum-Wallet|" + ethers.toBeHex(electionID, 32).substring(2))) };
+    const expectedEncryptionKey: EncryptionKey = { hexString: ethers.sha256(ethers.toUtf8Bytes('0x' + masterToken.hexString.substring(2) + "|Encryption-Key|" + ethers.toBeHex(electionID, 32).substring(2))) };
 
     expect(() => validateCredentials(voterCredentials)).not.toThrow();
     expect(voterCredentials.unblindedSignature.hexString).toBe(unblindedSignature.hexString);
@@ -28,7 +30,9 @@ describe('createVoterCredentials', () => {
     expect(voterCredentials.unblindedElectionToken.isBlinded).toBe(false);
     expect(voterCredentials.unblindedElectionToken.isMaster).toBe(false);
     expect(voterCredentials.electionID).toBe(electionID);
-    expect(voterCredentials.voterWallet.privateKey).toBe(expectedVoterWalletPrivKey)
+    expect(voterCredentials.voterWallet.privateKey).toBe(expectedVoterWalletPrivKey.hexString)
+    expect(voterCredentials.voterWallet.privateKey).not.toBe(expectedEncryptionKey.hexString)
+    expect(voterCredentials.encryptionKey.hexString).toBe(expectedEncryptionKey.hexString)
 
 
   });
@@ -48,8 +52,7 @@ describe('QR Code Encode and Decode', () => {
     const originalCredentials = createVoterCredentials(unblindedSignature, unblindedElectionToken, masterToken, electionID);
     expect(() => validateCredentials(originalCredentials)).not.toThrow();
 
-
-    const expectedQrLength = 344 + 2 * 44 + 3 + electionID.toString().length // QR Code length: 344(Sig)+2*44(Token,Privkey) + 3 Delimiter + election ID length
+    const expectedQrLength = 344 + 3 * 44 + 4 + electionID.toString().length // QR Code length: 344(Sig)+3*44(Token,Privkey,EncryptionKey) + 4 Delimiter + election ID length
 
     // Encode to QR code
     const qrCodeString = concatElectionCredentialsForQR(originalCredentials);

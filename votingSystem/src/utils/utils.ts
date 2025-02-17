@@ -1,6 +1,5 @@
-
 import Hex from 'crypto-js/enc-hex';
-import { ElectionCredentials, EncryptedVotes, EthSignature, R, RSAParams, RecastingVotingTransaction, Signature, Token, Vote, VoteOption, VotingTransaction } from '../types/types';
+import { ElectionCredentials, EncryptedVotes, EncryptionKey, EncryptionType, EthSignature, R, RSAParams, RecastingVotingTransaction, Signature, Token, Vote, VoteOption, VotingTransaction } from '../types/types';
 import Base64 from 'crypto-js/enc-base64';
 import { ethers, verifyTypedData } from 'ethers';
 import * as crypto from 'crypto';
@@ -12,29 +11,31 @@ import { gelatoRelayDomain, gelatoRelayTypes } from '../config';
 /**
  * Validates a hexadecimal string.
  * @param hexStringObject - An object containing a hexadecimal string to be validated.
- * @param expectedLength - The expected length of the hexadecimal string.
- * @throws Will throw an error if the hexadecimal string is invalid or of incorrect length.
+ * @param expectedLength - The expected length of the hexadecimal string..
+ * @param shouldBeLowerCase - Optional. If true, validates that the hex string is lowercase. Default is false.
+ * @param allowZero - Optional. If true, allows the hex string to represent zero. Default is false.
+ * @throws Will throw an error if the hexadecimal string is invalid, of incorrect length, or represents zero (when allowZero is false).
  */
-export function validateHexString(hexStringObject: { hexString: string }, expectedLength: number, shouldBeLowerCase: boolean = false): void {
+export function validateHexString(hexStringObject: { hexString: string }, expectedLength: number, shouldBeLowerCase: boolean = false, allowZero: boolean = false): void {
 
     if (hexStringObject.hexString.length !== expectedLength) {
         throw new Error(`Invalid token length. Expected length: ${expectedLength}, but got: ${hexStringObject.hexString.length}. Token: ${hexStringObject.hexString}`);
     }
 
-    if (!isValidHex(hexStringObject.hexString, shouldBeLowerCase)) {
+    if (!isValidHex(hexStringObject.hexString, shouldBeLowerCase, allowZero)) {
         throw new Error(`Invalid token format. Token: ${hexStringObject.hexString}`);
     }
 }
 
 
 /**
- * Checks if a string is a valid non-null, non-zero hexadecimal format.
- * A null, empty, or zero value hex string is not allowed.
+ * Checks if a string is a valid hexadecimal format.
  * @param str - The string to be checked.
- * @param shouldBeLowerCase - If true, checks if the string is in lowercase.
- * @returns True if the string is a valid non-zero hexadecimal, false otherwise.
+ * @param shouldBeLowerCase - Optional. If true, checks if the string is in lowercase. Default is false.
+ * @param allowZero - Optional. If true, allows the hex string to represent zero. Default is false.
+ * @returns True if the string is a valid hexadecimal that meets all criteria, false otherwise.
  */
-export function isValidHex(str: string, shouldBeLowerCase: boolean = false): boolean {
+export function isValidHex(str: string, shouldBeLowerCase: boolean = false, allowZero: boolean = false): boolean {
     if (!str || str.length < 3) {
         return false;
     }
@@ -53,7 +54,11 @@ export function isValidHex(str: string, shouldBeLowerCase: boolean = false): boo
         return false;
     }
 
-    if (BigInt(`0x${str}`) === BigInt(0)) {
+    if (!allowZero && BigInt(`0x${str}`) === BigInt(0)) {
+        return false;
+    }
+
+    if (str.length % 2 !== 0) {
         return false;
     }
 
@@ -206,6 +211,23 @@ export function validateSignature(signature: Signature): void {
 }
 
 /**
+ * Validates an encryption key based on the encryption type.
+ * @param encryptionKey - The encryption key to be validated.
+ * @param encryptionType - The type of encryption (AES or RSA).
+ * @throws Will throw an error if the encryption key is invalid for the specified encryption type.
+ */
+export function validateEncryptionKey(encryptionKey: EncryptionKey, encryptionType: EncryptionType): void {
+    if (encryptionType === EncryptionType.AES) {
+        validateHexString(encryptionKey, 66, true);
+    } else if (encryptionType === EncryptionType.RSA) {
+        validateHexString(encryptionKey, 32, true);
+    } else {
+        throw new Error(`Invalid encryption type: ${encryptionType}`);
+    }
+}
+
+
+/**
  * Validates an EIP-191 compliant Ethereum signature.
  * @param ethSignature - The EthSignature to be validated.
  * @throws Will throw an error if the EthSignature object is invalid or of incorrect length.
@@ -222,35 +244,51 @@ export function validateEthSignature(ethSignature: EthSignature): void {
 }
 
 /**
- * Validates an EncryptedVotes object.
- * @param encryptedVotes - The EncryptedVotes object to be validated.
- * @throws Will throw an error if the EncryptedVotes object is invalid or of incorrect length.
+ * Validates encrypted votes based on the encryption type.
+ * @param encryptedVotes - The encrypted votes to be validated.
+ * @param encryptionType - The type of encryption used (AES or RSA).
+ * @throws Will throw an error if the encrypted votes are invalid.
  */
-export function validateEncryptedVotes(encryptedVotes: EncryptedVotes): void {
-    validateHexString(encryptedVotes, (RSA_BIT_LENGTH / 4) + 2);
+export function validateEncryptedVotes(encryptedVotes: EncryptedVotes, encryptionType: EncryptionType): void {
+    if (encryptionType === EncryptionType.AES) {
+        if (!isValidHex(encryptedVotes.hexString, true, false)) {
+            throw new Error(`Invalid token format. Token: ${encryptedVotes.hexString}`);
+        }
+        if (encryptedVotes.hexString.length < 64) {
+            throw new Error(`Invalid encrypted votes length. Length: ${encryptedVotes.hexString.length}. Expected minimum length: 66`);
+        }
+    } else if (encryptionType === EncryptionType.RSA) {
+        validateHexString(encryptedVotes, (RSA_BIT_LENGTH / 4) + 2);
+    } else {
+        throw new Error(`Invalid encryption type: ${encryptionType}`);
+    }
 }
 
 /**
- * Validates an array of votes.
- * Converts the votes to a string and checks the byte length of the encoded string
- * to ensure it is within the acceptable range for RSA-OAEP with SHA-256 encryption.
- *
- * @param {Array<Vote>} votes - The array of votes to be validated.
- * @throws {Error} If the message length is outside the acceptable range.
+ * Validates an array of votes and ensures they can be encrypted.
+ * @param votes - The array of votes to be validated.
+ * @param encryptionType - The type of encryption to be used (AES or RSA).
+ * @throws Will throw an error if message is empty or too long/short for the encryption type.
  */
-export function validateVotes(votes: Array<Vote>): void {
+export function validateVotes(votes: Array<Vote>, encryptionType: EncryptionType): void {
+
     const votesString: string = votesToString(votes);
     const buffer = new TextEncoder().encode(votesString);
-
-    // Range check
-    const minMessageLength = 2;
-    // Maximum message length for RSA-OAEP with SHA-256: RSA Key Byte-Size - 2* SHA256 output - 2 OAEP padding overhead
-    const maxMessageLength = Math.floor(RSA_BIT_LENGTH / 8) - 2 * (256 / 8) - 2;
-    if (buffer.length > maxMessageLength) {
-        throw new Error(`Message too long. Maximum length is ${maxMessageLength} bytes, but got ${buffer.length} bytes.`);
-    }
-    if (buffer.length < minMessageLength) {
-        throw new Error(`Message too short. Minimum length is ${minMessageLength} bytes, but got ${buffer.length} bytes.`);
+    if (encryptionType === EncryptionType.AES) {
+        if (buffer.length === 0) {
+            throw new Error("AES: Message cannot be empty.");
+        }
+    } else {
+        // Range check
+        const minMessageLength = 2;
+        // Maximum message length for RSA-OAEP with SHA-256: RSA Key Byte-Size - 2* SHA256 output - 2 OAEP padding overhead
+        const maxMessageLength = Math.floor(RSA_BIT_LENGTH / 8) - 2 * (256 / 8) - 2;
+        if (buffer.length > maxMessageLength) {
+            throw new Error(`Message too long. Maximum length is ${maxMessageLength} bytes, but got ${buffer.length} bytes.`);
+        }
+        if (buffer.length < minMessageLength) {
+            throw new Error(`Message too short. Minimum length is ${minMessageLength} bytes, but got ${buffer.length} bytes.`);
+        }
     }
 }
 
@@ -269,7 +307,7 @@ export function validateVotingTransaction(votingTransaction: VotingTransaction):
 
     validateElectionID(votingTransaction.electionID)
     validateEthAddress(votingTransaction.voterAddress)
-    validateEncryptedVotes(votingTransaction.encryptedVote)
+    validateEncryptedVotes(votingTransaction.encryptedVote, EncryptionType.RSA) //todo: add AES
     validateToken(votingTransaction.unblindedElectionToken)
     validateSignature(votingTransaction.unblindedSignature)
 
@@ -300,7 +338,7 @@ export function validateVotingTransaction(votingTransaction: VotingTransaction):
  */
 export function validateRecastingVotingTransaction(recastingTransaction: RecastingVotingTransaction): void {
     validateElectionID(recastingTransaction.electionID)
-    validateEncryptedVotes(recastingTransaction.encryptedVote);
+    validateEncryptedVotes(recastingTransaction.encryptedVote, EncryptionType.RSA) //todo: add AES
     validateEthAddress(recastingTransaction.voterAddress);
 }
 
@@ -329,13 +367,11 @@ export function normalizeEthAddress(address: string): string {
 }
 
 /**
- * Normalizes a hexadecimal string by removing the '0x' prefix,
- * converting to lowercase, and removing leading zeros.
- * Throws an error if the string represents zero.
- * 
+ * Normalizes a hexadecimal string by removing '0x' prefix, converting to lowercase,
+ * and removing leading zeros.
  * @param hexString - The hexadecimal string to normalize.
- * @returns The normalized hexadecimal string.
- * @throws Error if the resulting string is empty after normalization.
+ * @returns The normalized hexadecimal string without '0x' prefix.
+ * @throws Error if the input is not a valid hex string or represents zero.
  */
 export function normalizeHexString(hexString: string): string {
     isValidHex(hexString)
@@ -398,6 +434,8 @@ export function validateCredentials(credentials: ElectionCredentials): void {
     const voterWalletPrivKey = credentials.voterWallet.privateKey
     validateHexString({ hexString: voterWalletPrivKey }, 66)
     validateEthAddress(credentials.voterWallet.address)
+
+    validateEncryptionKey(credentials.encryptionKey, EncryptionType.AES)
 
     if (credentials.unblindedSignature.isBlinded) {
         throw new Error("Signature must be unblinded.");
@@ -469,7 +507,7 @@ export function getSubtleCrypto(): SubtleCrypto | crypto.webcrypto.SubtleCrypto 
  * @returns {string} String representation of votes.
  */
 export function votesToString(votes: Array<Vote>): string {
-    return votes.reduce((acc, vote) => acc + vote.value.toString(), '');
+    return votes.map(vote => vote.value.toString()).join(',');
 }
 
 /**
@@ -479,14 +517,13 @@ export function votesToString(votes: Array<Vote>): string {
  * @throws {Error} if any character in the votesString is not a valid VoteOption.
  */
 export function stringToVotes(votesString: string): Array<Vote> {
-    const votes = [...votesString].map(char => {
-        const voteValue = parseInt(char);
+    return votesString.split(',').map(vote => {
+        const voteValue = parseInt(vote);
         if (!Object.values(VoteOption).includes(voteValue)) {
             throw new Error(`Invalid vote option encountered: ${voteValue}`);
         }
         return { value: voteValue as VoteOption };
     });
-    return votes;
 }
 
 
