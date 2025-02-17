@@ -2,7 +2,21 @@ import i18n from 'i18next';
 import Backend from 'i18next-http-backend';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
+import translationEN from "../../public/locales/en/translation.json";
+import translationDE from "../../public/locales/de/translation.json";
 
+const resources = {
+    en: {
+        translation: translationEN
+    },
+    de: {
+        translation: translationDE
+    }
+};
+
+const detectOptions = {
+    order: ['navigator', 'querystring', 'cookie', 'localStorage'],
+};
 i18n
     .use(LanguageDetector)
     // load translation using http -> see /public/locales
@@ -15,8 +29,12 @@ i18n
     // init i18next
     // for all options read: https://www.i18next.com/overview/configuration-options
     .init({
+        resources,
+        defaultLocale: "de",
+        locales: ["de", "en"],
         fallbackLng: 'en',
         debug: true,
+        detection: detectOptions,
     });
 
 export default i18n;

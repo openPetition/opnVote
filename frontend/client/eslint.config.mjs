@@ -34,9 +34,12 @@ export default [
         "reportUsedIgnorePattern": false
       }],
       "react/prop-types": "off",
+      "react/react-in-jsx-scope": "off",
+      "react/jsx-uses-react": "off",
       '@stylistic/js/brace-style': ["error", "1tbs", { "allowSingleLine": true }],
       '@stylistic/js/indent': ['error', 4],
-      '@stylistic/js/no-trailing-spaces': ["error"]
+      '@stylistic/js/no-trailing-spaces': ["error"],
+      '@stylistic/js/semi': ["warn", "always"],
     }
   }
 ];

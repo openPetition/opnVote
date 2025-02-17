@@ -6,15 +6,15 @@ import Notification from "../../../components/Notification";
 import Loading from '../../../components/Loading';
 import { AlreadyVotedError, ServerError, getTransactionState } from '../../../service';
 import styles from './../styles/VoteTransactionState.module.css';
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 
 export default function VoteResultView(props) {
     const { taskId } = props;
     const { t } = useTranslation();
-    const [ transactionHash, setTransactionHash ] = useState();
-    const [ transactionViewUrl, setTransactionViewUrl ] = useState();
+    const [transactionHash, setTransactionHash] = useState();
+    const [transactionViewUrl, setTransactionViewUrl] = useState();
 
-    const [ voteResultState, setVoteResultState ] = useState({
+    const [voteResultState, setVoteResultState] = useState({
         transactionState: t('votetransactionstate.status.checking'),
         showLoading: true,
         showNotification: false,

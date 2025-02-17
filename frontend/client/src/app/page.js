@@ -42,7 +42,7 @@ export default function Home() {
         return <>
             {isPageHydrated && (
                 <div>{children}</div>
-            ) || <Loading loadingText={t("common.apploading")} />}
+            ) || <Loading loadingText={'loading'} />}
         </>;
     }
 
