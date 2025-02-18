@@ -66,6 +66,7 @@ export type Signature = {
  */
 export type EncryptionKey = {
     hexString: string;
+    encryptionType: EncryptionType;
 };
 
 /**
@@ -128,7 +129,8 @@ export enum EncryptionType {
 export type VotingTransaction = {
     electionID: number,
     voterAddress: string,
-    encryptedVote: EncryptedVotes,
+    encryptedVoteRSA: EncryptedVotes,
+    encryptedVoteAES: EncryptedVotes,
     unblindedElectionToken: Token,
     unblindedSignature: Signature,
     svsSignature: EthSignature | null
@@ -138,12 +140,14 @@ export type VotingTransaction = {
  * Recasting Vote transaction to be send to Blockchain
  * @property {number} electionID - ID of the election
  * @property {string} voterAddress -  Ethereum address of voter
- * @property {EncryptedVotes} encryptedVote - Encrypted votes
+ * @property {EncryptedVotes} encryptedVoteRSA - Encrypted votes RSA
+ * @property {EncryptedVotes} encryptedVoteAES - Encrypted votes AES
  */
 export type RecastingVotingTransaction = {
     electionID: number,
     voterAddress: string,
-    encryptedVote: EncryptedVotes,
+    encryptedVoteRSA: EncryptedVotes,
+    encryptedVoteAES: EncryptedVotes,
 }
 
 /**

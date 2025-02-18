@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { EthSignature,  VotingTransaction } from "../types/types";
+import { EthSignature, VotingTransaction } from "../types/types";
 import { validateVotingTransaction } from "../utils/utils";
 
 /**
@@ -27,11 +27,12 @@ export async function signVotingTransaction(votingTransaction: VotingTransaction
 
     try {
         const message = ethers.solidityPackedKeccak256(
-            ['uint256', 'address', 'bytes', 'bytes', 'bytes'],
+            ['uint256', 'address', 'bytes', 'bytes', 'bytes', 'bytes'],
             [
                 votingTransaction.electionID,
                 votingTransaction.voterAddress,
-                votingTransaction.encryptedVote.hexString,
+                votingTransaction.encryptedVoteRSA.hexString,
+                votingTransaction.encryptedVoteAES.hexString,
                 votingTransaction.unblindedElectionToken.hexString,
                 votingTransaction.unblindedSignature.hexString
             ]

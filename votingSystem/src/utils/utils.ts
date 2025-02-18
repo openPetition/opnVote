@@ -307,7 +307,8 @@ export function validateVotingTransaction(votingTransaction: VotingTransaction):
 
     validateElectionID(votingTransaction.electionID)
     validateEthAddress(votingTransaction.voterAddress)
-    validateEncryptedVotes(votingTransaction.encryptedVote, EncryptionType.RSA) //todo: add AES
+    validateEncryptedVotes(votingTransaction.encryptedVoteRSA, EncryptionType.RSA)
+    validateEncryptedVotes(votingTransaction.encryptedVoteAES, EncryptionType.AES)
     validateToken(votingTransaction.unblindedElectionToken)
     validateSignature(votingTransaction.unblindedSignature)
 
@@ -338,7 +339,8 @@ export function validateVotingTransaction(votingTransaction: VotingTransaction):
  */
 export function validateRecastingVotingTransaction(recastingTransaction: RecastingVotingTransaction): void {
     validateElectionID(recastingTransaction.electionID)
-    validateEncryptedVotes(recastingTransaction.encryptedVote, EncryptionType.RSA) //todo: add AES
+    validateEncryptedVotes(recastingTransaction.encryptedVoteRSA, EncryptionType.RSA)
+    validateEncryptedVotes(recastingTransaction.encryptedVoteAES, EncryptionType.AES)
     validateEthAddress(recastingTransaction.voterAddress);
 }
 

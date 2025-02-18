@@ -40,11 +40,11 @@ export async function createRelayRequest(
     validateVotingTransaction(votingTransaction as VotingTransaction);
     svsSignatureHex = votingTransaction.svsSignature.hexString
     unblindedElectionTokenHex = votingTransaction.unblindedElectionToken.hexString,
-    unblindedSignatureHex = votingTransaction.unblindedSignature.hexString
+      unblindedSignatureHex = votingTransaction.unblindedSignature.hexString
   } else {
     validateRecastingVotingTransaction(votingTransaction as RecastingVotingTransaction);
   }
- 
+
 
   try {
     const opnVoteContract: ethers.Contract = new ethers.Contract(opnVoteContractAddress, opnVoteABI, credentials.voterWallet);
@@ -54,7 +54,8 @@ export async function createRelayRequest(
       votingTransaction.electionID,
       votingTransaction.voterAddress,
       svsSignatureHex,
-      votingTransaction.encryptedVote.hexString,
+      votingTransaction.encryptedVoteRSA.hexString,
+      votingTransaction.encryptedVoteAES.hexString,
       unblindedElectionTokenHex,
       unblindedSignatureHex
     );

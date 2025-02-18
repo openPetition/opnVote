@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { ElectionCredentials, EncryptionKey, Signature, Token, WalletPrivateKey, } from "../types/types";
+import { ElectionCredentials, EncryptionKey, EncryptionType, Signature, Token, WalletPrivateKey, } from "../types/types";
 import { base64ToHexString, hexStringToBase64, validateCredentials, validateHexString, validateSignature, validateToken } from "../utils/utils";
 import { RSA_BIT_LENGTH } from "../utils/constants";
 
@@ -35,7 +35,7 @@ export function createVoterCredentials(unblindedSignature: Signature, unblindedE
     const walletPrivKey: WalletPrivateKey = { hexString: ethers.sha256(ethers.toUtf8Bytes(walletPrivKeyInput)) };
 
     const encryptionKeyInput = '0x' + masterToken.hexString.substring(2) + "|" + "Encryption-Key" + "|" + electionIDHex.hexString.substring(2);
-    const encryptionKey: EncryptionKey = { hexString: ethers.sha256(ethers.toUtf8Bytes(encryptionKeyInput)) };
+    const encryptionKey: EncryptionKey = { hexString: ethers.sha256(ethers.toUtf8Bytes(encryptionKeyInput)), encryptionType: EncryptionType.AES };
 
     const voterWallet: ethers.Wallet = new ethers.Wallet(walletPrivKey.hexString);
     const voterCredentials: ElectionCredentials = { unblindedSignature, unblindedElectionToken, voterWallet, encryptionKey, electionID };
@@ -66,7 +66,6 @@ export function concatElectionCredentialsForQR(voterCredentials: ElectionCredent
 
 }
 
-
 /**
  * Decodes a QR code string into voter credentials.
  * @param concatenatedBase64 - The concatenated Base64 string representing the encoded credentials.
@@ -81,7 +80,7 @@ export function qrToElectionCredentials(concatenatedBase64: string): ElectionCre
     const unblindedSignature: Signature = { hexString: base64ToHexString(unblindedSignatureBase64), isBlinded: false }; // Credential QR codes must store blinded Signatures
     const unblindedElectionToken: Token = { hexString: base64ToHexString(unblindedElectionTokenBase64), isBlinded: false, isMaster: false }; // Credential QR Code must not store blinded Tokens or master tokens
     const voterWalletPrivKey: WalletPrivateKey = { hexString: base64ToHexString(voterWalletPrivKeyBase64) }
-    const encryptionKey: EncryptionKey = { hexString: base64ToHexString(encryptionKeyBase64) }
+    const encryptionKey: EncryptionKey = { hexString: base64ToHexString(encryptionKeyBase64), encryptionType: EncryptionType.AES }
 
     const voterWallet = new ethers.Wallet(voterWalletPrivKey.hexString)
 

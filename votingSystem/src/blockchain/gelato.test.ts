@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { createRelayRequest } from "./gelato";
-import { ElectionCredentials, Signature, Token, VotingTransaction } from "../types/types";
+import { ElectionCredentials, EncryptionKey, EncryptionType, Signature, Token, VotingTransaction } from "../types/types";
 import { RSA_BIT_LENGTH } from "../utils/constants";
 
 describe("createRelayRequest", () => {
@@ -15,6 +15,7 @@ describe("createRelayRequest", () => {
                 { name: "voter", type: "address", internalType: "address" },
                 { name: "svsSignature", type: "bytes", internalType: "bytes" },
                 { name: "vote_encrypted", type: "bytes", internalType: "bytes" },
+                { name: "vote_encrypted_user", type: "bytes", internalType: "bytes" },
                 { name: "unblindedElectionToken", type: "bytes", internalType: "bytes" },
                 { name: "unblindedSignature", type: "bytes", internalType: "bytes" }
             ],
@@ -35,17 +36,22 @@ describe("createRelayRequest", () => {
         const voterWallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey)
         const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
         const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
+        const dummyEncryptionKey: EncryptionKey = { hexString: '0x' + '1'.repeat(64), encryptionType: EncryptionType.AES }
+
         const credentials: ElectionCredentials = {
             electionID: 1,
             voterWallet: voterWallet,
             unblindedElectionToken: dummyToken,
-            unblindedSignature: dummySignature
+            unblindedSignature: dummySignature,
+            encryptionKey: dummyEncryptionKey
         };
-        const dummyEncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)) };
+        const dummyEncryptedVotesRSA = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), encryptionType: EncryptionType.RSA };
+        const dummyEncryptedVotesAES = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), encryptionType: EncryptionType.AES };
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: voterAddressWrong,
-            encryptedVote: dummyEncryptedVotes,
+            encryptedVoteRSA: dummyEncryptedVotesRSA,
+            encryptedVoteAES: dummyEncryptedVotesAES,
             unblindedElectionToken: dummyToken,
             unblindedSignature: dummySignature,
             svsSignature: null
@@ -69,17 +75,21 @@ describe("createRelayRequest", () => {
         const voterWallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey)
         const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
         const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
+        const dummyEncryptionKey: EncryptionKey = { hexString: '0x' + '1'.repeat(64), encryptionType: EncryptionType.AES }
         const credentials: ElectionCredentials = {
             electionID: 1,
             voterWallet: voterWallet,
             unblindedElectionToken: dummyToken,
-            unblindedSignature: dummySignature
+            unblindedSignature: dummySignature,
+            encryptionKey: dummyEncryptionKey
         };
-        const dummyEncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)) };
+        const dummyEncryptedVotesRSA = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), encryptionType: EncryptionType.RSA };
+        const dummyEncryptedVotesAES = { hexString: '0x' + '1'.repeat(80), encryptionType: EncryptionType.AES };
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: voterWallet.address,
-            encryptedVote: dummyEncryptedVotes,
+            encryptedVoteRSA: dummyEncryptedVotesRSA,
+            encryptedVoteAES: dummyEncryptedVotesAES,
             unblindedElectionToken: dummyToken,
             unblindedSignature: dummySignature,
             svsSignature: null
@@ -103,17 +113,21 @@ describe("createRelayRequest", () => {
         const voterWallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey)
         const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
         const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
+        const dummyEncryptionKey: EncryptionKey = { hexString: '0x' + '1'.repeat(64), encryptionType: EncryptionType.AES }
         const credentials: ElectionCredentials = {
             electionID: 1,
             voterWallet: voterWallet,
             unblindedElectionToken: dummyToken,
-            unblindedSignature: dummySignature
+            unblindedSignature: dummySignature,
+            encryptionKey: dummyEncryptionKey
         };
-        const dummyEncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)) };
+        const dummyEncryptedVotesRSA = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), encryptionType: EncryptionType.RSA };
+        const dummyEncryptedVotesAES = { hexString: '0x' + '1'.repeat(80), encryptionType: EncryptionType.AES };
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: voterWallet.address,
-            encryptedVote: dummyEncryptedVotes,
+            encryptedVoteRSA: dummyEncryptedVotesRSA,
+            encryptedVoteAES: dummyEncryptedVotesAES,
             unblindedElectionToken: dummyToken,
             unblindedSignature: dummySignature,
             svsSignature: null

@@ -3,7 +3,7 @@ import { blindToken, deriveElectionR, deriveElectionUnblindedToken, generateMast
 import { signToken, validateCredentials } from "../utils/utils";
 import { concatElectionCredentialsForQR, createVoterCredentials, qrToElectionCredentials } from "./voterCredentials";
 import { TestRegister } from "../config";
-import { ElectionCredentials, EncryptionKey, WalletPrivateKey } from "../types/types";
+import { ElectionCredentials, EncryptionKey, EncryptionType, WalletPrivateKey } from "../types/types";
 
 
 describe('createVoterCredentials', () => {
@@ -21,7 +21,7 @@ describe('createVoterCredentials', () => {
 
     // Validating created voter Credentials
     const expectedVoterWalletPrivKey: WalletPrivateKey = { hexString: ethers.sha256(ethers.toUtf8Bytes('0x' + masterToken.hexString.substring(2) + "|Ethereum-Wallet|" + ethers.toBeHex(electionID, 32).substring(2))) };
-    const expectedEncryptionKey: EncryptionKey = { hexString: ethers.sha256(ethers.toUtf8Bytes('0x' + masterToken.hexString.substring(2) + "|Encryption-Key|" + ethers.toBeHex(electionID, 32).substring(2))) };
+    const expectedEncryptionKey: EncryptionKey = { hexString: ethers.sha256(ethers.toUtf8Bytes('0x' + masterToken.hexString.substring(2) + "|Encryption-Key|" + ethers.toBeHex(electionID, 32).substring(2))), encryptionType: EncryptionType.AES };
 
     expect(() => validateCredentials(voterCredentials)).not.toThrow();
     expect(voterCredentials.unblindedSignature.hexString).toBe(unblindedSignature.hexString);
