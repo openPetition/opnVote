@@ -1,771 +1,771 @@
 [
   {
+    "type": "constructor",
     "inputs": [
       {
-        "internalType": "address",
         "name": "_trustedForwarder",
-        "type": "address"
+        "type": "address",
+        "internalType": "address"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    "stateMutability": "nonpayable"
   },
-  { "inputs": [], "name": "ECDSAInvalidSignature", "type": "error" },
+  { "name": "ECDSAInvalidSignature", "type": "error", "inputs": [] },
   {
-    "inputs": [
-      { "internalType": "uint256", "name": "length", "type": "uint256" }
-    ],
     "name": "ECDSAInvalidSignatureLength",
-    "type": "error"
+    "type": "error",
+    "inputs": [
+      { "name": "length", "type": "uint256", "internalType": "uint256" }
+    ]
   },
   {
-    "inputs": [{ "internalType": "bytes32", "name": "s", "type": "bytes32" }],
     "name": "ECDSAInvalidSignatureS",
-    "type": "error"
+    "type": "error",
+    "inputs": [{ "name": "s", "type": "bytes32", "internalType": "bytes32" }]
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "owner", "type": "address" }
-    ],
     "name": "OwnableInvalidOwner",
-    "type": "error"
+    "type": "error",
+    "inputs": [
+      { "name": "owner", "type": "address", "internalType": "address" }
+    ]
   },
   {
-    "inputs": [
-      { "internalType": "address", "name": "account", "type": "address" }
-    ],
     "name": "OwnableUnauthorizedAccount",
-    "type": "error"
+    "type": "error",
+    "inputs": [
+      { "name": "account", "type": "address", "internalType": "address" }
+    ]
   },
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "electionID",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "cancelReasonIPFSCID",
-        "type": "string"
-      }
-    ],
     "name": "ElectionCanceled",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
+    "type": "event",
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "uint256",
         "name": "electionID",
-        "type": "uint256"
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       },
       {
+        "name": "cancelReasonIPFSCID",
+        "type": "string",
         "indexed": false,
-        "internalType": "uint256",
-        "name": "startTime",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "endTime",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint8",
-        "name": "registerId",
-        "type": "uint8"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint8",
-        "name": "authProviderId",
-        "type": "uint8"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint8",
-        "name": "svsId",
-        "type": "uint8"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "descriptionIPFSCID",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "publicKey",
-        "type": "bytes"
+        "internalType": "string"
       }
     ],
+    "anonymous": false
+  },
+  {
     "name": "ElectionCreated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
+    "type": "event",
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "uint256",
         "name": "electionID",
-        "type": "uint256"
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       },
       {
+        "name": "startTime",
+        "type": "uint256",
         "indexed": false,
-        "internalType": "bytes",
-        "name": "n",
-        "type": "bytes"
+        "internalType": "uint256"
       },
       {
+        "name": "endTime",
+        "type": "uint256",
         "indexed": false,
-        "internalType": "bytes",
-        "name": "e",
-        "type": "bytes"
+        "internalType": "uint256"
+      },
+      {
+        "name": "registerId",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      },
+      {
+        "name": "authProviderId",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      },
+      {
+        "name": "svsId",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      },
+      {
+        "name": "descriptionIPFSCID",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "publicKey",
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
       }
     ],
+    "anonymous": false
+  },
+  {
     "name": "ElectionRegisterPublicKeySet",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
+    "type": "event",
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "uint256",
         "name": "electionID",
-        "type": "uint256"
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       },
       {
+        "name": "n",
+        "type": "bytes",
         "indexed": false,
-        "internalType": "bytes",
-        "name": "privateKey",
-        "type": "bytes"
+        "internalType": "bytes"
       },
       {
+        "name": "e",
+        "type": "bytes",
         "indexed": false,
-        "internalType": "uint256",
-        "name": "yesVotes",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "noVotes",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "invalidVotes",
-        "type": "uint256"
+        "internalType": "bytes"
       }
     ],
+    "anonymous": false
+  },
+  {
     "name": "ElectionResultsPublished",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
+    "type": "event",
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "uint256",
         "name": "electionID",
-        "type": "uint256"
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       },
       {
+        "name": "privateKey",
+        "type": "bytes",
         "indexed": false,
-        "internalType": "enum ElectionStatus",
-        "name": "oldStatus",
-        "type": "uint8"
+        "internalType": "bytes"
       },
       {
+        "name": "yesVotes",
+        "type": "uint256",
         "indexed": false,
-        "internalType": "enum ElectionStatus",
-        "name": "newStatus",
-        "type": "uint8"
+        "internalType": "uint256"
+      },
+      {
+        "name": "noVotes",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "invalidVotes",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
+    "anonymous": false
+  },
+  {
     "name": "ElectionStatusChanged",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
+    "type": "event",
     "inputs": [
       {
+        "name": "electionID",
+        "type": "uint256",
         "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
+        "internalType": "uint256"
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
+        "name": "oldStatus",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum ElectionStatus"
+      },
+      {
+        "name": "newStatus",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum ElectionStatus"
       }
     ],
+    "anonymous": false
+  },
+  {
     "name": "OwnershipTransferred",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
+    "type": "event",
     "inputs": [
       {
+        "name": "previousOwner",
+        "type": "address",
         "indexed": true,
-        "internalType": "uint256",
-        "name": "electionID",
-        "type": "uint256"
+        "internalType": "address"
       },
       {
+        "name": "newOwner",
+        "type": "address",
         "indexed": true,
-        "internalType": "address",
-        "name": "voter",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "svsSignature",
-        "type": "bytes"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "vote_encrypted",
-        "type": "bytes"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "vote_encrypted_user",
-        "type": "bytes"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "unblindedElectionToken",
-        "type": "bytes"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "unblindedSignature",
-        "type": "bytes"
+        "internalType": "address"
       }
     ],
+    "anonymous": false
+  },
+  {
     "name": "VoteCast",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
+    "type": "event",
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "uint256",
         "name": "electionID",
-        "type": "uint256"
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       },
       {
-        "indexed": true,
-        "internalType": "address",
         "name": "voter",
-        "type": "address"
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
+        "name": "svsSignature",
+        "type": "bytes",
         "indexed": false,
-        "internalType": "bytes",
+        "internalType": "bytes"
+      },
+      {
         "name": "vote_encrypted",
-        "type": "bytes"
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
       },
       {
-        "indexed": false,
-        "internalType": "bytes",
         "name": "vote_encrypted_user",
-        "type": "bytes"
-      }
-    ],
-    "name": "VoteUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint8",
-        "name": "apID",
-        "type": "uint8"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "electionID",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "voterID",
-        "type": "uint256"
-      }
-    ],
-    "name": "VoterAuthorized",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint8",
-        "name": "registerID",
-        "type": "uint8"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "electionID",
-        "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "voterID",
-        "type": "uint256"
-      },
-      {
+        "type": "bytes",
         "indexed": false,
-        "internalType": "bytes",
-        "name": "blindedSignature",
-        "type": "bytes"
+        "internalType": "bytes"
       },
       {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "blindedElectionToken",
-        "type": "bytes"
-      }
-    ],
-    "name": "VoterRegistered",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint8",
-        "name": "apID",
-        "type": "uint8"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "electionID",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256[]",
-        "name": "voterIDs",
-        "type": "uint256[]"
-      }
-    ],
-    "name": "VotersAuthorized",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint8",
-        "name": "registerID",
-        "type": "uint8"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "electionID",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256[]",
-        "name": "voterIDs",
-        "type": "uint256[]"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes[]",
-        "name": "blindedSignatures",
-        "type": "bytes[]"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes[]",
-        "name": "blindedElectionTokens",
-        "type": "bytes[]"
-      }
-    ],
-    "name": "VotersRegistered",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "components": [
-          { "internalType": "uint8", "name": "id", "type": "uint8" },
-          { "internalType": "address", "name": "owner", "type": "address" },
-          { "internalType": "string", "name": "apName", "type": "string" },
-          { "internalType": "string", "name": "apURI", "type": "string" }
-        ],
-        "internalType": "struct AuthorizationProvider",
-        "name": "newAP",
-        "type": "tuple"
-      }
-    ],
-    "name": "addAP",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "components": [
-          { "internalType": "uint8", "name": "id", "type": "uint8" },
-          { "internalType": "address", "name": "owner", "type": "address" },
-          {
-            "internalType": "string",
-            "name": "registerName",
-            "type": "string"
-          },
-          { "internalType": "string", "name": "registerURI", "type": "string" }
-        ],
-        "internalType": "struct Register",
-        "name": "newRegister",
-        "type": "tuple"
-      }
-    ],
-    "name": "addRegister",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "components": [
-          { "internalType": "uint8", "name": "id", "type": "uint8" },
-          { "internalType": "address", "name": "owner", "type": "address" },
-          { "internalType": "string", "name": "svsName", "type": "string" },
-          { "internalType": "string", "name": "svsURI", "type": "string" }
-        ],
-        "internalType": "struct SignatureValidationServer",
-        "name": "newSVS",
-        "type": "tuple"
-      }
-    ],
-    "name": "addSVS",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }],
-    "name": "aps",
-    "outputs": [
-      { "internalType": "uint8", "name": "id", "type": "uint8" },
-      { "internalType": "address", "name": "owner", "type": "address" },
-      { "internalType": "string", "name": "apName", "type": "string" },
-      { "internalType": "string", "name": "apURI", "type": "string" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "electionID", "type": "uint256" },
-      { "internalType": "uint256", "name": "voterID", "type": "uint256" }
-    ],
-    "name": "authorizeVoter",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "electionID", "type": "uint256" },
-      { "internalType": "uint256[]", "name": "voterIDs", "type": "uint256[]" }
-    ],
-    "name": "authorizeVoters",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "electionID", "type": "uint256" },
-      {
-        "internalType": "string",
-        "name": "cancelReasonIPFSCID",
-        "type": "string"
-      }
-    ],
-    "name": "cancelElection",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "startTime", "type": "uint256" },
-      { "internalType": "uint256", "name": "endTime", "type": "uint256" },
-      { "internalType": "uint8", "name": "registerID", "type": "uint8" },
-      { "internalType": "uint8", "name": "authProviderId", "type": "uint8" },
-      { "internalType": "uint8", "name": "svsId", "type": "uint8" },
-      {
-        "internalType": "string",
-        "name": "descriptionIPFSCID",
-        "type": "string"
-      },
-      { "internalType": "bytes", "name": "publicKey", "type": "bytes" }
-    ],
-    "name": "createElection",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "createdElectionID",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "name": "elections",
-    "outputs": [
-      { "internalType": "uint256", "name": "electionID", "type": "uint256" },
-      { "internalType": "uint256", "name": "startTime", "type": "uint256" },
-      { "internalType": "uint256", "name": "endTime", "type": "uint256" },
-      { "internalType": "uint256", "name": "totalVotes", "type": "uint256" },
-      {
-        "internalType": "uint256",
-        "name": "totalAuthorized",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "totalRegistered",
-        "type": "uint256"
-      },
-      { "internalType": "uint8", "name": "registerID", "type": "uint8" },
-      { "internalType": "uint8", "name": "authProviderId", "type": "uint8" },
-      { "internalType": "uint8", "name": "svsId", "type": "uint8" },
-      {
-        "internalType": "enum ElectionStatus",
-        "name": "status",
-        "type": "uint8"
-      },
-      {
-        "internalType": "string",
-        "name": "cancelReasonIPFSCID",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "descriptionIPFSCID",
-        "type": "string"
-      },
-      { "internalType": "bytes", "name": "publicKey", "type": "bytes" },
-      { "internalType": "bytes", "name": "privateKey", "type": "bytes" },
-      {
-        "components": [
-          { "internalType": "bytes", "name": "n", "type": "bytes" },
-          { "internalType": "bytes", "name": "e", "type": "bytes" }
-        ],
-        "internalType": "struct RSAPublicKeyRaw",
-        "name": "registerPubKey",
-        "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "electionID", "type": "uint256" }
-    ],
-    "name": "endElection",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "forwarder", "type": "address" }
-    ],
-    "name": "isTrustedForwarder",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "electionID", "type": "uint256" },
-      { "internalType": "uint256", "name": "yesVotes", "type": "uint256" },
-      { "internalType": "uint256", "name": "noVotes", "type": "uint256" },
-      { "internalType": "uint256", "name": "invalidVotes", "type": "uint256" },
-      { "internalType": "bytes", "name": "privateKey", "type": "bytes" }
-    ],
-    "name": "publishElectionResults",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "electionID", "type": "uint256" },
-      { "internalType": "uint256", "name": "voterID", "type": "uint256" },
-      { "internalType": "bytes", "name": "blindedSignature", "type": "bytes" },
-      {
-        "internalType": "bytes",
-        "name": "blindedElectionToken",
-        "type": "bytes"
-      }
-    ],
-    "name": "registerVoter",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "electionID", "type": "uint256" },
-      { "internalType": "uint256[]", "name": "voterIDs", "type": "uint256[]" },
-      {
-        "internalType": "bytes[]",
-        "name": "blindedSignatures",
-        "type": "bytes[]"
-      },
-      {
-        "internalType": "bytes[]",
-        "name": "blindedElectionTokens",
-        "type": "bytes[]"
-      }
-    ],
-    "name": "registerVoters",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }],
-    "name": "registers",
-    "outputs": [
-      { "internalType": "uint8", "name": "id", "type": "uint8" },
-      { "internalType": "address", "name": "owner", "type": "address" },
-      { "internalType": "string", "name": "registerName", "type": "string" },
-      { "internalType": "string", "name": "registerURI", "type": "string" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "electionID", "type": "uint256" },
-      { "internalType": "bytes", "name": "n", "type": "bytes" },
-      { "internalType": "bytes", "name": "e", "type": "bytes" }
-    ],
-    "name": "setElectionRegisterPublicKey",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "electionID", "type": "uint256" }
-    ],
-    "name": "startElection",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }],
-    "name": "svss",
-    "outputs": [
-      { "internalType": "uint8", "name": "id", "type": "uint8" },
-      { "internalType": "address", "name": "owner", "type": "address" },
-      { "internalType": "string", "name": "svsName", "type": "string" },
-      { "internalType": "string", "name": "svsURI", "type": "string" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "newOwner", "type": "address" }
-    ],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "trustedForwarder",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "uint256", "name": "electionID", "type": "uint256" },
-      { "internalType": "address", "name": "voter", "type": "address" },
-      { "internalType": "bytes", "name": "svsSignature", "type": "bytes" },
-      { "internalType": "bytes", "name": "vote_encrypted", "type": "bytes" },
-      {
-        "internalType": "bytes",
-        "name": "vote_encrypted_user",
-        "type": "bytes"
-      },
-      {
-        "internalType": "bytes",
         "name": "unblindedElectionToken",
-        "type": "bytes"
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
       },
-      { "internalType": "bytes", "name": "unblindedSignature", "type": "bytes" }
+      {
+        "name": "unblindedSignature",
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
+      }
     ],
-    "name": "vote",
+    "anonymous": false
+  },
+  {
+    "name": "VoteUpdated",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "electionID",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "voter",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "vote_encrypted",
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
+      },
+      {
+        "name": "vote_encrypted_user",
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "VoterAuthorized",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "apID",
+        "type": "uint8",
+        "indexed": true,
+        "internalType": "uint8"
+      },
+      {
+        "name": "electionID",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "voterID",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "VoterRegistered",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "registerID",
+        "type": "uint8",
+        "indexed": true,
+        "internalType": "uint8"
+      },
+      {
+        "name": "electionID",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "voterID",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "blindedSignature",
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
+      },
+      {
+        "name": "blindedElectionToken",
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "VotersAuthorized",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "apID",
+        "type": "uint8",
+        "indexed": true,
+        "internalType": "uint8"
+      },
+      {
+        "name": "electionID",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "voterIDs",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "VotersRegistered",
+    "type": "event",
+    "inputs": [
+      {
+        "name": "registerID",
+        "type": "uint8",
+        "indexed": true,
+        "internalType": "uint8"
+      },
+      {
+        "name": "electionID",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "voterIDs",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "blindedSignatures",
+        "type": "bytes[]",
+        "indexed": false,
+        "internalType": "bytes[]"
+      },
+      {
+        "name": "blindedElectionTokens",
+        "type": "bytes[]",
+        "indexed": false,
+        "internalType": "bytes[]"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "name": "addAP",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "newAP",
+        "type": "tuple",
+        "components": [
+          { "name": "id", "type": "uint8", "internalType": "uint8" },
+          { "name": "owner", "type": "address", "internalType": "address" },
+          { "name": "apName", "type": "string", "internalType": "string" },
+          { "name": "apURI", "type": "string", "internalType": "string" }
+        ],
+        "internalType": "struct AuthorizationProvider"
+      }
+    ],
     "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "addRegister",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "newRegister",
+        "type": "tuple",
+        "components": [
+          { "name": "id", "type": "uint8", "internalType": "uint8" },
+          { "name": "owner", "type": "address", "internalType": "address" },
+          {
+            "name": "registerName",
+            "type": "string",
+            "internalType": "string"
+          },
+          { "name": "registerURI", "type": "string", "internalType": "string" }
+        ],
+        "internalType": "struct Register"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "addSVS",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "newSVS",
+        "type": "tuple",
+        "components": [
+          { "name": "id", "type": "uint8", "internalType": "uint8" },
+          { "name": "owner", "type": "address", "internalType": "address" },
+          { "name": "svsName", "type": "string", "internalType": "string" },
+          { "name": "svsURI", "type": "string", "internalType": "string" }
+        ],
+        "internalType": "struct SignatureValidationServer"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "aps",
+    "type": "function",
+    "inputs": [{ "name": "", "type": "uint8", "internalType": "uint8" }],
+    "outputs": [
+      { "name": "id", "type": "uint8", "internalType": "uint8" },
+      { "name": "owner", "type": "address", "internalType": "address" },
+      { "name": "apName", "type": "string", "internalType": "string" },
+      { "name": "apURI", "type": "string", "internalType": "string" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "name": "authorizeVoter",
+    "type": "function",
+    "inputs": [
+      { "name": "electionID", "type": "uint256", "internalType": "uint256" },
+      { "name": "voterID", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "authorizeVoters",
+    "type": "function",
+    "inputs": [
+      { "name": "electionID", "type": "uint256", "internalType": "uint256" },
+      { "name": "voterIDs", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "cancelElection",
+    "type": "function",
+    "inputs": [
+      { "name": "electionID", "type": "uint256", "internalType": "uint256" },
+      {
+        "name": "cancelReasonIPFSCID",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "createElection",
+    "type": "function",
+    "inputs": [
+      { "name": "startTime", "type": "uint256", "internalType": "uint256" },
+      { "name": "endTime", "type": "uint256", "internalType": "uint256" },
+      { "name": "registerID", "type": "uint8", "internalType": "uint8" },
+      { "name": "authProviderId", "type": "uint8", "internalType": "uint8" },
+      { "name": "svsId", "type": "uint8", "internalType": "uint8" },
+      {
+        "name": "descriptionIPFSCID",
+        "type": "string",
+        "internalType": "string"
+      },
+      { "name": "publicKey", "type": "bytes", "internalType": "bytes" }
+    ],
+    "outputs": [
+      {
+        "name": "createdElectionID",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "elections",
+    "type": "function",
+    "inputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "outputs": [
+      { "name": "electionID", "type": "uint256", "internalType": "uint256" },
+      { "name": "startTime", "type": "uint256", "internalType": "uint256" },
+      { "name": "endTime", "type": "uint256", "internalType": "uint256" },
+      { "name": "totalVotes", "type": "uint256", "internalType": "uint256" },
+      {
+        "name": "totalAuthorized",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalRegistered",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      { "name": "registerID", "type": "uint8", "internalType": "uint8" },
+      { "name": "authProviderId", "type": "uint8", "internalType": "uint8" },
+      { "name": "svsId", "type": "uint8", "internalType": "uint8" },
+      {
+        "name": "status",
+        "type": "uint8",
+        "internalType": "enum ElectionStatus"
+      },
+      {
+        "name": "cancelReasonIPFSCID",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "descriptionIPFSCID",
+        "type": "string",
+        "internalType": "string"
+      },
+      { "name": "publicKey", "type": "bytes", "internalType": "bytes" },
+      { "name": "privateKey", "type": "bytes", "internalType": "bytes" },
+      {
+        "name": "registerPubKey",
+        "type": "tuple",
+        "components": [
+          { "name": "n", "type": "bytes", "internalType": "bytes" },
+          { "name": "e", "type": "bytes", "internalType": "bytes" }
+        ],
+        "internalType": "struct RSAPublicKeyRaw"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "name": "endElection",
+    "type": "function",
+    "inputs": [
+      { "name": "electionID", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "isTrustedForwarder",
+    "type": "function",
+    "inputs": [
+      { "name": "forwarder", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [{ "name": "", "type": "bool", "internalType": "bool" }],
+    "stateMutability": "view"
+  },
+  {
+    "name": "owner",
+    "type": "function",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "name": "publishElectionResults",
+    "type": "function",
+    "inputs": [
+      { "name": "electionID", "type": "uint256", "internalType": "uint256" },
+      { "name": "yesVotes", "type": "uint256", "internalType": "uint256" },
+      { "name": "noVotes", "type": "uint256", "internalType": "uint256" },
+      { "name": "invalidVotes", "type": "uint256", "internalType": "uint256" },
+      { "name": "privateKey", "type": "bytes", "internalType": "bytes" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "registerVoter",
+    "type": "function",
+    "inputs": [
+      { "name": "electionID", "type": "uint256", "internalType": "uint256" },
+      { "name": "voterID", "type": "uint256", "internalType": "uint256" },
+      { "name": "blindedSignature", "type": "bytes", "internalType": "bytes" },
+      {
+        "name": "blindedElectionToken",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "registerVoters",
+    "type": "function",
+    "inputs": [
+      { "name": "electionID", "type": "uint256", "internalType": "uint256" },
+      { "name": "voterIDs", "type": "uint256[]", "internalType": "uint256[]" },
+      {
+        "name": "blindedSignatures",
+        "type": "bytes[]",
+        "internalType": "bytes[]"
+      },
+      {
+        "name": "blindedElectionTokens",
+        "type": "bytes[]",
+        "internalType": "bytes[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "registers",
+    "type": "function",
+    "inputs": [{ "name": "", "type": "uint8", "internalType": "uint8" }],
+    "outputs": [
+      { "name": "id", "type": "uint8", "internalType": "uint8" },
+      { "name": "owner", "type": "address", "internalType": "address" },
+      { "name": "registerName", "type": "string", "internalType": "string" },
+      { "name": "registerURI", "type": "string", "internalType": "string" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "name": "renounceOwnership",
+    "type": "function",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "setElectionRegisterPublicKey",
+    "type": "function",
+    "inputs": [
+      { "name": "electionID", "type": "uint256", "internalType": "uint256" },
+      { "name": "n", "type": "bytes", "internalType": "bytes" },
+      { "name": "e", "type": "bytes", "internalType": "bytes" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "startElection",
+    "type": "function",
+    "inputs": [
+      { "name": "electionID", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "svss",
+    "type": "function",
+    "inputs": [{ "name": "", "type": "uint8", "internalType": "uint8" }],
+    "outputs": [
+      { "name": "id", "type": "uint8", "internalType": "uint8" },
+      { "name": "owner", "type": "address", "internalType": "address" },
+      { "name": "svsName", "type": "string", "internalType": "string" },
+      { "name": "svsURI", "type": "string", "internalType": "string" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "name": "transferOwnership",
+    "type": "function",
+    "inputs": [
+      { "name": "newOwner", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "name": "trustedForwarder",
+    "type": "function",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "name": "vote",
+    "type": "function",
+    "inputs": [
+      { "name": "electionID", "type": "uint256", "internalType": "uint256" },
+      { "name": "voter", "type": "address", "internalType": "address" },
+      { "name": "svsSignature", "type": "bytes", "internalType": "bytes" },
+      { "name": "vote_encrypted", "type": "bytes", "internalType": "bytes" },
+      {
+        "name": "vote_encrypted_user",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      {
+        "name": "unblindedElectionToken",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      { "name": "unblindedSignature", "type": "bytes", "internalType": "bytes" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   }
 ]
