@@ -1,0 +1,59 @@
+specVersion: 1.2.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: OpnVote
+    network: gnosis
+    source:
+      address: "0xd7f44bf41e2408e73d692624a8a754ee139f0458"
+      abi: OpnVote
+      startBlock: 38653208
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - ElectionCanceled
+        - ElectionCreated
+        - ElectionRegisterPublicKeySet
+        - ElectionResultsPublished
+        - ElectionStatusChanged
+        - OwnershipTransferred
+        - VoteCast
+        - VoteUpdated
+        - VoterAuthorized
+        - VoterRegistered
+        - VotersAuthorized
+        - VotersRegistered
+      abis:
+        - name: OpnVote
+          file: ./abis/OpnVote.json
+      eventHandlers:
+        - event: ElectionCanceled(indexed uint256,string)
+          handler: handleElectionCanceled
+        - event: ElectionCreated(indexed uint256,uint256,uint256,uint8,uint8,uint8,string,bytes)
+          handler: handleElectionCreated
+        - event: ElectionRegisterPublicKeySet(indexed uint256,bytes,bytes)
+          handler: handleElectionRegisterPublicKeySet
+        - event: ElectionResultsPublished(indexed uint256,bytes,uint256,uint256,uint256)
+          handler: handleElectionResultsPublished
+        - event: ElectionStatusChanged(indexed uint256,uint8,uint8)
+          handler: handleElectionStatusChanged
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: VoteCast(indexed uint256,indexed address,bytes,bytes,bytes,bytes,bytes)
+          handler: handleVoteCast
+        - event: VoteUpdated(indexed uint256,indexed address,bytes,bytes)
+          handler: handleVoteUpdated
+        - event: VoterAuthorized(indexed uint8,indexed uint256,indexed uint256)
+          handler: handleVoterAuthorized
+        - event: VoterRegistered(indexed uint8,indexed uint256,indexed uint256,bytes,bytes)
+          handler: handleVoterRegistered
+        - event: VotersAuthorized(indexed uint8,indexed uint256,uint256[])
+          handler: handleVotersAuthorized
+        - event: VotersRegistered(indexed uint8,indexed uint256,uint256[],bytes[],bytes[])
+          handler: handleVotersRegistered
+      file: ./src/opn-vote.ts

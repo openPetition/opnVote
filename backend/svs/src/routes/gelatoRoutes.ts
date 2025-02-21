@@ -129,7 +129,7 @@ router.post('/forward',
             }
 
         } catch (error) {
-            logger.error('[GelatoRoute] Failed to process request Error:', error);
+            logger.error('[GelatoRoute] Failed to process request Error:' + error);
             res.status(500).json({
                 data: null,
                 error: 'Failed to queue Gelato request'

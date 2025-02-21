@@ -13,12 +13,12 @@ contract SetRegisterElectionKeyScript is Script {
     }
 
     function run() public {
-        uint256 electionID = 6;
+        uint256 electionID = 1;
         bytes memory registerElectionPubKeyE = vm.envBytes(
-            "REGISTER_ELECTION_1_E"
+            "REGISTER_ELECTION_0_E"
         ); // Register e
         bytes memory registerElectionPubKeyN = vm.envBytes(
-            "REGISTER_ELECTION_1_N"
+            "REGISTER_ELECTION_0_N"
         ); // Register n
 
         uint256 register = vm.envUint("REGISTER_PRIV_KEY");

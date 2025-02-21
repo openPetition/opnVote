@@ -32,7 +32,7 @@ contract OpnVote is Ownable, ERC2771Context{
         bytes blindedElectionToken
     );
 
-    event VotersRegistered(
+    event VotersRegistered( //! TODO: Blinded Signature & Election Token should be arrays
         uint256 indexed electionID,
         uint256[] voterIDs,
         uint8 indexed registerID,
@@ -72,7 +72,7 @@ contract OpnVote is Ownable, ERC2771Context{
     );
 
     event ElectionResultsPublished(
-        uint256 indexed electionID, bytes privateKey, uint256[] yesVotes, uint256[] noVotes, uint256[] invalidVotes
+        uint256 indexed electionID, bytes privateKey, uint256[] yesVotes, uint256[] noVotes, uint256[] invalidVotes //! todo: why are yesVotes, noVotes, invalidVotes arrays?
     );
 
     /** AP Methods  **/
@@ -111,8 +111,8 @@ contract OpnVote is Ownable, ERC2771Context{
     function registerVoters(
         uint256 electionID,
         uint256[] calldata voterIDs,
-        bytes calldata blindedSignature,
-        bytes calldata blindedElectionToken
+        bytes calldata blindedSignature, //! todo: blindedSignature & blindedElectionToken should be arrays
+        bytes calldata blindedElectionToken //! todo: blindedSignature & blindedElectionToken should be arrays
     ) external {
         uint8 registerID = elections[electionID].registerID;
         require(msg.sender == registers[registerID].owner, "Only Register Owner");
@@ -140,10 +140,10 @@ contract OpnVote is Ownable, ERC2771Context{
     function vote(
         uint256 electionID,
         address voter,
-        bytes calldata svsSignature,
-        bytes calldata vote_encrypted,
-        bytes calldata unblindedElectionToken,
-        bytes calldata unblindedSignature
+        bytes calldata svsSignature, //todo: fix gas leak
+        bytes calldata vote_encrypted, //todo: fix gas leak
+        bytes calldata unblindedElectionToken, //todo: fix gas leak
+        bytes calldata unblindedSignature //todo: fix gas leak
     ) external {
         Election storage election = elections[electionID];
 
@@ -160,7 +160,7 @@ contract OpnVote is Ownable, ERC2771Context{
 
             bool isValidSig = _verify(
                 keccak256(
-                    abi.encodePacked(electionID, voter, vote_encrypted, unblindedElectionToken, unblindedSignature)
+                    abi.encodePacked(electionID, voter, vote_encrypted, unblindedElectionToken, unblindedSignature) //todo: fix knwon hash collision; not exploitable
                 ),
                 svsSignature,
                 svsOwner
@@ -279,9 +279,9 @@ contract OpnVote is Ownable, ERC2771Context{
 
     function publishElectionResults(
         uint256 electionID,
-        uint256[] calldata yesVotes,
-        uint256[] calldata noVotes,
-        uint256[] calldata invalidVotes,
+        uint256[] calldata yesVotes, //todo: should not be arrays
+        uint256[] calldata noVotes, //todo: should not be arrays
+        uint256[] calldata invalidVotes, //todo: should not be arrays
         bytes memory privateKey
     ) external onlyOwner {
         Election storage election = elections[electionID];
@@ -296,7 +296,7 @@ contract OpnVote is Ownable, ERC2771Context{
 
         election.status = ElectionStatus.ResultsPublished;
         election.privateKey = privateKey;
-
+        //todo: remove lower code
         //uncomment if election results should be stored onchain
         
         // delete election.results;

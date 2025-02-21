@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { checkForExistingSVSSignature } from './checkForExistingSVSSignature';
 import { dataSource } from '../database';
-import { EthSignature, VotingTransaction, Token } from 'votingsystem';
+import { EthSignature, VotingTransaction, Token, EncryptionType } from 'votingsystem';
 import { logger } from '../utils/logger';
 
 jest.mock('../database');
@@ -35,7 +35,8 @@ describe('checkForExistingSVSSignature Middleware', () => {
         const mockVotingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: '0x1234567890123456789012345678901234567890',
-            encryptedVote: { hexString: '0x1234' },
+            encryptedVoteRSA: { hexString: '0x1234', encryptionType: EncryptionType.RSA },
+            encryptedVoteAES: { hexString: '0xabcd', encryptionType: EncryptionType.AES },
             unblindedElectionToken: { hexString: '0xabcd' } as Token,
             unblindedSignature: {
                 hexString: '0xef01',
@@ -72,7 +73,8 @@ describe('checkForExistingSVSSignature Middleware', () => {
         const mockVotingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: '0x1234567890123456789012345678901234567890',
-            encryptedVote: { hexString: '0x1234' },
+            encryptedVoteRSA: { hexString: '0x1234', encryptionType: EncryptionType.RSA },
+            encryptedVoteAES: { hexString: '0xabcd', encryptionType: EncryptionType.AES },
             unblindedElectionToken: { hexString: '0xabcd' } as Token,
             unblindedSignature: {
                 hexString: '0xef01',
@@ -96,7 +98,8 @@ describe('checkForExistingSVSSignature Middleware', () => {
         const mockVotingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: '0x1234567890123456789012345678901234567890',
-            encryptedVote: { hexString: '0x1234' },
+            encryptedVoteRSA: { hexString: '0x1234', encryptionType: EncryptionType.RSA },
+            encryptedVoteAES: { hexString: '0xabcd', encryptionType: EncryptionType.AES },
             unblindedElectionToken: { hexString: '0xabcd' } as Token,
             unblindedSignature: {
                 hexString: '0xef01',

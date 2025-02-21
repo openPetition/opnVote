@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { checkEthCall } from './checkEthCall';
 import { ethers } from 'ethers';
 import { SignatureData } from '@gelatonetwork/relay-sdk';
-import opnvoteAbi from '../abi/opnvote-0.0.1.json';
+import opnvoteAbi from '../abi/opnvote-0.0.1.json'; //todo: Update to onvote-0.0.2
 
 describe('checkEthCall Middleware', () => {
     let mockReq: Partial<Request>;
@@ -19,6 +19,7 @@ describe('checkEthCall Middleware', () => {
     const mockVoteEncrypted = '0x0000000000000000000000000000000000000000000000000000000000000003';
     const mockUnblindedElectionToken = '0x0000000000000000000000000000000000000000000000000000000000000004';
     const mockUnblindedSignature = '0x0000000000000000000000000000000000000000000000000000000000000005';
+    //todo: Add user-encrypted-vote
 
     beforeEach(() => {
         mockProvider = {
@@ -41,7 +42,7 @@ describe('checkEthCall Middleware', () => {
     });
 
     it('should pass when eth_call returns 0x', async () => {
-        const voteData = opnVoteInterface.encodeFunctionData("vote", [
+        const voteData = opnVoteInterface.encodeFunctionData("vote", [ //todo: update to onvote-0.0.2
             mockElectionId,
             mockVoter.address,
             mockSvsSignature,
@@ -74,7 +75,7 @@ describe('checkEthCall Middleware', () => {
     });
 
     it('should return 400 when eth_call returns non-zero value', async () => {
-        const voteData = opnVoteInterface.encodeFunctionData("vote", [
+        const voteData = opnVoteInterface.encodeFunctionData("vote", [ //todo: update to onvote-0.0.2
             mockElectionId,
             mockVoter.address,
             mockSvsSignature,

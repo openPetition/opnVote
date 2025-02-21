@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { app } from '../svsServer';
 import { dataSource } from '../database';
-import { EncryptedVotes, RSA_BIT_LENGTH, Signature, Token, VotingTransaction } from 'votingsystem';
+import { EncryptedVotes, EncryptionType, RSA_BIT_LENGTH, Signature, Token, VotingTransaction } from 'votingsystem';
 import { ethers } from 'ethers';
 
 jest.mock('../middleware/checkVoterSignature', () => ({
@@ -39,11 +39,13 @@ jest.mock('../database', () => ({
 describe('POST /api/votingTransaction/sign', () => {
     const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
     const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
-    const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)) };
+    const dummyEncryptedVotesRSA: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), encryptionType: EncryptionType.RSA };
+    const dummyEncryptedVotesAES: EncryptedVotes = { hexString: '0x' + '1'.repeat(80), encryptionType: EncryptionType.AES };
 
     const mockVotingTransaction: VotingTransaction = {
         electionID: 1,
-        encryptedVote: dummyEncryptedVotes,
+        encryptedVoteRSA: dummyEncryptedVotesRSA,
+        encryptedVoteAES: dummyEncryptedVotesAES,
         unblindedElectionToken: dummyToken,
         unblindedSignature: dummySignature,
         voterAddress: '0x1234567890123456789012345678901234567890',

@@ -78,7 +78,8 @@ router.post('/sign',
 
             const signedTransaction = new VotingTransactionEntity();
             signedTransaction.electionID = votingTransaction.electionID
-            signedTransaction.encryptedVote = votingTransaction.encryptedVote.hexString
+            signedTransaction.encryptedVoteRSA = votingTransaction.encryptedVoteRSA.hexString
+            signedTransaction.encryptedVoteAES = votingTransaction.encryptedVoteAES.hexString
             signedTransaction.svsSignature = svsSignature.hexString
             signedTransaction.unblindedElectionToken = normalizeHexString(votingTransaction.unblindedElectionToken.hexString.toLowerCase())
             signedTransaction.unblindedSignature = normalizeHexString(votingTransaction.unblindedSignature.hexString.toLowerCase())

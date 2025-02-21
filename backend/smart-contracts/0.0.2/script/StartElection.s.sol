@@ -13,7 +13,7 @@ contract StartElectionScript is Script {
     }
 
     function run() public {
-        uint256 electionID = 6;
+        uint256 electionID = 0;
 
         uint256 deployer = vm.envUint("DEPLOYER_PRIV_KEY");
         vm.startBroadcast(deployer);

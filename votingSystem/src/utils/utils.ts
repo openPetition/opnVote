@@ -278,6 +278,9 @@ export function validateVotes(votes: Array<Vote>, encryptionType: EncryptionType
         if (buffer.length === 0) {
             throw new Error("AES: Message cannot be empty.");
         }
+        if (buffer.length >= 512) {
+            throw new Error("AES: Message cannot be longer than 512 bytes.");
+        }
     } else {
         // Range check
         const minMessageLength = 2;

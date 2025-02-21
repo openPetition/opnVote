@@ -35,7 +35,8 @@ describe('checkVoterHasNotVoted Middleware', () => {
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: '0x1234567890123456789012345678901234567890',
-            encryptedVote: {} as any,
+            encryptedVoteRSA: {} as any,
+            encryptedVoteAES: {} as any,
             unblindedElectionToken: {} as any,
             unblindedSignature: {} as any,
             svsSignature: null
@@ -55,7 +56,8 @@ describe('checkVoterHasNotVoted Middleware', () => {
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: '0x1234567890123456789012345678901234567890',
-            encryptedVote: {} as any,
+            encryptedVoteRSA: {} as any,
+            encryptedVoteAES: {} as any,
             unblindedElectionToken: {} as any,
             unblindedSignature: {} as any,
             svsSignature: null
@@ -78,7 +80,8 @@ describe('checkVoterHasNotVoted Middleware', () => {
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: '0x1234567890123456789012345678901234567890',
-            encryptedVote: {} as any,
+            encryptedVoteRSA: {} as any,
+            encryptedVoteAES: {} as any,
             unblindedElectionToken: {} as any,
             unblindedSignature: {} as any,
             svsSignature: null,
@@ -103,7 +106,8 @@ describe('checkVoterHasNotVoted Middleware', () => {
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: '0x2170ed0880ac9a755fd29b2688956bd959f933f8',
-            encryptedVote: {} as any,
+            encryptedVoteRSA: {} as any,
+            encryptedVoteAES: {} as any,
             unblindedElectionToken: {} as any,
             unblindedSignature: {} as any,
             svsSignature: null,

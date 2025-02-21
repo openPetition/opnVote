@@ -135,9 +135,13 @@ export async function decryptVotes(encryptedVotes: EncryptedVotes, encryptionKey
 
 
     if (encryptionKey.encryptionType === EncryptionType.AES) {
-        return await decryptVotesAES(encryptedVotes, encryptionKey)
+        const votes = await decryptVotesAES(encryptedVotes, encryptionKey)
+        validateVotes(votes, encryptionType)
+        return votes
     } else if (encryptionKey.encryptionType === EncryptionType.RSA) {
-        return await decryptVotesRSA(encryptedVotes, encryptionKey)
+        const votes = await decryptVotesRSA(encryptedVotes, encryptionKey)
+        validateVotes(votes, encryptionType)
+        return votes
     } else {
         throw new Error("Invalid encryption type. Encryption type: " + encryptionKey.encryptionType)
     }

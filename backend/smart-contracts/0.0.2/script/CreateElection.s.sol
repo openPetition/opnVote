@@ -20,8 +20,8 @@ contract CreateElectionScript is Script {
         uint8 registerID = uint8(vm.envUint("REGISTER_ID")); //0
         uint8 svsID = uint8(vm.envUint("SVS_ID")); //0
 
-        string memory descriptionIPFSCID = vm.envString("ELECTION_1_CID");
-        bytes memory electionPubKey = vm.envBytes("ELECTION_1_PUBKEY"); 
+        string memory descriptionIPFSCID = vm.envString("ELECTION_0_CID");
+        bytes memory electionPubKey = vm.envBytes("ELECTION_0_PUBKEY"); 
 
         uint256 deployer = vm.envUint("DEPLOYER_PRIV_KEY");
         vm.startBroadcast(deployer);

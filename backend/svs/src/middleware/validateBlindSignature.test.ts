@@ -4,7 +4,7 @@ dotenv.config();
 import { Request, Response } from 'express';
 import { validateBlindSignature } from './validateBlindSignature';
 import { ElectionService } from '../services/electionService';
-import { RSA_BIT_LENGTH, EncryptedVotes, EthSignature, RSAParams, Signature, TestRegister, Token, VotingTransaction, blindToken, deriveElectionR, deriveElectionUnblindedToken, generateKeyPairRaw, generateMasterTokenAndMasterR, signToken, unblindSignature } from 'votingsystem';
+import { RSA_BIT_LENGTH, EncryptedVotes, EthSignature, RSAParams, Signature, TestRegister, Token, VotingTransaction, blindToken, deriveElectionR, deriveElectionUnblindedToken, generateKeyPairRaw, generateMasterTokenAndMasterR, signToken, unblindSignature, EncryptionType } from 'votingsystem';
 import { ethers } from 'ethers';
 
 jest.mock('../services/electionService');
@@ -33,12 +33,14 @@ describe('validateBlindSignature Middleware', () => {
 
         const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
         const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
-        const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)) };
+        const dummyEncryptedVotesRSA: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), encryptionType: EncryptionType.RSA };
+        const dummyEncryptedVotesAES: EncryptedVotes = { hexString: '0x' + '1'.repeat(80), encryptionType: EncryptionType.AES };
 
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: voterWallet.address,
-            encryptedVote: dummyEncryptedVotes,
+            encryptedVoteRSA: dummyEncryptedVotesRSA,
+            encryptedVoteAES: dummyEncryptedVotesAES,
             unblindedElectionToken: dummyToken,
             unblindedSignature: dummySignature,
             svsSignature: svsSignature
@@ -69,12 +71,14 @@ describe('validateBlindSignature Middleware', () => {
 
         const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
         const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
-        const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)) };
+        const dummyEncryptedVotesRSA: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), encryptionType: EncryptionType.RSA };
+        const dummyEncryptedVotesAES: EncryptedVotes = { hexString: '0x' + '1'.repeat(80), encryptionType: EncryptionType.AES };
 
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: voterWallet.address,
-            encryptedVote: dummyEncryptedVotes,
+            encryptedVoteRSA: dummyEncryptedVotesRSA,
+            encryptedVoteAES: dummyEncryptedVotesAES,
             unblindedElectionToken: dummyToken,
             unblindedSignature: dummySignature,
             svsSignature: svsSignature
@@ -122,12 +126,14 @@ describe('validateBlindSignature Middleware', () => {
         const svsSignature: EthSignature = {
             hexString: await voterWallet.signMessage("randomMock")
         };
-        const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)) };
+        const dummyEncryptedVotesRSA: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), encryptionType: EncryptionType.RSA };
+        const dummyEncryptedVotesAES: EncryptedVotes = { hexString: '0x' + '1'.repeat(80), encryptionType: EncryptionType.AES };
 
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: voterWallet.address,
-            encryptedVote: dummyEncryptedVotes,
+            encryptedVoteRSA: dummyEncryptedVotesRSA,
+            encryptedVoteAES: dummyEncryptedVotesAES,
             unblindedElectionToken: unblindedElectionToken,
             unblindedSignature: unblindedSignature,
             svsSignature: svsSignature
@@ -171,12 +177,14 @@ describe('validateBlindSignature Middleware', () => {
         const svsSignature: EthSignature = {
             hexString: await voterWallet.signMessage("randomMock")
         };
-        const dummyEncryptedVotes: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)) };
+        const dummyEncryptedVotesRSA: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), encryptionType: EncryptionType.RSA };
+        const dummyEncryptedVotesAES: EncryptedVotes = { hexString: '0x' + '1'.repeat(80), encryptionType: EncryptionType.AES };
 
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: voterWallet.address,
-            encryptedVote: dummyEncryptedVotes,
+            encryptedVoteRSA: dummyEncryptedVotesRSA,
+            encryptedVoteAES: dummyEncryptedVotesAES,
             unblindedElectionToken: unblindedElectionToken,
             unblindedSignature: unblindedSignature,
             svsSignature: svsSignature

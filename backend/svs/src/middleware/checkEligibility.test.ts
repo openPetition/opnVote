@@ -39,7 +39,7 @@ describe('checkEligibility Middleware', () => {
     });
 
     it('should pass when all checks are valid', () => {
-        const voteData = opnVoteInterface.encodeFunctionData("vote", [
+        const voteData = opnVoteInterface.encodeFunctionData("vote", [ //todo: update to onvote-0.0.2
             mockElectionId,
             mockVoter.address,
             mockSvsSignature,
@@ -83,7 +83,7 @@ describe('checkEligibility Middleware', () => {
             mockVoteEncrypted,
             mockUnblindedElectionToken,
             mockUnblindedSignature
-        ]).replace('0xff6cc66e', '0xa9059cbb');
+        ]).replace('0xff6cc66e', '0xa9059cbb'); //todo: update to onvote-0.0.2
 
         mockReq.body = {
             struct: {
@@ -106,7 +106,7 @@ describe('checkEligibility Middleware', () => {
 
     it('should return 400 when target address is not OPNVOTE_CONTRACT_ADDRESS', () => {
         const wrongContractAddress = '0x1111111111111111111111111111111111111111';
-        const voteData = opnVoteInterface.encodeFunctionData("vote", [
+        const voteData = opnVoteInterface.encodeFunctionData("vote", [ //todo: update to onvote-0.0.2
             mockElectionId,
             mockVoter.address,
             mockSvsSignature,
@@ -137,7 +137,7 @@ describe('checkEligibility Middleware', () => {
 
     it('should return 400 when transaction sender is not the voter', () => {
         const differentSender = '0x1111111111111111111111111111111111111111';
-        const voteData = opnVoteInterface.encodeFunctionData("vote", [
+        const voteData = opnVoteInterface.encodeFunctionData("vote", [ //todo: update to onvote-0.0.2
             mockElectionId,
             mockVoter.address,
             mockSvsSignature,
@@ -170,7 +170,7 @@ describe('checkEligibility Middleware', () => {
         const validateSpy = jest.spyOn(require('votingsystem'), 'validateGelatoSignature')
             .mockImplementation(() => { throw new Error('Signature validation failed'); });
     
-        const voteData = opnVoteInterface.encodeFunctionData("vote", [
+        const voteData = opnVoteInterface.encodeFunctionData("vote", [ //todo: update to onvote-0.0.2
             mockElectionId,
             mockVoter.address,
             mockSvsSignature,

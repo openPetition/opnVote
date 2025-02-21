@@ -23,7 +23,8 @@ describe('checkElectionStatus Middleware', () => {
                 votingTransaction: {
                     electionID: 1,
                     voterAddress: "0x123",
-                    encryptedVote: {} as any,
+                    encryptedVoteRSA: {} as any,
+                    encryptedVoteAES: {} as any,
                     unblindedElectionToken: {} as any,
                     unblindedSignature: {} as any,
                     svsSignature: null,

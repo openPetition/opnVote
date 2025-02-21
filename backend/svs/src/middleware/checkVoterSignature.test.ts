@@ -29,7 +29,8 @@ describe('checkVoterSignature Middleware', () => {
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: voterWallet.address,
-            encryptedVote: {} as any,
+            encryptedVoteRSA: {} as any,
+            encryptedVoteAES: {} as any,
             unblindedElectionToken: {} as any,
             unblindedSignature: {} as any,
             svsSignature: null
@@ -57,7 +58,8 @@ describe('checkVoterSignature Middleware', () => {
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: voterWallet.address,
-            encryptedVote: {} as any,
+            encryptedVoteRSA: {} as any,
+            encryptedVoteAES: {} as any,
             unblindedElectionToken: {} as any,
             unblindedSignature: {} as any,
             svsSignature: null
@@ -84,7 +86,8 @@ describe('checkVoterSignature Middleware', () => {
         const votingTransaction: VotingTransaction = {
             electionID: 1,
             voterAddress: voterWallet.address,
-            encryptedVote: {} as any,
+            encryptedVoteRSA: {} as any,
+            encryptedVoteAES: {} as any,
             unblindedElectionToken: {} as any,
             unblindedSignature: {} as any,
             svsSignature: null

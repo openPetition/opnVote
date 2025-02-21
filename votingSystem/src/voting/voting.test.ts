@@ -34,7 +34,7 @@ describe('AES: Encryption and Decryption Integration', () => {
             .concat(Array.from({ length: 33 }, () => ({ value: VoteOption.Abstain })));
 
         const encryptionKey: EncryptionKey = { hexString: ethers.sha256("0x"), encryptionType: EncryptionType.AES };
-
+    
         const encryptedVotes: EncryptedVotes = await encryptVotes(votes, encryptionKey, EncryptionType.AES);
         const decryptedVotes: Array<Vote> = await decryptVotes(encryptedVotes, encryptionKey, EncryptionType.AES);
 
