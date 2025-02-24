@@ -55,6 +55,14 @@ h4 {
   margin-left: var(--op-padding-standard);
 }
 
+.op__padding_standard_left {
+  padding-left: .5rem;
+}
+
+.op__padding_standard_right {
+  padding-right: .5rem;
+}
+
 .op__contentbox_760 {
   max-width: 760px;
   width: 100%;

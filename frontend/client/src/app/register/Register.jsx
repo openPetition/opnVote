@@ -17,6 +17,7 @@ import { qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, blindToke
 import Config from "../../../next.config.mjs";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
+import Headline from "@/components/Headline";
 
 export default function Register() {
     const { t } = useTranslation();
@@ -134,6 +135,15 @@ export default function Register() {
 
     return (
         <>
+            <>
+                <Headline
+                    title={registerState.showBallot ? t("register.ballot.headline.title") : t("register.headline.title")}
+                    text={registerState.showBallot ? t("register.ballot.headline.text") : t("register.headline.text")}
+                    infoText={registerState.showBallot ? t("register.ballot.headline.infoText") : t("register.headline.infoText")}
+                    image="/images/online.svg"
+                />
+            </>
+
             <div className="op__contentbox_760">
                 {(registerState.showLoading) && (
                     <>
