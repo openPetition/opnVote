@@ -85,13 +85,15 @@ export default function Head() {
                         </div>
                     </HydrationZustand>
                 </div>
-                <Image
-                    alt="open.vote logo"
-                    src="/images/opnvote-logo.png"
-                    height={68}
-                    width={194}
-                    style={{ margin: "1rem auto" }}
-                />
+                <div className={styles.logobar_content}>
+                    <Image
+                        alt="open.vote logo"
+                        src="/images/opnvote-logo.png"
+                        height={69}
+                        width={194}
+                        className={styles.logo}
+                    />
+                </div>
             </div>
         </>
     );

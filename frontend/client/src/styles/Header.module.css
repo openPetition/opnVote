@@ -4,6 +4,16 @@
     background-color: var(--op-grey-main);
 }
 
+.logo {
+    margin: 1rem 0;
+    margin-left: 1rem;
+}
+
+.logobar_content {
+    max-width: var(--op-max-width-layout);
+    margin: 0 auto;
+}
+
 .headerbar_content {
     max-width: var(--op-max-width-layout);
     margin: 0 auto;
