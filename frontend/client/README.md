@@ -6,25 +6,14 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 * be sure that project / branch is up to date
 * be sure you have up to date npm / node version
 
-## 1. Prepare votingsystem
-VotingSystem includes the calculations for all our steps. e.g. it returns and checks all our ballot papers.
+* open a new shell
+* cd into `frontend/opnreg`
+* `npm install`
+* `npx run dev` to run the dev server
 
-* go into folder 'votingSystem'
-* install all dependencies of this votingsystem with `npm install`
-* then run `npm run build` for having a 'dist build' (distribution folder - all this stuff packed)
-* then create a so called link - locally this package needs to be linked to the frontend - `npm link`
-(for more information about linking you can read https://medium.com/dailyjs/how-to-use-npm-link-7375b6219557)
+Open [https://localhost:3000](https://localhost:3000) (may be a different port) in your browser.
 
-## 2. Start opnreg
-* take a new shell
-* cd into 'frontend/opnreg'
-* first install dependencies `npm install`
-* link the votingsystem: `npm link votingsystem`
-* start server: `npx next dev --experimental-https` (as we have to use http npm run dev ist not enough)
-
-Open [https://localhost:PORT](https://localhost:PORT) (or wherever it started) in your browser.
-
-if you want to go through the whole user flow you can start at https://www.dev-openpetition.de/opn-vote?electionId=6 (for now! running local dev server from OP) 
+if you want to go through the whole user flow you can start at https://www.dev-openpetition.de/opn-vote?electionId=6 (for now! running local dev server from OP)
 it mocks the user verification from OP for now and hands over jwt token (with random user id and election id 6)
 
 # Tech
@@ -42,7 +31,7 @@ it mocks the user verification from OP for now and hands over jwt token (with ra
 ### Pollingstation
 * will contain the voting process (checking the voting authorization card) and the vote (selection of answers, putting them into the voting ballot)
 * Also contains the confirmation module to see wether the vote is successfully sended
-* Only component we can get directly via link with hash for later voting http://localhost:PORT/?id=[electionid]#pollingstation 
+* Only component we can get directly via link with hash for later voting http://localhost:PORT/?id=[electionid]#pollingstation
 * All other components need a jwt token.
 
 ## Deployment
@@ -51,7 +40,7 @@ it mocks the user verification from OP for now and hands over jwt token (with ra
 * static content should be now in dist folder ... this is the one you can upload
 * currently we are on https://client-test.opn.vote/
 
-## styling 
+## styling
 
 * for styling we are using styled components (https://nextjs.org/docs/app/building-your-application/styling/css-modules)
 * really global styles we put into globals.css and we try to keep it short as possible with css variables mainly
