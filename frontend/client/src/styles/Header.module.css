@@ -11,7 +11,6 @@
     justify-content: right;
     padding: var(--op-padding-standard);
     align-items: right;
-    flex-direction: column;
 }
 
 .headerbar_point {
@@ -33,7 +32,15 @@
     content: '';
 }
 
+.hidden_small {
+    display: none;
+}
+
 @media only screen and (min-width: 600px) {
+
+    .hidden_small {
+        display: inline;
+    }
 
     .headerbar_point {
         display: flex;
