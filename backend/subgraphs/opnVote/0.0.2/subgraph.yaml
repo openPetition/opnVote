@@ -3,6 +3,8 @@ indexerHints:
   prune: auto
 schema:
   file: ./schema.graphql
+features:
+  - ipfsOnEthereumContracts
 dataSources:
   - kind: ethereum
     name: OpnVote
@@ -16,6 +18,7 @@ dataSources:
       apiVersion: 0.0.9
       language: wasm/assemblyscript
       entities:
+        - Election
         - ElectionCanceled
         - ElectionCreated
         - ElectionRegisterPublicKeySet

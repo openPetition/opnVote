@@ -14,7 +14,7 @@ import {
 } from "../generated/OpnVote/OpnVote"
 import {
   ElectionCanceled,
-  ElectionCreated,
+  Election,
   ElectionRegisterPublicKeySet,
   ElectionResultsPublished,
   ElectionStatusChanged,
@@ -26,6 +26,12 @@ import {
   VotersAuthorized,
   VotersRegistered
 } from "../generated/schema"
+
+import { ipfs, log } from "@graphprotocol/graph-ts"
+
+import {
+  BigInt,
+} from "@graphprotocol/graph-ts";
 
 export function handleElectionCanceled(event: ElectionCanceledEvent): void {
   let entity = new ElectionCanceled(
@@ -42,21 +48,31 @@ export function handleElectionCanceled(event: ElectionCanceledEvent): void {
 }
 
 export function handleElectionCreated(event: ElectionCreatedEvent): void {
-  let entity = new ElectionCreated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+  let entity = new Election(
+    event.params.electionID.toString()
   )
-  entity.electionID = event.params.electionID
   entity.startTime = event.params.startTime
   entity.endTime = event.params.endTime
   entity.registerId = event.params.registerId
   entity.authProviderId = event.params.authProviderId
   entity.svsId = event.params.svsId
-  entity.descriptionIPFSCID = event.params.descriptionIPFSCID
-  entity.publicKey = event.params.publicKey
-
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
   entity.transactionHash = event.transaction.hash
+  entity.authorizedVoterCount = BigInt.fromI32(0)
+  entity.registeredVoterCount = BigInt.fromI32(0)
+  entity.totalVotes = BigInt.fromI32(0)
+  entity.status = 0
+  entity.descriptionCID = event.params.descriptionIPFSCID
+  entity.publicKey = event.params.publicKey
+
+  const ipfsBlob = ipfs.cat(event.params.descriptionIPFSCID);
+
+  if (ipfsBlob !== null) {
+    entity.descriptionBlob = ipfsBlob.toString();
+  } else {
+    entity.descriptionBlob = ""
+  }
 
   entity.save()
 }
@@ -76,6 +92,19 @@ export function handleElectionRegisterPublicKeySet(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  // Update Election Entity
+  const electionID = event.params.electionID.toString()
+  let electionEntity = Election.load(electionID)
+  if (electionEntity == null) {
+    log.error("Election entity not found for ID: {}", [electionID])
+
+    return
+  }
+  electionEntity.registerPublicKeyE = event.params.e
+  electionEntity.registerPublicKeyN = event.params.n
+
+  electionEntity.save()
 }
 
 export function handleElectionResultsPublished(
@@ -95,6 +124,21 @@ export function handleElectionResultsPublished(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  // Update Election Entity
+
+  const electionID = event.params.electionID.toString()
+  let electionEntity = Election.load(electionID)
+  if (electionEntity == null) {
+    log.error("Election entity not found for ID: {}", [electionID])
+
+    return
+  }
+
+  electionEntity.status = 3
+  electionEntity.privateKey = event.params.privateKey
+  electionEntity.save()
+
 }
 
 export function handleElectionStatusChanged(
@@ -112,6 +156,19 @@ export function handleElectionStatusChanged(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  // Update Election Entity
+
+  const electionID = event.params.electionID.toString()
+  let electionEntity = Election.load(electionID)
+  if (electionEntity == null) {
+    log.error("Election entity not found for ID: {}", [electionID])
+
+    return
+  }
+
+  electionEntity.status = event.params.newStatus
+  electionEntity.save()
 }
 
 export function handleOwnershipTransferred(
@@ -147,6 +204,22 @@ export function handleVoteCast(event: VoteCastEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  // Update Election Entity
+
+  const electionID = event.params.electionID.toString()
+  let electionEntity = Election.load(electionID)
+  if (electionEntity == null) {
+    log.error("Election entity not found for ID: {}", [electionID])
+
+    return
+  }
+
+  if (!electionEntity.totalVotes) {
+    electionEntity.totalVotes = BigInt.fromI32(0);
+  }
+  electionEntity.totalVotes = electionEntity.totalVotes!.plus(BigInt.fromI32(1))
+  electionEntity.save()
 }
 
 export function handleVoteUpdated(event: VoteUpdatedEvent): void {
@@ -178,6 +251,24 @@ export function handleVoterAuthorized(event: VoterAuthorizedEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  // Update Election Entity
+
+  const electionID = event.params.electionID.toString()
+  let electionEntity = Election.load(electionID)
+  if (electionEntity == null) {
+    log.error("Election entity not found for ID: {}", [electionID])
+
+    return
+  }
+
+  if (!electionEntity.authorizedVoterCount) {
+    electionEntity.authorizedVoterCount = BigInt.fromI32(0);
+  }
+
+  electionEntity.authorizedVoterCount = electionEntity.authorizedVoterCount!.plus(BigInt.fromI32(1))
+
+  electionEntity.save()
 }
 
 export function handleVoterRegistered(event: VoterRegisteredEvent): void {
@@ -195,6 +286,22 @@ export function handleVoterRegistered(event: VoterRegisteredEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  // Update Election Entity
+
+  const electionID = event.params.electionID.toString()
+  let electionEntity = Election.load(electionID)
+  if (electionEntity == null) {
+    log.error("Election entity not found for ID: {}", [electionID])
+
+    return
+  }
+
+  if (!electionEntity.registeredVoterCount) {
+    electionEntity.registeredVoterCount = BigInt.fromI32(0);
+  }
+  electionEntity.registeredVoterCount = electionEntity.registeredVoterCount!.plus(BigInt.fromI32(1))
+  electionEntity.save()
 }
 
 export function handleVotersAuthorized(event: VotersAuthorizedEvent): void {
@@ -210,6 +317,22 @@ export function handleVotersAuthorized(event: VotersAuthorizedEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  // Update Election Entity
+
+  let electionID = event.params.electionID.toString();
+  let electionEntity = Election.load(electionID);
+  if (electionEntity == null) {
+    log.error("Election entity not found for ID: {}", [electionID]);
+    return;
+  }
+
+  let numberOfVotersAuthorized = event.params.voterIDs.length;
+  if (!electionEntity.authorizedVoterCount) {
+    electionEntity.authorizedVoterCount = BigInt.fromI32(0);
+  }
+  electionEntity.authorizedVoterCount = electionEntity.authorizedVoterCount!.plus(BigInt.fromI32(numberOfVotersAuthorized));
+  electionEntity.save();
 }
 
 export function handleVotersRegistered(event: VotersRegisteredEvent): void {
@@ -227,4 +350,21 @@ export function handleVotersRegistered(event: VotersRegisteredEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+
+  // Update Election Entity
+
+  let electionID = event.params.electionID.toString();
+  let electionEntity = Election.load(electionID);
+  if (electionEntity == null) {
+    log.error("Election entity not found for ID: {}", [electionID]);
+    return;
+  }
+
+  let numberOfVotersRegistered = event.params.voterIDs.length;
+  if (!electionEntity.registeredVoterCount) {
+    electionEntity.registeredVoterCount = BigInt.fromI32(0);
+  }
+  electionEntity.registeredVoterCount = electionEntity.registeredVoterCount!.plus(BigInt.fromI32(numberOfVotersRegistered));
+  electionEntity.save();
 }
