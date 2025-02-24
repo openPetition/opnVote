@@ -1,80 +1,112 @@
-.blueheartbox {
-    color: #FFF;
-    background-color: var(--op-blue-main);
-    position: relative;
-    padding: 32px;
-    margin-top: 64px;
-    text-align: center;
-}
-
-.blueheartbox::before {
-    position: absolute;
-    background-color: var(--op-blue-main);
-    width: 64px;
-    height: 64px;
-    content: '\2764';
-    top: -32px;
-    left:0;
-    right:0;
-    margin: 0 auto;
-    border-radius: 32px;
-    border: 1px transparent;
-    text-align: center;
-    font-weight: bold;
-    font-size: 2rem;
-}
-
 .greyblock {
     background-color: var(--op-grey-light);
-    padding: 32px;
 }
 
-.greyblock .inner{
-    margin: 0 auto;
-    max-width: var(--op-max-width-layout);
-    display: block;
-    text-align: center;
+.greyblockcontent{
+	max-width: var(--op-max-width-layout);
+	display: flex;
+    flex-direction: column;
+	padding: 32px;
+}
+
+.greyblock .logo{
+    padding-top: 30px;
+	margin: 0 auto;
+}
+
+.link {
+    text-decoration: none;
+    color:white;
+    font-weight: normal;
+}
+
+.checkmarks {
+    display: flex;
+    justify-content: space-around;
+    font-weight: bold;
 }
 
 .checkmark {
-    padding: 0;
     padding-right: .4rem;
-    font-size: .8rem;
+    font-size: 0.9rem;
     font-weight: bold;
 }
 
 .checkmark::before {
     content: '\2714';
-    color: var(--op-blue);
+    color: var(--op-blue-main);
     margin-right: .4rem;
-
 }
 
 .textblock {
-    text-align: center;
-    max-width: 960px;
-    margin: 0 auto;
+	background-color: var(--op-grey-dark);
+	color: white;
+	font-size: 0.8rem;
 }
 
-@media only screen and (min-width: 600px) 
+.textblockcontent {
+	max-width: var(--op-max-width-layout);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 15px;
+	padding: 15px 32px;
+}
+
+.icon {
+	display: inline-block;
+	margin-left: 1.5vw;
+}
+
+.copyright {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+@media only screen and (min-width: 600px)
 {
-    .greyblock {
-        background-color: var(--op-grey-light);
-        padding: 16px;
+    .greyblockcontent, .textblockcontent{
+		flex-direction: row;
+		justify-content: space-between;
+		margin: 0 auto;
     }
 
-    .greyblock .inner{
-        display: flex;
-        justify-content: space-between;
+    .greyblock .logo {
+		padding-top: 0;
+		margin: 0;
     }
+
+	.checkmarks {
+		align-items: center;
+		column-gap: 3.5vw;
+	}
 
     .checkmark {
         padding-right: 1rem;
-        font-weight: normal;
         font-size: 1rem;
     }
-    
+
     .checkmark::before {
         margin-right: 1rem;
     }
+
+	.icons {
+        margin: 0;
+	}
+
+	.links {
+		margin-left: auto;
+	}
+}
+
+@media only screen and (min-width: 1024px)
+{
+	.greyblockcontent {
+		padding: 32px 0;
+	}
+
+	.textblockcontent {
+		padding: 15px 0;
+	}
 }

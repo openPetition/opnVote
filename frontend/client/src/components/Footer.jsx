@@ -1,77 +1,75 @@
 'use client';
 
 import styles from '../styles/Footer.module.css';
-import Button from './Button';
-import Image from 'next/image';
+import FooterDonationBox from './FooterDonationBox';
+import NextImage from 'next/image';
+import { useTranslation } from "next-i18next";
 
 export default function Footer() {
+	const { t } = useTranslation();
 
     return (
         <>
 
-            <footer>
-                <div className={styles.blueheartbox}>
-                    <p className={styles.textblock}>
-                        Helfen Sie uns Demokratische Online-Wahlen möglich zu machen. Um die Platform kostenlos für alle bereitzustellen und gemeinnützige Wahlausrichter zu unterstützen, sind wir auf Spenden angewiesen.
-                    </p>
-                    <Button
-                        onClickAction={() => { window.location = 'https://openpetition.org/spenden'; }}
-                        type="dark"
-                        text="JETZT SPENDEN"
-                        style={{ display: 'block', margin: '0 auto', marginTop: '1rem', fontWeight: 'bold' }}
-                    />
-                </div>
-                <div className={styles.greyblock}>
-                    <div className={styles.inner}>
-                        <div className={styles.checkmarks}>
-                            <span className={styles.checkmark}>selbstorganisiert</span>
-                            <span className={styles.checkmark}>gemeinnützig</span>
-                            <span className={styles.checkmark}>demokratisch</span>
-                        </div>
-                        <div>
-                            Ein Service von
-                            <Image
-                                alt="openpetition logo"
-                                src="/images/openpetition-logo.png"
-                                height={68}
-                                width={194}
-                                style={{ margin: ".2rem" }}
-                            />
-                        </div>
-                    </div>
-                </div>
+			<footer>
+				<FooterDonationBox />
+					<div className={styles.greyblock}>
+						<div className={styles.greyblockcontent}>
+							<div className={styles.checkmarks}>
+								<span className={styles.checkmark}>{t('footer.checkmarks.secret')}</span>
+								<span className={styles.checkmark}>{t('footer.checkmarks.verifiable')}</span>
+								<span className={styles.checkmark}>{t('footer.checkmarks.decentralized')}</span>
+							</div>
+							<div className={styles.logo}>
+									{t('footer.logo.text')}
+									<NextImage
+										alt="openpetition logo"
+										src="/images/openpetition-logo.png"
+										height={68}
+										width={194}
+										style={{ marginTop: ".5rem" }}
+									/>
+							</div>
+						</div>
+					</div>
+					<div className={styles.textblock}>
+						<div className={styles.textblockcontent}>
+							<div className={styles.copyright}>
+								<a href="https://creativecommons.org" rel="external nofollow">
+									<NextImage
+										src="/images/creative-commons.svg"
+										height={20}
+										width={20}
+										alt="creative commons"
+									/>
+								</a>
+								{new Date().getFullYear()}
+								<a href="https://openpetition.net/" className={styles.link}>openPetition gGmbH</a>
+							</div>
 
+							<div className={styles.links}>
+								<a href="#" className={styles.link}>{t('footer.links.dataprivacy')} | </a>
+								<a href="#" className={styles.link}>{t('footer.links.impressum')} | </a>
+								<a href="#" className={styles.link}>{t('footer.links.transparency')}</a>
+							</div>
 
+							<div className={styles.icons}>
+								<a href="#" className={styles.icon}>
+									<svg width="20px" height="20px" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 6 17">
+										<path fillRule="evenodd" d="M6.135 3H8V0H6.135a4.147 4.147 0 0 0-4.142 4.142V6H0v3h2v9.938h3V9h2.021l.592-3H5V3.591A.6.6 0 0 1 5.592 3h.543Z" clipRule="evenodd" />
+									</svg>
+									<span className="sr-only">Facebook Seite</span>
+								</a>
+								<a href="#" className={styles.icon}>
+									<svg width="20px" height="20px" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 1350 1100">
+										<path fillRule="evenodd" d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z" clipRule="evenodd" />
+									</svg>
 
-                <div className="bg-op-grey-dark">
-                    <div className="flex flex-col md:flex-row p-6 flex-wrap w-full">
-                        <div className="text-center md:text-left">
-                            © 2024 <a href="https://openpetition.net/" className="hover:underline">openPetition gGmbH</a>
-                        </div>
-
-                        <div className="text-center md:text-left">
-                            <a href="#" className="text-gray-500 hover:text-gray-900 dark:hover:text-white">Datenschutz | </a>
-                            <a href="#" className="text-gray-500 hover:text-gray-900 dark:hover:text-white">Impressum | </a>
-                            <a href="#" className="text-gray-500 hover:text-gray-900 dark:hover:text-white">Transparenz</a>
-                        </div>
-
-                        <div className="text-center md:text-left">
-                            <a href="#" className="text-gray-500 hover:text-gray-900 dark:hover:text-white">
-                                <svg className="w-4 h-4 inline-block" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 8 19">
-                                    <path fillRule="evenodd" d="M6.135 3H8V0H6.135a4.147 4.147 0 0 0-4.142 4.142V6H0v3h2v9.938h3V9h2.021l.592-3H5V3.591A.6.6 0 0 1 5.592 3h.543Z" clipRule="evenodd" />
-                                </svg>
-                                <span className="sr-only">Facebook Seite</span>
-                            </a>
-                            <a href="#" className="text-gray-500 hover:text-gray-900 dark:hover:text-white ms-5">
-                                <svg className="w-4 h-4 inline-block" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 17">
-                                    <path fillRule="evenodd" d="M20 1.892a8.178 8.178 0 0 1-2.355.635 4.074 4.074 0 0 0 1.8-2.235 8.344 8.344 0 0 1-2.605.98A4.13 4.13 0 0 0 13.85 0a4.068 4.068 0 0 0-4.1 4.038 4 4 0 0 0 .105.919A11.705 11.705 0 0 1 1.4.734a4.006 4.006 0 0 0 1.268 5.392 4.165 4.165 0 0 1-1.859-.5v.05A4.057 4.057 0 0 0 4.1 9.635a4.19 4.19 0 0 1-1.856.07 4.108 4.108 0 0 0 3.831 2.807A8.36 8.36 0 0 1 0 14.184 11.732 11.732 0 0 0 6.291 16 11.502 11.502 0 0 0 17.964 4.5c0-.177 0-.35-.012-.523A8.143 8.143 0 0 0 20 1.892Z" clipRule="evenodd" />
-                                </svg>
-
-                                <span className="sr-only">Twitter Seite</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
+									<span className="sr-only">Twitter Seite</span>
+								</a>
+							</div>
+						</div>
+					</div>
 
             </footer>
 
