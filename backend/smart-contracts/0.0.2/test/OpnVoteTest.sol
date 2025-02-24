@@ -96,25 +96,25 @@ contract OpnVoteTest is Test {
 
         //Signed Dummy Data; Signed by 0x847507B935658Bdf58F166E0B54C662Bc3942a6f
         //In case of invalid Sig, check if svsOwner is 0x847507B935658Bdf58F166E0B54C662Bc3942a6f
-        address voter = address(0x06da6654A39aA2238839E948D8A212F13E8Af95D);
+        address voter = address(0xe1f3A1e801b4A569296C79c1F08684A63Ea6540f);
         address voteSignedBy = address(0x847507B935658Bdf58F166E0B54C662Bc3942a6f);
         uint256 voteElectionID = 0;
         require(svsOwner == voteSignedBy, "Sig will be invalid. SVS and vote signee different");
         require(electionID == voteElectionID, "Sig will be invalid. Election ID not signed Election ID different");
 
         bytes memory svsSignature =
-            hex"bfa4829d42c453ae15eb1183679158a2879c31ec44aea04536213535b5f890351593f827f09b9e7f63890f49e2d9b6eff1f0847b1e7b2e93280b7042979e608e1c"; //Valid Signature
+            hex"7f26e7c9dedb27e51e62cdde3788e3dbad1064da73dc2bc4763eb8d8ee56ba00769aac1006574fb1757de7672e3de527a8b6e672c644d0e9bf05cbbb0cb216071c"; //Valid Signature
 
-        bytes memory unblindedElectionToken = hex"0ba98fe80045b930072535d19a1dcc74c8ec90df16032d16cbc659f8803a2962"; // Dummy data
+        bytes memory unblindedElectionToken = hex"0a9b718b036919cfb9d629c7822fce5749d4be7f977a977d8f1861516fc8c359"; // Dummy data
         bytes memory unblindedSignature =
-            hex"03dce5ac44f7911ae2219a2d006c073e6a7ffc03acada25167acad9aab2800d7909eb5fa7aaef50c2809619f252879dcdcb79583d679b2324a820702eeec81cbb634b015e34e27f3b4961e8819275bfb1fd0bd7ca34ae82a6e4c542ee36dcffad15e18e153de29fe0aa8d82ef276b544c7d58606560cf6f0ffe5a55e4be4d8f2f23c41b058cdb290b2ec43b17e2a5f6d2cab13869699e504e8752d69c7290dfd787c8383b70316cac1671d4eaa997480d10ecc444add9fe254975cea26fe274c9fee7aa8c8abbda771d678774d116b036e50728a4c50250443070a1fd87f9095bcd2b3fac4c271a4346dea6e7d84686bf398c1d7185005fa7740dec3038809a6"; // Dummy data
+            hex"418f6cc8926bf388f9db10c5b310a586a0e5c643f91883214b94352e55f55637de44539c0bae5105c9bf49faaa571c381769725001e42284e73eb4dcb6958a0906f5c87077e509d1ee9ead7c124543d06d8dc809401f0de97f37b4682f81cf0bacc5337f0005e9bd8885dfed8e874b61ff2b6e703c244d6aa2b3c2bbc6b06bdc46d1c5420c7cbff816ff2347acfc04a8f99100f11fd2bcef43a4b217ec36c04bd6bb89f4ea13612451d245278398cb519dfbb8e5e18a90fc4c086787a7e53ca7af3c46b23060c5d039cfa391e41c33347c9336a4cd02017616d48fe5d473ac60e5f166f83246ebc7ef30bfbfad776ea10b8d45d9360f0e263c73ed586324a515"; // Dummy data
         
         //Dummy RSA encrypted vote
         bytes memory vote_encrypted =
-            hex"b4497c197a679af06d4e20be7d0049fdd48bd6f19a02f9ebb0b944f9e4a1fa71e151e486f0f267d68e33f1b9b54929d2c15f118fe650d8a8cc014e248c1a0ac82ebdbb0f5f884139e50a89c5eb3e699e7cf970261ea57a5d1f8d1057e6b3f30b6ba5f1c1dfdf2e47ed3949436350460bc49410032083a43b5c427a8bb9447522dc27d973c664c51b90c05fddeea88fb365f3b792ebaa049d9ce97c4fec7e27bfe8681f9b6ef5154472a1c65e8f990040aae7fefec096f18f55cdefe340e816bf9bff37fec89ee64277f8d8a36327ca257638dfd923f2f20760bb3c81c08b4e0c6b9310cea0037c45018210e8c4061dddc6d357583dacafe5b8a173af39e4ac99"; // Dummy Data
+            hex"69c109673471b28bd51433fcb059a7a059ab77428d7954db571944b78c32f204b967de6845a8113bb28745689d9c83ca17e711216bfe1cb225c2507c4105effc7c3260a7849d262baa36e1607bc1ec36474076c736d7540e69c56fadec316d7c620ca894f551fd81e76c405f627c2bdb5b75367a4592d4c9e14c647d473f9188683d0c2d1bcccf3858edaf7f387f235547262d67ff6773b85328199a2ca7c3add03c0d280b50ed9cba96d815fdda5dbd950ae95f537ff2c713462f24a70a781358f11a8cf658da97f98176d1f9362cbe3f9abd949b7606f9a004315727e0a74a63f588da2e3e3e24e08733d1a79bf6f91e3461aafe45fcdbcab531a9e98260da"; // Dummy Data
         
         bytes memory vote_encrypted_user =
-            hex"b4497c197a679af06d4e20be7d0049fdd48bd6f19a02f9ebb0b944f9e4a1fa71e151e486f0f267d68e33f1b9b54929d2c15f118fe650d8a8cc014e248c1a0ac82ebdbb0f5f884139e50a89c5eb3e699e7cf970261ea57a5d1f8d1057e6b3f30b6ba5f1c1dfdf2e47ed3949436350460bc49410032083a43b5c427a8bb9447522dc27d973c664c51b90c05fddeea88fb365f3b792ebaa049d9ce97c4fec7e27bfe8681f9b6ef5154472a1c65e8f990040aae7fefec096f18f55cdefe340e816bf9bff37fec89ee64277f8d8a36327ca257638dfd923f2f20760bb3c81c08b4e0c6b9310cea0037c45018210e8c4061dddc6d357583dacafe5b8a173af39e4ac99"; // Dummy Data
+            hex"aeded6601cb8739149c7bd2e73fce954351585911f86fbc1d25b61f8a89da94997"; // Dummy Data
         
         vm.startPrank(voter);
         opnVote.vote(electionID, voter, svsSignature, vote_encrypted, vote_encrypted_user, unblindedElectionToken, unblindedSignature);

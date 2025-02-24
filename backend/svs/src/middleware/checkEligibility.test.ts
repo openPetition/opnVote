@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { checkEligibility } from './checkEligibility';
 import { ethers } from 'ethers';
 import { SignatureData } from '@gelatonetwork/relay-sdk';
-import opnvoteAbi from '../abi/opnvote-0.0.1.json';
+import opnvoteAbi from '../abi/opnvote-0.0.2.json';
 import { validateGelatoSignature } from 'votingsystem';
 jest.mock('./checkEligibility', () => jest.requireActual('./checkEligibility'));
 jest.mock('votingsystem', () => ({
@@ -18,9 +18,10 @@ describe('checkEligibility Middleware', () => {
     const mockVoter = new ethers.Wallet('0x0000000000000000000000000000000000000000000000000000000000000002');
     const mockElectionId = 1;
     const mockSvsSignature = '0x0000000000000000000000000000000000000000000000000000000000000002';
-    const mockVoteEncrypted = '0x0000000000000000000000000000000000000000000000000000000000000003';
-    const mockUnblindedElectionToken = '0x0000000000000000000000000000000000000000000000000000000000000004';
-    const mockUnblindedSignature = '0x0000000000000000000000000000000000000000000000000000000000000005';
+    const mockVoteEncryptedRSA = '0x0000000000000000000000000000000000000000000000000000000000000003';
+    const mockVoteEncryptedAES = '0x0000000000000000000000000000000000000000000000000000000000000004';
+    const mockUnblindedElectionToken = '0x0000000000000000000000000000000000000000000000000000000000000005';
+    const mockUnblindedSignature = '0x0000000000000000000000000000000000000000000000000000000000000006';
 
 
     beforeEach(() => {
@@ -39,11 +40,12 @@ describe('checkEligibility Middleware', () => {
     });
 
     it('should pass when all checks are valid', () => {
-        const voteData = opnVoteInterface.encodeFunctionData("vote", [ //todo: update to onvote-0.0.2
+        const voteData = opnVoteInterface.encodeFunctionData("vote", [
             mockElectionId,
             mockVoter.address,
             mockSvsSignature,
-            mockVoteEncrypted,
+            mockVoteEncryptedRSA,
+            mockVoteEncryptedAES,
             mockUnblindedElectionToken,
             mockUnblindedSignature
         ]);
@@ -80,10 +82,11 @@ describe('checkEligibility Middleware', () => {
             mockElectionId,
             mockVoter.address,
             mockSvsSignature,
-            mockVoteEncrypted,
+            mockVoteEncryptedRSA,
+            mockVoteEncryptedAES,
             mockUnblindedElectionToken,
             mockUnblindedSignature
-        ]).replace('0xff6cc66e', '0xa9059cbb'); //todo: update to onvote-0.0.2
+        ]).replace('0x1c700694', '0xa9059cbb');
 
         mockReq.body = {
             struct: {
@@ -110,7 +113,8 @@ describe('checkEligibility Middleware', () => {
             mockElectionId,
             mockVoter.address,
             mockSvsSignature,
-            mockVoteEncrypted,
+            mockVoteEncryptedRSA,
+            mockVoteEncryptedAES,
             mockUnblindedElectionToken,
             mockUnblindedSignature
         ]);
@@ -141,7 +145,8 @@ describe('checkEligibility Middleware', () => {
             mockElectionId,
             mockVoter.address,
             mockSvsSignature,
-            mockVoteEncrypted,
+            mockVoteEncryptedRSA,
+            mockVoteEncryptedAES,
             mockUnblindedElectionToken,
             mockUnblindedSignature
         ]);
@@ -174,7 +179,8 @@ describe('checkEligibility Middleware', () => {
             mockElectionId,
             mockVoter.address,
             mockSvsSignature,
-            mockVoteEncrypted,
+            mockVoteEncryptedRSA,
+            mockVoteEncryptedAES,
             mockUnblindedElectionToken,
             mockUnblindedSignature
         ]);

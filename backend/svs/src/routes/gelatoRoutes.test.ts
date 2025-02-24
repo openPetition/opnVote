@@ -46,7 +46,7 @@ describe('POST /api/gelato/forward', () => {
         struct: {
             user: '0x1234567890123456789012345678901234567890',
             target: '0x1234567890123456789012345678901234567890',
-            data: '0xff6cc66e1234567890',
+            data: '0x1c7006941234567890',
         },
         signature: '0xabcd1234',
     };

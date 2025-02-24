@@ -142,7 +142,7 @@ describe("createRelayRequest", () => {
         expect(result).toEqual({
             chainId: 100,
             target: contractAddress,
-            data: expect.stringMatching(/^0xff6cc66e/),
+            data: expect.stringMatching(/^0x1c700694/),
             user: voterWallet.address,
             userDeadline: expect.any(Number),
             isConcurrent: false

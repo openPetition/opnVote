@@ -3,7 +3,7 @@ import { ApiResponse } from '../types/apiResponses';
 import { SignatureData } from '@gelatonetwork/relay-sdk';
 import { CallWithConcurrentERC2771Struct, CallWithERC2771Struct } from '@gelatonetwork/relay-sdk/dist/lib/erc2771/types';
 import { ethers } from 'ethers';
-import opnvoteAbi from '../abi/opnvote-0.0.1.json'; //todo: Update to onvote-0.0.2
+import opnvoteAbi from '../abi/opnvote-0.0.2.json';
 import { logger } from '../utils/logger';
 import { validateGelatoSignature } from 'votingsystem';
 
@@ -41,8 +41,7 @@ export function checkEligibility(req: Request, res: Response, next: NextFunction
         }
 
         const calldataString = calldata.toString().toLowerCase();
-        const vote4ByteSig = '0xff6cc66e'; //todo update to onvote-0.0.2
-
+        const vote4ByteSig = '0x1c700694';
         if (!calldataString.startsWith(vote4ByteSig)) {
             return res.status(400).json({
                 data: null,

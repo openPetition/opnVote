@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { checkEthCall } from './checkEthCall';
 import { ethers } from 'ethers';
 import { SignatureData } from '@gelatonetwork/relay-sdk';
-import opnvoteAbi from '../abi/opnvote-0.0.1.json'; //todo: Update to onvote-0.0.2
+import opnvoteAbi from '../abi/opnvote-0.0.2.json';
 
 describe('checkEthCall Middleware', () => {
     let mockReq: Partial<Request>;
@@ -16,10 +16,10 @@ describe('checkEthCall Middleware', () => {
 
     const mockElectionId = 1;
     const mockSvsSignature = '0x0000000000000000000000000000000000000000000000000000000000000002';
-    const mockVoteEncrypted = '0x0000000000000000000000000000000000000000000000000000000000000003';
-    const mockUnblindedElectionToken = '0x0000000000000000000000000000000000000000000000000000000000000004';
-    const mockUnblindedSignature = '0x0000000000000000000000000000000000000000000000000000000000000005';
-    //todo: Add user-encrypted-vote
+    const mockVoteEncryptedRSA = '0x0000000000000000000000000000000000000000000000000000000000000003';
+    const mockVoteEncryptedAES = '0x0000000000000000000000000000000000000000000000000000000000000004';
+    const mockUnblindedElectionToken = '0x0000000000000000000000000000000000000000000000000000000000000005';
+    const mockUnblindedSignature = '0x0000000000000000000000000000000000000000000000000000000000000006';
 
     beforeEach(() => {
         mockProvider = {
@@ -42,11 +42,12 @@ describe('checkEthCall Middleware', () => {
     });
 
     it('should pass when eth_call returns 0x', async () => {
-        const voteData = opnVoteInterface.encodeFunctionData("vote", [ //todo: update to onvote-0.0.2
+        const voteData = opnVoteInterface.encodeFunctionData("vote", [
             mockElectionId,
             mockVoter.address,
             mockSvsSignature,
-            mockVoteEncrypted,
+            mockVoteEncryptedRSA,
+            mockVoteEncryptedAES,
             mockUnblindedElectionToken,
             mockUnblindedSignature
         ]);
@@ -79,7 +80,8 @@ describe('checkEthCall Middleware', () => {
             mockElectionId,
             mockVoter.address,
             mockSvsSignature,
-            mockVoteEncrypted,
+            mockVoteEncryptedRSA,
+            mockVoteEncryptedAES,
             mockUnblindedElectionToken,
             mockUnblindedSignature
         ]);
