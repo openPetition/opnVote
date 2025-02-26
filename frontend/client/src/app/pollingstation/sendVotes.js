@@ -3,7 +3,7 @@
 import { ethers } from "ethers";
 import { signTransaction, gelatoForward, getAbi } from '../../service';
 import { GelatoRelay } from "@gelatonetwork/relay-sdk";
-import { createSignatureData, createRelayRequest, encryptVotes, createVotingTransactionWithoutSVSSignature, addSVSSignatureToVotingTransaction, createVoteRecastTransaction } from "votingsystem";
+import { createSignatureData, createRelayRequest, encryptVotes, createVotingTransactionWithoutSVSSignature, addSVSSignatureToVotingTransaction, createVoteRecastTransaction, EncryptionType } from "votingsystem";
 
 const replacer = function (key, value) {
     if (typeof value === 'bigint') {
@@ -18,12 +18,15 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     Object.keys(votes).map((key) => {
         newVoteArray[key] = { value: votes[key] };
     });
-    const encryptedVotes = await encryptVotes(newVoteArray, electionPublicKey);
+
+    const encryptedVotesAES = await encryptVotes(newVoteArray, votingCredentials.encryptionKey, EncryptionType.AES);
+    const encryptedVotesRSA = await encryptVotes(newVoteArray, { hexString: electionPublicKey, encryptionType: EncryptionType.RSA }, EncryptionType.RSA);
+
     let votingTransaction, votingTransactionFull;
     if (isRecast) {
-        votingTransactionFull = createVoteRecastTransaction(votingCredentials, encryptedVotes);
+        votingTransactionFull = createVoteRecastTransaction(votingCredentials, encryptedVotesRSA, encryptedVotesAES);
     } else {
-        votingTransaction = createVotingTransactionWithoutSVSSignature(votingCredentials, encryptedVotes);
+        votingTransaction = createVotingTransactionWithoutSVSSignature(votingCredentials, encryptedVotesRSA, encryptedVotesAES);
         const voterWallet = new ethers.Wallet(votingCredentials.voterWallet.privateKey);
         const message = JSON.stringify(votingTransaction);
         const messageHash = ethers.hashMessage(message);
@@ -37,10 +40,10 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     }
 
     const abiData = await getAbi();
-    const opnVoteInterface = new ethers.Interface(abiData['abi']);
+    const opnVoteInterface = new ethers.Interface(abiData);
 
     const provider = new ethers.JsonRpcProvider("https://gnosis-mainnet.g.alchemy.com/v2/MBXWJJ3MwzGKwdgULrX7vgJd5BF_pDsZ"); // lets talk where to put all this stuff in biweekly - its on the list
-    const relayRequest = await createRelayRequest(votingTransactionFull, votingCredentials, "0xB2971419Bb6437856Eb9Ec8CA3e56958Af45Eee9", opnVoteInterface, provider);
+    const relayRequest = await createRelayRequest(votingTransactionFull, votingCredentials, "0xd7f44bf41e2408e73d692624a8a754ee139f0458", opnVoteInterface, provider);
     const relay = new GelatoRelay();
     const signatureDataInitial = await createSignatureData(relayRequest, votingCredentials, relay, provider);
 

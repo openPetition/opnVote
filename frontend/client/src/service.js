@@ -113,7 +113,7 @@ export async function getAbi() {
     };
     try {
         const response = await fetch(Config.env.abiConfigUrl, options);
-        const jsondata = await response.json()
+        const jsondata = await response.json();
         return jsondata;
     } catch (error) {
         throw new ServerError();

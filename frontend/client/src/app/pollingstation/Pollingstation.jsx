@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Cookies from 'universal-cookie';
 import Notification from "../../components/Notification";
 import Button from '../../components/Button';
@@ -9,7 +9,7 @@ import HtmlQRCodePlugin from "../../components/ScanUploadQRCode";
 import VoteTransactionState from "./components/VoteTransactionState";
 import Electionheader from "./components/Electionheader";
 import Question from "./components/Question";
-import { getElectionData, getVoteCastsData } from '../../service-graphql';
+import { getVoteCastsData } from '../../service-graphql';
 import { qrToElectionCredentials, validateCredentials } from "votingsystem";
 import { sendVotes } from "./sendVotes";
 import { useTranslation } from 'next-i18next';
@@ -18,26 +18,22 @@ import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
 
 export default function Pollingstation() {
-    const { updatePage } = useOpnVoteStore((state) => state);
+    const { updatePage, voting } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const cookies = new Cookies(null, { path: '/' });
     const [votingCredentials, setVotingCredentials] = useState({});
-    const [electionInformations, setElectionInformations] = useState({});
     const [votes, setVotes] = useState({});
-    const [electionId, setElectionId] = useState();
-
-    const [getElection, { data: dataElection, loading: loadingElection }] = getElectionData(electionId);
-    const [getVoteCasts, { data: dataVotings, loading: loadingVotings }] = getVoteCastsData(votingCredentials?.voterWallet?.address, electionId);
+    const [getVoteCasts, { data: dataVotings, loading: loadingVotings }] = getVoteCastsData(votingCredentials?.voterWallet?.address, voting.election.id);
 
     // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
     const [pollingStationState, setPollingStationState] = useState({
         taskId: '',
-        showElectionInformation: false,
+        showElectionInformation: true,
         showElection: false,
         showVotingSlipUpload: false,
-        showVotingSlipSelection: false,
+        showVotingSlipSelection: true,
         showNotification: false,
-        showQuestions: false,
+        showQuestions: true,
         showSendError: false,
         pending: false,
         allowedToVote: false,
@@ -54,7 +50,7 @@ export default function Pollingstation() {
         setPollingStationState({ ...pollingStationState, pending: true });
         //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
         try {
-            const taskId = await sendVotes(votes, votingCredentials, dataElection.election.publicKey, pollingStationState.isVoteRecast);
+            const taskId = await sendVotes(votes, votingCredentials, voting.election.publicKey, pollingStationState.isVoteRecast);
             if (taskId) {
                 cookies.remove('voterQR');
                 setPollingStationState({
@@ -89,7 +85,7 @@ export default function Pollingstation() {
 
             if (Object.keys(credentials).length > 0) {
                 await validateCredentials(credentials);
-                if (parseInt(credentials?.electionID) !== parseInt(dataElection?.election.id)) {
+                if (parseInt(credentials?.electionID) !== parseInt(voting?.election?.id)) {
                     setPollingStationState({
                         ...pollingStationState,
                         showElectionInformation: true,
@@ -128,46 +124,8 @@ export default function Pollingstation() {
         }
     };
 
-    const setNoElectionData = () => {
-        setPollingStationState({
-            ...pollingStationState,
-            showNotification: true,
-            notificationText: t("pollingstation.notification.error.noelectiondatafound"),
-            notificationType: 'error'
-        });
-    };
-
     useEffect(() => {
-        const queryParameters = new URLSearchParams(window.location.search);
-        setElectionId(queryParameters.get("id"));
-        getElection();
-    }, []);
-
-    useEffect(() => {
-        if (loadingElection) return;
-
-        // after we got election data .. check this
-        if (dataElection && dataElection?.election && Object.keys(dataElection?.election).length > 0) {
-            setElectionInformations(JSON.parse(dataElection.election?.descriptionBlob));
-            setPollingStationState({
-                ...pollingStationState,
-                showElectionInformation: true,
-                showQuestions: true,
-                showElection: false,
-                showVotingSlipUpload: false,
-                allowedToVote: false,
-                showVotingSlipSelection: true,
-                showNotification: false,
-                notificationText: '',
-                notificationType: ''
-            });
-        } else {
-            setNoElectionData();
-        }
-    }, [dataElection]);
-
-    useEffect(() => {
-        if (loadingVotings) return;
+        if (loadingVotings || !dataVotings) return;
 
         if (dataVotings && dataVotings?.voteUpdateds && Object.keys(dataVotings?.voteUpdateds).length >= Config.env.maxVoteRecasts) {
             setPollingStationState({
@@ -192,6 +150,7 @@ export default function Pollingstation() {
             ...pollingStationState,
             allowedToVote: true,
             isVoteRecast: isVoteRecast,
+            showQuestions: true,
             showNotification: true,
             notificationType: 'success',
             notificationText: t("pollingstation.notification.success.ballotfits")
@@ -202,16 +161,16 @@ export default function Pollingstation() {
         // only if we have the electioninformations its worth to check
         // wether there is some voter informations stored.
         let voterQR = cookies.get('voterQR');
-        if (typeof voterQR === "undefined" || voterQR?.length == 0 || Object.keys(electionInformations).length === 0 || electionInformations.constructor !== Object) {
+        if (typeof voterQR === "undefined" || voterQR?.length == 0 || Object.keys(voting.electionInformation).length === 0 || voting.electionInformation.constructor !== Object) {
             return;
         }
         qrCodeToCredentials(voterQR);
 
-    }, [electionInformations]);
+    }, []);
 
     useEffect(() => {
         // here we have to see wether voter already voted to prepare for vote-recast
-        if (Object.keys(votingCredentials).length > 0 && electionId && Object.keys(electionInformations).length > 0) {
+        if (Object.keys(votingCredentials).length > 0 && voting.election.id && Object.keys(voting.electionInformation).length > 0) {
             getVoteCasts();
         }
 
@@ -221,8 +180,8 @@ export default function Pollingstation() {
         <>
             {pollingStationState.showElectionInformation && (
                 <Electionheader
-                    election={dataElection?.election}
-                    electionInformations={electionInformations}
+                    election={voting?.election}
+                    electionInformations={voting.electionInformation}
                 />
             )}
 
@@ -238,11 +197,11 @@ export default function Pollingstation() {
 
                 {pollingStationState.showQuestions && (
                     <>
-                        {electionInformations.ballot.map((question, index) =>
+                        {voting.electionInformation.questions.map((question, index) =>
                             <Question
                                 key={index}
                                 questionKey={index}
-                                question={question}
+                                question={question.text}
                                 selectedVote={votes[index]}
                                 showVoteOptions={pollingStationState.allowedToVote}
                                 setVote={(selection) => setVotes(votes => ({
