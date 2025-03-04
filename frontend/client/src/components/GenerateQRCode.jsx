@@ -1,5 +1,4 @@
 'use client';
-import React from "react";
 import { QRCodeCanvas } from 'qrcode.react';
 import styles from '../styles/GenerateQRCode.module.css';
 import NextImage from 'next/image';
@@ -130,8 +129,7 @@ export default function GenerateQRCode(props) {
                             size={300}
                             bgColor={"#ffffff"}
                             fgColor={"#000000"}
-                            level={"L"}
-                            includeMargin={false}
+                            level={"H"}
                             id="qrCodeCanvas"
                             style={{ margin: "1rem auto" }}
                         />
