@@ -11,7 +11,7 @@ const devConfig = {
         maxVoteRecasts: 2,
     },
     images: {
-        domains: ['localhost', 'static.openpetition.de'],
+        domains: ['localhost', 'static.openpetition.de', 'client-test.opn.vote'],
     },
 }
 

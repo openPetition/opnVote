@@ -185,21 +185,22 @@ export default function Pollingstation() {
                 />
             )}
 
-            <div className="op__contentbox_760">
-                {pollingStationState.showNotification && (
-                    <>
-                        <Notification
-                            type={pollingStationState.notificationType}
-                            text={pollingStationState.notificationText}
-                        />
-                    </>
-                )}
+            {pollingStationState.showNotification && (
+                <>
+                    <Notification
+                        type={pollingStationState.notificationType}
+                        text={pollingStationState.notificationText}
+                    />
+                </>
+            )}
 
+            <div className={`${pollingStationState.allowedToVote ? 'op__contentbox_max' : 'op__contentbox_760'}`}>
                 {pollingStationState.showQuestions && (
                     <>
                         {voting.electionInformation.questions.map((question, index) =>
                             <Question
                                 key={index}
+                                imageUrl={question.imageUrl}
                                 questionKey={index}
                                 question={question.text}
                                 selectedVote={votes[index]}
