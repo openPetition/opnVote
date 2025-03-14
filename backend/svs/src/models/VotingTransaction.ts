@@ -1,5 +1,4 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
-//todo: Add  user-encrypted-vote column
 @Entity('votingTransactions')
 export class VotingTransactionEntity {
     @PrimaryGeneratedColumn()

@@ -15,6 +15,7 @@ import swaggerSpec from './config/swaggerConfig';
 import https from 'https';
 import http from 'http';
 import { initializeRegisterKeys } from './init/initializeRegisterKeys';
+import { initializeJobs } from './jobs';
 
 const AP_JWT_PUBLIC_KEY_PATH = process.env.AP_JWT_PUBLIC_KEY_PATH;
 const SERVER_URL = process.env.SERVER_URL
@@ -74,6 +75,8 @@ dataSource.initialize().then(async () => {
 
   app.use('/api/auth', authRoutes);
   app.use('/api/sign', signRoutes);
+
+  initializeJobs(); // initialize cron jobs
 
 
 }).catch((err) => {

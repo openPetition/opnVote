@@ -132,6 +132,9 @@ router.post('/',
       signatureRecord.blindedToken = blindedToken.hexString.toLowerCase();
       signatureRecord.blindedSignature = blindedSignature.hexString.toLowerCase();
       signatureRecord.jwt = jwtToken;
+      signatureRecord.txHash = null;
+      signatureRecord.onchainStatus = 'pending';
+      signatureRecord.batchID = null;
 
       await repository.save(signatureRecord);
       await queryRunner.commitTransaction();
