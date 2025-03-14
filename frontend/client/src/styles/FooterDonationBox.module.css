@@ -1,0 +1,40 @@
+.box {
+    background-color: var(--op-blue-main);
+}
+
+.blueheartbox {
+    max-width: var(--op-max-width-layout);
+    color: #FFF;
+    position: relative;
+    padding: 28px;
+    margin: 64px auto 0;
+    text-align: center;
+}
+
+.blueheartbox::before {
+    position: absolute;
+    background-color: var(--op-blue-main);
+    width: 64px;
+    height: 64px;
+    content: '\2764';
+    top: -32px;
+    left:0;
+    right:0;
+    margin: 0 auto;
+    border-radius: 32px;
+    border: 1px transparent;
+    text-align: center;
+    font-weight: bold;
+    font-size: 2.5rem;
+}
+
+.textblock {
+    font-weight: bold;
+}
+
+@media only screen and (min-width: 600px)
+{
+    .blueheartbox {
+        padding: 28px 0;
+    }
+}

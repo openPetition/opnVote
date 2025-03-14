@@ -7,6 +7,9 @@ const { join } = require('node:path');
 const { tmpdir } = require('node:os');
 const { rm } = require('node:fs/promises');
 
+const browserList = ['chrome', 'firefox', 'safari'];
+
+
 describe('standard flow', function () {
     this.timeout(30000);
     let driver;

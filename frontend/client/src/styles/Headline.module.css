@@ -1,0 +1,80 @@
+.arrowBox {
+    position: relative;
+    padding: 2rem;
+    padding-top: 0;
+    padding-bottom: 0;
+    text-align: center;
+}
+
+.arrowBox::before {
+    position: absolute;
+    background-color: var(--op-grey-main);
+    width: 3.75rem;
+    height: 2.25rem;
+    background-repeat: no-repeat;
+    bottom: -30px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    border-radius: 50%;
+    border: 1px transparent;
+    text-align: center;
+    content: '';
+}
+
+.arrowBox.expanded::before {
+    content: url('/images/arrow-up.svg');
+}
+
+.arrowBox.collapsed::before {
+    content: url('/images/arrow-down.svg');
+}
+
+.infoText {
+    max-width: 250px;
+}
+
+.infoContainer {
+    padding-left: .5rem;
+    padding-right: .5rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    max-width: 760px;
+    width: 100%;
+    position: relative;
+    margin: 0 auto;
+}
+
+.infoContainer img {
+        margin-right: 0.5rem;
+        margin-left: 0.5rem;
+        width: 40px;
+        height: 40px;
+}
+
+.title {
+    font-family: 'Roboto Slab';
+    font-weight: bold;
+    font-size: 27px;
+    line-height: 34px;
+    padding-top: 10px;
+}
+
+.infoToggleButton {
+        display: block;
+        min-width: 1.3rem;
+        max-width: 1.3rem;
+        margin-right: 0.5rem;
+}
+
+@media (min-width: 600px) {
+    .info-toggle-button {
+        display: none !important;
+    }
+    .infoText {
+        max-width: 100%;
+    }
+}

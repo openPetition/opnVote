@@ -12,7 +12,6 @@ html {
   --op-grey-main: #EFEFEF;
 
   --op-max-width-layout: 1160px;
-
   --op-padding-standard: .5rem;
 }
 
@@ -41,15 +40,27 @@ h4 {
 }
 
 .op__padding_standard {
-  padding: .5rem;
+  padding: var(--op-padding-standard);
 }
 
 .op__padding_standard_top_bottom {
-  padding: .5rem 0;
+  padding: var(--op-padding-standard) 0;
 }
 
 .op__padding_standard_left_right {
-  padding: 0 .5rem;
+  padding: 0 var(--op-padding-standard);
+}
+
+.op__margin_standard_left {
+  margin-left: var(--op-padding-standard);
+}
+
+.op__padding_standard_left {
+  padding-left: .5rem;
+}
+
+.op__padding_standard_right {
+  padding-right: .5rem;
 }
 
 .op__contentbox_760 {
@@ -91,13 +102,30 @@ h4 {
   padding-right: .5rem;
 }
 
+.op__display_none_small {
+  display: none;
+}
+
+.op__display_inline_small {
+  display: inline;
+}
+
 .hover {
   cursor: pointer;
 }
 
-
-
 @media only screen and (min-width: 800px) {
+  .op__display_none_wide {
+    display: none;
+  }
+
+  .op__display_inline_wide {
+    display: inline;
+  }
+
+  .op__display_inline_block_wide {
+    display: inline-block;
+  }
 
   .op__contentbox_760,
   .op__mob_padding_standard_left_right {

@@ -10,6 +10,7 @@ import Button from "@/components/Button";
 import { useTranslation } from "next-i18next";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
+import Headline from "@/components/Headline";
 
 export default function CreateSecret() {
     const { t } = useTranslation();
@@ -69,12 +70,12 @@ export default function CreateSecret() {
 
     return (
         <>
-            <div className="bg-op-blue">
-                <div className="flex-col items-center justify-between p-5 text-sm">
-                    Dieser Part wird noch extrahiert.... nur zur Einteilung..
-                    Die Generierung und Speicherung deines Geheimnisses erfolgt komplett „offline“. Wenn du ganz sicher gehen will, kannst du deine Internetverbindung jetzt deaktivieren und später wieder aktivieren.
-                </div>
-            </div>
+            <Headline
+                title={t("secret.headline.createSecret.title")}
+                text={t("secret.headline.createSecret.text")}
+                infoText={t("secret.headline.createSecret.infoText")}
+                image="/images/offline.svg"
+            />
 
             <main className="op__contentbox_760">
                 {!createSecretState.showKeyCheck && (

@@ -1,56 +1,65 @@
 'use client';
-import React from "react";
 import styles from "../styles/Question.module.css";
 import { VoteOption } from "votingsystem";
+import { useTranslation } from 'next-i18next';
 
 export default function Question(props) {
-    const { question, questionKey, showVoteOptions, setVote, selectedVote } = props;
+    const { question, questionKey, showVoteOptions, setVote, selectedVote, imageUrl } = props;
+    const { t } = useTranslation();
 
     return (
         <>
-            <div className="op__outerbox_grey">
-                <h4>{question}</h4>
+            <div className={`${styles.question_container} op__outerbox_grey`}>
+                <div className={`${styles.question_container_image}`}>
+                    <img
+                        src={imageUrl}
+                        alt=""
+                    />
+                </div>
 
-                {showVoteOptions && (
-                    <div className={styles.vote_options} role="radiogroup">
-                        <div className={styles.vote_option}>
-                            <input
-                                type="radio"
-                                id ={`voteselect_${questionKey}_yes`}
-                                name={`voteselect_${questionKey}`}
-                                defaultChecked={selectedVote === VoteOption.Yes}
-                                className={`${styles.checkmark} ${selectedVote === VoteOption.Yes ? styles.selected : ''}`}
-                                value="Ich stimme zu"
-                                onChange={() => setVote(VoteOption.Yes)}
-                            />
-                            <label htmlFor={`voteselect_${questionKey}_yes`}>Ich stimme zu</label>
+                <div className={`${styles.question_container_text}`}>
+                    <h4>{question}</h4>
+                    {showVoteOptions && (
+                        <div className={styles.vote_options} role="radiogroup">
+                            <div className={styles.vote_option}>
+                                <input
+                                    type="radio"
+                                    id={`voteselect_${questionKey}_yes`}
+                                    name={`voteselect_${questionKey}`}
+                                    defaultChecked={selectedVote === VoteOption.Yes}
+                                    className={`${styles.checkmark} ${selectedVote === VoteOption.Yes ? styles.selected : ''}`}
+                                    value={t("pollingstation.question.answer.yes")}
+                                    onChange={() => setVote(VoteOption.Yes)}
+                                />
+                                <label htmlFor={`voteselect_${questionKey}_yes`}>{t("pollingstation.question.answer.yes")}</label>
+                            </div>
+                            <div className={styles.vote_option}>
+                                <input
+                                    type="radio"
+                                    id={`voteselect_${questionKey}_no`}
+                                    name={`voteselect_${questionKey}`}
+                                    defaultChecked={selectedVote === VoteOption.No}
+                                    className={`${styles.checkmark} ${selectedVote === VoteOption.No ? styles.selected : ''}`}
+                                    value={t("pollingstation.question.answer.no")}
+                                    onChange={() => setVote(VoteOption.No)}
+                                />
+                                <label htmlFor={`voteselect_${questionKey}_no`}>{t("pollingstation.question.answer.no")}</label>
+                            </div>
+                            <div className={styles.vote_option}>
+                                <input
+                                    type="radio"
+                                    id={`voteselect_${questionKey}_abstain`}
+                                    name={`voteselect_${questionKey}`}
+                                    defaultChecked={selectedVote === VoteOption.Abstain}
+                                    className={`${styles.checkmark} ${selectedVote === VoteOption.Abstain ? styles.selected : ''}`}
+                                    value={t("pollingstation.question.answer.abstain")}
+                                    onChange={() => setVote(VoteOption.Abstain)}
+                                />
+                                <label htmlFor={`voteselect_${questionKey}_abstain`}>{t("pollingstation.question.answer.abstain")}</label>
+                            </div>
                         </div>
-                        <div className={styles.vote_option}>
-                            <input
-                                type="radio"
-                                id ={`voteselect_${questionKey}_no`}
-                                name={`voteselect_${questionKey}`}
-                                defaultChecked={selectedVote === VoteOption.No}
-                                className={`${styles.checkmark} ${selectedVote === VoteOption.No ? styles.selected : ''}`}
-                                value="Ich stimme nicht zu"
-                                onChange={() => setVote(VoteOption.No)}
-                            />
-                            <label htmlFor={`voteselect_${questionKey}_no`}>Ich stimme nicht zu</label>
-                        </div>
-                        <div className={styles.vote_option}>
-                            <input
-                                type="radio"
-                                id = {`voteselect_${questionKey}_abstain`}
-                                name={`voteselect_${questionKey}`}
-                                defaultChecked={selectedVote === VoteOption.Abstain}
-                                className={`${styles.checkmark} ${selectedVote === VoteOption.Abstain ? styles.selected : ''}`}
-                                value="Ich enthalte mich"
-                                onChange={() => setVote(VoteOption.Abstain)}
-                            />
-                            <label htmlFor={`voteselect_${questionKey}_abstain`}>Ich enthalte mich</label>
-                        </div>
-                    </div>
-                )}
+                    )}
+                </div>
 
             </div>
         </>
