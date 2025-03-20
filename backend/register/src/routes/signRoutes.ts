@@ -9,6 +9,8 @@ import { BlindedSignature } from '../models/BlindedSignature';
 import { dataSource } from '../database';
 import { ApiResponse } from '../types/apiResponses';
 import { RegisterKeyService } from '../services/registerKeyService';
+import { QueryRunner } from 'typeorm';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -79,15 +81,19 @@ router.post('/',
   checkElectionStatus,              // Confirms that election status is Pending or Open
   checkForExistingBlindedSignature, // Confirms that user didnt receive a blinded Signature for this election
   async (req: Request, res: Response) => {
-    const queryRunner = dataSource.createQueryRunner();
-
+    let queryRunner: QueryRunner | undefined;
     try {
+      queryRunner = dataSource.createQueryRunner();
+      logger.debug('Starting transaction for user registration');
+
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
       const { userID, electionID } = req.user!;
       const authHeader = req.headers.authorization!;
       const blindedToken = req.body.token as Token;
+
+      logger.debug(`Processing registration for user ${userID} in election ${electionID}`);
 
       // Re-check for existing signature with lock
       const repository = queryRunner.manager.getRepository(BlindedSignature);
@@ -102,6 +108,7 @@ router.post('/',
       if (existingSignature) {
         // If same token, return existing signature
         if (existingSignature.blindedToken.toLowerCase() === blindedToken.hexString.toLowerCase()) {
+          logger.debug(`Found existing signature for user ${userID} with same token`);
           return res.json({
             data: {
               message: 'Existing blinded signature found.',
@@ -111,6 +118,7 @@ router.post('/',
           } as ApiResponse<{ blindedSignature: string }>);
         }
 
+        logger.warn(`User ${userID} already registered with different token`);
         return res.status(400).json({
           data: null,
           error: 'Already registered with different token'
@@ -121,7 +129,6 @@ router.post('/',
       if (!registerSigner) {
         throw new Error(`No register keys configured for election ${electionID}`);
       }
-
 
       const blindedSignature = signToken(blindedToken, registerSigner);
       const jwtToken = authHeader.split(' ')[1];
@@ -138,9 +145,10 @@ router.post('/',
 
       await repository.save(signatureRecord);
       await queryRunner.commitTransaction();
+      logger.debug(`Successfully committed transaction for user ${userID}`);
 
       // Return signed Token
-      res.json({
+      return res.json({
         data: {
           blindedSignature: signatureRecord.blindedSignature.toLowerCase()
         },
@@ -148,14 +156,30 @@ router.post('/',
       } as ApiResponse<{ blindedSignature: string }>);
 
     } catch (error) {
-      await queryRunner.rollbackTransaction();
-      console.error('Error signing token:', error);
+      logger.error('Error in registration process:', error);
+
+      if (queryRunner?.isTransactionActive) {
+        try {
+          await queryRunner.rollbackTransaction();
+          logger.debug('Successfully rolled back transaction');
+        } catch (rollbackError) {
+          logger.error('Error rolling back transaction: ' + rollbackError);
+        }
+      }
+
       return res.status(500).json({
         data: null,
         error: 'Failed to process token'
       } as ApiResponse<null>);
     } finally {
-      await queryRunner.release();
+      if (queryRunner) {
+        try {
+          await queryRunner.release();
+          logger.debug('Successfully released query runner');
+        } catch (releaseError) {
+          logger.error('Error releasing query runner: ' + releaseError);
+        }
+      }
     }
   })
 
