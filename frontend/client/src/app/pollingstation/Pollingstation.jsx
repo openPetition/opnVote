@@ -181,7 +181,7 @@ export default function Pollingstation() {
             {pollingStationState.showElectionInformation && (
                 <Electionheader
                     election={voting?.election}
-                    electionInformations={voting.electionInformation}
+                    electionInformation={voting.electionInformation}
                 />
             )}
 
