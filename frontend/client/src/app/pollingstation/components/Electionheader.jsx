@@ -48,7 +48,7 @@ export default function Electionheader(props) {
                                 <h3>
                                     <CircleDot
                                         strokeWidth={5}
-                                        className={`${styles.stateCircle} ${styles[electionState]}`}
+                                        className={`${styles.state_circle} ${styles[electionState]}`}
                                     />
                                     {t('pollingstation.electionHeader.statetitle.' + electionState)}
                                 </h3>

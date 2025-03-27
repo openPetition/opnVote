@@ -17,6 +17,7 @@ describe('standard flow', function () {
     var options = new chromeDriver.Options();
     var tmp;
 
+
     beforeEach(async function () {
         tmp = await mkdtemp(join(tmpdir(), 'selenium-'));
         options.setUserPreferences({
@@ -36,14 +37,14 @@ describe('standard flow', function () {
         }
     })
 
-    it('standard flow', async function () {
+    //standard flow 1: election running - user runs through
+    it('flow 1', async function () {
         await driver.manage().setTimeouts({
             script: 20000,
             pageLoad: 20000,
             implicit: 20000,
         });
-        await driver.get("https://www.dev-openpetition.de/opn-vote?demo=premiere&language=de_DE.utf8");
-        await driver.manage().window().setRect({ width: 962, height: 1245 });
+        await driver.get("https://www.dev-openpetition.de/opn-vote?userId=1&electionId=1&language=de_DE.utf8");
         await driver.findElement(By.xpath("//a[contains(text(),'Jetzt an Wahl teilnehmen')]")).click();
         await driver.findElement(By.id("Pfad_167")).click();
         await driver.findElement(By.xpath("//button[contains(.,\'Speichern\')]")).click();
@@ -51,13 +52,45 @@ describe('standard flow', function () {
         await driver.findElement(By.xpath("//input[@type=\'file\']")).sendKeys(tmp + "/Wahlschlüssel.png");
         await driver.findElement(By.xpath("//button[contains(.,\'Wahlschein bestellen\')]")).click();
         await driver.executeScript("window.scrollTo(0,0)");
+
+        await driver.findElement(By.css(".Button_secondary__egtBn")).click();
+        await driver.findElement(By.id("voteselect_0_yes")).click();
+        await driver.findElement(By.id("voteselect_1_no")).click();
+        await driver.findElement(By.id("voteselect_2_no")).click();
+        await driver.findElement(By.css(".Button_primary__JRIAm")).click();
+    });
+
+    //standard flow 1: user comes back and has existing key - can upload it to generate register paper
+    it('flow 2', async function () {
+        await driver.manage().setTimeouts({
+            script: 30000,
+            pageLoad: 20000,
+            implicit: 30000,
+        });
+        await driver.get("https://www.dev-openpetition.de/opn-vote?userId=1&electionId=1&language=de_DE.utf8");
+        await driver.manage().window().setRect({ width: 962, height: 1245 });
+        await driver.findElement(By.xpath("//a[contains(text(),'Jetzt an Wahl teilnehmen')]")).click();
+        await driver.findElement(By.id("Pfad_167")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Speichern\')]")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'weiter zur Prüfung\')]")).click();
+        await driver.findElement(By.xpath("//input[@type=\'file\']")).sendKeys(tmp + "/Wahlschlüssel.png");
+
+        await driver.get("https://client-test.opn.vote/runte"); // wrong one on purpose
+
+        await driver.executeScript("window.localStorage.clear();");
+        await driver.executeScript("window.localStorage.removeItem('opnvote-storage');");
+        await driver.executeScript("window.localStorage.setItem('opnvote-storage', '');");
+        await driver.get("https://www.dev-openpetition.de/opn-vote?userId=1&electionId=1&language=de_DE.utf8");
+        await driver.manage().window().setRect({ width: 962, height: 1245 });
+        await driver.findElement(By.xpath("//a[contains(text(),'Jetzt an Wahl teilnehmen')]")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Wahlschein bestellen\')]")).click();
         await driver.findElement(By.xpath("//button[contains(.,\'Wahlschein bestellen\')]")).click();
         await driver.findElement(By.xpath("//input[@type=\'file\']")).sendKeys(tmp + "/Wahlschlüssel.png");
         await driver.findElement(By.css(".Button_secondary__egtBn")).click();
         await driver.findElement(By.id("voteselect_0_yes")).click();
         await driver.findElement(By.id("voteselect_1_no")).click();
         await driver.findElement(By.id("voteselect_2_no")).click();
-        await driver.findElement(By.id("voteselect_3_no")).click();
         await driver.findElement(By.css(".Button_primary__JRIAm")).click();
     });
+
 });

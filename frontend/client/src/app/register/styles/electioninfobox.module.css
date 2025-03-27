@@ -1,0 +1,106 @@
+.stripe {
+    width: 100%;
+    margin-top: 2rem;
+}
+
+.inner_stripe_box {
+    max-width: 100%;
+}
+
+.inner_stripe_box:first-child {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.inner_stripe_box:last-child {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    max-height: 320px;
+}
+
+.title {
+    text-align: left;
+    margin: 0;
+    padding: 0;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.election_informations {
+    padding-left: 0;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    margin: 1rem 0;
+    gap: var(--op-padding-standard);
+}
+
+.election_informations_box {
+    gap: 1rem;
+    max-width: 100%;
+    text-align: center;
+}
+
+.state_circle {
+    display: inline-block;
+    margin-right: var(--op-padding-standard);
+    height: 16px;
+    width: 16px;
+    margin-top: -3px;
+}
+
+.finished {
+    color: #e34d4d;
+}
+
+.ongoing {
+    color: #5dc876;
+}
+
+.planned {
+    color: #f6ff91;
+}
+
+.election_image {
+    margin: 0 auto;
+    position: relative;
+    width: 100%;
+}
+
+
+
+@media only screen and (min-width: 800px) {
+    .stripe {
+        margin-top: 2rem;
+    }
+
+    .inner_stripe_box:first-child {
+        display: flex;
+        justify-content: left;
+        flex-direction: row;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .election_image {
+        margin: 0 auto;
+        position: relative;
+        width: 160px;
+    }
+
+    .election_informations_box {
+        min-width: 160px;
+    }
+
+    .election_informations {
+        flex-direction: row;
+        justify-content: space-around;
+
+    }
+}

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import Cookies from 'universal-cookie';
 import Notification from "../../components/Notification";
 import Button from '../../components/Button';
 import NavigationBox from '../../components/NavigationBox';
@@ -18,9 +17,8 @@ import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
 
 export default function Pollingstation() {
-    const { updatePage, voting } = useOpnVoteStore((state) => state);
+    const { updatePage, voting, updateVoting } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
-    const cookies = new Cookies(null, { path: '/' });
     const [votingCredentials, setVotingCredentials] = useState({});
     const [votes, setVotes] = useState({});
     const [getVoteCasts, { data: dataVotings, loading: loadingVotings }] = getVoteCastsData(votingCredentials?.voterWallet?.address, voting.election.id);
@@ -52,7 +50,7 @@ export default function Pollingstation() {
         try {
             const taskId = await sendVotes(votes, votingCredentials, voting.election.publicKey, pollingStationState.isVoteRecast);
             if (taskId) {
-                cookies.remove('voterQR');
+                updateVoting({ registerCode: '' });
                 setPollingStationState({
                     ...pollingStationState,
                     taskId: taskId,
@@ -160,11 +158,11 @@ export default function Pollingstation() {
     useEffect(() => {
         // only if we have the electioninformations its worth to check
         // wether there is some voter informations stored.
-        let voterQR = cookies.get('voterQR');
-        if (typeof voterQR === "undefined" || voterQR?.length == 0 || Object.keys(voting.electionInformation).length === 0 || voting.electionInformation.constructor !== Object) {
+
+        if (voting.registerCode?.length == 0 || Object.keys(voting.electionInformation).length === 0 || voting.electionInformation.constructor !== Object) {
             return;
         }
-        qrCodeToCredentials(voterQR);
+        qrCodeToCredentials(voting.registerCode);
 
     }, []);
 
@@ -284,6 +282,7 @@ export default function Pollingstation() {
                                 isDisabled={pollingStationState.pending}
                                 text={t("pollingstation.button.savevotes")}
                                 type="primary"
+                                id="test_btn_sendvote"
                             />
                         </div>
                         {pollingStationState.showSendError && (

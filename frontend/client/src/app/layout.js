@@ -1,11 +1,9 @@
 'use client';
-import { useEffect } from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 import './i18n';
 import Config from "../../next.config.mjs";
-import { useOpnVoteStore } from "../opnVoteStore";
 import Head from "@/components/Head";
 import Footer from "@/components/Footer"
 import DataLoad from "@/components/DataLoad";

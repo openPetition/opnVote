@@ -62,7 +62,7 @@
     text-align: center;
 }
 
-.stateCircle {
+.state_circle {
     display: inline-block;
     margin-right: var(--op-padding-standard);
     height: 16px;
