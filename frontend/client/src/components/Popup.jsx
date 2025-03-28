@@ -1,5 +1,4 @@
 'use client';
-import { useTranslation } from 'next-i18next';
 import styles from '../styles/Popup.module.css';
 import Button from "./Button";
 import Notification from './Notification';
@@ -16,12 +15,14 @@ export default function Popup(props) {
         const { bodyText, notificationType } = props;
         switch (notificationType) {
             case "none":
-                return <>{bodyText}</>
+                return <>{bodyText}</>;
             default:
-                return <Notification
-                    type={notificationType}
-                    text={bodyText}
-                />
+                return (
+                    <Notification
+                        type={notificationType}
+                        text={bodyText}
+                    />
+                );
         }
     }
 
@@ -40,17 +41,19 @@ export default function Popup(props) {
                                     notificationType={notificationType}
                                 />
                             </div>
-                            <div className={styles.popupFooter}>
-                                <Button
-                                    onClickAction={buttonFunction}
-                                    text={buttonText}
-                                    type="primary"
-                                />
-                            </div>
+                            {buttonText && (
+                                <div className={styles.popupFooter}>
+                                    <Button
+                                        onClickAction={buttonFunction}
+                                        text={buttonText}
+                                        type="primary"
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </>
             )}
         </>
-    )
+    );
 }

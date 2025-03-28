@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from 'next/image';
 import styles from '../styles/Header.module.css';
 import { useOpnVoteStore } from "../opnVoteStore";
-import { Trash2, CircleCheckBig, CircleMinus } from 'lucide-react';
+import { CircleCheckBig, CircleMinus } from 'lucide-react';
 import Loading from "./Loading";
 import { useTranslation } from 'next-i18next';
 
@@ -36,8 +36,7 @@ export default function Head() {
     }
 
     const Showkey = () => {
-        const { user, updateUserKey } = useOpnVoteStore((state) => state);
-        const deleteUserKey = () => updateUserKey('');
+        const { user } = useOpnVoteStore((state) => state);
         if (user?.key) {
             return (
                 <>
@@ -50,29 +49,44 @@ export default function Head() {
                         color="#2e8444"
                         className={`op__display_inline_small op__display_none_wide op__margin_standard_left`}
                     />
-                    <span className={`hover op__margin_standard_left`} onClick={deleteUserKey}>
-                        <Trash2 size={18} />
-                    </span>
-
                 </>
             );
         } else {
             return (
                 <span className="op__padding_standard_left_right ">
-                    <CircleMinus size={18} className={`op__display_inline_small`} />
-                    <strong className={`op__display_none_small`}>{t('common.nothingset')}</strong>
+                    <CircleMinus size={18} className={`op__display_inline_small op__display_none_wide`} />
+                    <strong className={`op__display_none_small op__display_inline_wide`}>{t('common.nothingset')}</strong>
                 </span>
             );
         }
-    }
+    };
 
     const ShowBallot = () => {
-        return (
-            <span className={`op__display_none_small op__padding_standard_left_right`}>
-                <strong>{t('common.nothingset')}</strong>
-            </span>
-        );
-    }
+        const { voting } = useOpnVoteStore((state) => state);
+
+        if (voting?.registerCode?.length > 0) {
+            return (
+                <>
+                    <strong className={`op__display_none_small op__display_inline_wide op__margin_standard_left`}>
+                        {voting.registerCode.substring(0, 7)}..
+                    </strong>
+                    <CircleCheckBig
+                        size={18}
+                        strokeWidth={3}
+                        color="#2e8444"
+                        className={`op__display_inline_small op__display_none_wide op__margin_standard_left`}
+                    />
+                </>
+            );
+        } else {
+            return (
+                <span className="op__padding_standard_left_right ">
+                    <CircleMinus size={18} className={`op__display_inline_small op__display_none_wide`} />
+                    <strong className={`op__display_none_small op__display_inline_wide`}>{t('common.nothingset')}</strong>
+                </span>
+            );
+        }
+    };
 
     return (
         <>

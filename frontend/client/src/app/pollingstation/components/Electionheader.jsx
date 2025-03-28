@@ -1,70 +1,73 @@
 'use client';
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import { useState, useEffect } from "react";
+import { useTranslation } from 'next-i18next';
+import CountDown from "./CountDown";
 import styles from "../styles/ElectionHeader.module.css";
+import globalConst from "@/constants";
+import { CircleDot } from 'lucide-react';
 
 export default function Electionheader(props) {
-    const { election, electionInformations } = props;
-    const [timeLeft, setTimeLeft] = useState({});
-
-    const electionCountdown = () => {
-        const currentTime = Math.floor (new Date().getTime()/ 1000);
-        const distance =   election.endTime - currentTime;
-
-        const lefties = {
-            leftdays: Math.floor(distance / ( 60 * 60 * 24)),
-            lefthours: Math.floor((distance % (60 * 60 * 24)) / (60 * 60)),
-            leftminutes: Math.floor((distance % (60 * 60)) / (60))     };
-
-        setTimeLeft({
-            ...timeLeft,
-            days: lefties.leftdays.toString(),
-            hours: lefties.lefthours.toString(),
-            minutes: lefties.leftminutes.toString(),
-        });
-    };
+    const { election, electionInformation } = props;
+    const { t } = useTranslation();
+    const [electionState, setElectionState] = useState(globalConst.electionState.ONGOING);
 
     useEffect(() => {
-        //countdown refreshes every minute as it should not rerender every second cause this could cause timing problems
-        electionCountdown();
-        setInterval(() => {
-            electionCountdown();
-        }, 60000);
+        const currentTime = Math.floor(new Date().getTime() / 1000);
+        const state = Number(currentTime) < Number(election.startTime) ? globalConst.electionState.PLANNED : Number(currentTime) < Number(election.endTime) ? globalConst.electionState.ONGOING : globalConst.electionState.FINISHED;
+        setElectionState(state);
     }, []);
 
     return (
         <>
-            <div className={styles.greystripe}>
-                <div className="op__contentbox_760">
-                    <Image
-                        src="https://static.openpetition.de/images/people-protesting-eu-medium.jpg?1716990305"
-                        className={styles.election_image}
-                        width={0}
-                        height={0}
-                        alt="election image"
-                        sizes="100vw"
-                    />
-                    <div className={styles.election_informations}>
-                        <h4>{electionInformations.title}</h4>
-                        Status: {election.status}<br />
-                        Stimmen: {election.totalVotes}
+
+            <div className={`${styles.greystripe}`}>
+                <div className={`${styles.inner_stripe}`}>
+
+                    <div className={`${styles.inner_stripe_box}`}>
+                        <div>
+                            <img
+                                src={electionInformation.headerImage.large}
+                                className={styles.election_image}
+                                alt=""
+                            />
+                        </div>
+                    </div>
+
+                    <div className={`${styles.inner_stripe_box} `}>
+                        <div><h4>{electionInformation.title}</h4></div>
+                        <div className={styles.election_informations}>
+                            <div className={`${styles.election_informations_box}`}>
+                                <h3>{electionInformation.author}</h3>
+                                <small>{t('pollingstation.electionHeader.officer')}</small>
+                            </div>
+                            <div className={`${styles.election_informations_box}`}>
+                                <h3>{election.totalVotes}</h3>
+                                <small>{t('pollingstation.electionHeader.votes')}</small>
+                            </div>
+                            <div className={`${styles.election_informations_box}`}>
+                                <h3>
+                                    <CircleDot
+                                        strokeWidth={5}
+                                        className={`${styles.state_circle} ${styles[electionState]}`}
+                                    />
+                                    {t('pollingstation.electionHeader.statetitle.' + electionState)}
+                                </h3>
+                                <small>{t('pollingstation.electionHeader.state')}</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div className={styles.bluestripe}>
-                <div className="op__contentbox_760">
-                    {timeLeft && Object.keys(timeLeft).length > 0 && (
-                        <div className={styles.timer_mainbox}>
-                            <div className={styles.timer_headline}>Abstimmung läuft noch:</div>
-                            <div className={styles.timer}>
-                                <div className={styles.timer_item}><h3>{timeLeft.days}</h3>Tage</div>
-                                <div className={styles.timer_item_between}><h3>:</h3></div>
-                                <div className={styles.timer_item}><h3>{timeLeft.hours}</h3>Stunden</div>
-                                <div className={styles.timer_item_between}><h3>:</h3></div>
-                                <div className={styles.timer_item}><h3>{timeLeft.minutes}</h3>Minuten</div>
-                            </div>
-                        </div>
-                    )}
+                <div className="op__contentbox_max">
+                    <CountDown
+                        countDownEndTime={electionState == globalConst.electionState.ONGOING ? election.endTime : election.startTime}
+                        countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
+                        countDownState={'ongoing'}//{electionState == globalConst.electionState.FINISHED ? globalConst.electionState.FINISHED : globalConst.electionState.ONGOING}
+                        electionStartDate={election.startTime}
+                        electionEndDate={election.endTime}
+                    />
+
                 </div>
             </div>
 

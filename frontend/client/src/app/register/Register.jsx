@@ -1,16 +1,16 @@
 'use client';
 
+import { shallow } from "zustand/shallow";
 import { useState, useEffect } from "react";
 
 import NextImage from 'next/image';
 import Notification from "../../components/Notification";
 import Loading from "../../components/Loading";
 import ConfirmPopup from "../../components/ConfirmPopup";
-import HtmlQRCodePlugin from "../../components/ScanUploadQRCode";
+import ScanUploadQRCode from "@/components/ScanUploadQRCode";
 import GenerateQRCode from "../../components/GenerateQRCode";
 import NavigationBox from "../../components/NavigationBox";
 import Button from "../../components/Button";
-import Cookies from 'universal-cookie';
 import { getBlindedSignature } from '../../service';
 import { useTranslation } from 'next-i18next';
 import { qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, blindToken, unblindSignature, createVoterCredentials, concatElectionCredentialsForQR, RSA_BIT_LENGTH } from "votingsystem";
@@ -18,20 +18,29 @@ import Config from "../../../next.config.mjs";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
 import Headline from "@/components/Headline";
+import Popup from "@/components/Popup";
+import ElectionInfoBox from "./components/ElectionInfoBox";
 
 export default function Register() {
     const { t } = useTranslation();
-    const { voting, updatePage } = useOpnVoteStore((state) => state);
+    const user = useOpnVoteStore((state) => state.user);
+
+    const { voting, updateUserKey, updatePage, updateVoting } = useOpnVoteStore(
+        (state) => state, shallow
+    );
     const [decodedValue, setDecodedValue] = useState("");
-    const [voterQRCodeText, setVoterQRCodeText] = useState("");
+    const [electionState, setElectionState] = useState("");
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [registerCode, setRegisterCode] = useState("");
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
     // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
 
     const [registerState, setRegisterState] = useState({
         showLoading: false,
-        showStartProcessScreen: true,
-        showElectionInformation: true,
+        showStartProcessScreen: false,
+        showElectionInformation: false,
         showQRCodeUploadPlugin: false,
         showBallot: false,
         showContinueModal: false,
@@ -40,8 +49,9 @@ export default function Register() {
         notificationType: '',
         showQRLoadingAnimation: false,
         showVoteLater: false,
+        showSaveRegisterQRSuccess: false,
     });
-    const cookies = new Cookies(null, { path: '/' });
+
     const generateVoteCredentials = async function () {
         setRegisterState({
             ...registerState,
@@ -64,30 +74,38 @@ export default function Register() {
             let unblindedSignature = await unblindSignature(blindedSignature, electionR, registerRSA);
             let voterCredentials = await createVoterCredentials(unblindedSignature, unblindedElectionToken, masterTokens.token, voting.electionId);
             let qrVoterCredentials = await concatElectionCredentialsForQR(voterCredentials);
-            setVoterQRCodeText(qrVoterCredentials);
-            setRegisterState({
-                ...registerState,
-                showLoading: false,
-                showBallot: false,
-                showQRCodeUploadPlugin: false,
-                showQRLoadingAnimation: true
-            });
-            await delay(1000);
-            setRegisterState({
-                ...registerState,
-                showQRCodeUploadPlugin: false,
-                showBallot: true,
-                showQRLoadingAnimation: false,
-            });
+            updateVoting({ registerCode: qrVoterCredentials });
+            loadingQRchange();
         } catch (error) {
             setRegisterState({
                 ...registerState,
                 showLoading: false,
                 showNotification: true,
-                notificationText: 'Fehler bei der Verarbeitung des QR Code. ',
+                notificationText: t("register.error" + error.message ? error.message : 'general'),
                 notificationType: 'error'
             });
         };
+    };
+
+    // only loading animation
+    const loadingQRchange = async function () {
+        setRegisterState({
+            ...registerState,
+            showStartProcessScreen: false,
+            showNotification: false,
+            showLoading: false,
+            showBallot: false,
+            showQRCodeUploadPlugin: false,
+            showQRLoadingAnimation: true
+        });
+        await delay(1000);
+        setRegisterState({
+            ...registerState,
+            showElectionInformation: true,
+            showQRCodeUploadPlugin: false,
+            showBallot: true,
+            showQRLoadingAnimation: false,
+        });
     };
 
     const copyToClipboard = () => {
@@ -95,8 +113,6 @@ export default function Register() {
     };
 
     const goToElection = function () {
-        //set cookie with election data
-        cookies.set('voterQR', voterQRCodeText);
         updatePage({ current: globalConst.pages.POLLINGSTATION });
     };
 
@@ -129,22 +145,77 @@ export default function Register() {
     useEffect(() => {
         // work with qr code value / decoded value in next step
         if (decodedValue && decodedValue.length > 0) {
-            generateVoteCredentials();
+            setRegisterState({
+                ...registerState,
+                showStartProcessScreen: false,
+                showNotification: false,
+            });
+
+            if (voting.registerCode.length == 0) {
+                //has to generate registercode
+                generateVoteCredentials();
+            } else {
+                //already has registercode
+                loadingQRchange();
+            }
         }
     }, [decodedValue]);
+
+
+    useEffect(() => {
+        if (registerCode && voting.registerCode != registerCode) {
+            updateVoting({ registerCode: registerCode });
+        }
+
+    }, [registerCode]);
+
+
+
+    useEffect(() => {
+        const currentTime = Math.floor(new Date().getTime() / 1000);
+        const tempStartTime = new Date(Number(voting.election.startTime) * 1000);
+        const tempEndTime = new Date(Number(voting.election.endTime) * 1000);
+        setStartDate(tempStartTime.toLocaleDateString());
+        setEndDate(tempEndTime.toLocaleDateString());
+        const state = Number(currentTime) < Number(voting.election.startTime) ? globalConst.electionState.PLANNED : Number(currentTime) < Number(voting.election.endTime) ? globalConst.electionState.ONGOING : globalConst.electionState.FINISHED;
+        setElectionState(state);
+
+        // register already given? only show it
+        if (voting.registerCode.length > 0) {
+            loadingQRchange();
+            return;
+        };
+
+        // user key already given - use it to generate register
+        if (user.key.length > 0) {
+            setDecodedValue(user.key);
+            return;
+        };
+
+        // nothing given - upload key flow
+        setRegisterState({
+            ...registerState,
+            showElectionInformation: true,
+            showStartProcessScreen: true,
+            showNotification: false,
+        });
+
+
+    }, []);
 
     return (
         <>
             <>
                 <Headline
-                    title={registerState.showBallot ? t("register.ballot.headline.title") : t("register.headline.title")}
-                    text={registerState.showBallot ? t("register.ballot.headline.text") : t("register.headline.text")}
-                    infoText={registerState.showBallot ? t("register.ballot.headline.infoText") : t("register.headline.infoText")}
+                    title={t("register.headline.title")}
+                    text={t("register.headline.text")}
+                    infoText={registerState.showBallot ? '' : t("register.headline.infoText")}
                     image="/images/online.svg"
                 />
             </>
 
             <div className="op__contentbox_760">
+
                 {(registerState.showLoading) && (
                     <>
                         <Loading loadingText={t("common.loading.text")} />
@@ -152,15 +223,9 @@ export default function Register() {
                 )}
 
                 {registerState.showElectionInformation && (
-                    <>
-                        <h3>{t("register.headline.orderballot")}</h3>
-                        <p>
-                            {t("register.text.ballotdescription")}
-                        </p>
-                        <div className="op__outerbox_grey">
-                            <h3>{voting.electionInformation.title}</h3>
-                        </div>
-                    </>
+                    <ElectionInfoBox
+                        showTitleOnlyMobile={registerState.showBallot ? true : false}
+                    />
                 )}
 
                 {registerState.showNotification && (
@@ -172,15 +237,21 @@ export default function Register() {
                     </>
                 )}
 
+                {registerState.showQRLoadingAnimation && (
+                    <Loading loadingText={t("common.loading.text")} />
+                )}
+
                 {registerState.showElectionInformation && (
                     <>
                         {registerState.showStartProcessScreen && (
                             <>
-                                <Button
-                                    onClickAction={activateQRCodeUpload}
-                                    text={t("register.button.orderballot")}
-                                    type="primary"
-                                />
+                                <div className="op__center-align">
+                                    <Button
+                                        onClickAction={activateQRCodeUpload}
+                                        text={t("register.button.orderballot")}
+                                        type="primary"
+                                    />
+                                </div>
                                 <div className="flex items-center justify-center">
                                     <div>
                                         <NavigationBox
@@ -197,18 +268,14 @@ export default function Register() {
 
                         {registerState.showQRCodeUploadPlugin && (
                             <>
-                                <HtmlQRCodePlugin
-                                    headline={t("register.uploadqrcode.headline")}
+                                <ScanUploadQRCode
+                                    headline={t("")}
                                     subheadline={t("register.uploadqrcode.subheadline")}
                                     uploadSubHeadline={t("register.uploadqrcode.uploadSubHeadline")}
                                     scanSubHeadline={t("register.uploadqrcode.scanSubHeadline")}
-                                    onResult={(res) => setDecodedValue(res)}
+                                    onResult={(res) => updateUserKey(res)}
                                 />
                             </>
-                        )}
-
-                        {registerState.showQRLoadingAnimation && (
-                            <Loading loadingText={t("common.loading.text")} />
                         )}
 
                         {registerState.showBallot && (
@@ -216,34 +283,42 @@ export default function Register() {
                                 <Notification
                                     type="success"
                                     headline={t("register.notification.success.ballotcreated.headline")}
-                                    text={t("register.notification.success.ballotcreated.text")}
+                                    text={''}
                                 />
+                                {electionState === globalConst.electionState.ONGOING && (
+                                    <>
+                                        <Notification
+                                            type="info"
+                                            headline={t("register.notification.attention.headline")}
+                                            text={t("register.notification.attention.text")}
+                                        />
 
-                                <Notification
-                                    type="info"
-                                    headline={t("register.notification.attention.headline")}
-                                    text={t("register.notification.attention.text")}
-                                />
-
-                                <div>
-                                    <Button
-                                        onClickAction={goToElection}
-                                        text={t("register.button.gotoelection.text")}
-                                        type="secondary"
-                                    />
-                                </div>
-
+                                        <div className="op__center-align">
+                                            <Button
+                                                onClickAction={goToElection}
+                                                text={t("register.button.gotoelection.text")}
+                                                type="secondary"
+                                            />
+                                        </div>
+                                    </>
+                                )}
                                 <GenerateQRCode
                                     headline={t("register.generateqrcode.headline")}
                                     subheadline={t("register.generateqrcode.subheadline")}
-                                    text={voterQRCodeText}
+                                    text={voting.registerCode}
                                     downloadHeadline={t("register.generateqrcode.downloadHeadline")}
                                     downloadSubHeadline={voting.electionInformation.title}
                                     headimage="ballot"
                                     saveButtonText={t("register.generateqrcode.savebuttontext")}
+                                    afterSaveFunction={() =>
+                                        setRegisterState({
+                                            ...registerState,
+                                            showSaveRegisterQRSuccess: true
+                                        })
+                                    }
                                 />
 
-                                <div>
+                                <div className="op__display_none_small op__display_none_wide">
                                     <Button
                                         onClickAction={() =>
                                             setRegisterState({
@@ -254,6 +329,21 @@ export default function Register() {
                                         type="primary"
                                     />
                                 </div>
+
+                                <Popup
+                                    showModal={registerState.showSaveRegisterQRSuccess}
+                                    bodyText={t("register.popup.aftersave.text", { STARTDATE: startDate, ENDDATE: endDate })}
+                                    headerText={t("register.popup.aftersave.headline")}
+                                    buttonText={t("common.back")}
+                                    buttonFunction={() => {
+                                        window.scrollTo(0, 0);
+                                        setRegisterState({
+                                            ...registerState,
+                                            showContinueModal: false
+                                        });
+                                    }}
+                                    notificationType="success"
+                                />
 
                                 <ConfirmPopup
                                     showModal={registerState.showContinueModal}
@@ -267,7 +357,7 @@ export default function Register() {
                                             showContinueModal: false
                                         });
                                     }}
-                                    shouldConfirm={true}
+                                    shouldConfirm={false}
                                     confirmMessage={t("register.confirmpopup.confirmmessage")}
                                 />
                             </>

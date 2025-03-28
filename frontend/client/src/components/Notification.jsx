@@ -28,7 +28,7 @@ export default function Notification(props) {
                 <div className={styles.icon} style={{ backgroundImage: `url(${NotificationIcon})` }}></div>
                 <div>
                     {headline && headline.length > 0 && (<strong>{headline}{' '}</strong>)}
-                    {text}
+                    {text && text.length > 0 && (<>{text}</>)}
                 </div>
             </div>
         </>

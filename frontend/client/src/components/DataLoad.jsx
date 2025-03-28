@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'next-i18next';
 import globalConst from "@/constants";
 import { getElectionData } from '@/service-graphql';
 import { useOpnVoteStore } from '@/opnVoteStore';
@@ -17,8 +16,7 @@ export default function DataLoad() {
     });
 
     const [getElection, { data: dataElection, loading: loadingElection }] = getElectionData(dataStationState.electionId);
-    const { t } = useTranslation();
-    const { voting, updateVoting, page, updatePage, updateLoadingState } = useOpnVoteStore((state) => state);
+    const { voting, updateVoting, page, updatePage } = useOpnVoteStore((state) => state);
 
     // get Params and check wethere electionId is given. Continue or Error
     useEffect(() => {
@@ -75,6 +73,7 @@ export default function DataLoad() {
                 jwt: dataStationState.jwtToken.length > 0 ? dataStationState.jwtToken : '',
                 election: dataStationState.updateElection ? dataStationState.election : voting.election,
                 electionInformation: dataStationState.updateElection ? dataStationState.electionInformation : voting.electionInformation,
+                registerCode: '',
             });
 
             if (dataStationState.linkedPage && dataStationState.linkedPage == 'pollingstation') { //currently only this case is allowed

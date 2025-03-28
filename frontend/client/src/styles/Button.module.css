@@ -8,6 +8,17 @@
 .primary {
     color: white;
     background-color: var(--op-blue-main);
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: var(--op-padding-standard);
+}
+
+.primary_light {
+    color: white;
+    background-color: var(--op-blue-main);
+    font-weight: 200;
+    padding: .25rem var(--op-padding-standard);
+    text-transform: none;
 }
 
 .primary:disabled {

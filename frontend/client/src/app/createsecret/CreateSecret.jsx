@@ -118,6 +118,7 @@ export default function CreateSecret() {
                                     downloadHeadline={t("secret.generateqrcode.downloadHeadline")}
                                     headimage="secret"
                                     saveButtonText={t("common.save")}
+                                    afterSaveFunction={() => { }}
                                 />
                                 <Button
                                     onClickAction={() =>

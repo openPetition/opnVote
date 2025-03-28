@@ -55,32 +55,36 @@ export default function Headline(props) {
                     className={`${styles.arrowBox} ${isTextExpanded ? `${styles.expanded}` : `${styles.collapsed}`}`}>
                 </button>
             </div>
+            {infoText && (
+                <div className={`${styles.infoContainer}`}>
+                    <NextImage
+                        src={image}
+                        priority
+                        height={40}
+                        width={40}
+                        alt=""
+                    />
 
-            <div className={`${styles.infoContainer}`}>
-                <NextImage
-                    src={image}
-                    priority
-                    height={40}
-                    width={40}
-                    alt=""
-                />
 
-                <div className={styles.infoText}>
-                    {isInfoExpanded ? infoText : isMobile ? `${infoText.substring(0, 50)}...` : infoText}
+                    <div className={styles.infoText}>
+                        {isInfoExpanded ? infoText : isMobile ? `${infoText.substring(0, 50)}...` : infoText}
+                    </div>
+
+
+                    {isMobile && (
+                        <button className={`op__padding_standard_right ${styles.infoToggleButton}`} onClick={toggleInfoText}>
+                            <NextImage
+                                src={isInfoExpanded ? "/images/arrow-up.svg" : "/images/arrow-down.svg"}
+                                priority
+                                height={15}
+                                width={15}
+                                alt="toggle arrow"
+                            />
+                        </button>
+                    )}
+
                 </div>
-
-                {isMobile && (
-                    <button className={`op__padding_standard_right ${styles.infoToggleButton}`} onClick={toggleInfoText}>
-                        <NextImage
-                            src={isInfoExpanded ? "/images/arrow-up.svg" : "/images/arrow-down.svg"}
-                            priority
-                            height={15}
-                            width={15}
-                            alt="toggle arrow"
-                        />
-                    </button>
-                )}
-            </div>
+            )}
         </div>
     );
 }

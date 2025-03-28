@@ -110,6 +110,10 @@ h4 {
   display: inline;
 }
 
+.op__display_block_small {
+  display: block
+}
+
 .hover {
   cursor: pointer;
 }
@@ -125,6 +129,10 @@ h4 {
 
   .op__display_inline_block_wide {
     display: inline-block;
+  }
+
+  .op__display_block_wide {
+    display: block;
   }
 
   .op__contentbox_760,

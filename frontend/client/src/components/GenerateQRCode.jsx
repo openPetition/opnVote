@@ -6,7 +6,7 @@ import Button from './Button';
 import PropTypes from "prop-types";
 
 export default function GenerateQRCode(props) {
-    const { headline, subheadline, text, downloadHeadline, downloadSubHeadline, headimage, saveButtonText } = props;
+    const { headline, subheadline, text, downloadHeadline, downloadSubHeadline, headimage, saveButtonText, afterSaveFunction } = props;
 
     const wordwrapAndPositionText = (context, text, x, y, lineHeight, fitWidth) => {
         let words = text.split(' ');
@@ -74,6 +74,7 @@ export default function GenerateQRCode(props) {
         link.download = downloadHeadline + ".png";
         link.href = textCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
         link.click();
+        afterSaveFunction();
     };
 
     /**Comment Out: Print not used in the Moment
@@ -144,7 +145,7 @@ export default function GenerateQRCode(props) {
 
                         <Button
                             onClickAction={DownloadAsPng}
-                            type="primary"
+                            type="primary_light"
                             text={saveButtonText}
                             style={{ display: 'block', width: '100%' }}
                         />

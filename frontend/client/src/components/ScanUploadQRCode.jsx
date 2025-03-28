@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import Button from './Button';
 import styles from '../styles/ScanUploadQRCode.module.css';
@@ -111,10 +111,9 @@ export default function ScanUploadQRCode(props) {
                     </div>
                 </div>
                 <div className={styles.innerbox}>
-                    <p>{t('scanuploadqrcode.image.instruction')}</p>
                     <Button
                         onClickAction={scanLocalFile}
-                        type="primary"
+                        type="primary_light"
                         text={t('scanuploadqrcode.image.select')}
                     />
                     <input
@@ -144,7 +143,6 @@ export default function ScanUploadQRCode(props) {
                     </div>
                 </div>
                 <div className={styles.innerbox}>
-                    <p>{t('scanuploadqrcode.camera.instruction')}</p>
                     <div id="reader" width="100%"></div>
                     {showScanNotification && (
                         <>
@@ -157,12 +155,12 @@ export default function ScanUploadQRCode(props) {
 
                     <Button
                         onClickAction={() => startScanClick()}
-                        type={`${showStopScanBtn ? "hide" : "primary"}`}
+                        type={`${showStopScanBtn ? "hide" : "primary_light"}`}
                         text={t('scanuploadqrcode.camera.start')}
                     />
                     <Button
                         onClickAction={() => handleStop()}
-                        type={`${showStopScanBtn ? "primary" : "hide"}`}
+                        type={`${showStopScanBtn ? "primary_light" : "hide"}`}
                         text={t('scanuploadqrcode.camera.stop')}
                     />
                 </div>

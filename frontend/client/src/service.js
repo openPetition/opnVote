@@ -23,7 +23,13 @@ export async function getBlindedSignature(jwttoken, blindedElectionToken) {
 
     const response = await fetch(Config.env.blindedSignatureUrl, signOptions);
     const jsondata = await response.json();
+
+    if (jsondata.error?.length > 0 && jsondata.error == ' already registered') {
+        throw new ServerError('alreadyRegistered');
+    }
     return { hexString: jsondata.data.blindedSignature, isBlinded: true };
+
+
 }
 
 export async function getTransactionState(taskId) {
