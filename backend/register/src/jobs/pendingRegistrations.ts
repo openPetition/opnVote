@@ -5,7 +5,8 @@ import { BlindedSignatureService } from '../services/blindedSignatureService';
 import opnvoteAbi from '../abi/opnvote-0.0.2.json';
 import { ethers } from 'ethers';
 import { logger } from '../utils/logger';
-import { TX_MULTIPLIERS, TX_LIMITS, WALLET_THRESHOLDS } from '../config/constants';
+import { TX_MULTIPLIERS, TX_LIMITS, WALLET_THRESHOLDS, MAX_CACHE_ENTRIES } from '../config/constants';
+import { fetchRecentRegistrations, RecentRegistrationResponse } from '../graphql/graphqlClient';
 
 const OPNVOTE_CONTRACT_ADDRESS = process.env.OPNVOTE_CONTRACT_ADDRESS;
 const RPC_PROVIDER = process.env.RPC_PROVIDER;
@@ -31,6 +32,63 @@ if (ethers.parseUnits(MAX_FEE_PER_GAS_IN_GWEI!, "gwei") > TX_LIMITS.MAX_FEE_PER_
 const provider = new ethers.JsonRpcProvider(RPC_PROVIDER);
 const wallet = new ethers.Wallet(PRIVATE_KEY!, provider);
 const contract = new ethers.Contract(OPNVOTE_CONTRACT_ADDRESS!, opnvoteAbi, wallet);
+
+interface RegistrationCache {
+  electionID: number;
+  voterIDs: bigint[];
+  blindedSignatures: string[];
+  blindedElectionTokens: string[];
+  batchID?: string;
+}
+
+const registrationCacheMemory: RegistrationCache[] = [];
+
+/**
+ * Maintains the cache size by removing oldest entries when exceeding CACHE_SIZE
+ */
+function maintainCacheSize(): void {
+  if (registrationCacheMemory.length > MAX_CACHE_ENTRIES) {
+    const itemsToRemove = registrationCacheMemory.length - MAX_CACHE_ENTRIES;
+    registrationCacheMemory.splice(0, itemsToRemove);
+    logger.debug(`Removed ${itemsToRemove} old entries from memory cache`);
+  }
+}
+
+/**
+ * Checks if a registration has already been processed by looking through the cache
+ * @param electionID - The election ID to check
+ * @param voterID - The voter ID to check
+ * @param blindedSignature - The blinded signature to check
+ * @param blindedToken - The blinded token to check
+ * @param registrationCache - The registration cache to check
+ * @returns true if the registration has been processed, false otherwise
+ */
+function isRegistrationProcessed(
+  electionID: number,
+  voterID: bigint,
+  blindedSignature: string,
+  blindedToken: string,
+  registrationCache: RegistrationCache[] | undefined = undefined
+): boolean {
+
+  if (!registrationCache) {
+    registrationCache = registrationCacheMemory;
+  }
+
+  return registrationCache.some(batch => {
+    if (batch.electionID !== electionID) {
+      return false;
+    }
+    const normalizedSignature = blindedSignature.toLowerCase();
+    const normalizedToken = blindedToken.toLowerCase();
+    return (
+      batch.voterIDs.includes(voterID) ||
+      batch.blindedSignatures.includes(normalizedSignature) ||
+      batch.blindedElectionTokens.includes(normalizedToken)
+    );
+  });
+}
+
 
 async function init() {
   const balance = await provider.getBalance(wallet.address);
@@ -72,19 +130,85 @@ export async function processPendingRegistrations(): Promise<void> {
       return;
     }
 
-    // Get all unique election IDs from pending registrations
-    const electionIDs: number[] = [...new Set(pendingRegistrations.map(reg => reg.electionID))];
+    maintainCacheSize();
 
-    const idList = pendingRegistrations.map((reg, index) => `ID ${index}: ${reg.id}`).join(', ');
-    logger.info(`Found ${pendingRegistrations.length} pending registrations for ${electionIDs.length} elections: ${idList}`);
+    const memoryFilteredRegistrations = pendingRegistrations.filter(registration => !isRegistrationProcessed(
+      registration.electionID,
+      BigInt(registration.userID),
+      registration.blindedSignature,
+      registration.blindedToken,
+      registrationCacheMemory
+    ));
+
+    if (memoryFilteredRegistrations.length === 0) {
+      logger.info(`All pending registrations have been processed already`);
+      return;
+    }
+
+    if (memoryFilteredRegistrations.length !== pendingRegistrations.length) {
+      const memoryFilteredIds = memoryFilteredRegistrations.map(r => `${r.id} (Election: ${r.electionID})`).join(', ');
+      const pendingIds = pendingRegistrations.map(r => `${r.id} (Election: ${r.electionID})`).join(', ');
+
+      logger.error(`Found registrations that were already processed on-chain.\nMemory Filtered: ${memoryFilteredIds}\nPending: ${pendingIds}`);
+    }
+
+
+    // Get all unique election IDs from pending registrations
+    const electionIDs: number[] = [...new Set(memoryFilteredRegistrations.map(reg => reg.electionID))];
+
+    const idList = memoryFilteredRegistrations.map((reg, index) => `ID ${index}: ${reg.id}`).join(', ');
+    logger.info(`Found ${memoryFilteredRegistrations.length} pending registrations for ${electionIDs.length} elections: ${idList}`);
+
 
     for (const electionID of electionIDs) {
+      let recentGraphRegistrations: RegistrationCache[] | null = null;
+
       try {
-        const pendingRegistrationsForElection = pendingRegistrations.filter(reg => reg.electionID === electionID);
-        logger.info(`Processing ${pendingRegistrationsForElection.length} registrations for election ${electionID}`);
+        logger.debug(`Fetching recent registrations from The-Graph for election ${electionID}`);
+
+        const recentRegistrations: RecentRegistrationResponse = await fetchRecentRegistrations(electionID.toString(), 10);
+        recentGraphRegistrations = recentRegistrations.votersRegistereds.map(reg => ({
+          electionID: electionID,
+          voterIDs: reg.voterIDs.map(voterID => BigInt(voterID)),
+          blindedSignatures: reg.blindedSignatures.map(sig => sig.toLowerCase()),
+          blindedElectionTokens: reg.blindedElectionTokens.map(token => token.toLowerCase()),
+        }));
+        logger.debug(`Fetched ${recentGraphRegistrations.length} registration transactions from The-Graph for election ${electionID}`);
+      } catch (error) {
+        logger.error(`Error fetching recent registrations from The-Graph: ${error}`);
+        logger.warn(`Proceeding without on-chain verification for election ${electionID}`);
+      }
+
+      try {
+
+        const pendingRegistrationsForElection = memoryFilteredRegistrations.filter(reg => reg.electionID === electionID);
+
+        let finalFilteredRegistrations = pendingRegistrationsForElection;
+        if (recentGraphRegistrations) {
+          finalFilteredRegistrations = pendingRegistrationsForElection.filter(reg => !isRegistrationProcessed(
+            reg.electionID,
+            BigInt(reg.userID),
+            reg.blindedSignature,
+            reg.blindedToken,
+            recentGraphRegistrations
+          ));
+          if (finalFilteredRegistrations.length !== pendingRegistrationsForElection.length) {
+            const finalFilteredIds = finalFilteredRegistrations.map(r => `${r.id} (Election: ${r.electionID})`).join(', ');
+            const pendingIds = pendingRegistrationsForElection.map(r => `${r.id} (Election: ${r.electionID})`).join(', ');
+            logger.error(`Found registrations that were already processed on-chain.\nFinal Filtered: ${finalFilteredIds}\nPending: ${pendingIds}`);
+          }
+        }
+
+        logger.debug(`Filtered ${pendingRegistrationsForElection.length} -> ${finalFilteredRegistrations.length} registrations for election ${electionID}`);
+
+        logger.info(`Processing ${finalFilteredRegistrations.length} registrations for election ${electionID}`);
+        if (finalFilteredRegistrations.length === 0) {
+          logger.error(`No new registrations found for election ${electionID}`);
+          continue;
+        }
 
         // Split registrations into batches
-        const registrationBatches = splitIntoBatches(pendingRegistrationsForElection, BATCH_SIZE);
+        const registrationBatches = splitIntoBatches(finalFilteredRegistrations, BATCH_SIZE);
         logger.info(`Split into ${registrationBatches.length} batches with max size of ${BATCH_SIZE}`);
 
         // Process each batch
@@ -98,8 +222,8 @@ export async function processPendingRegistrations(): Promise<void> {
 
           registrationBatch.forEach(registration => {
             voterIDs.push(BigInt(registration.userID));
-            blindedSignatures.push(registration.blindedSignature);
-            blindedElectionTokens.push(registration.blindedToken);
+            blindedSignatures.push(registration.blindedSignature.toLowerCase());
+            blindedElectionTokens.push(registration.blindedToken.toLowerCase());
           });
 
           logger.info(`Preparing to register ${voterIDs.length} voters for election ID: ${electionID} (batch ${batchIndex + 1}/${registrationBatches.length})`);
@@ -110,8 +234,13 @@ export async function processPendingRegistrations(): Promise<void> {
           if (!maxFeePerGas || !maxPriorityFeePerGas) {
             throw new Error('Max fee per gas or max priority fee per gas not found. Node down?');
           }
+
+          const MIN_PRIORITY_FEE = ethers.parseUnits('1', 'gwei');
+          const adjustedMaxPriorityFeePerGas = maxPriorityFeePerGas < MIN_PRIORITY_FEE
+            ? MIN_PRIORITY_FEE
+            : (maxPriorityFeePerGas * TX_MULTIPLIERS.MAX_PRIORITY_FEE_PERCENTAGE) / 100n;
+
           const adjustedMaxFeePerGas = (maxFeePerGas * TX_MULTIPLIERS.MAX_FEE_PERCENTAGE) / 100n;
-          const adjustedMaxPriorityFeePerGas = (maxPriorityFeePerGas * TX_MULTIPLIERS.MAX_PRIORITY_FEE_PERCENTAGE) / 100n;
 
           logger.info("Transaction Gas Fees", {
             maxFeePerGas: ethers.formatUnits(maxFeePerGas, "gwei"),
@@ -151,11 +280,18 @@ export async function processPendingRegistrations(): Promise<void> {
               gasLimit: gasLimitWithBuffer
             }
           );
-
           logger.info(`Transaction sent: ${tx.hash}`);
 
           // Generate a batch ID for this group of registrations
           const batchID = `batch-${Date.now()}-${electionID}-${batchIndex}`;
+
+          registrationCacheMemory.push({
+            electionID,
+            voterIDs,
+            blindedSignatures,
+            blindedElectionTokens,
+            batchID
+          });
 
           // Update all registrations to 'submitted' status
           for (const registration of registrationBatch) {
@@ -210,7 +346,7 @@ export async function processPendingRegistrations(): Promise<void> {
       }
     }
   } catch (error) {
-    logger.error('Error processing pending Registrations:', error);
+    logger.error(`Error processing pending Registrations: ${error}`);
   } finally {
     isProcessing = false;
     await timeout(30000); // 30 seconds timeout to not hit any rate limits
