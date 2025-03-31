@@ -49,10 +49,10 @@
 }
 
 .infoContainer img {
-        margin-right: 0.5rem;
-        margin-left: 0.5rem;
-        width: 40px;
-        height: 40px;
+    margin-right: 0.5rem;
+    margin-left: 0.5rem;
+    width: 40px;
+    height: 40px;
 }
 
 .title {
@@ -64,16 +64,23 @@
 }
 
 .infoToggleButton {
-        display: block;
-        min-width: 1.3rem;
-        max-width: 1.3rem;
-        margin-right: 0.5rem;
+    display: block;
+    min-width: 1.3rem;
+    max-width: 1.3rem;
+    margin-right: 0.5rem;
+}
+
+.successHeader {
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 200px;
 }
 
 @media (min-width: 600px) {
     .info-toggle-button {
         display: none !important;
     }
+
     .infoText {
         max-width: 100%;
     }

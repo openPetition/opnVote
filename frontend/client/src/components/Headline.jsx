@@ -5,7 +5,7 @@ import NextImage from "next/image";
 import styles from '../styles/Headline.module.css';
 
 export default function Headline(props) {
-    const { title, text, infoText, image } = props;
+    const { title, text, infoText, image, backgroundImage } = props;
 
     const [isTextExpanded, setIsTextExpanded] = useState(false);
     const [isInfoExpanded, setIsInfoExpanded] = useState(false);
@@ -55,6 +55,9 @@ export default function Headline(props) {
                     className={`${styles.arrowBox} ${isTextExpanded ? `${styles.expanded}` : `${styles.collapsed}`}`}>
                 </button>
             </div>
+            {backgroundImage && (
+                <div className={styles.successHeader} style={{ height: '200px', backgroundImage: `url('/images/${backgroundImage}.png')` }}></div>
+            )}
             {infoText && (
                 <div className={`${styles.infoContainer}`}>
                     <NextImage

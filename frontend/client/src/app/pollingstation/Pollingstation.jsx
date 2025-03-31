@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import Notification from "../../components/Notification";
-import Button from '../../components/Button';
-import NavigationBox from '../../components/NavigationBox';
-import HtmlQRCodePlugin from "../../components/ScanUploadQRCode";
-import VoteTransactionState from "./components/VoteTransactionState";
+import Notification from "@/components/Notification";
+import Button from '@/components/Button';
+import NavigationBox from '@/components/NavigationBox';
+import HtmlQRCodePlugin from "@/components/ScanUploadQRCode";
 import Electionheader from "./components/Electionheader";
 import Question from "./components/Question";
 import { getVoteCastsData } from '../../service-graphql';
@@ -17,7 +16,7 @@ import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
 
 export default function Pollingstation() {
-    const { updatePage, voting, updateVoting } = useOpnVoteStore((state) => state);
+    const { updatePage, voting, updateVoting, updateTaskId, taskId } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [votingCredentials, setVotingCredentials] = useState({});
     const [votes, setVotes] = useState({});
@@ -50,19 +49,7 @@ export default function Pollingstation() {
         try {
             const taskId = await sendVotes(votes, votingCredentials, voting.election.publicKey, pollingStationState.isVoteRecast);
             if (taskId) {
-                updateVoting({ registerCode: '' });
-                setPollingStationState({
-                    ...pollingStationState,
-                    taskId: taskId,
-                    showElectionInformation: false,
-                    showQuestions: false,
-                    showElection: false,
-                    showVotingSlipUpload: false,
-                    showVotingSlipSelection: false,
-                    allowedToVote: false,
-                    showNotification: false,
-                    pending: false,
-                });
+                updateTaskId(taskId);
             }
         } catch (e) {
             setPollingStationState({
@@ -162,6 +149,11 @@ export default function Pollingstation() {
         if (voting.registerCode?.length == 0 || Object.keys(voting.electionInformation).length === 0 || voting.electionInformation.constructor !== Object) {
             return;
         }
+
+        if (taskId && taskId.length > 0) {
+            updatePage({ current: globalConst.pages.VOTETRANSACTION });
+        };
+
         qrCodeToCredentials(voting.registerCode);
 
     }, []);
@@ -276,7 +268,7 @@ export default function Pollingstation() {
                 )}
                 {pollingStationState.showElection && pollingStationState.allowedToVote && (
                     <>
-                        <div>
+                        <div className="op__center-align">
                             <Button
                                 onClickAction={saveVotes}
                                 isDisabled={pollingStationState.pending}
@@ -288,11 +280,6 @@ export default function Pollingstation() {
                         {pollingStationState.showSendError && (
                             <Notification type="error" text={pollingStationState.showSendError} />
                         )}
-                    </>
-                )}
-                {pollingStationState.taskId && (
-                    <>
-                        <VoteTransactionState taskId={pollingStationState.taskId} />
                     </>
                 )}
             </div>

@@ -43,6 +43,18 @@ h4 {
   padding: var(--op-padding-standard);
 }
 
+.op__padding_standard_left {
+  padding-left: .5rem;
+}
+
+.op__padding_standard_right {
+  padding-right: .5rem;
+}
+
+.op__padding_standard_top {
+  padding-top: var(--op-padding-standard);
+}
+
 .op__padding_standard_top_bottom {
   padding: var(--op-padding-standard) 0;
 }
@@ -55,12 +67,8 @@ h4 {
   margin-left: var(--op-padding-standard);
 }
 
-.op__padding_standard_left {
-  padding-left: .5rem;
-}
-
-.op__padding_standard_right {
-  padding-right: .5rem;
+.op__margin_minus_3_top {
+  margin-top: -3rem;
 }
 
 .op__contentbox_760 {
