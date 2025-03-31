@@ -1,41 +1,51 @@
 .greyblock {
-    background-color: var(--op-grey-light);
+	background-color: var(--op-grey-light);
 }
 
-.greyblockcontent{
+.greyblockcontent {
 	max-width: var(--op-max-width-layout);
 	display: flex;
-    flex-direction: column;
+	flex-direction: column;
 	padding: 32px;
 }
 
-.greyblock .logo{
-    padding-top: 30px;
+.greyblock .logo {
+	padding-top: 30px;
 	margin: 0 auto;
 }
 
 .link {
-    text-decoration: none;
-    color:white;
-    font-weight: normal;
+	text-decoration: none;
+	color: white;
+	font-weight: normal;
+}
+
+.link:after {
+	margin: 0 10px;
+	content: '|';
+}
+
+.link:last-child:after {
+	content: "";
+	margin: 0;
 }
 
 .checkmarks {
-    display: flex;
-    justify-content: space-around;
-    font-weight: bold;
+	display: flex;
+	justify-content: space-around;
+	font-weight: bold;
 }
 
 .checkmark {
-    padding-right: .4rem;
-    font-size: 0.9rem;
-    font-weight: bold;
+	padding-right: .4rem;
+	font-size: 0.9rem;
+	font-weight: bold;
 }
 
 .checkmark::before {
-    content: '\2714';
-    color: var(--op-blue-main);
-    margin-right: .4rem;
+	content: '\2714';
+	color: var(--op-blue-main);
+	margin-right: .4rem;
 }
 
 .textblock {
@@ -64,35 +74,36 @@
 	gap: 5px;
 }
 
-@media only screen and (min-width: 600px)
-{
-    .greyblockcontent, .textblockcontent{
+@media only screen and (min-width: 600px) {
+
+	.greyblockcontent,
+	.textblockcontent {
 		flex-direction: row;
 		justify-content: space-between;
 		margin: 0 auto;
-    }
+	}
 
-    .greyblock .logo {
+	.greyblock .logo {
 		padding-top: 0;
 		margin: 0;
-    }
+	}
 
 	.checkmarks {
 		align-items: center;
 		column-gap: 3.5vw;
 	}
 
-    .checkmark {
-        padding-right: 1rem;
-        font-size: 1rem;
-    }
+	.checkmark {
+		padding-right: 1rem;
+		font-size: 1rem;
+	}
 
-    .checkmark::before {
-        margin-right: 1rem;
-    }
+	.checkmark::before {
+		margin-right: 1rem;
+	}
 
 	.icons {
-        margin: 0;
+		margin: 0;
 	}
 
 	.links {
@@ -100,8 +111,7 @@
 	}
 }
 
-@media only screen and (min-width: 1024px)
-{
+@media only screen and (min-width: 1024px) {
 	.greyblockcontent {
 		padding: 32px 0;
 	}

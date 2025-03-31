@@ -11,29 +11,30 @@
     text-align: center;
 }
 
-.blueheartbox::before {
+.heart {
     position: absolute;
     background-color: var(--op-blue-main);
     width: 64px;
     height: 64px;
-    content: '\2764';
     top: -32px;
-    left:0;
-    right:0;
+    left: 0;
+    right: 0;
     margin: 0 auto;
     border-radius: 32px;
     border: 1px transparent;
     text-align: center;
     font-weight: bold;
     font-size: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .textblock {
     font-weight: bold;
 }
 
-@media only screen and (min-width: 600px)
-{
+@media only screen and (min-width: 600px) {
     .blueheartbox {
         padding: 28px 0;
     }
