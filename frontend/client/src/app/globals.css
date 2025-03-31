@@ -7,6 +7,7 @@ html {
   --op-blue-main: #29b0cc;
   --op-blue-dark: #0d6c7f;
   --op-grey-light: #efefef;
+  --op-grey: #c9c8c8;
   --op-grey-dark: #3e3d40;
   --op-blue-light: #D4EFF5;
   --op-grey-main: #EFEFEF;
@@ -71,13 +72,23 @@ h4 {
   margin-top: -3rem;
 }
 
+.op__margin_2_bottom {
+  margin-bottom: 2rem;
+}
+
+.op__margin_standard_top_bottom {
+  margin-top: var(--op-padding-standard);
+  margin-bottom: var(--op-padding-standard);
+}
+
 .op__contentbox_760 {
   max-width: 760px;
   width: 100%;
   display: block;
   position: relative;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .op__contentbox_max {

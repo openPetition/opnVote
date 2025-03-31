@@ -2,10 +2,8 @@
 import { useState, useEffect } from "react";
 import { generateMasterTokenAndMasterR, concatTokenAndRForQR } from "votingsystem";
 import GenerateQRCode from "../../components/GenerateQRCode";
-import NavigationBox from "@/components/NavigationBox";
 import Notification from "../../components/Notification";
 import LoadKey from "./components/Key";
-import Keycheck from "./components/Keycheck";
 import Button from "@/components/Button";
 import { useTranslation } from "next-i18next";
 import { useOpnVoteStore } from "../../opnVoteStore";
@@ -20,17 +18,14 @@ export default function CreateSecret() {
         showSecret: false,
         showNotification: false,
         showKeyCheck: false,
+        keySaved: false
     });
 
     const { user, voting, updateUserKey, updatePage } = useOpnVoteStore((state) => state);
 
     const goToRegister = () => {
         updatePage({ current: globalConst.pages.REGISTER });
-    }
-
-    const goToPollingstation = () => {
-        updatePage({ current: globalConst.pages.POLLINGSTATION });
-    }
+    };
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
@@ -38,7 +33,7 @@ export default function CreateSecret() {
         setCreateSecretState({
             ...createSecretState,
             loadingAnimation: true,
-        })
+        });
 
         const masterTokenAndR = await generateMasterTokenAndMasterR();
         const createdSecret = await concatTokenAndRForQR(masterTokenAndR.masterToken, masterTokenAndR.masterR);
@@ -55,7 +50,7 @@ export default function CreateSecret() {
                 loadingAnimation: false,
                 showSecret: false,
                 showNotification: false,
-            })
+            });
         }
 
         if (user?.key?.length > 0) {
@@ -64,40 +59,29 @@ export default function CreateSecret() {
                 loadingAnimation: false,
                 showSecret: true,
                 showNotification: true,
-            })
+            });
         }
     }, [user]);
 
     return (
         <>
-            <Headline
-                title={t("secret.headline.createSecret.title")}
-                text={t("secret.headline.createSecret.text")}
-                infoText={t("secret.headline.createSecret.infoText")}
-                image="/images/offline.svg"
-            />
-
+            <div className="op__margin_2_bottom">
+                <Headline
+                    title={t("secret.headline.createSecret.title")}
+                    text={t("secret.headline.createSecret.text")}
+                    infoText={t("secret.headline.createSecret.infoText")}
+                    image="/images/offline.svg"
+                />
+            </div>
             <main className="op__contentbox_760">
                 {!createSecretState.showKeyCheck && (
                     <>
                         {!createSecretState.showSecret && (
-                            <>
-                                <LoadKey
-                                    onClickAction={generateAndCreate}
-                                    animationDuration={1}
-                                    showLoadingAnimation={createSecretState.loadingAnimation}
-                                />
-
-                                {voting.electionId && voting.jwt && (
-                                    <NavigationBox
-                                        onClickAction={() => goToRegister()}
-                                        head={t("secret.navigationbox.gotoregister.beforegenerated.head")}
-                                        text={t("secret.navigationbox.gotoregister.beforegenerated.text")}
-                                        buttonText={t("secret.navigationbox.gotoregister.beforegenerated.buttonText")}
-                                        type="primary"
-                                    />
-                                )}
-                            </>
+                            <LoadKey
+                                onClickAction={generateAndCreate}
+                                animationDuration={1}
+                                showLoadingAnimation={createSecretState.loadingAnimation}
+                            />
                         )}
                         {createSecretState.showSecret && (
                             <>
@@ -105,7 +89,7 @@ export default function CreateSecret() {
                                     type="success"
                                     text={t("secret.notification.success.text.key-generated")}
                                 />
-                                <h4>{t("secret.headline.savekey")}</h4>
+                                <h4 className="op__center">{t("secret.headline.savekey")}</h4>
                                 <Notification
                                     type="info"
                                     headline={t("secret.notification.info.headline.important")}
@@ -118,53 +102,26 @@ export default function CreateSecret() {
                                     downloadHeadline={t("secret.generateqrcode.downloadHeadline")}
                                     headimage="secret"
                                     saveButtonText={t("common.save")}
-                                    afterSaveFunction={() => { }}
-                                />
-                                <Button
-                                    onClickAction={() =>
+                                    afterSaveFunction={() => {
                                         setCreateSecretState({
                                             ...createSecretState,
-                                            showKeyCheck: true
-                                        })}
-                                    text={"weiter zur Prüfung"}
-                                    type="primary"
+                                            keySaved: true
+                                        });
+                                    }}
                                 />
-                                {voting.electionId && voting.jwt && (
-                                    <NavigationBox
-                                        onClickAction={() => goToRegister()}
-                                        head={t("secret.navigationbox.gotoregister.aftergenerated.head")}
-                                        text={t("secret.navigationbox.gotoregister.aftergenerated.text")}
-                                        buttonText={t("secret.navigationbox.gotoregister.aftergenerated.buttonText")}
-                                        type="primary"
-                                    />
-                                )}
+
                             </>
                         )}
-                    </>
-                )}
-                {createSecretState.showKeyCheck && (
-                    <>
-                        <Keycheck />
-                        <Button
-                            onClickAction={() =>
-                                setCreateSecretState({
-                                    ...createSecretState,
-                                    showKeyCheck: false
-                                })}
-                            text={t("keycheck.backToSecretCreation")}
-                            type="primary"
-                        />
-                    </>
-                )}
-                {voting.electionId && (
-                    <>
-                        <NavigationBox
-                            onClickAction={() => goToPollingstation()}
-                            head={t("secret.navigationbox.goToPollingstation.head")}
-                            text={t("secret.navigationbox.goToPollingstation.text")}
-                            buttonText={t("secret.navigationbox.goToPollingstation.buttonText")}
-                            type="primary"
-                        />
+                        {voting.electionId && voting.jwt && (
+                            <div className="op__center-align">
+                                <Button
+                                    onClickAction={() => goToRegister()}
+                                    text={t("secret.navigationbox.gotoregister.aftergenerated.buttonText")}
+                                    type="primary"
+                                    isDisabled={(!(user?.key?.length > 0) || !createSecretState.keySaved)}
+                                />
+                            </div>
+                        )}
                     </>
                 )}
             </main>

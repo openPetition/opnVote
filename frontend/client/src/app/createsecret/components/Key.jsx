@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import styles from './Key.module.css';
 import { useTranslation } from 'next-i18next';
 
@@ -13,19 +13,19 @@ export default function LoadKey(props) {
         for (var i = 0; i < elements.length; i++) {
             elements[i].beginElement();
         }
-    }
+    };
 
     useEffect(() => {
         if (showLoadingAnimation) {
             startAnimation();
         }
-    }, [showLoadingAnimation])
+    }, [showLoadingAnimation]);
 
     useEffect(() => {
         if (!isRendered) {
             setIsRendered(true);
         }
-    }, [])
+    }, []);
 
     return (
         <>
@@ -33,7 +33,7 @@ export default function LoadKey(props) {
             <div className="op__padding_standard_top_bottom">
                 {isRendered && (
                     <>
-                        <h3>{t('secret.key.headline')}</h3>
+                        <h3 className="op__center-align op__margin_2_bottom">{t('secret.key.headline')}</h3>
                         <button
                             className={styles.key_circle_button}
                             onClick={onClickAction}
