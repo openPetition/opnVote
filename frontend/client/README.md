@@ -9,7 +9,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 * open a new shell
 * cd into `frontend/opnreg`
 * `npm install`
-* `npx run dev` to run the dev server
+* `npm run dev` to run the dev server
 
 Open [https://localhost:3000](https://localhost:3000) (may be a different port) in your browser.
 
