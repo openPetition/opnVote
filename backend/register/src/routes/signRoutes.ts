@@ -81,10 +81,11 @@ router.post('/',
   checkElectionStatus,              // Confirms that election status is Pending or Open
   checkForExistingBlindedSignature, // Confirms that user didnt receive a blinded Signature for this election
   async (req: Request, res: Response) => {
+    let startTime: number = Date.now();
     let queryRunner: QueryRunner | undefined;
     try {
       queryRunner = dataSource.createQueryRunner();
-      logger.debug('Starting transaction for user registration');
+      // logger.debug('Starting transaction for user registration');
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -94,7 +95,7 @@ router.post('/',
       const blindedToken = req.body.token as Token;
 
       logger.debug(`Processing registration for user ${userID} in election ${electionID}`);
-
+      startTime = Date.now();
       // Re-check for existing signature with lock
       const repository = queryRunner.manager.getRepository(BlindedSignature);
       const existingSignature = await repository.findOne({
@@ -145,7 +146,13 @@ router.post('/',
 
       await repository.save(signatureRecord);
       await queryRunner.commitTransaction();
-      logger.debug(`Successfully committed transaction for user ${userID}`);
+
+      const duration = Date.now() - startTime;
+      if (duration > 500) {
+        logger.warn(`[SLOW]: Successfully committed transaction for user ${userID} in ${duration}ms`);
+      } else {
+        logger.debug(`Successfully committed transaction for user ${userID} in ${duration}ms`);
+      }
 
       // Return signed Token
       return res.json({
@@ -156,7 +163,12 @@ router.post('/',
       } as ApiResponse<{ blindedSignature: string }>);
 
     } catch (error) {
-      logger.error('Error in registration process:', error);
+      const duration = Date.now() - startTime;
+      if (duration > 500) {
+        logger.warn(`[SLOW] Error in registration process after ${duration}ms: ${error}`);
+      } else {
+        logger.debug(`Error in registration process after ${duration}ms: ${error}`);
+      }
 
       if (queryRunner?.isTransactionActive) {
         try {
@@ -175,7 +187,12 @@ router.post('/',
       if (queryRunner) {
         try {
           await queryRunner.release();
-          logger.debug('Successfully released query runner');
+          const duration = Date.now() - startTime;
+          if (duration > 500) {
+            logger.warn(`[SLOW] Total DB transaction time: ${duration}ms`);
+          } else {
+            logger.debug(`Total DB transaction time: ${duration}ms`);
+          }
         } catch (releaseError) {
           logger.error('Error releasing query runner: ' + releaseError);
         }
