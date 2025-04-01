@@ -1,7 +1,7 @@
 'use client';
 
 import styles from '../styles/Footer.module.css';
-import FooterDonationBox from './FooterDonationBox';
+import FooterDonationBox from './FooterHeartBox';
 import NextImage from 'next/image';
 import { useTranslation } from "next-i18next";
 
