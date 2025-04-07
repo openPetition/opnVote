@@ -66,20 +66,24 @@ router.post('/forward',
     checkEthCall,        // Validates if the eth_call simulation succeeds
     checkForwardLimit,   // Enforces per-user forwarding rate limits
     async (req: Request, res: Response) => {
+        const startTime = Date.now();
         try {
-
+            logger.info(`[GelatoRoute] Starting forward request processing at ${new Date().toISOString()}`);
             const signatureData = req.body as SignatureData;
             const GELATO_USE_QUEUE = req.app.get('GELATO_USE_QUEUE');
 
             if (!signatureData?.struct || !signatureData.signature) {
+                logger.warn('[GelatoRoute] Missing required signature data');
                 return res.status(400).json({
                     data: null,
                     error: 'Bad request: Missing required signature data'
                 });
             }
             const userAddress = normalizeEthAddress(signatureData.struct.user);
+            logger.info(`[GelatoRoute] Processing request for user: ${userAddress}`);
 
             if (GELATO_USE_QUEUE === undefined) {
+                logger.error('[GelatoRoute] GELATO_USE_QUEUE not configured');
                 return res.status(500).json({
                     data: null,
                     error: GELATO_USE_QUEUE_ERROR
@@ -87,7 +91,7 @@ router.post('/forward',
             }
 
             if (GELATO_USE_QUEUE) {
-
+                logger.info(`[GelatoRoute] Queueing request for user: ${userAddress}`);
                 const repository = dataSource.getRepository(GelatoQueueEntity);
                 // Generate a unique requestHash
                 const timestamp = Date.now().toString();
@@ -99,6 +103,7 @@ router.post('/forward',
                 queueEntry.requestHash = requestHash;
                 queueEntry.gelatoUserAddress = userAddress;
                 await repository.save(queueEntry);
+                logger.info(`[GelatoRoute] Successfully queued request with hash: ${requestHash}`);
 
                 return res.status(200).json({
                     data: { requestHash },
@@ -106,21 +111,24 @@ router.post('/forward',
                 });
 
             } else {
-
+                logger.info(`[GelatoRoute] Forwarding directly to Gelato for user: ${userAddress}`);
                 // Forwarding directly to Gelato utilizing Gelato auto-scaling
                 const sponsorApiKey = req.app.get('GELATO_SPONSOR_API_KEY');
                 if (!sponsorApiKey) {
+                    logger.error('[GelatoRoute] Gelato Sponsor API key not configured');
                     return res.status(500).json({
                         data: null,
                         error: 'Gelato Sponsor API key not configured'
                     });
                 }
                 const gelatoRelay = req.app.get('gelatoRelay') as GelatoRelay;
+                logger.info(`[GelatoRoute] Calling Gelato relay for user: ${userAddress}`);
                 const relayResponse: RelayResponse = await gelatoRelay.sponsoredCallERC2771WithSignature(
                     signatureData.struct,
                     signatureData.signature,
                     sponsorApiKey
                 );
+                logger.info(`[GelatoRoute] Successfully forwarded to Gelato. Task ID: ${relayResponse.taskId}`);
 
                 return res.status(200).json({
                     data: relayResponse,
@@ -129,7 +137,8 @@ router.post('/forward',
             }
 
         } catch (error) {
-            logger.error('[GelatoRoute] Failed to process request Error:' + error);
+            const processingTime = Date.now() - startTime;
+            logger.error(`[GelatoRoute] Failed to process request after ${processingTime}ms. Error: ${error}`);
             res.status(500).json({
                 data: null,
                 error: 'Failed to queue Gelato request'

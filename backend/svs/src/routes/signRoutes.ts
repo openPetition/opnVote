@@ -56,26 +56,40 @@ router.post('/sign',
     checkForExistingSVSSignature, // Checks if an SVS signature already exists for this transaction
     checkVoterHasNotVoted,        // Verifies that the voter hasn't already cast a vote in this election
     async (req: Request, res: Response) => {
+        const startTime = Date.now();
+        logger.info(`[SignRoute] Starting sign request processing at ${new Date().toISOString()}`);
+
         try {
             const votingTransaction = req.body.votingTransaction as VotingTransaction;
             if (!votingTransaction) {
+                logger.warn('[SignRoute] Missing voting transaction in request');
                 return res.status(401).json({
                     data: null,
                     error: 'Unauthorized'
                 } as ApiResponse<null>);
             }
 
+            logger.info(`[SignRoute] Processing sign request for election ${votingTransaction.electionID} and voter ${votingTransaction.voterAddress}`);
+
             const signingKey = req.app.get('SVS_SIGN_KEY');
             if (!signingKey) {
+                logger.error('[SignRoute] SVS signing key not configured');
                 return res.status(500).json({
                     data: null,
                     error: 'Signing key not configured'
                 } as ApiResponse<null>);
             }
 
+            logger.info('[SignRoute] Starting transaction signing process');
+            const signStartTime = Date.now();
             const svsSignature: EthSignature = await signVotingTransaction(votingTransaction, signingKey);
+            const signDuration = Date.now() - signStartTime;
+            logger.info(`[SignRoute] Transaction signing completed in ${signDuration}ms`);
+
             validateEthSignature(svsSignature);
 
+            logger.info('[SignRoute] Creating signed transaction entity');
+            const entityStartTime = Date.now();
             const signedTransaction = new VotingTransactionEntity();
             signedTransaction.electionID = votingTransaction.electionID
             signedTransaction.encryptedVoteRSA = votingTransaction.encryptedVoteRSA.hexString
@@ -84,9 +98,18 @@ router.post('/sign',
             signedTransaction.unblindedElectionToken = normalizeHexString(votingTransaction.unblindedElectionToken.hexString.toLowerCase())
             signedTransaction.unblindedSignature = normalizeHexString(votingTransaction.unblindedSignature.hexString.toLowerCase())
             signedTransaction.voterAddress = normalizeEthAddress(votingTransaction.voterAddress)
+            const entityDuration = Date.now() - entityStartTime;
+            logger.info(`[SignRoute] Entity creation completed in ${entityDuration}ms`);
 
+            logger.info('[SignRoute] Saving signed transaction to database');
+            const saveStartTime = Date.now();
             const repository = dataSource.getRepository(VotingTransactionEntity);
             await repository.save(signedTransaction);
+            const saveDuration = Date.now() - saveStartTime;
+            logger.info(`[SignRoute] Database save completed in ${saveDuration}ms`);
+
+            const totalDuration = Date.now() - startTime;
+            logger.info(`[SignRoute] Request completed successfully in ${totalDuration}ms`);
 
             return res.status(200).json({
                 data: { blindedSignature: svsSignature },
@@ -98,9 +121,9 @@ router.post('/sign',
             logger.error('Error signing token:', error);
             res.status(500).json({
                 data: null,
-                error: 'Failed to sign Transaction. Error: ' + error
+                error: 'Internal server error',
             } as ApiResponse<null>);
-        };
+        }
     })
 
 export default router;

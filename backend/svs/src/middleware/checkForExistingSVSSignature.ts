@@ -16,6 +16,8 @@ import { logger } from '../utils/logger';
  * @returns {Promise<void | Response>}
  */
 export async function checkForExistingSVSSignature(req: Request, res: Response, next: NextFunction): Promise<void | Response> {
+    const startTime = Date.now();
+    logger.info(`[ExistingSVS] Starting check for existing SVS signature at ${new Date().toISOString()}`);
 
     // Parameters should be already validated in previous middleware
     const votingTransaction = req.body.votingTransaction as VotingTransaction;
@@ -25,6 +27,8 @@ export async function checkForExistingSVSSignature(req: Request, res: Response, 
         const normalizedElectionTokenHex: string = normalizeHexString(votingTransaction.unblindedElectionToken.hexString.toLowerCase());
         const normalizedUnblindedSignatureHex: string = normalizeHexString(votingTransaction.unblindedSignature.hexString.toLowerCase());
 
+        logger.info(`[ExistingSVS] Checking for exact match in database for election ${electionID}`);
+        const dbStartTime = Date.now();
         const repository = dataSource.getRepository(VotingTransactionEntity);
 
         // Check for exact match in the database
@@ -35,11 +39,17 @@ export async function checkForExistingSVSSignature(req: Request, res: Response, 
                 unblindedSignature: normalizedUnblindedSignatureHex
             },
         });
+        const dbDuration = Date.now() - dbStartTime;
+        logger.info(`[ExistingSVS] Database exact match query completed in ${dbDuration}ms`);
 
         if (exactMatch) {
+            logger.info(`[ExistingSVS] Found existing SVS signature for election ${electionID}`);
             // If an exact match is found, return the existing SVS signature
             const svsSignature: EthSignature = { hexString: exactMatch.svsSignature };
             validateEthSignature(svsSignature);
+
+            const totalDuration = Date.now() - startTime;
+            logger.info(`[ExistingSVS] Request completed successfully in ${totalDuration}ms`);
 
             return res.status(200).json({
                 data: {
@@ -50,6 +60,8 @@ export async function checkForExistingSVSSignature(req: Request, res: Response, 
             } as ApiResponse<{ message: string, blindedSignature: EthSignature }>);
         }
 
+        logger.info(`[ExistingSVS] Checking for partial matches in database for election ${electionID}`);
+        const partialStartTime = Date.now();
         // Check for partial matches that shouldn't exist
         const partialMatch = await repository.findOne({
             where: [
@@ -57,18 +69,23 @@ export async function checkForExistingSVSSignature(req: Request, res: Response, 
                 { unblindedSignature: normalizedUnblindedSignatureHex }
             ]
         });
+        const partialDuration = Date.now() - partialStartTime;
+        logger.info(`[ExistingSVS] Database partial match query completed in ${partialDuration}ms`);
 
         if (partialMatch) {
-            logger.error('Inconsistent data found:', partialMatch);
+            logger.error(`[ExistingSVS] Found inconsistent data for election ${electionID}: ${partialMatch}`);
             return res.status(409).json({
                 data: null,
                 error: 'Inconsistent voting data detected. Please contact support.'
             } as ApiResponse<null>);
         }
 
+        const totalDuration = Date.now() - startTime;
+        logger.info(`[ExistingSVS] Request completed successfully in ${totalDuration}ms`);
         next();
     } catch (error) {
-        logger.error('Database error:', error);
+        const totalDuration = Date.now() - startTime;
+        logger.error(`[ExistingSVS] Error checking for existing SVS signature after ${totalDuration}ms: ${error}`);
         return res.status(500).json({
             data: null,
             error: 'Internal server error',
