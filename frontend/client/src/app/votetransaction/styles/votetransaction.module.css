@@ -1,0 +1,20 @@
+.item {
+    padding: 1rem;
+}
+
+.itemvalue {
+    display: inline-block;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    padding: 0 1rem;
+    font-size: 1.2rem;
+    width: 100%;
+}
+
+.itemheadline {
+    border-top: 1px dotted #ccc;
+    padding: 0rem;
+    font-size: 1rem;
+}
+
+@media only screen and (min-width: 600px) {}

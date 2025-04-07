@@ -13,17 +13,17 @@
     padding: var(--op-padding-standard);
 }
 
+.primary:disabled {
+    color: var(--op-grey);
+    background-color: var(--op-grey-light);
+}
+
 .primary_light {
     color: white;
     background-color: var(--op-blue-main);
     font-weight: 200;
     padding: .25rem var(--op-padding-standard);
     text-transform: none;
-}
-
-.primary:disabled {
-    color: lightgray;
-    background-color: var(--op-blue-dark);
 }
 
 .secondary {

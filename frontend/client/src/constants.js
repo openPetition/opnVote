@@ -3,6 +3,7 @@ const globalConst = {
         'CREATEKEY': 'createkey',
         'REGISTER': 'register',
         'POLLINGSTATION': 'pollingstation',
+        'VOTETRANSACTION': 'votetransaction',
         'LOADING': 'loading',
         'ERROR': 'error'
     },

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '../styles/Notification.module.css';
 
 
@@ -9,7 +9,7 @@ import styles from '../styles/Notification.module.css';
  * @returns
  */
 export default function Notification(props) {
-    const { type, text, headline } = props;
+    const { type, text, headline, additionalGlobalClass } = props;
     const [NotificationIcon, setNotifcationIcon] = useState('');
 
     const iconComponents = {
@@ -24,7 +24,7 @@ export default function Notification(props) {
 
     return (
         <>
-            <div className={`${styles.basic}  ${styles[type]}`} role="alert">
+            <div className={`${styles.basic}  ${styles[type]} ${additionalGlobalClass ? additionalGlobalClass : ''}`} role="alert">
                 <div className={styles.icon} style={{ backgroundImage: `url(${NotificationIcon})` }}></div>
                 <div>
                     {headline && headline.length > 0 && (<strong>{headline}{' '}</strong>)}

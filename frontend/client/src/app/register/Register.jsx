@@ -339,7 +339,7 @@ export default function Register() {
                                         window.scrollTo(0, 0);
                                         setRegisterState({
                                             ...registerState,
-                                            showContinueModal: false
+                                            showSaveRegisterQRSuccess: false
                                         });
                                     }}
                                     notificationType="success"

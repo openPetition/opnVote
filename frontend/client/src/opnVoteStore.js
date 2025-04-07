@@ -16,8 +16,9 @@ export const useOpnVoteStore = create(
                 registerCode: '',
                 vote: {},
                 revote: {},
-                userCredential: ''
+                userCredential: '',
             },
+            taskId: '',
             page: {
                 current: globalConst.pages.LOADING
             },
@@ -31,7 +32,10 @@ export const useOpnVoteStore = create(
                 })),
             updatePage: (updates) => set(() => ({
                 page: { ...get().page, ...updates }
-            }))
+            })),
+            updateTaskId: (update) => set(() => ({
+                taskId: update
+            })),
         }),
         {
             name: 'opnvote-storage',
