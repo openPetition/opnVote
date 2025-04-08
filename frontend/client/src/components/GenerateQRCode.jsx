@@ -1,7 +1,6 @@
 'use client';
 import { QRCodeCanvas } from 'qrcode.react';
 import styles from '../styles/GenerateQRCode.module.css';
-import NextImage from 'next/image';
 import Button from './Button';
 import PropTypes from "prop-types";
 
@@ -110,16 +109,9 @@ export default function GenerateQRCode(props) {
                 <div className={styles.innerbox}>
                     <div className="noScreen print-content"></div>
                     <strong>{headline}</strong>
-                    <p>{subheadline}</p>
+                    <p className="op__margin_standard_top_bottom text_small">{subheadline}</p>
                     <div className={styles.zigzagbox}>
-                        <NextImage
-                            src={`/images/generated-${headimage}.png`}
-                            height={75}
-                            width={300}
-                            style={{ margin: "1rem auto" }}
-                            id="headImage"
-                        />
-                        <h3>{downloadHeadline}</h3>
+                        <h3 className="op__margin_standard_top_bottom text_xlarge">{downloadHeadline}</h3>
                         {downloadSubHeadline && (
                             <>
                                 <p>{downloadSubHeadline}</p>
@@ -133,6 +125,13 @@ export default function GenerateQRCode(props) {
                             level={"Q"}
                             id="qrCodeCanvas"
                             style={{ margin: "1rem auto" }}
+                            imageSettings= {
+                                {   src: `/images/icon-${headimage}.svg`,
+                                    width: 100,
+                                    height: 62,
+                                    excavate: true
+                                }
+                            }
                         />
                         <canvas
                             id="canvas"

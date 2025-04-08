@@ -18,7 +18,7 @@
     --s: 20px;  /* the size of spikes*/
 
     background: repeating-linear-gradient(135deg,#EFEFEF 0 15px,#EFEFEF 0 15px);
-    --mask: 
+    --mask:
         conic-gradient(from calc(var(--a)/-2) at bottom,
         #0000,#000 1deg var(--a),#0000 calc(var(--a) + 1deg))
         50%/var(--s);
@@ -37,9 +37,9 @@
     --s: 20px;  /* the size of spikes*/
 
     background: repeating-linear-gradient(135deg,#EFEFEF 0 15px,#EFEFEF 0 15px);
-    --mask: 
+    --mask:
         conic-gradient(from calc(180deg - var(--a)/2) at top,
-        #0000,#000 1deg var(--a),#0000 calc(var(--a) + 1deg)) 
+        #0000,#000 1deg var(--a),#0000 calc(var(--a) + 1deg))
         50%/var(--s);
     -webkit-mask: var(--mask);
             mask: var(--mask);

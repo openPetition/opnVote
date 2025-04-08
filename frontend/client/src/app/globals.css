@@ -141,6 +141,16 @@ h4 {
   cursor: pointer;
 }
 
+.text_small {
+    font-size: 0.875rem /* 14px */;
+    line-height: 1.25rem /* 20px */;
+}
+
+.text_xlarge {
+    font-size: 1.5rem /* 24px */;
+    line-height: 2rem /* 32px */;
+}
+
 @media only screen and (min-width: 800px) {
   .op__display_none_wide {
     display: none;
