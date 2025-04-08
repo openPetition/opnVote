@@ -1,7 +1,7 @@
 'use client'
 import { Signature } from "votingsystem"; // eslint-disable-line
 import Config from "../next.config.mjs";
-
+import globalConst from "@/constants";
 
 export class AuthorizationError extends Error { }
 export class AlreadyVotedError extends Error { }
@@ -23,13 +23,21 @@ export async function getBlindedSignature(jwttoken, blindedElectionToken) {
 
     const response = await fetch(Config.env.blindedSignatureUrl, signOptions);
     const jsondata = await response.json();
-
-    if (jsondata.error?.length > 0 && jsondata.error == ' already registered') {
-        throw new ServerError('alreadyRegistered');
+    if (jsondata.error?.length > 0) {
+        switch (jsondata.error) {
+            case 'Already registered':
+                throw new ServerError(globalConst.ERROR.ALREADYREGISTERED);
+                break;
+            case 'Failed to authenticate JWT':
+                throw new ServerError(globalConst.ERROR.JWTAUTH);
+                break;
+            default:
+                throw new ServerError(globalConst.ERROR.GENERAL);
+                break;
+        }
     }
+
     return { hexString: jsondata.data.blindedSignature, isBlinded: true };
-
-
 }
 
 export async function getTransactionState(taskId) {

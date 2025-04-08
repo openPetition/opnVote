@@ -50,6 +50,7 @@ export default function Register() {
         showQRLoadingAnimation: false,
         showVoteLater: false,
         showSaveRegisterQRSuccess: false,
+        errorType: ''
     });
 
     const generateVoteCredentials = async function () {
@@ -77,12 +78,35 @@ export default function Register() {
             updateVoting({ registerCode: qrVoterCredentials });
             loadingQRchange();
         } catch (error) {
+            let buttonFunction;
+            let buttonText;
+            let errorNotificationText;
+
+            switch (error.message) {
+                case globalConst.ERROR.JWTAUTH:
+                    buttonFunction = goToStart;
+                    buttonText = t('register.error.jwtauthbuttontext');
+                    errorNotificationText = t('register.error.jwtauth');
+                    break;
+                case globalConst.ERROR.ALREADYREGISTERED:
+                    buttonFunction = activateQRCodeUpload;
+                    buttonText = t('register.error.alreadyregisteredbuttontext');
+                    errorNotificationText = t('register.error.alreadyregistered');
+                    break;
+                default:
+                    buttonFunction = '';
+                    buttonText = '';
+                    errorNotificationText = t('register.error.general');
+            }
+
             setRegisterState({
                 ...registerState,
                 showLoading: false,
                 showNotification: true,
-                notificationText: t("register.error" + error.message ? error.message : 'general'),
-                notificationType: 'error'
+                notificationText: errorNotificationText,
+                notificationType: 'error',
+                notificationButtonText: buttonText,
+                notificationButtonAction: buttonFunction
             });
         };
     };
@@ -107,6 +131,10 @@ export default function Register() {
             showQRLoadingAnimation: false,
         });
     };
+
+    const goToStart = () => {
+        window.location = voting.electionInformation.backLink;
+    }
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation');
@@ -136,9 +164,11 @@ export default function Register() {
     const activateQRCodeUpload = () => {
         setRegisterState({
             ...registerState,
+            showElectionInformation: true,
             showStartProcessScreen: false,
             showQRCodeUploadPlugin: true,
             showNotification: false,
+            notificationButtonText: '',
         });
     };
 
@@ -233,6 +263,8 @@ export default function Register() {
                         <Notification
                             type={registerState.notificationType}
                             text={registerState.notificationText}
+                            buttonText={registerState.notificationButtonText}
+                            buttonAction={registerState.notificationButtonAction}
                         />
                     </>
                 )}

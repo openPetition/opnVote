@@ -11,6 +11,11 @@ const globalConst = {
         'PLANNED': 'planned',
         'ONGOING': 'ongoing',
         'FINISHED': 'finished'
+    },
+    ERROR: {
+        'JWTAUTH': 'jwtauth',
+        'ALREADYREGISTERED': 'alreadyregistered',
+        'GENERAL': 'general'
     }
 }
 
