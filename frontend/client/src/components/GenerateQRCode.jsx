@@ -130,7 +130,7 @@ export default function GenerateQRCode(props) {
                             size={300}
                             bgColor={"#ffffff"}
                             fgColor={"#000000"}
-                            level={"H"}
+                            level={"Q"}
                             id="qrCodeCanvas"
                             style={{ margin: "1rem auto" }}
                         />

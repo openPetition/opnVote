@@ -143,19 +143,17 @@ export default function Pollingstation() {
     }, [dataVotings]);
 
     useEffect(() => {
-        // only if we have the electioninformations its worth to check
-        // wether there is some voter informations stored.
-
-        if (voting.registerCode?.length == 0 || Object.keys(voting.electionInformation).length === 0 || voting.electionInformation.constructor !== Object) {
-            return;
-        }
-
         if (taskId && taskId.length > 0) {
             updatePage({ current: globalConst.pages.VOTETRANSACTION });
         };
 
-        qrCodeToCredentials(voting.registerCode);
+        // only if we have the electioninformations its worth to check
+        // wether there is some voter informations stored.
+        if (voting.registerCode?.length == 0 || Object.keys(voting.electionInformation).length === 0 || voting.electionInformation.constructor !== Object) {
+            return;
+        }
 
+        qrCodeToCredentials(voting.registerCode);
     }, []);
 
     useEffect(() => {
