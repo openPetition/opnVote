@@ -102,7 +102,7 @@ export default function Head() {
                 <div className={styles.logobar_content}>
                     <Image
                         alt="open.vote logo"
-                        src="/images/opnvote-logo.png"
+                        src="/images/opnvote-logo.svg"
                         height={69}
                         width={194}
                         className={styles.logo}
