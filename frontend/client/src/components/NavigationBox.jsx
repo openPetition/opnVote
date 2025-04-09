@@ -9,13 +9,13 @@ export default function NavigationBox(props) {
     return (
         <>
             <div onClick={onClickAction} className="op__outerbox_grey">
-                <div className={styles.innerbox} style={{backgroundImage: `url('/images/arrow-right-dark-grey.svg')`}}>
-                        <h3>{head}</h3>
-                        <p>{text}</p>
+                <div className={styles.innerbox} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
+                    <h3>{head}</h3>
+                    <p>{text}</p>
                     <Button
                         type="secondary-arrow"
                         text={buttonText}
-                        style={{backgroundImage: `url('/images/arrow-right-cyan.svg')`}}
+                        style={{ backgroundImage: `url('/images/arrow-right-cyan.svg')` }}
                     />
                 </div>
             </div>

@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 html {
+  --op-white: #ffffff;
   --op-blue: #A9DFEB;
   --op-blue-main: #29b0cc;
   --op-blue-dark: #0d6c7f;
@@ -14,6 +15,8 @@ html {
 
   --op-max-width-layout: 1160px;
   --op-padding-standard: .5rem;
+
+  --op-link-color-main: var(--op-blue-main);
 }
 
 body {

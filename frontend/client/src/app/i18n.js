@@ -15,7 +15,7 @@ const resources = {
 };
 
 const detectOptions = {
-    order: ['navigator', 'querystring', 'cookie', 'localStorage'],
+    order: ['localStorage', 'navigator', 'querystring'],
 };
 i18n
     .use(LanguageDetector)
@@ -35,6 +35,7 @@ i18n
         fallbackLng: 'en',
         debug: true,
         detection: detectOptions,
+        load: 'languageOnly'
     });
 
 export default i18n;

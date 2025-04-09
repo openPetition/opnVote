@@ -7,6 +7,7 @@ import { useOpnVoteStore } from "../opnVoteStore";
 import { CircleCheckBig, CircleMinus } from 'lucide-react';
 import Loading from "./Loading";
 import { useTranslation } from 'next-i18next';
+import LanguageSwitch from "./LanguageSwitch";
 
 export default function Head() {
     const { t } = useTranslation();
@@ -96,6 +97,7 @@ export default function Head() {
                         <div className={styles.headerbar_content}>
                             <span className={styles.headerbar_point}><span>{t('common.electionsecret')}</span><Showkey /></span>
                             <span className={styles.headerbar_point}><span>{t('common.ballotpaper')}</span><ShowBallot /></span>
+                            <LanguageSwitch />
                         </div>
                     </HydrationZustand>
                 </div>

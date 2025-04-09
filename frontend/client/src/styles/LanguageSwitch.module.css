@@ -1,0 +1,80 @@
+.languageSwitcher {
+    position: relative;
+}
+
+.flagButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.flagButton:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.flag {
+    font-size: 1.5rem;
+}
+
+.dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    min-width: 220px;
+}
+
+.dropdown:before {
+    position: absolute;
+    top: -6px;
+    right: 15px;
+    width: 0;
+    height: 0;
+    border: 6px solid transparent;
+    border-bottom-color: var(--op-white);
+    margin-top: -6px;
+    content: '';
+    z-index: 20;
+}
+
+.languageOption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    color: var(--op-link-color-main);
+    font-weight: bold;
+}
+
+.languageOption:hover:not(:disabled) {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.languageOption.active {
+    color: #000;
+    background-color: rgba(0, 0, 0, 0.05);
+    font-weight: bold;
+    cursor: default;
+}
+
+.languageOption:disabled {
+    opacity: 0.7;
+    cursor: default;
+}
