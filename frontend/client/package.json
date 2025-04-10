@@ -6,6 +6,8 @@
     "dev": "next dev --experimental-https",
     "preinstall": "cd ../../votingSystem; npm install; npm run build",
     "build": "next build",
+    "build-production": "NODE_ENV=production next build",
+    "build-staging": "NODE_ENV=staging next build",
     "start": "next start",
     "lint": "next lint",
     "test": "./node_modules/mocha/bin/mocha"
