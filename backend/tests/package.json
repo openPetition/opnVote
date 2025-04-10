@@ -1,0 +1,26 @@
+{
+  "name": "tests",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@noble/curves": "^1.4.0",
+    "ethers": "^6.13.1",
+    "votingsystem": "*",
+    "axios": "^1.8.4",
+    "https": "^1.0.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.9.36",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.13.15",
+    "typescript": "^5.8.2"
+  }
+}

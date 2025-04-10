@@ -1,3 +1,6 @@
+.secrets
+*.pem
+
 # Logs
 logs
 *.log
