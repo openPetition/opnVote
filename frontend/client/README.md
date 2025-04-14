@@ -21,17 +21,17 @@ it mocks the user verification from OP for now and hands over jwt token (with ra
 ## Main Components:
 
 ### Createkey
-* creating the user secret (qr code) that confirms the identity of the user and that he is allowed to register for elections
+* create the user voting key (formerly 'secret', qr code) that confirms the identity of the user and that allows them to register for elections
 * check the created key
 
 ### Register
-* checks wether the user is allowed to register for election with help of the created secret from step one and creates a voting authorization card (qr code or as cookie when user wants to go to election directly)
+* check whether the user is allowed to register for election with help of the created voting key from step one and creates an election permit (voting authorization card / qr code or as cookie when user wants to go to election directly)
 (would not work without jwt!!)
 
 ### Pollingstation
-* will contain the voting process (checking the voting authorization card) and the vote (selection of answers, putting them into the voting ballot)
-* Also contains the confirmation module to see wether the vote is successfully sended
-* Only component we can get directly via link with hash for later voting http://localhost:PORT/?id=[electionid]#pollingstation
+* will contain the voting process (checking the election permit) and the vote (selection of answers, putting them into the voting ballot)
+* Also contains the confirmation module to see whether the vote is successfully sent
+* Only component we can get link directly with hash for later voting http://localhost:PORT/?id=[electionid]#pollingstation
 * All other components need a jwt token.
 
 ## Deployment
