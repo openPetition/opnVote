@@ -30,6 +30,7 @@
     "pollingstation.button.cancel": "Cancel input",
     "pollingstation.button.errormessage": "An error occured during vote processing. Please try again in a few seconds. If the problem persists please contact election authorities.",
     "pollingstation.button.savevotes": "Send vote",
+    "pollingstation.button.uploadballot": "Upload election permit",
     "pollingstation.electionHeader.countdown.dateuntil": "until",
     "pollingstation.electionHeader.countdown.days": "days",
     "pollingstation.electionheader.countdown.headline.finished": "Voting period",

@@ -30,6 +30,7 @@
     "pollingstation.button.cancel": "Eingabe abbrechen",
     "pollingstation.button.errormessage": "Bei der Verarbeitung der Stimme ist ein Fehler aufgetreten. Bitte probieren Sie es in ein paar Sekunden nochmal. Sollte das Problem weiterhin bestehen, wenden Sie sich bitte an die Wahlleitung.",
     "pollingstation.button.savevotes": "Wahl absenden",
+    "pollingstation.button.uploadballot": "Wahlschein hochladen",
     "pollingstation.electionHeader.countdown.dateuntil": "bis",
     "pollingstation.electionHeader.countdown.days": "Tage",
     "pollingstation.electionheader.countdown.headline.finished": "Abstimmungszeitraum",

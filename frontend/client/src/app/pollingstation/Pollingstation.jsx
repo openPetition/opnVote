@@ -39,9 +39,6 @@ export default function Pollingstation() {
         isVoteRecast: false
     });
 
-    const registerForElection = function () {
-        updatePage({ current: globalConst.pages.REGISTER });
-    };
 
     const saveVotes = async () => {
         setPollingStationState({ ...pollingStationState, pending: true });
@@ -182,6 +179,29 @@ export default function Pollingstation() {
                 </>
             )}
 
+            {pollingStationState.showVotingSlipSelection && (
+                <>
+                    <div className="op__padding_standard_top_bottom">
+                        <h4>{t("pollingstation.headline.ballotneeded")}</h4>
+                    </div>
+                    <div className="op__center-align">
+                        <Button
+                            onClickAction={() =>
+                                setPollingStationState({
+                                    ...pollingStationState,
+                                    showVotingSlipUpload: true,
+                                    showVotingSlipSelection: false,
+                                    showQuestions: false,
+                                    showNotification: false,
+                                })
+                            }
+                            text={t("pollingstation.button.uploadballot")}
+                            type="primary"
+                        />
+                    </div>
+                </>
+            )}
+
             <div className={`${pollingStationState.allowedToVote ? 'op__contentbox_max' : 'op__contentbox_760'}`}>
                 {pollingStationState.showQuestions && (
                     <>
@@ -202,41 +222,8 @@ export default function Pollingstation() {
                     </>
                 )}
 
-                {pollingStationState.showVotingSlipSelection && (
-                    <>
-                        <div className="op__padding_standard_top_bottom">
-                            <h4>{t("pollingstation.headline.ballotneeded")}</h4>
-                        </div>
-                        <div>
-                            <NavigationBox
-                                onClickAction={() => registerForElection()}
-                                head={t("pollingstation.navigationbox.registerforelection.head")}
-                                text={t("pollingstation.navigationbox.registerforelection.text")}
-                                buttonText={t("pollingstation.navigationbox.registerforelection.buttonText")}
-                                type="primary"
-                            />
-                        </div>
-                        <div>
-                            <NavigationBox
-                                onClickAction={() =>
-                                    setPollingStationState({
-                                        ...pollingStationState,
-                                        showVotingSlipUpload: true,
-                                        showVotingSlipSelection: false,
-                                        showQuestions: false,
-                                        showNotification: false,
-                                    })
-                                }
-                                head={t("pollingstation.navigationbox.continuetovote.head")}
-                                text={t("pollingstation.navigationbox.continuetovote.text")}
-                                buttonText={t("pollingstation.navigationbox.continuetovote.buttonText")}
-                                type="primary"
-                            />
-                        </div>
-                    </>
-                )}
                 {pollingStationState.showVotingSlipUpload && (
-                    <>
+                    <div className="op__margin_2_top">
                         <HtmlQRCodePlugin
                             headline={t("pollingstation.uploadqrcode.headline")}
                             subheadline={t("pollingstation.uploadqrcode.subheadline")}
@@ -262,7 +249,7 @@ export default function Pollingstation() {
                             />
                         </div>
 
-                    </>
+                    </div>
                 )}
                 {pollingStationState.showElection && pollingStationState.allowedToVote && (
                     <>
