@@ -134,7 +134,7 @@ export default function Register() {
 
     const goToStart = () => {
         window.location = voting.electionInformation.backLink;
-    }
+    };
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation');
@@ -205,8 +205,8 @@ export default function Register() {
         const currentTime = Math.floor(new Date().getTime() / 1000);
         const tempStartTime = new Date(Number(voting.election.startTime) * 1000);
         const tempEndTime = new Date(Number(voting.election.endTime) * 1000);
-        setStartDate(tempStartTime.toLocaleDateString());
-        setEndDate(tempEndTime.toLocaleDateString());
+        setStartDate(tempStartTime);
+        setEndDate(tempEndTime);
         const state = Number(currentTime) < Number(voting.election.startTime) ? globalConst.electionState.PLANNED : Number(currentTime) < Number(voting.election.endTime) ? globalConst.electionState.ONGOING : globalConst.electionState.FINISHED;
         setElectionState(state);
 
@@ -364,7 +364,7 @@ export default function Register() {
 
                                 <Popup
                                     showModal={registerState.showSaveRegisterQRSuccess}
-                                    bodyText={t("register.popup.aftersave.text", { STARTDATE: startDate, ENDDATE: endDate })}
+                                    bodyText={t("register.popup.aftersave.text", { STARTDATE: startDate, ENDDATE: endDate, interpolation: { escapeValue: false } })}
                                     headerText={t("register.popup.aftersave.headline")}
                                     buttonText={t("common.back")}
                                     buttonFunction={() => {

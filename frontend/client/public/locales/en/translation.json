@@ -96,7 +96,7 @@
     "register.notification.success.ballotcreated.headline": "Election permit successfully created.",
     "register.notification.success.ballotcreated.text": "You can proceed with voting now.",
     "register.popup.aftersave.headline": "Congratulations,",
-    "register.popup.aftersave.text": "You have all the documents you need to take part in the vote. The vote runs in the period from {{STARTDATE}} to {{ENDDATE}}",
+    "register.popup.aftersave.text": "You have all the documents you need to take part in the vote. The vote runs in the period from {{STARTDATE, datetime}} to {{ENDDATE, datetime}}",
     "register.smallHeader.electionend": "End of voting",
     "register.smallHeader.state": "Status",
     "register.smallHeader.statetitle.finished": "Finished",

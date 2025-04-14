@@ -96,7 +96,7 @@
     "register.notification.success.ballotcreated.headline": "Der Wahlschein wurde erstellt.",
     "register.notification.success.ballotcreated.text": "Damit können Sie an der Abstimmung teilnehmen",
     "register.popup.aftersave.headline": "Glückwunsch,",
-    "register.popup.aftersave.text": "Sie haben alle Unterlagen, um an der Abstimmung teilzunehmen. Die Abstimmung läuft im Zeitraum von {{STARTDATE}} bis {{ENDDATE}}",
+    "register.popup.aftersave.text": "Sie haben alle Unterlagen, um an der Abstimmung teilzunehmen. Die Abstimmung läuft im Zeitraum von {{STARTDATE, datetime}} bis {{ENDDATE, datetime}}",
     "register.smallHeader.electionend": "Wahlende",
     "register.smallHeader.state": "Status",
     "register.smallHeader.statetitle.finished": "Beendet",
