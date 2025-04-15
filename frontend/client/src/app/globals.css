@@ -88,6 +88,11 @@ h4 {
   margin-bottom: var(--op-padding-standard);
 }
 
+.op__margin_1_top_bottom {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
 .op__contentbox_760 {
   max-width: 760px;
   width: 100%;

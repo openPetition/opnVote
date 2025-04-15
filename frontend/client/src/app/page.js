@@ -12,6 +12,7 @@ import Loading from "@/components/Loading";
 import Button from "@/components/Button";
 import Notification from "@/components/Notification";
 import globalConst from "@/constants";
+import Faq from "@/app/faq/Faq";
 
 export default function Home() {
     const { t } = useTranslation();
@@ -61,6 +62,8 @@ export default function Home() {
                         <CreateSecret />
                     ) || page.current == globalConst.pages.VOTETRANSACTION && (
                         <VoteTransaction />
+                    ) || page.current == globalConst.pages.FAQ && (
+                        <Faq />
                     ) || page.current == globalConst.pages.ERROR && (
                         <ErrorReturn />
                     )}
