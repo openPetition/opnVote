@@ -173,6 +173,7 @@
     "votetransactionstate.headline.title": "Thank you for your participation",
     "votetransactionstate.info.success": "Your vote was successfully processed, encrypted and immutably written to the blockchain.",
     "votetransactionstate.status": "Your vote is now encrypted and immutably written into a decentralised and secure database - the blockchain.",
+    "votetransactionstate.statusWithLink": "Your vote is now encrypted and immutably written into a decentralised and secure database - the <CustomLink>blockchain</CustomLink>.",
     "votetransactionstate.statustitle.checking": "Is queried",
     "votetransactionstate.statustitle.error": "Error",
     "votetransactionstate.statustitle.pending": "Processing...",

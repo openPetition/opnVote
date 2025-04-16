@@ -35,7 +35,6 @@
     "faq.content.voter.text": "Ein Wähler ist der Teilnehmer einer Abstimmung im Internet.",
     "faq.content.votingkey.title": "Wahlschlüssel",
     "faq.content.votingkey.text": "Der Wahlschlüssel (ehemals Wahlgeheimnis) ist ein Teil des Wahlantrags, das nur der Wähler kennt. Es wird verschlüsselt an die Wahlleitung gegeben. Dort bekommt das verschlüsselte Geheimnis ein Siegel und geht als personalisierter Wahlschein zurück an den Wähler.",
-
     "footer.checkmarks.decentralized": "dezentral",
     "footer.checkmarks.secret": "geheim",
     "footer.checkmarks.verifiable": "überprüfbar",
@@ -174,6 +173,7 @@
     "votetransactionstate.headline.title": "Danke für Ihre Teilnahme",
     "votetransactionstate.info.success": "Ihre Stimme wurde erfolgreich abgegeben, verschlüsselt und unveränderlich in die Blockchain geschrieben.",
     "votetransactionstate.status": "Ihre Stimme wird nun verschlüsselt und unveränderlich in eine dezentrale und sichere Datenbank - die Blockchain - geschrieben. ",
+    "votetransactionstate.statusWithLink": "Ihre Stimme wird nun verschlüsselt und unveränderlich in eine dezentrale und sichere Datenbank - die <CustomLink>Blockchain</CustomLink> - geschrieben. ",
     "votetransactionstate.statustitle.checking": "Wird Abgefragt",
     "votetransactionstate.statustitle.error": "Fehler",
     "votetransactionstate.statustitle.pending": "In Verarbeitung...",

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from 'next/link';
-import { useTranslation } from "next-i18next";
+import { useTranslation, Trans } from "next-i18next";
 import Notification from "@/components/Notification";
 import Loading from '@/components/Loading';
 import Headline from "@/components/Headline";
@@ -99,6 +99,15 @@ export default function VoteTransaction() {
         }
     }
 
+    const BlockchainLinkText = (props) => {
+        const { transactionViewUrl } = props;
+        return (
+            <Link target="_blank" href={transactionViewUrl}>
+                {props.children}
+            </Link>
+        );
+    };
+
     useEffect(() => {
         if (taskId?.length > 0) {
             checkTransaction();
@@ -131,14 +140,18 @@ export default function VoteTransaction() {
             <div className="op__contentbox_max op__center-align op__padding_standard">
                 <div className={styles.item}>
                     <span className={styles.itemvalue}>{voteResultState.transactionState}</span>
-                    <h3 className={styles.itemheadline}>{t('votetransactionstate.status')}</h3>
-                </div>
-                <div className="op__display_none_small op__display_none_wide">
-                    {transactionHash && (
-                        <Link target="_blank" className={styles.itemvalue} href={transactionViewUrl}>
-                            {transactionHash}
-                        </Link>
-                    )}
+                    <h3 className={styles.itemheadline}>
+                        {transactionViewUrl ? (
+                            <Trans
+                                i18nKey="votetransactionstate.statusWithLink"
+                                components={{
+                                    CustomLink: <BlockchainLinkText transactionViewUrl={transactionViewUrl} />
+                                }}
+                            />
+                        ) : (
+                            <>{t('votetransactionstate.status')}</>
+                        )}
+                    </h3>
                 </div>
             </div>
         </>
