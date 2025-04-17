@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Image from 'next/image';
 import styles from '../styles/Header.module.css';
 import { useOpnVoteStore } from "../opnVoteStore";
-import { CircleCheckBig, CircleMinus, CircleHelp } from 'lucide-react';
+import { CircleCheckBig, CircleMinus, CircleHelp, Trash2 } from 'lucide-react';
 import Loading from "./Loading";
 import { useTranslation } from 'next-i18next';
 import globalConst from "@/constants";
@@ -12,7 +12,15 @@ import LanguageSwitch from "./LanguageSwitch";
 
 export default function Head() {
     const { t } = useTranslation();
-    const { updatePage } = useOpnVoteStore((state) => state);
+    const { updatePage, updateUserKey, updateVoting, updateTaskId } = useOpnVoteStore((state) => state);
+
+    const deleteUserKey = () => updateUserKey('');
+    const deleteBallot = () => {
+        updateVoting({ registerCode: '' });
+        updateTaskId('');
+        updatePage({ current: globalConst.pages.CREATEKEY });
+    };
+
 
     const HydrationZustand = ({ children }) => {
         const [isPageHydrated, setIsPageHydrated] = useState(false);
@@ -52,6 +60,9 @@ export default function Head() {
                         color="#2e8444"
                         className={`op__display_inline_small op__display_none_wide op__margin_standard_left`}
                     />
+                    <span className={`hover op__margin_standard_left`} onClick={deleteUserKey}>
+                        <Trash2 size={18} />
+                    </span>
                 </>
             );
         } else {
@@ -79,6 +90,9 @@ export default function Head() {
                         color="#2e8444"
                         className={`op__display_inline_small op__display_none_wide op__margin_standard_left`}
                     />
+                    <span className={`hover op__margin_standard_left`} onClick={deleteBallot}>
+                        <Trash2 size={18} />
+                    </span>
                 </>
             );
         } else {
@@ -111,7 +125,7 @@ export default function Head() {
                                 <span className={styles.help_icon}>
                                     <Button
                                         onClickAction={() => goToHelpPage()}
-                                        text={ <CircleHelp size={22}/> }
+                                        text={<CircleHelp size={22} />}
                                     />
                                 </span>
                             </span>
