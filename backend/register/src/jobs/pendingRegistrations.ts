@@ -240,9 +240,20 @@ export async function processPendingRegistrations(): Promise<void> {
             ? MIN_PRIORITY_FEE
             : (maxPriorityFeePerGas * TX_MULTIPLIERS.MAX_PRIORITY_FEE_PERCENTAGE) / 100n;
 
-          const adjustedMaxFeePerGas = (maxFeePerGas * TX_MULTIPLIERS.MAX_FEE_PERCENTAGE) / 100n;
+          let adjustedMaxFeePerGas = (maxFeePerGas * TX_MULTIPLIERS.MAX_FEE_PERCENTAGE) / 100n;
+
+          const block = await provider.getBlock("latest");
+          if (!block || !block.baseFeePerGas) {
+            throw new Error("Could not get baseFeePerGas");
+          }
+
+          const fallbackCap = block.baseFeePerGas * 2n + adjustedMaxPriorityFeePerGas;
+          if (adjustedMaxFeePerGas < fallbackCap) {
+            adjustedMaxFeePerGas = fallbackCap;
+          }
 
           logger.info("Transaction Gas Fees", {
+            baseFeePerGas: ethers.formatUnits(block.baseFeePerGas, "gwei"),
             maxFeePerGas: ethers.formatUnits(maxFeePerGas, "gwei"),
             maxPriorityFeePerGas: ethers.formatUnits(maxPriorityFeePerGas, "gwei"),
             adjustedMaxFeePerGas: ethers.formatUnits(adjustedMaxFeePerGas, "gwei"),
