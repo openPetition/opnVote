@@ -140,7 +140,9 @@ export default function Pollingstation() {
     }, [dataVotings]);
 
     useEffect(() => {
+
         if (taskId && taskId.length > 0) {
+            updateVoting({ votesuccess: false, transactionViewUrl: '' }); //invalidate
             updatePage({ current: globalConst.pages.VOTETRANSACTION });
         };
 

@@ -17,6 +17,8 @@ export const useOpnVoteStore = create(
                 vote: {},
                 revote: {},
                 userCredential: '',
+                votesuccess: false,
+                transactionViewUrl: ''
             },
             taskId: '',
             page: {
