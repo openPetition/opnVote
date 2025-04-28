@@ -1,0 +1,35 @@
+name: Hourly Voting Test
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  run-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install votingSystem dependencies
+        run: npm install votingSystem
+
+      - name: Build votingSystem
+        run: npm run build --workspace=votingSystem
+
+      - name: Install test dependencies
+        run: npm install
+
+      - name: Run Voting Test Script
+        run: npx ts-node backend/tests/src/full-vote-test.ts
+        env:
+          AP_PRIVATE_KEY: ${{ secrets.AP_PRIVATE_KEY }}
+          RPC_PROVIDER: ${{ secrets.RPC_PROVIDER }}

@@ -97,7 +97,7 @@ export async function createRelayRequest(
 export async function createSignatureData(
   request: CallWithERC2771Request,
   credentials: ElectionCredentials,
-  relay: GelatoRelay,
+  relay: GelatoRelay | null,
   provider: ethers.JsonRpcProvider): Promise<SignatureData> {
 
 
@@ -112,6 +112,9 @@ export async function createSignatureData(
     } else {
       throw new Error(`Failed to create signer with provider: ${error}`);
     }
+  }
+  if (!relay) {
+    relay = new GelatoRelay();
   }
   return await relay.getSignatureDataERC2771(request, signerWithProvider, ERC2771Type.SponsoredCall);
 }

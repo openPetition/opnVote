@@ -10,12 +10,14 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@gelatonetwork/relay-sdk": "^5.5.6",
     "@noble/curves": "^1.4.0",
-    "ethers": "^6.13.1",
-    "votingsystem": "*",
     "axios": "^1.8.4",
+    "dotenv": "^16.5.0",
+    "ethers": "6.7.0",
     "https": "^1.0.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "votingsystem": "*"
   },
   "devDependencies": {
     "@types/axios": "^0.9.36",
