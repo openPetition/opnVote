@@ -11,7 +11,7 @@ import { useOpnVoteStore } from "../../opnVoteStore";
 import styles from './styles/votetransaction.module.css';
 
 export default function VoteTransaction() {
-    const { taskId } = useOpnVoteStore((state) => state);
+    const { taskId, voting, updateVoting, updateTaskId } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [transactionHash, setTransactionHash] = useState();
     const [transactionViewUrl, setTransactionViewUrl] = useState();
@@ -55,6 +55,11 @@ export default function VoteTransaction() {
                     notificationText: t('votetransactionstate.info.success'),
                     notificationType: 'success',
                 });
+                updateVoting({
+                    votesuccess: true,
+                    transactionViewUrl: transactionResult.transactionViewUrl
+                });
+                updateTaskId(''); //invalidation to prevent wrong redirects from pollingstation
             }
 
             if (transactionResult.status === 'cancelled') {
@@ -111,6 +116,17 @@ export default function VoteTransaction() {
     useEffect(() => {
         if (taskId?.length > 0) {
             checkTransaction();
+            return;
+        }
+        if (voting.votesuccess) {
+            setVoteResultState({
+                ...voteResultState,
+                transactionState: t('votetransactionstate.statustitle.success'),
+                showLoading: false,
+                showNotification: true,
+                notificationText: t('votetransactionstate.info.success'),
+                notificationType: 'success',
+            });
         }
     }, [taskId]);
 
@@ -141,11 +157,11 @@ export default function VoteTransaction() {
                 <div className={styles.item}>
                     <span className={styles.itemvalue}>{voteResultState.transactionState}</span>
                     <h3 className={styles.itemheadline}>
-                        {transactionViewUrl ? (
+                        {voting.transactionViewUrl ? (
                             <Trans
                                 i18nKey="votetransactionstate.statusWithLink"
                                 components={{
-                                    CustomLink: <BlockchainLinkText transactionViewUrl={transactionViewUrl} />
+                                    CustomLink: <BlockchainLinkText transactionViewUrl={voting.transactionViewUrl} />
                                 }}
                             />
                         ) : (
