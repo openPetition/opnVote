@@ -4,7 +4,7 @@ import fs from 'fs';
 import { addSVSSignatureToVotingTransaction, blindToken, createRelayRequest, createSignatureData, createVotingTransactionWithoutSVSSignature, deriveElectionR, deriveElectionUnblindedToken, ElectionCredentials, EncryptionKey, EncryptionType, encryptVotes, EthSignature, generateKeyPair, generateMasterTokenAndMasterR, PublicKeyDer, R, RSAParams, Signature, TestRegister, Token, unblindSignature, Vote, VoteOption, VotingTransaction, createVoterCredentials } from "votingsystem";
 import { Register } from "./config";
 import { ethers } from 'ethers';
-import opnvoteAbi from './abi/opnvote-0.0.2.json';
+import opnvoteAbi from './abi/opnvote-0.0.3.json';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -86,23 +86,23 @@ interface TaskInfo {
 }
 
 const config: TestConfig = {
-    count: 5,
+    count: 10,
     registerUrl: 'https://register.opn.vote/api/sign',
     svsSignUrl: 'https://svs.opn.vote/api/votingTransaction/sign',
     svsForwardUrl: 'https://svs.opn.vote/api/gelato/forward',
     opnVoteInterface: new ethers.Interface(opnvoteAbi),
     provider: new ethers.JsonRpcProvider(RPC_PROVIDER),
-    subgraphUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-002/',
-    opnVoteAddress: '0xd7f44BF41E2408E73d692624A8A754Ee139f0458',
+    subgraphUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-003/',
+    opnVoteAddress: '0xc2958f59C2F333b1ad462C7a3969Da1E0B662459',
     concurrency: 2,
     apPrivateKeyPath: './keys/AP-privateKey.pem',
-    electionID: 1,
+    electionID: 0,
     baseUserId: baseUserId,
     onChainCheckIntervalMs: 30 * 1000, // 30 seconds
     onChainCheckTimeoutMs: 8 * 60 * 1000, // 8 minutes
     registerKeyPublic: RegisterPublic,
     coordinatorKeyPublic: coordinatorKeyPublic,
-    batchDelayMs: 10 * 1000 // 20 seconds delay
+    batchDelayMs: 10 * 1000 // 10 seconds delay
 };
 
 async function createRegistrationPayload() {
@@ -313,7 +313,7 @@ async function verifyGelatoTasks(taskInfos: TaskInfo[], stats: TestStats): Promi
             const gelatoStatus = await waitForGelatoTask(taskInfo.taskId);
             if (gelatoStatus?.task?.taskState === "ExecSuccess") {
                 stats.successfulGelatoVerify++;
-                
+
                 // Verify transaction on chain
                 const txSuccess = await verifyTransactionOnChain(gelatoStatus.task.transactionHash);
                 if (txSuccess) {
@@ -519,12 +519,12 @@ function printResults(stats: TestStats): void {
     const totalApiRequests = stats.successfulApi + stats.failedApi;
 
     // Print successful transaction hashes if all checks passed
-    if (stats.successfulApi === config.count && 
-        stats.successfulSvsSign === stats.successfulApi && 
-        stats.successfulSvsForward === stats.successfulSvsSign && 
-        stats.successfulGelatoVerify === stats.successfulSvsForward && 
+    if (stats.successfulApi === config.count &&
+        stats.successfulSvsSign === stats.successfulApi &&
+        stats.successfulSvsForward === stats.successfulSvsSign &&
+        stats.successfulGelatoVerify === stats.successfulSvsForward &&
         stats.successfulTxVerify === stats.successfulGelatoVerify) {
-        
+
         console.log('\n=== Successful Transaction Hashes ===');
         console.log('VoterID | Transaction Hash');
         console.log('--------|----------------');
@@ -614,4 +614,3 @@ function bigIntReplacer(key: any, value: any) {
     }
     return value;
 }
-

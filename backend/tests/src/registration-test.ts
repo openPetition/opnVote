@@ -36,10 +36,10 @@ interface TestConfig {
 const config: TestConfig = {
   count: 10,
   url: 'https://register.opn.vote/api/sign',
-  subgraphUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-002/',
+  subgraphUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-003/',
   concurrency: 2,
   apPrivateKeyPath: './keys/AP-privateKey.pem',
-  electionID: 1,
+  electionID: 0,
   baseUserId: baseUserId,
   onChainCheckIntervalMs: 30 * 1000, // 30 seconds
   onChainCheckTimeoutMs: 8 * 60 * 1000, // 8 minutes
