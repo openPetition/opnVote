@@ -26,7 +26,8 @@ export async function signVotingTransaction(votingTransaction: VotingTransaction
     }
 
     try {
-        const message = ethers.solidityPackedKeccak256(
+        const abiCoder = new ethers.AbiCoder();
+        const message = abiCoder.encode(
             ['uint256', 'address', 'bytes', 'bytes', 'bytes', 'bytes'],
             [
                 votingTransaction.electionID,
@@ -37,7 +38,11 @@ export async function signVotingTransaction(votingTransaction: VotingTransaction
                 votingTransaction.unblindedSignature.hexString
             ]
         );
-        const signatureHexString = await wallet.signMessage(ethers.toBeArray(message));
+
+        const dataHash = ethers.keccak256(message);
+        const dataBytes = ethers.getBytes(dataHash);
+        const signatureHexString = await wallet.signMessage(dataBytes);
+
         return { hexString: signatureHexString };
 
     } catch (err) {
