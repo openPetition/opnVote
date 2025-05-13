@@ -112,7 +112,7 @@ export default function CreateSecret() {
 
                             </>
                         )}
-                        {voting.electionId && voting.jwt && (
+                        {!isNaN(voting.electionId) && voting.jwt && (
                             <div className="op__center-align">
                                 <Button
                                     onClickAction={() => goToRegister()}
