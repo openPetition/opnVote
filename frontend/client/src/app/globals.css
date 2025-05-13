@@ -17,10 +17,46 @@ html {
   --op-padding-standard: .5rem;
 
   --op-link-color-main: var(--op-blue-main);
+
+  --op-font-size-standard: 16px/23px;
+  --op-font-size-bigger: 18px/24px;
+}
+
+@font-face {
+  font-family: 'op__roboto';
+  font-display: fallback;
+  src: local('Roboto Light'), local('Roboto-Light'), local('RobotoLight'), url("/fonts/Roboto/Roboto-Light.woff2") format('woff2'), url("/fonts/Roboto/Roboto-Light.woff") format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'op__roboto';
+  font-display: fallback;
+  src: local('Roboto Bold'), local('Roboto-Bold'), local('RobotoBold'), url("/fonts/Roboto/Roboto-Bold.woff2") format('woff2'), url("/fonts/Roboto/Roboto-Bold.woff") format('woff');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'op__roboto';
+  font-display: fallback;
+  src: local('Roboto Black'), local('Roboto-Black'), local('RobotoBlack'), url("/fonts/Roboto/Roboto-Black.woff2") format('woff2'), url("/fonts/Roboto/Roboto-Black.woff") format('woff');
+  font-weight: 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'op__roboto--slab';
+  font-display: fallback;
+  src: local('Roboto Slab Bold'), local('Roboto-Slab-Bold'), local('RobotoSlab-Bold'), local('RobotoSlabBold'), url("/fonts/RobotoSlab/RobotoSlab-Bold.woff2") format('woff2'), url("/fonts/RobotoSlab/RobotoSlab-Bold.woff") format('woff');
+  font-weight: bold;
+  font-style: normal;
 }
 
 body {
   color: #3e3d40;
+  font: normal var(--op-font-size-standard) 'op__roboto', sans-serif;
 }
 
 a {
@@ -59,6 +95,10 @@ h4 {
   padding-top: var(--op-padding-standard);
 }
 
+.op__padding_standard_bottom {
+  padding-bottom: var(--op-padding-standard);
+}
+
 .op__padding_standard_top_bottom {
   padding: var(--op-padding-standard) 0;
 }
@@ -89,8 +129,8 @@ h4 {
 }
 
 .op__margin_1_top_bottom {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
 .op__contentbox_760 {
@@ -150,13 +190,21 @@ h4 {
 }
 
 .text_small {
-    font-size: 0.875rem /* 14px */;
-    line-height: 1.25rem /* 20px */;
+  font-size: 0.875rem
+    /* 14px */
+  ;
+  line-height: 1.25rem
+    /* 20px */
+  ;
 }
 
 .text_xlarge {
-    font-size: 1.5rem /* 24px */;
-    line-height: 2rem /* 32px */;
+  font-size: 1.5rem
+    /* 24px */
+  ;
+  line-height: 2rem
+    /* 32px */
+  ;
 }
 
 @media only screen and (min-width: 800px) {

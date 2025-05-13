@@ -31,7 +31,7 @@
 }
 
 .textblock {
-    font-weight: bold;
+    font: normal normal bold var(--op-font-size-bigger) 'op__roboto--slab';
 }
 
 @media only screen and (min-width: 600px) {

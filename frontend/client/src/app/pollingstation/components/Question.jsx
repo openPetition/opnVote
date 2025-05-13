@@ -22,6 +22,7 @@ export default function Question(props) {
                     {showVoteOptions && (
                         <div className={styles.vote_options} role="radiogroup">
                             <div className={styles.vote_option}>
+                                <label htmlFor={`voteselect_${questionKey}_yes`}>{t("pollingstation.question.answer.yes")}</label>
                                 <input
                                     type="radio"
                                     id={`voteselect_${questionKey}_yes`}
@@ -31,9 +32,9 @@ export default function Question(props) {
                                     value={t("pollingstation.question.answer.yes")}
                                     onChange={() => setVote(VoteOption.Yes)}
                                 />
-                                <label htmlFor={`voteselect_${questionKey}_yes`}>{t("pollingstation.question.answer.yes")}</label>
                             </div>
                             <div className={styles.vote_option}>
+                                <label htmlFor={`voteselect_${questionKey}_no`}>{t("pollingstation.question.answer.no")}</label>
                                 <input
                                     type="radio"
                                     id={`voteselect_${questionKey}_no`}
@@ -43,9 +44,9 @@ export default function Question(props) {
                                     value={t("pollingstation.question.answer.no")}
                                     onChange={() => setVote(VoteOption.No)}
                                 />
-                                <label htmlFor={`voteselect_${questionKey}_no`}>{t("pollingstation.question.answer.no")}</label>
                             </div>
                             <div className={styles.vote_option}>
+                                <label htmlFor={`voteselect_${questionKey}_abstain`}>{t("pollingstation.question.answer.abstain")}</label>
                                 <input
                                     type="radio"
                                     id={`voteselect_${questionKey}_abstain`}
@@ -55,7 +56,6 @@ export default function Question(props) {
                                     value={t("pollingstation.question.answer.abstain")}
                                     onChange={() => setVote(VoteOption.Abstain)}
                                 />
-                                <label htmlFor={`voteselect_${questionKey}_abstain`}>{t("pollingstation.question.answer.abstain")}</label>
                             </div>
                         </div>
                     )}

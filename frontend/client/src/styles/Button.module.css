@@ -8,9 +8,10 @@
 .primary {
     color: white;
     background-color: var(--op-blue-main);
-    font-weight: 600;
     text-transform: uppercase;
-    padding: var(--op-padding-standard);
+    padding: 1rem;
+    font: normal normal bold var(--op-font-size-standard) 'op__roboto';
+    letter-spacing: 0px;
 }
 
 .primary:disabled {
@@ -21,15 +22,17 @@
 .primary_light {
     color: white;
     background-color: var(--op-blue-main);
-    font-weight: 200;
     padding: .25rem var(--op-padding-standard);
     text-transform: none;
+    font: normal normal 300 var(--op-font-size-standard) 'op__roboto';
+    letter-spacing: 0px;
 }
 
 .secondary {
     background-color: white;
     color: var(--op-blue-main);
     border: 1px solid var(--op-blue-main);
+    padding: 1rem;
 }
 
 .dark {

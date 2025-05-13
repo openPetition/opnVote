@@ -26,7 +26,7 @@
     margin: 0;
     padding: 0;
     margin-bottom: 1rem;
-    font-size: 1.2rem;
+    font: normal normal bold var(--op-font-size-bigger) 'op__roboto--slab';
 }
 
 .election_informations {
