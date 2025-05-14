@@ -64,7 +64,6 @@ export default function Pollingstation() {
     const qrCodeToCredentials = async (code) => {
         try {
             let credentials = await qrToElectionCredentials(code);
-
             if (Object.keys(credentials).length > 0) {
                 await validateCredentials(credentials);
                 if (parseInt(credentials?.electionID) !== parseInt(voting?.election?.id)) {

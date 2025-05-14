@@ -1,5 +1,4 @@
 'use client';
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 import './i18n';
@@ -13,13 +12,12 @@ const client = new ApolloClient({
     cache: new InMemoryCache(),
 });
 
-const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }) {
 
     return (
         <html>
-            <body className={inter.className}>
+            <body>
                 <ApolloProvider client={client}>
                     <Head />
                     <DataLoad />

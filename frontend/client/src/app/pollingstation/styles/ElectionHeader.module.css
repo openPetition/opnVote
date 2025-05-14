@@ -41,7 +41,8 @@
     margin: 0;
     padding: 0;
     margin-bottom: 1rem;
-    font-size: 1.2rem;
+    font: normal normal bold 32px/40px 'op__roboto--slab';
+    letter-spacing: 0.32px;
 }
 
 .election_informations {
