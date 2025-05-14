@@ -34,10 +34,10 @@ interface TestConfig {
 }
 
 const config: TestConfig = {
-  count: 10,
+  count: 200,
   url: 'https://register.opn.vote/api/sign',
   subgraphUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-003/',
-  concurrency: 2,
+  concurrency: 100,
   apPrivateKeyPath: './keys/AP-privateKey.pem',
   electionID: 0,
   baseUserId: baseUserId,
