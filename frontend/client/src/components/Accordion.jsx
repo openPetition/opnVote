@@ -34,6 +34,7 @@ export default function Accordion() {
                             checked={isOpen}
                             onClick={() => toggleOpen(key)}
                             className="op__display_none_small"
+                            readOnly={true}
                         />
                         { isOpen[key] &&
                             <p className="op__margin_1_top_bottom">{ globalConst.faqContent[key].text }</p>

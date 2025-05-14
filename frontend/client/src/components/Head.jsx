@@ -12,7 +12,7 @@ import LanguageSwitch from "./LanguageSwitch";
 
 export default function Head() {
     const { t } = useTranslation();
-    const { updatePage, updateUserKey, updateVoting, updateTaskId } = useOpnVoteStore((state) => state);
+    const { updatePage, updateUserKey, updateVoting, updateTaskId, page } = useOpnVoteStore((state) => state);
 
     const deleteUserKey = () => updateUserKey('');
     const deleteBallot = () => {
@@ -105,9 +105,8 @@ export default function Head() {
         }
     };
 
-
     const goToHelpPage = () => {
-        updatePage({ current: globalConst.pages.FAQ });
+        updatePage({ previous: page.current, current: globalConst.pages.FAQ });
     };
 
     return (

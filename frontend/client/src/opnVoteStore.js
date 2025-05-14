@@ -6,7 +6,8 @@ export const useOpnVoteStore = create(
     persist(
         (set, get) => ({
             user: {
-                key: ''
+                key: '',
+                keySaved: false
             },
             voting: {
                 electionId: null,
@@ -22,9 +23,17 @@ export const useOpnVoteStore = create(
             },
             taskId: '',
             page: {
-                current: globalConst.pages.LOADING
+                loading: true,
+                previous: null,
+                current: null
             },
-            updateUserKey: (key) => set(() => ({ user: { ...get().user, key: key } })),
+            updateUserKey: (key, keySaved) => set(() => ({
+                user: {
+                    ...get().user,
+                    key: key,
+                    keySaved: keySaved
+                    }
+                })),
             updateVoting: (votingData) =>
                 set((state) => ({
                     voting: {

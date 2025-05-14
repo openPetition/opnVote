@@ -16,7 +16,7 @@ export default function DataLoad() {
     });
 
     const [getElection, { data: dataElection, loading: loadingElection }] = getElectionData(dataStationState.electionId);
-    const { voting, updateVoting, page, updatePage } = useOpnVoteStore((state) => state);
+    const { voting, updateVoting, page, updatePage, user } = useOpnVoteStore((state) => state);
 
     // get Params and check wethere electionId is given. Continue or Error
     useEffect(() => {
@@ -73,16 +73,28 @@ export default function DataLoad() {
                 jwt: dataStationState.jwtToken.length > 0 ? dataStationState.jwtToken : '',
                 election: dataStationState.updateElection ? dataStationState.election : voting.election,
                 electionInformation: dataStationState.updateElection ? dataStationState.electionInformation : voting.electionInformation,
-                registerCode: '',
             });
 
             if (dataStationState.linkedPage && dataStationState.linkedPage == 'pollingstation') { //currently only this case is allowed
-                updatePage({ current: globalConst.pages.POLLINGSTATION });
+                updatePage({ current: globalConst.pages.POLLINGSTATION, loading: false });
             } else {
                 if (dataStationState.jwtToken.length > 0) { // jwt Token is needed for other page
-                    updatePage({ current: globalConst.pages.CREATEKEY });
+                    if (page.current) {
+                        if (page.current === "pollingstation") {
+                            if (!user.key) {
+                                updatePage({ previous: globalConst.pages.POLLINGSTATION, current: globalConst.pages.CREATEKEY })
+                            } else if (!voting.registerCode) {
+                                updatePage({ previous: globalConst.pages.POLLINGSTATION, current: globalConst.pages.REGISTER })
+                            }
+                        }
+                        updatePage({ loading: false });
+                    }
+                    else {
+                        updatePage({ current: globalConst.pages.CREATEKEY, loading: false });
+                    }
+
                 } else {
-                    updatePage({ current: globalConst.pages.ERROR });
+                    updatePage({ current: globalConst.pages.ERROR, loading: false });
                 }
             };
         }

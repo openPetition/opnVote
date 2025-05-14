@@ -18,7 +18,6 @@ export default function CreateSecret() {
         showSecret: false,
         showNotification: false,
         showKeyCheck: false,
-        keySaved: false
     });
 
     const { user, voting, updateUserKey, updatePage } = useOpnVoteStore((state) => state);
@@ -39,7 +38,7 @@ export default function CreateSecret() {
         const createdSecret = await concatTokenAndRForQR(masterTokenAndR.masterToken, masterTokenAndR.masterR);
         await delay(1000); // one second for loading the key
         if (createdSecret) {
-            updateUserKey(createdSecret);
+            updateUserKey(createdSecret, false);
         }
     }
 
@@ -103,10 +102,7 @@ export default function CreateSecret() {
                                     headimage="secret"
                                     saveButtonText={t("common.save")}
                                     afterSaveFunction={() => {
-                                        setCreateSecretState({
-                                            ...createSecretState,
-                                            keySaved: true
-                                        });
+                                        updateUserKey(user.key, true)
                                     }}
                                 />
 
@@ -118,7 +114,7 @@ export default function CreateSecret() {
                                     onClickAction={() => goToRegister()}
                                     text={t("secret.navigationbox.gotoregister.aftergenerated.buttonText")}
                                     type="primary"
-                                    isDisabled={(!(user?.key?.length > 0) || !createSecretState.keySaved)}
+                                    isDisabled={(!(user?.key?.length > 0) || !user.keySaved)}
                                 />
                             </div>
                         )}
