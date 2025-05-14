@@ -3,7 +3,7 @@ const devConfig = {
     i18n,
     env: {
         basicUrl: 'https://localhost:3000',
-        abiConfigUrl: 'https://localhost:3000/api/abi-003.json',
+        abiConfigUrl: 'https://localhost:3000/api/abi.json',
         blindedSignatureUrl: 'https://register.opn.vote/api/sign',
         signVotingTransactionUrl: 'https://svs.opn.vote/api/votingTransaction/sign',
         graphConnectUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-003',
