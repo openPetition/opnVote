@@ -3,11 +3,12 @@ const devConfig = {
     i18n,
     env: {
         basicUrl: 'https://localhost:3000',
-        abiConfigUrl: 'https://localhost:3000/api/abi.json',
+        abiConfigUrl: 'https://localhost:3000/api/abi-003.json',
         blindedSignatureUrl: 'https://register.opn.vote/api/sign',
         signVotingTransactionUrl: 'https://svs.opn.vote/api/votingTransaction/sign',
         graphConnectUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-003',
         gelatoForwardUrl: 'https://svs.opn.vote/api/gelato/forward',
+        opnVoteContractAddress: '0xc2958f59C2F333b1ad462C7a3969Da1E0B662459',
         maxVoteRecasts: 2,
     },
     images: {
@@ -24,6 +25,7 @@ const stagingConfig = {
         signVotingTransactionUrl: 'https://svs.opn.vote/api/votingTransaction/sign',
         graphConnectUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-003',
         gelatoForwardUrl: 'https://svs.opn.vote/api/gelato/forward',
+        opnVoteContractAddress: '0xc2958f59C2F333b1ad462C7a3969Da1E0B662459',
         maxVoteRecasts: 2,
     },
 
@@ -53,6 +55,7 @@ const prodConfig = {
         signVotingTransactionUrl: 'https://svs.opn.vote/api/votingTransaction/sign',
         graphConnectUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-003',
         gelatoForwardUrl: 'https://svs.opn.vote/api/gelato/forward',
+        opnVoteContractAddress: '0xc2958f59C2F333b1ad462C7a3969Da1E0B662459',
         maxVoteRecasts: 2,
     },
 

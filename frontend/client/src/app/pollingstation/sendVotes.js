@@ -2,6 +2,7 @@
 
 import { ethers } from "ethers";
 import { signTransaction, gelatoForward, getAbi } from '../../service';
+import Config from "../../../next.config.mjs";
 import { GelatoRelay } from "@gelatonetwork/relay-sdk";
 import { createSignatureData, createRelayRequest, encryptVotes, createVotingTransactionWithoutSVSSignature, addSVSSignatureToVotingTransaction, createVoteRecastTransaction, EncryptionType } from "votingsystem";
 
@@ -43,7 +44,7 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     const opnVoteInterface = new ethers.Interface(abiData);
 
     const provider = new ethers.JsonRpcProvider("https://gnosis-mainnet.g.alchemy.com/v2/MBXWJJ3MwzGKwdgULrX7vgJd5BF_pDsZ"); // lets talk where to put all this stuff in biweekly - its on the list
-    const relayRequest = await createRelayRequest(votingTransactionFull, votingCredentials, "0xd7f44bf41e2408e73d692624a8a754ee139f0458", opnVoteInterface, provider);
+    const relayRequest = await createRelayRequest(votingTransactionFull, votingCredentials, Config.env.opnVoteContractAddress, opnVoteInterface, provider);
     const relay = new GelatoRelay();
     const signatureDataInitial = await createSignatureData(relayRequest, votingCredentials, relay, provider);
 
