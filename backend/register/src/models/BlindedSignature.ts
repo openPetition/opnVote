@@ -1,14 +1,12 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { Entity, Column, CreateDateColumn, Unique, PrimaryColumn } from 'typeorm';
 
 @Entity('blindedSignatures')
+@Unique('uc_user_election', ['userID', 'electionID'])
 export class BlindedSignature {
-  @PrimaryGeneratedColumn()
-  id!: number; // Auto-generated
-
-  @Column()
+  @PrimaryColumn({ type: 'bigint', unsigned: true })
   userID!: number; // provided by AP
-
-  @Column()
+ 
+  @PrimaryColumn({ type: 'int', unsigned: true })
   electionID!: number; // provided by Smart Contract
 
   @Column({ type: 'varchar', length: 1026 })

@@ -9,7 +9,6 @@ import { BlindedSignature } from '../models/BlindedSignature';
 import { dataSource } from '../database';
 import { ApiResponse } from '../types/apiResponses';
 import { RegisterKeyService } from '../services/registerKeyService';
-import { QueryRunner } from 'typeorm';
 import { logger } from '../utils/logger';
 
 const router = Router();
@@ -82,13 +81,7 @@ router.post('/',
   checkForExistingBlindedSignature, // Confirms that user didnt receive a blinded Signature for this election
   async (req: Request, res: Response) => {
     let startTime: number = Date.now();
-    let queryRunner: QueryRunner | undefined;
     try {
-      queryRunner = dataSource.createQueryRunner();
-      // logger.debug('Starting transaction for user registration');
-
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
 
       const { userID, electionID } = req.user!;
       const authHeader = req.headers.authorization!;
@@ -96,35 +89,6 @@ router.post('/',
 
       logger.debug(`Processing registration for user ${userID} in election ${electionID}`);
       startTime = Date.now();
-      // Re-check for existing signature with lock
-      const repository = queryRunner.manager.getRepository(BlindedSignature);
-      const existingSignature = await repository.findOne({
-        where: {
-          userID: userID,
-          electionID: electionID,
-        },
-        lock: { mode: 'pessimistic_write' }
-      });
-
-      if (existingSignature) {
-        // If same token, return existing signature
-        if (existingSignature.blindedToken.toLowerCase() === blindedToken.hexString.toLowerCase()) {
-          logger.debug(`Found existing signature for user ${userID} with same token`);
-          return res.json({
-            data: {
-              message: 'Existing blinded signature found.',
-              blindedSignature: existingSignature.blindedSignature.toLowerCase()
-            },
-            error: null,
-          } as ApiResponse<{ blindedSignature: string }>);
-        }
-
-        logger.warn(`User ${userID} already registered with different token`);
-        return res.status(400).json({
-          data: null,
-          error: 'Already registered with different token'
-        } as ApiResponse<null>);
-      }
 
       const registerSigner = await RegisterKeyService.getKeysByElectionId(electionID);
       if (!registerSigner) {
@@ -134,33 +98,41 @@ router.post('/',
       const blindedSignature = signToken(blindedToken, registerSigner);
       const jwtToken = authHeader.split(' ')[1];
 
-      const signatureRecord = new BlindedSignature();
-      signatureRecord.userID = userID;
-      signatureRecord.electionID = electionID;
-      signatureRecord.blindedToken = blindedToken.hexString.toLowerCase();
-      signatureRecord.blindedSignature = blindedSignature.hexString.toLowerCase();
-      signatureRecord.jwt = jwtToken;
-      signatureRecord.txHash = null;
-      signatureRecord.onchainStatus = 'pending';
-      signatureRecord.batchID = null;
 
-      await repository.save(signatureRecord);
-      await queryRunner.commitTransaction();
-
-      const duration = Date.now() - startTime;
-      if (duration > 500) {
-        logger.warn(`[SLOW]: Successfully committed transaction for user ${userID} in ${duration}ms`);
-      } else {
-        logger.debug(`Successfully committed transaction for user ${userID} in ${duration}ms`);
+      try {
+        await dataSource.createQueryBuilder()
+          .insert()
+          .into(BlindedSignature)
+          .values({
+            userID,
+            electionID,
+            blindedToken: blindedToken.hexString.toLowerCase(),
+            blindedSignature: blindedSignature.hexString.toLowerCase(),
+            jwt: jwtToken,
+            onchainStatus: 'pending',
+            txHash: null,
+            batchID: null,
+          })
+          .execute();
+        return res.json({
+          data: {
+            blindedSignature: blindedSignature.hexString.toLowerCase()
+          },
+          error: null,
+        } as ApiResponse<{ blindedSignature: string }>);
+      } catch (e: any) {
+        if (e.code === 'ER_DUP_ENTRY') {
+          // fetch existing row for idempotent retry
+          const existing = await dataSource.getRepository(BlindedSignature)
+            .findOneBy({ userID, electionID });
+          if (existing!.blindedToken.toLowerCase() === blindedToken.hexString.toLowerCase()) {
+            return res.json({ data: { message: 'Existing blinded signature found.', blindedSignature: existing!.blindedSignature.toLowerCase() }, error: null });
+          }
+          return res.status(400).json({ data: null, error: 'Already registered with different token' });
+        }
+        logger.error(e);
+        return res.status(500).json({ data: null, error: 'Failed to process token' });
       }
-
-      // Return signed Token
-      return res.json({
-        data: {
-          blindedSignature: signatureRecord.blindedSignature.toLowerCase()
-        },
-        error: null,
-      } as ApiResponse<{ blindedSignature: string }>);
 
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -170,33 +142,18 @@ router.post('/',
         logger.debug(`Error in registration process after ${duration}ms: ${error}`);
       }
 
-      if (queryRunner?.isTransactionActive) {
-        try {
-          await queryRunner.rollbackTransaction();
-          logger.debug('Successfully rolled back transaction');
-        } catch (rollbackError) {
-          logger.error('Error rolling back transaction: ' + rollbackError);
-        }
-      }
-
       return res.status(500).json({
         data: null,
         error: 'Failed to process token'
       } as ApiResponse<null>);
     } finally {
-      if (queryRunner) {
-        try {
-          await queryRunner.release();
-          const duration = Date.now() - startTime;
-          if (duration > 500) {
-            logger.warn(`[SLOW] Total DB transaction time: ${duration}ms`);
-          } else {
-            logger.debug(`Total DB transaction time: ${duration}ms`);
-          }
-        } catch (releaseError) {
-          logger.error('Error releasing query runner: ' + releaseError);
-        }
+      const duration = Date.now() - startTime;
+      if (duration > 500) {
+        logger.warn(`[SLOW] Total DB transaction time: ${duration}ms`);
+      } else {
+        logger.debug(`Total DB transaction time: ${duration}ms`);
       }
+
     }
   })
 

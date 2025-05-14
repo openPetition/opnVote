@@ -146,8 +146,8 @@ export async function processPendingRegistrations(): Promise<void> {
     }
 
     if (memoryFilteredRegistrations.length !== pendingRegistrations.length) {
-      const memoryFilteredIds = memoryFilteredRegistrations.map(r => `${r.id} (Election: ${r.electionID})`).join(', ');
-      const pendingIds = pendingRegistrations.map(r => `${r.id} (Election: ${r.electionID})`).join(', ');
+      const memoryFilteredIds = memoryFilteredRegistrations.map(r => `(User: ${r.userID}, Election: ${r.electionID})`).join(', ');
+      const pendingIds = pendingRegistrations.map(r => `(User: ${r.userID}, Election: ${r.electionID})`).join(', ');
 
       logger.error(`Found registrations that were already processed on-chain.\nMemory Filtered: ${memoryFilteredIds}\nPending: ${pendingIds}`);
     }
@@ -156,7 +156,7 @@ export async function processPendingRegistrations(): Promise<void> {
     // Get all unique election IDs from pending registrations
     const electionIDs: number[] = [...new Set(memoryFilteredRegistrations.map(reg => reg.electionID))];
 
-    const idList = memoryFilteredRegistrations.map((reg, index) => `ID ${index}: ${reg.id}`).join(', ');
+    const idList = memoryFilteredRegistrations.map((reg) => `(User: ${reg.userID}, Election: ${reg.electionID})`).join(', ');
     logger.info(`Found ${memoryFilteredRegistrations.length} pending registrations for ${electionIDs.length} elections: ${idList}`);
 
 
@@ -193,8 +193,8 @@ export async function processPendingRegistrations(): Promise<void> {
             recentGraphRegistrations
           ));
           if (finalFilteredRegistrations.length !== pendingRegistrationsForElection.length) {
-            const finalFilteredIds = finalFilteredRegistrations.map(r => `${r.id} (Election: ${r.electionID})`).join(', ');
-            const pendingIds = pendingRegistrationsForElection.map(r => `${r.id} (Election: ${r.electionID})`).join(', ');
+            const finalFilteredIds = finalFilteredRegistrations.map(r => `(User: ${r.userID}, Election: ${r.electionID})`).join(', ');
+            const pendingIds = pendingRegistrationsForElection.map(r => `(User: ${r.userID}, Election: ${r.electionID})`).join(', ');
             logger.error(`Found registrations that were already processed on-chain.\nFinal Filtered: ${finalFilteredIds}\nPending: ${pendingIds}`);
           }
         }
@@ -307,12 +307,13 @@ export async function processPendingRegistrations(): Promise<void> {
           // Update all registrations to 'submitted' status
           for (const registration of registrationBatch) {
             await BlindedSignatureService.updateRegistrationStatus(
-              registration.id,
+              registration.userID,
+              registration.electionID,
               'submitted',
               tx.hash,
               batchID
             );
-            logger.debug(`Updated registration ID ${registration.id} to submitted status`);
+            logger.debug(`Updated registration (User: ${registration.userID}, Election: ${registration.electionID}) to submitted status`);
           }
 
           try {
@@ -325,24 +326,26 @@ export async function processPendingRegistrations(): Promise<void> {
             logger.info(`Transaction successfully confirmed`, { electionID, txHash: tx.hash, batchID, voterCount: voterIDs.length });
             for (const registration of registrationBatch) {
               await BlindedSignatureService.updateRegistrationStatus(
-                registration.id,
+                registration.userID,
+                registration.electionID,
                 'confirmed',
                 tx.hash,
                 batchID
               );
-              logger.debug(`Updated registration ID ${registration.id} to confirmed status`);
+              logger.debug(`Updated registration (User: ${registration.userID}, Election: ${registration.electionID}) to confirmed status`);
             }
 
           } catch (error) {
             logger.error("Transaction failed or timeout reached:", error);
             for (const registration of registrationBatch) {
               await BlindedSignatureService.updateRegistrationStatus(
-                registration.id,
+                registration.userID,
+                registration.electionID,
                 'failed',
                 tx.hash,
                 batchID
               );
-              logger.debug(`Updated registration ID ${registration.id} to failed status`);
+              logger.debug(`Updated registration (User: ${registration.userID}, Election: ${registration.electionID}) to failed status`);
             }
           }
           finally {

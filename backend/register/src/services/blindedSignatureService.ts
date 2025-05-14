@@ -28,9 +28,9 @@ export class BlindedSignatureService {
    * @param txHash - The on-chain transaction hash of the registration
    * @param batchID - The batch ID of the registration
    */
-  static async updateRegistrationStatus(id: number, status: OnchainStatus, txHash?: string, batchID?: string): Promise<void> {
+  static async updateRegistrationStatus(userID: number, electionID: number, status: OnchainStatus, txHash?: string, batchID?: string): Promise<void> {
     const repository = dataSource.getRepository(BlindedSignature);
-    await repository.update(id, {
+    await repository.update({ userID, electionID }, {
       onchainStatus: status,
       txHash: txHash || null,
       batchID: batchID || null
