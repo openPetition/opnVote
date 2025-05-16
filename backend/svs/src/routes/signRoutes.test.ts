@@ -131,7 +131,7 @@ describe('POST /api/votingTransaction/sign', () => {
         expect(response.status).toBe(500);
         expect(response.body).toEqual({
             data: null,
-            error: expect.stringContaining('Failed to sign Transaction')
+            error: 'Internal server error'
         });
     });
 
@@ -177,7 +177,7 @@ describe('POST /api/votingTransaction/sign', () => {
         expect(response.status).toBe(500);
         expect(response.body).toEqual({
             data: null,
-            error: expect.stringContaining('Failed to sign Transaction')
+            error: 'Internal server error'
         });
     });
 

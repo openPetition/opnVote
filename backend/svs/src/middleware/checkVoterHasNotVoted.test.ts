@@ -98,7 +98,9 @@ describe('checkVoterHasNotVoted Middleware', () => {
             data: null,
             error: 'Internal server error',
         });
-        expect(logger.error).toHaveBeenCalledWith('Database error:', dbError);
+        const loggedMessage = (logger.error as jest.Mock).mock.calls[0][0];
+        expect(loggedMessage).toContain('[VoterCheck] Error checking voter status after');
+        expect(loggedMessage).toContain('Error: Database error');
     });
 
 
