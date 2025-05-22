@@ -3,10 +3,12 @@ import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import { blindToken, deriveElectionR, deriveElectionUnblindedToken, generateMasterTokenAndMasterR } from "votingsystem";
 import { Register } from "./config";
+const TEST_RUN_ID = 0;
 
 const timestampSec = Math.floor(Date.now() / 1000);
 const modifiedTimestamp = timestampSec % 1000000000;
-const baseUserId = modifiedTimestamp + 10000;
+const TEST_RUN_OFFSET = TEST_RUN_ID * 1_000_000; // guarantees 1M space between different test cases
+const baseUserId = modifiedTimestamp + TEST_RUN_OFFSET;
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -348,12 +350,12 @@ function printResults(stats: TestStats): void {
     console.error(`Test FAILED: Only ${stats.successfulApi}/${config.count} API registrations succeeded`);
     process.exit(1);
   }
-  
+
   if (stats.successfulOnChain < stats.successfulApi) {
     console.error(`Test FAILED: Only ${stats.successfulOnChain}/${stats.successfulApi} registrations verified on-chain`);
     process.exit(1);
   }
-  
+
   console.log("Test PASSED: All registrations succeeded and were verified on-chain");
 }
 

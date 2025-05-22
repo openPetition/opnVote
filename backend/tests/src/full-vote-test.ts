@@ -13,9 +13,13 @@ if (!RPC_PROVIDER) {
     throw new Error("RPC_PROVIDER environment variable not set.");
 }
 
+//Generate a unique user ID for each test run
+const TEST_RUN_ID = 1;
+
 const timestampSec = Math.floor(Date.now() / 1000);
 const modifiedTimestamp = timestampSec % 1000000000;
-const baseUserId = modifiedTimestamp + 10000;
+const TEST_RUN_OFFSET = TEST_RUN_ID * 1_000_000; // guarantees 1M space between different test cases
+const baseUserId = modifiedTimestamp + TEST_RUN_OFFSET;
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -99,7 +103,7 @@ const config: TestConfig = {
     electionID: 0,
     baseUserId: baseUserId,
     onChainCheckIntervalMs: 30 * 1000, // 30 seconds
-    onChainCheckTimeoutMs: 8 * 60 * 1000, // 8 minutes
+    onChainCheckTimeoutMs: 5 * 60 * 1000, // 5 minutes
     registerKeyPublic: RegisterPublic,
     coordinatorKeyPublic: coordinatorKeyPublic,
     batchDelayMs: 10 * 1000 // 10 seconds delay
@@ -266,21 +270,31 @@ async function checkGelatoTaskStatus(taskId: string): Promise<GelatoTaskStatus |
     }
 }
 
-async function verifyTransactionOnChain(transactionHash: string): Promise<boolean> {
-    try {
-        const receipt = await config.provider.getTransactionReceipt(transactionHash);
-        const txSuccess = receipt?.status === 1;
-        if (!txSuccess) {
-            console.error(`Transaction verification failed for hash ${transactionHash}`);
+async function verifyTransactionOnChain(transactionHash: string, maxAttempts: number = 5, delayMs: number = 5000): Promise<boolean> {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+            const receipt = await config.provider.getTransactionReceipt(transactionHash);
+            if (receipt && receipt.status === 1) {
+                return true;
+            } else if (receipt && receipt.status === 0) {
+                console.error(`Transaction ${transactionHash} reverted (attempt ${attempt + 1}/${maxAttempts}).`);
+                return false;
+            }
+            console.log(`Transaction ${transactionHash} not yet confirmed (attempt ${attempt + 1}/${maxAttempts}). Receipt: ${JSON.stringify(receipt)}`);
+        } catch (error) {
+            console.error(`Error fetching receipt for ${transactionHash} (attempt ${attempt + 1}/${maxAttempts}):`, error);
         }
-        return txSuccess;
-    } catch (error) {
-        console.error(`Error verifying transaction on chain for hash ${transactionHash}:`, error);
-        return false;
+        if (attempt < maxAttempts - 1) {
+            await sleep(delayMs);
+        }
     }
+    console.error(`Transaction verification failed for hash ${transactionHash} after ${maxAttempts} attempts.`);
+    return false;
 }
 
-async function waitForGelatoTask(taskId: string, maxAttempts: number = 30, delayMs: number = 4000): Promise<GelatoTaskStatus | null> {
+async function waitForGelatoTask(taskId: string, options: { timeoutMs: number; intervalMs: number }): Promise<GelatoTaskStatus | null> {
+    const maxAttempts = Math.ceil(options.timeoutMs / options.intervalMs);
+    
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
         const status = await checkGelatoTaskStatus(taskId);
         if (!status) {
@@ -297,7 +311,7 @@ async function waitForGelatoTask(taskId: string, maxAttempts: number = 30, delay
 
         // Task is still pending
         console.log(`Task ${taskId} is still pending (${taskState}). Attempt ${attempt + 1}/${maxAttempts}`);
-        await sleep(delayMs);
+        await sleep(options.intervalMs);
     }
 
     console.error(`Task ${taskId} timed out after ${maxAttempts} attempts`);
@@ -310,7 +324,7 @@ async function verifyGelatoTasks(taskInfos: TaskInfo[], stats: TestStats): Promi
 
     for (const taskInfo of taskInfos) {
         try {
-            const gelatoStatus = await waitForGelatoTask(taskInfo.taskId);
+            const gelatoStatus = await waitForGelatoTask(taskInfo.taskId, { timeoutMs: config.onChainCheckTimeoutMs, intervalMs: config.onChainCheckIntervalMs });
             if (gelatoStatus?.task?.taskState === "ExecSuccess") {
                 stats.successfulGelatoVerify++;
 
