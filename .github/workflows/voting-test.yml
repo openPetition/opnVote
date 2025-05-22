@@ -1,4 +1,4 @@
-name: Hourly Voting Test
+name: Voting Test
 
 on:
   schedule:
