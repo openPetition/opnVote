@@ -42,7 +42,7 @@ export async function checkEthCall(req: Request, res: Response, next: NextFuncti
             next();
         } catch (callError) {
             const rpcDuration = Date.now() - startTime;
-            logger.error(`[EthCall] Transaction simulation failed after ${rpcDuration}ms. Error: ${callError}`);
+            logger.error(`[EthCall] Transaction simulation failed after ${rpcDuration}ms for user: ${signatureData.struct.user}. Error: ${callError}`);
             return res.status(400).json({
                 data: null,
                 error: 'Transaction simulation failed'

@@ -121,7 +121,9 @@ describe('checkForExistingSVSSignature Middleware', () => {
             error: 'Internal server error',
         });
         expect(nextFunction).not.toHaveBeenCalled();
-        expect(logger.error).toHaveBeenCalledWith('Database error:', dbError);
-
+        expect(logger.error).toHaveBeenCalledTimes(1);
+        const loggedMessage = (logger.error as jest.Mock).mock.calls[0][0];
+        expect(loggedMessage).toContain('[ExistingSVS] Error checking for existing SVS signature after');
+        expect(loggedMessage).toContain('Error: Database error');
     });
 });
