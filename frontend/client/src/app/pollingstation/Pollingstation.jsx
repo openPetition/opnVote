@@ -164,6 +164,7 @@ export default function Pollingstation() {
 
     return (
         <>
+            <title>{t("pollingstation.title")}</title>
             {pollingStationState.showElectionInformation && (
                 <Electionheader
                     election={voting?.election}

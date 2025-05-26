@@ -132,6 +132,7 @@ export default function VoteTransaction() {
 
     return (
         <>
+            <title>{t("votetransactionstate.title")}</title>
             <Headline
                 title={t("votetransactionstate.headline.title")}
                 text={t("votetransactionstate.headline.text")}

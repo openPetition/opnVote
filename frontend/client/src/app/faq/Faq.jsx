@@ -11,6 +11,7 @@ export default function Faq() {
 
     return (
         <>
+            <title>{t("faq.title")}</title>
             <div className="op__margin_2_bottom">
                 <Headline
                     title={t("faq.headline.title")}

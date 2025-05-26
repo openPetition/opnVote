@@ -64,6 +64,7 @@ export default function CreateSecret() {
 
     return (
         <>
+            <title>{t("secret.title")}</title>
             <div className="op__margin_2_bottom">
                 <Headline
                     title={t("secret.headline.createSecret.title")}
