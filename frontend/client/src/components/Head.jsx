@@ -106,7 +106,11 @@ export default function Head() {
     };
 
     const goToHelpPage = () => {
-        updatePage({ previous: page.current, current: globalConst.pages.FAQ });
+        if(page.current !== "faq") {
+            updatePage({ previous: page.current, current: globalConst.pages.FAQ });
+        } else {
+            updatePage({ previous: globalConst.pages.FAQ, current: page.previous })
+        }
     };
 
     return (
