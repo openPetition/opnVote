@@ -6,6 +6,7 @@ import { Register } from "./config";
 import { ethers } from 'ethers';
 import opnvoteAbi from './abi/opnvote-0.0.3.json';
 import dotenv from 'dotenv';
+import { GelatoRelay } from '@gelatonetwork/relay-sdk';
 dotenv.config();
 
 const RPC_PROVIDER = process.env.RPC_PROVIDER;
@@ -294,7 +295,7 @@ async function verifyTransactionOnChain(transactionHash: string, maxAttempts: nu
 
 async function waitForGelatoTask(taskId: string, options: { timeoutMs: number; intervalMs: number }): Promise<GelatoTaskStatus | null> {
     const maxAttempts = Math.ceil(options.timeoutMs / options.intervalMs);
-    
+
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
         const status = await checkGelatoTaskStatus(taskId);
         if (!status) {
@@ -461,6 +462,7 @@ async function runLoadTest(): Promise<void> {
     // SVS Signing Phase
     console.log("\nStarting SVS Signing and Forwarding phase...");
 
+    const gelatoRelay = new GelatoRelay();
 
     for (const voter of voters) {
         try {
@@ -502,7 +504,7 @@ async function runLoadTest(): Promise<void> {
             const openVoteAbi = new ethers.Interface(opnvoteAbi)
             const votingTransactionFull: VotingTransaction = addSVSSignatureToVotingTransaction(voter.votingTransaction, svsSignature)
             const relayRequest = await createRelayRequest(votingTransactionFull, voter.voterCredentials, config.opnVoteAddress, openVoteAbi, config.provider)
-            const signatureData = await createSignatureData(relayRequest, voter.voterCredentials, null, config.provider)
+            const signatureData = await createSignatureData(relayRequest, voter.voterCredentials, gelatoRelay, config.provider)
 
             const singautrDataSerialized = JSON.stringify(signatureData, bigIntReplacer)
             const parsedData = JSON.parse(singautrDataSerialized);
