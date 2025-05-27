@@ -235,6 +235,7 @@ export default function Register() {
 
     return (
         <>
+            <title>{t("register.title")}</title>
             <>
                 <Headline
                     title={t("register.headline.title")}

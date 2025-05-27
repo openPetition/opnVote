@@ -31,6 +31,7 @@
     "faq.content.electionresultverification.text": "Eine Ergebnisprüfung oder Wahlprüfung kann jeder nach der Wahl vornehmen, um zu kontrollieren, dass das veröffentlichte Abstimmungsergebnis mit den gespeicherten, gültigen Stimmen übereinstimmt.",
     "faq.content.personalelectionpermit.title": "Personalisierter Wahlschein",
     "faq.content.personalelectionpermit.text": "Der personalisierte Wahlschein wird von der Wahlleitung ausgestellt und ist Voraussetzung, um an einer Abstimmung teilzunehmen. Die Wahlleitung stellt sicher, dass die Person des Wahlantrags wahlberechtigt ist und dass für jede wahlberechtigte Person nur genau ein Wahlschein herausgegeben wird. Der personalisierte Wahlschein kann dem Wähler zugeordnet werden, weil Person und Wahlschein der Wahlleitung bekannt sind. Mit dem personalisierten Wahlschein kann nicht abgestimmt werden, weil sonst das Wahlgeheimnis gebrochen wäre. Nur mit dem anonymisierten Wahlschein kann abgestimmt werden.",
+    "faq.title": "FAQ",
     "faq.content.voter.title": "Wähler",
     "faq.content.voter.text": "Ein Wähler ist der Teilnehmer einer Abstimmung im Internet.",
     "faq.content.votingkey.title": "Wahlschlüssel",
@@ -52,6 +53,7 @@
     "language.english": "English",
     "languageswitch.currentlanguage": "Gewählte Sprache:",
     "languageswitch.switchlanguage": "Sprache wechseln",
+    "pollingstation.title": "Abstimmen",
     "pollingstation.button.cancel": "Eingabe abbrechen",
     "pollingstation.button.errormessage": "Bei der Verarbeitung der Stimme ist ein Fehler aufgetreten. Bitte probieren Sie es in ein paar Sekunden nochmal. Sollte das Problem weiterhin bestehen, wenden Sie sich bitte an die Wahlleitung.",
     "pollingstation.button.savevotes": "Wahl absenden",
@@ -132,6 +134,7 @@
     "register.smallHeader.whatshappening.state.planned": "Vorbereitung",
     "register.smallHeader.whatshappening.title": "Was passiert gerade",
     "register.text.ballotdescription": "Wenn Sie noch keinen Wahlschlüssel besitzen oder ihn verloren haben, können Sie sich in wenigen Schritten einen neuen erstellen",
+    "register.title": "Wahlschein bestellen",
     "register.uploadqrcode.headline": "Wahlschlüssel prüfen",
     "register.uploadqrcode.scanSubHeadline": "Sie können Ihren Wahlschlüssel ganz einfach über Ihre Geräte-Kamera scannen.",
     "register.uploadqrcode.subheadline": "Um den Wahlschein zu bestellen, laden Sie bitte jetzt Ihren gespeicherten Wahlschlüssel hoch.",
@@ -166,6 +169,7 @@
     "secret.notification.info.headline.important": "Wichtig:",
     "secret.notification.info.text.important": "Legen Sie Ihren Wahlschlüssel lokal und sicher ab. Das Speichern ist sehr wichtig, denn Ihr Wahlschlüssel kann von uns nicht wiederhergestellt werden. Den Wahlschlüssel zu verlieren bedeutet, dass Sie nicht an der Wahl teilnehmen können.",
     "secret.notification.success.text.key-generated": "Ihr Wahlschlüssel wurde erfolgreich erstellt. Jetzt müssen Sie ihn sicher ablegen.",
+    "secret.title": "Wahlschlüssel erstellen",
     "votetransactionstate.error.alreadyvoted": "Mit diesem Wahlschein wurde bereits abgestimmt.",
     "votetransactionstate.error.servererror": "Der Server konnte nicht erreicht werden.",
     "votetransactionstate.error.transaction": "Die Transaktion ist fehlerhaft. Bitte wenden Sie sich an die Wahlleitung.",
@@ -178,5 +182,6 @@
     "votetransactionstate.statustitle.error": "Fehler",
     "votetransactionstate.statustitle.pending": "In Verarbeitung...",
     "votetransactionstate.statustitle.success": "Erfolg",
+    "votetransactionstate.title": "Wahl abschließen",
     "votetransactionstate.transaction": "Blockchain Transaktion"
 }

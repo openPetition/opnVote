@@ -1,8 +1,8 @@
-name: Hourly Voting Test
+name: Voting Test
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '*/20 * * * *'
   workflow_dispatch:
 
 jobs:
