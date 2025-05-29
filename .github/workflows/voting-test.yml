@@ -19,14 +19,11 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Install votingSystem dependencies
-        run: npm install votingSystem
+      - name: Install test dependencies
+        run: npm install
 
       - name: Build votingSystem
         run: npm run build --workspace=votingSystem
-
-      - name: Install test dependencies
-        run: npm install
 
       - name: Run Voting Test Script
         run: npx ts-node backend/tests/src/full-vote-test.ts
