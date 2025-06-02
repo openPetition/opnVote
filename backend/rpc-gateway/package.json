@@ -1,0 +1,31 @@
+{
+  "name": "rpc-gateway",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "rpc",
+    "gateway",
+    "ethereum",
+    "fastify"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "RPC Gateway for filtering and forwarding requests to Ethereum nodes",
+  "dependencies": {
+    "@fastify/cors": "^11.0.1",
+    "@fastify/rate-limit": "^10.3.0",
+    "axios": "^1.8.4",
+    "dotenv": "^16.5.0",
+    "fastify": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.15",
+    "typescript": "^5.8.2"
+  }
+}
