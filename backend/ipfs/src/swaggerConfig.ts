@@ -1,14 +1,13 @@
-import swaggerJsdoc from 'swagger-jsdoc';
-import dotenv from 'dotenv';
+import swaggerJsdoc from 'swagger-jsdoc'
+import dotenv from 'dotenv'
 
-dotenv.config();
+dotenv.config()
 
 const SERVER_URL = process.env.SERVER_URL
 
 if (!SERVER_URL) {
-  throw new Error('SERVER_URL is not defined in the environment variables');
+  throw new Error('SERVER_URL is not defined in the environment variables')
 }
-
 
 const options: swaggerJsdoc.Options = {
   swaggerDefinition: {
@@ -36,13 +35,22 @@ const options: swaggerJsdoc.Options = {
             },
             imageUrl: {
               type: 'string',
-              description: 'URL of the question\'s image.',
+              description: "URL of the question's image.",
             },
           },
         },
         ElectionData: {
           type: 'object',
-          required: ['title', 'headerImage', 'description', 'summary', 'questions', 'backLink'],
+          required: [
+            'title',
+            'headerImage',
+            'description',
+            'summary',
+            'questions',
+            'backLink',
+            'registrationStartTime',
+            'registrationEndTime',
+          ],
           properties: {
             title: {
               type: 'string',
@@ -81,6 +89,14 @@ const options: swaggerJsdoc.Options = {
               type: 'string',
               description: 'URL to return to the election coordinator',
             },
+            registrationStartTime: {
+              type: 'integer',
+              description: 'Unix timestamp for when registration starts (between 2020 and 2099)',
+            },
+            registrationEndTime: {
+              type: 'integer',
+              description: 'Unix timestamp for when registration ends (between 2020 and 2099)',
+            },
           },
         },
         PinElectionDataRequest: {
@@ -100,8 +116,8 @@ const options: swaggerJsdoc.Options = {
     },
   },
   apis: ['./src/ipfsPinningServer.ts'],
-};
+}
 
-const swaggerSpec = swaggerJsdoc(options);
+const swaggerSpec = swaggerJsdoc(options)
 
-export default swaggerSpec;
+export default swaggerSpec
