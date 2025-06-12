@@ -48,6 +48,8 @@ const ALLOWED_METHODS = [
   'eth_estimateGas',
   'eth_getBlockByNumber',
   'eth_getBlockByHash',
+  'eth_chainId',
+  'eth_getTransactionReceipt',
 ]
 
 server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
