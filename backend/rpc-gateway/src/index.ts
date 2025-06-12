@@ -3,7 +3,7 @@ import axios from 'axios'
 import * as dotenv from 'dotenv'
 dotenv.config()
 
-const server = fastify({ logger: true })
+const server = fastify({ logger: true, trustProxy: true })
 
 server.register(require('@fastify/cors'), {
   origin: true,
@@ -52,6 +52,11 @@ const ALLOWED_METHODS = [
   'eth_getTransactionReceipt',
 ]
 
+function isLocalRequest(req: FastifyRequest): boolean {
+  const localIps = ['127.0.0.1', '::1', '::ffff:127.0.0.1']
+  return localIps.includes(req.ip)
+}
+
 server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
   try {
     const body = request.body as any
@@ -68,11 +73,11 @@ server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
     }
 
     if (Array.isArray(body)) {
-      const responses = await Promise.all(body.map(req => processRPCRequest(req)))
+      const responses = await Promise.all(body.map(req => processRPCRequest(req, request)))
       return reply.send(responses)
     }
 
-    const response = await processRPCRequest(body)
+    const response = await processRPCRequest(body, request)
     return reply.send(response)
   } catch (error) {
     server.log.error('Error processing request:', error)
@@ -87,7 +92,7 @@ server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
   }
 })
 
-async function processRPCRequest(rpcRequest: any) {
+async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
   if (!rpcRequest.jsonrpc || !rpcRequest.method || rpcRequest.id === undefined) {
     return {
       jsonrpc: '2.0',
@@ -99,7 +104,7 @@ async function processRPCRequest(rpcRequest: any) {
     }
   }
 
-  if (!ALLOWED_METHODS.includes(rpcRequest.method)) {
+  if (!isLocalRequest(request) && !ALLOWED_METHODS.includes(rpcRequest.method)) {
     return {
       jsonrpc: '2.0',
       error: {
