@@ -6,7 +6,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/app.js",
+    "start:jobs": "node dist/jobs/index.js",
     "dev": "tsc-watch --onSuccess \"node dist/app.js\"",
+    "dev:jobs": "tsc-watch --onSuccess \"node dist/jobs/index.js\"",
     "test": "jest"
   },
   "keywords": [],
