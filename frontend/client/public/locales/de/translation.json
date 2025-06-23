@@ -183,6 +183,8 @@
     "secret.notification.info.headline.important": "Wichtig:",
     "secret.notification.info.text.important": "Legen Sie Ihren Wahlschlüssel lokal und sicher ab. Das Speichern ist sehr wichtig, denn Ihr Wahlschlüssel kann von uns nicht wiederhergestellt werden. Den Wahlschlüssel zu verlieren bedeutet, dass Sie nicht an der Wahl teilnehmen können.",
     "secret.notification.success.text.key-generated": "Ihr Wahlschlüssel wurde erfolgreich erstellt. Jetzt müssen Sie ihn sicher ablegen.",
+    "secret.notification.success.popup.headline": "Hurra, das hat geklappt!",
+    "secret.notification.success.popup.understand": "Okay, verstanden",
     "secret.title": "Wahlschlüssel erstellen",
     "votetransactionstate.error.alreadyvoted": "Mit diesem Wahlschein wurde bereits abgestimmt.",
     "votetransactionstate.error.servererror": "Der Server konnte nicht erreicht werden.",

@@ -183,6 +183,8 @@
     "secret.notification.info.headline.important": "Important:",
     "secret.notification.info.text.important": "Store your voting key locally and securely. Saving it is very important because it cannot be recovered by us. If you loose your voting key you cannot take part in the election.",
     "secret.notification.success.text.key-generated": "Your voting key has been successfully created. Now you need to store it securely.",
+    "secret.notification.success.popup.headline": "Success! It worked!",
+    "secret.notification.success.popup.understand": "Understood",
     "secret.title": "Create voting key",
     "votetransactionstate.error.alreadyvoted": "You already voted with this election permit.",
     "votetransactionstate.error.servererror": "Connection to server failed.",

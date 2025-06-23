@@ -8,9 +8,11 @@ import Button from "@/components/Button";
 import { useTranslation } from "next-i18next";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import Headline from "@/components/Headline";
+import Modal from '@/components/Modal';
 import globalConst from "@/constants";
 
 export default function CreateSecret() {
+    const [showMod, setShowMod] = useState(false);
     const { t } = useTranslation();
 
     const [createSecretState, setCreateSecretState] = useState({
@@ -59,6 +61,7 @@ export default function CreateSecret() {
                 showSecret: true,
                 showNotification: true,
             });
+            setShowMod(true);
         }
     }, [user]);
 
@@ -85,16 +88,6 @@ export default function CreateSecret() {
                         )}
                         {createSecretState.showSecret && (
                             <>
-                                <Notification
-                                    type="success"
-                                    text={t("secret.notification.success.text.key-generated")}
-                                />
-                                <h4 className="op__center">{t("secret.headline.savekey")}</h4>
-                                <Notification
-                                    type="info"
-                                    headline={t("secret.notification.info.headline.important")}
-                                    text={t("secret.notification.info.text.important")}
-                                />
                                 <GenerateQRCode
                                     headline={t("secret.generateqrcode.headline")}
                                     subheadline={t("secret.generateqrcode.subheadline")}
@@ -107,6 +100,28 @@ export default function CreateSecret() {
                                         updateUserKey(user.key, true)
                                     }}
                                 />
+                                {!user.keySaved && (
+                                    <Modal
+                                        showModal={showMod}
+                                        headerText={t('secret.notification.success.popup.headline')}
+                                        ctaButtonText={t('secret.notification.success.popup.understand')}
+                                        ctaButtonFunction={() => setShowMod(false)}
+                                    >
+                                        <Notification
+                                            type="success_blue_bg"
+                                            text={t("secret.notification.success.text.key-generated")}
+                                        />
+
+                                        <p style={{ marginTop: '1rem' }}>
+                                            <span style={{ textTransform: 'uppercase', fontSize: '1rem', fontWeight: 'bold', marginRight: '0.5em' }}>
+                                                {t('secret.notification.info.headline.important')}
+                                            </span>
+                                            <span>
+                                                {t('secret.notification.info.text.important')}
+                                            </span>
+                                        </p>
+                                    </Modal>
+                                )}
 
                             </>
                         )}
