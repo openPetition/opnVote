@@ -4,10 +4,11 @@ import { generateMasterTokenAndMasterR, concatTokenAndRForQR } from "votingsyste
 import GenerateQRCode from "../../components/GenerateQRCode";
 import Notification from "../../components/Notification";
 import LoadKey from "./components/Key";
-import Button from "@/components/Button";
 import { useTranslation } from "next-i18next";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import Headline from "@/components/Headline";
+import btn_styles from "@/styles/Button.module.css";
+import { ArrowRightIcon } from "lucide-react";
 import Modal from '@/components/Modal';
 import globalConst from "@/constants";
 
@@ -90,11 +91,11 @@ export default function CreateSecret() {
                             <>
                                 <GenerateQRCode
                                     headline={t("secret.generateqrcode.headline")}
-                                    subheadline={t("secret.generateqrcode.subheadline")}
+                                    text={user.key}
+                                    downloadHeadline={(t("secret.generateqrcode.downloadHeadline")).toUpperCase()}
+                                    headimage="key"
+                                    saveButtonText={t("secret.generateqrcode.savebuttontext")}
                                     qrCodeString={user.key}
-                                    downloadHeadline={t("secret.generateqrcode.downloadHeadline")}
-                                    headimage="secret"
-                                    saveButtonText={t("common.save")}
                                     pdfQRtype={globalConst.pdfType.VOTINGKEY}
                                     afterSaveFunction={() => {
                                         updateUserKey(user.key, true)
@@ -126,13 +127,24 @@ export default function CreateSecret() {
                             </>
                         )}
                         {!isNaN(voting.electionId) && voting.jwt && (
-                            <div className="op__center-align">
-                                <Button
-                                    onClickAction={() => goToRegister()}
-                                    text={t("secret.navigationbox.gotoregister.aftergenerated.buttonText")}
-                                    type="primary"
-                                    isDisabled={(!(user?.key?.length > 0))}
-                                />
+                            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                <button
+                                    onClick={() => goToRegister()}
+                                    disabled={(!(user?.key?.length > 0))}
+                                    className={`${btn_styles.primary} ${btn_styles.btn}`}
+                                    style={{ display: 'flex', justifyContent: 'center', gap: '10px', alignItems: 'flex-end' }}
+                                >
+                                    {t("secret.navigationbox.gotoregister.aftergenerated.buttonText")}
+                                    <div style={{ alignSelf: 'center' }}>
+                                        {
+                                            (!(user?.key?.length > 0))
+                                                ?
+                                                <ArrowRightIcon stroke={'#c9c8c8'} strokeWidth={'3'} width={20} />
+                                                :
+                                                <ArrowRightIcon stroke={'white'} strokeWidth={'3'} width={20} />
+                                        }
+                                    </div>
+                                </button>
                             </div>
                         )}
                     </>

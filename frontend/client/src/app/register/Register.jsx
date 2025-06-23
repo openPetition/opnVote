@@ -19,7 +19,6 @@ import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
 import Headline from "@/components/Headline";
 import Popup from "@/components/Popup";
-import ElectionInfoBox from "./components/ElectionInfoBox";
 
 export default function Register() {
     const { t } = useTranslation();
@@ -251,12 +250,6 @@ export default function Register() {
                     </>
                 )}
 
-                {registerState.showElectionInformation && (
-                    <ElectionInfoBox
-                        showTitleOnlyMobile={registerState.showBallot ? true : false}
-                    />
-                )}
-
                 {registerState.showNotification && (
                     <>
                         <Notification
@@ -336,13 +329,13 @@ export default function Register() {
 
                                 <GenerateQRCode
                                     headline={t("register.generateqrcode.headline")}
-                                    subheadline={t("register.generateqrcode.subheadline")}
-                                    qrCodeString={voting.registerCode}
-                                    downloadHeadline={t("register.generateqrcode.downloadHeadline")}
+                                    text={voting.registerCode}
+                                    downloadHeadline={(t("register.generateqrcode.downloadHeadline")).toUpperCase()}
                                     downloadSubHeadline={voting.electionInformation.title}
-                                    headimage="ballot"
+                                    headimage="election-permit"
                                     saveButtonText={t("register.generateqrcode.savebuttontext")}
                                     pdfQRtype={globalConst.pdfType.ELECTIONPERMIT}
+                                    qrCodeString={voting.registerCode}
                                     pdfInformation={{
                                         ELECTION_URL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
                                         STARTDATE: startDate,

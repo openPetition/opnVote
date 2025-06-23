@@ -4,7 +4,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import globalConst from "@/constants";
 import styles from '../styles/GenerateQRCode.module.css';
-import Button from './Button';
+import btn_styles from '../styles/Button.module.css';
 import PropTypes from "prop-types";
 import { useTranslation } from "next-i18next";
 export default function GenerateQRCode(props) {
@@ -531,12 +531,12 @@ export default function GenerateQRCode(props) {
                             fgColor={"#000000"}
                             level={"Q"}
                             id="qrCodeCanvas"
-                            style={{ margin: "1rem auto" }}
+                            style={{ margin: "1rem auto", fontweight: "bold" }}
                             imageSettings={
                                 {
                                     src: `/images/icon-${headimage}.svg`,
-                                    width: 100,
-                                    height: 62,
+                                    width: 90,
+                                    height: 90,
                                     excavate: true
                                 }
                             }
@@ -549,14 +549,13 @@ export default function GenerateQRCode(props) {
                         />
                     </div>
                     <div className={styles.buttonbox}>
-
-                        <Button
-                            onClickAction={givePDF}
-                            type="primary_light"
-                            text={saveButtonText}
-                            style={{ display: 'block', width: '100%' }}
-                        />
-
+                        <button
+                            onClick={givePDF}
+                            className={`${btn_styles.primary} ${btn_styles.btn}`}
+                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }} >
+                            <img src={'/images/download.svg'} alt={"Download icon"} height={10} width={20} />
+                            {saveButtonText}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -566,8 +565,9 @@ export default function GenerateQRCode(props) {
 
 GenerateQRCode.propTypes = {
     headline: PropTypes.string.isRequired,
-    subheadline: PropTypes.string.isRequired,
     qrCodeString: PropTypes.string.isRequired,
+    subheadline: PropTypes.string,
+    text: PropTypes.string.isRequired,
     downloadHeadline: PropTypes.string.isRequired,
     downloadSubHeadline: PropTypes.string,
     headimage: PropTypes.string.isRequired,
