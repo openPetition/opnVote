@@ -43,7 +43,7 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     const abiData = await getAbi();
     const opnVoteInterface = new ethers.Interface(abiData);
 
-    const provider = new ethers.JsonRpcProvider("https://gnosis-mainnet.g.alchemy.com/v2/MBXWJJ3MwzGKwdgULrX7vgJd5BF_pDsZ"); // lets talk where to put all this stuff in biweekly - its on the list
+    const provider = new ethers.JsonRpcProvider(Config.env.rpcnodeUrl); // lets talk where to put all this stuff in biweekly - its on the list
     const relayRequest = await createRelayRequest(votingTransactionFull, votingCredentials, Config.env.opnVoteContractAddress, opnVoteInterface, provider);
     const relay = new GelatoRelay();
     const signatureDataInitial = await createSignatureData(relayRequest, votingCredentials, relay, provider);

@@ -199,9 +199,8 @@ export default function Register() {
 
     }, [registerCode]);
 
-
-
     useEffect(() => {
+
         const currentTime = Math.floor(new Date().getTime() / 1000);
         const tempStartTime = new Date(Number(voting.election.startTime) * 1000);
         const tempEndTime = new Date(Number(voting.election.endTime) * 1000);
@@ -229,7 +228,6 @@ export default function Register() {
             showStartProcessScreen: true,
             showNotification: false,
         });
-
 
     }, []);
 
@@ -335,14 +333,21 @@ export default function Register() {
                                         </div>
                                     </>
                                 )}
+
                                 <GenerateQRCode
                                     headline={t("register.generateqrcode.headline")}
                                     subheadline={t("register.generateqrcode.subheadline")}
-                                    text={voting.registerCode}
+                                    qrCodeString={voting.registerCode}
                                     downloadHeadline={t("register.generateqrcode.downloadHeadline")}
                                     downloadSubHeadline={voting.electionInformation.title}
                                     headimage="ballot"
                                     saveButtonText={t("register.generateqrcode.savebuttontext")}
+                                    pdfQRtype={globalConst.pdfType.ELECTIONPERMIT}
+                                    pdfInformation={{
+                                        ELECTION_URL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
+                                        STARTDATE: startDate,
+                                        ENDDATE: endDate
+                                    }}
                                     afterSaveFunction={() =>
                                         setRegisterState({
                                             ...registerState,
@@ -365,7 +370,7 @@ export default function Register() {
 
                                 <Popup
                                     showModal={registerState.showSaveRegisterQRSuccess}
-                                    bodyText={t("register.popup.aftersave.text", { STARTDATE: startDate, ENDDATE: endDate, interpolation: { escapeValue: false } })}
+                                    bodyText={t("register.popup.aftersave.text", { STARTDATE: startDate, ENDDATE: endDate })}
                                     headerText={t("register.popup.aftersave.headline")}
                                     buttonText={t("common.back")}
                                     buttonFunction={() => {

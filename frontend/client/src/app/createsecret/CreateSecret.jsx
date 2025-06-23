@@ -7,8 +7,8 @@ import LoadKey from "./components/Key";
 import Button from "@/components/Button";
 import { useTranslation } from "next-i18next";
 import { useOpnVoteStore } from "../../opnVoteStore";
-import globalConst from "@/constants";
 import Headline from "@/components/Headline";
+import globalConst from "@/constants";
 
 export default function CreateSecret() {
     const { t } = useTranslation();
@@ -98,10 +98,11 @@ export default function CreateSecret() {
                                 <GenerateQRCode
                                     headline={t("secret.generateqrcode.headline")}
                                     subheadline={t("secret.generateqrcode.subheadline")}
-                                    text={user.key}
+                                    qrCodeString={user.key}
                                     downloadHeadline={t("secret.generateqrcode.downloadHeadline")}
                                     headimage="secret"
                                     saveButtonText={t("common.save")}
+                                    pdfQRtype={globalConst.pdfType.VOTINGKEY}
                                     afterSaveFunction={() => {
                                         updateUserKey(user.key, true)
                                     }}
@@ -115,7 +116,7 @@ export default function CreateSecret() {
                                     onClickAction={() => goToRegister()}
                                     text={t("secret.navigationbox.gotoregister.aftergenerated.buttonText")}
                                     type="primary"
-                                    isDisabled={(!(user?.key?.length > 0) || !user.keySaved)}
+                                    isDisabled={(!(user?.key?.length > 0))}
                                 />
                             </div>
                         )}

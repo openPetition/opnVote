@@ -44,13 +44,12 @@ describe('standard flow', function () {
             pageLoad: 20000,
             implicit: 20000,
         });
-        await driver.get("https://www.dev-openpetition.de/opn-vote?userId=1&electionId=1&language=de_DE.utf8");
+        await driver.get("https://www.dev-openpetition.de/opn-vote?demo=premiere");
+        await driver.manage().window().setRect({ width: 962, height: 1245 });
         await driver.findElement(By.xpath("//a[contains(text(),'Jetzt an Wahl teilnehmen')]")).click();
         await driver.findElement(By.id("Pfad_167")).click();
         await driver.findElement(By.xpath("//button[contains(.,\'Speichern\')]")).click();
-        await driver.findElement(By.xpath("//button[contains(.,\'weiter zur Prüfung\')]")).click();
-        await driver.findElement(By.xpath("//input[@type=\'file\']")).sendKeys(tmp + "/Wahlschlüssel.png");
-        await driver.findElement(By.xpath("//button[contains(.,\'Wahlschein bestellen\')]")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Weiter zum Wahlschein\')]")).click();
         await driver.executeScript("window.scrollTo(0,0)");
 
         await driver.findElement(By.css(".Button_secondary__egtBn")).click();
@@ -67,26 +66,23 @@ describe('standard flow', function () {
             pageLoad: 20000,
             implicit: 30000,
         });
-        await driver.get("https://www.dev-openpetition.de/opn-vote?userId=1&electionId=1&language=de_DE.utf8");
+        await driver.get("https://www.dev-openpetition.de/opn-vote?demo=premiere");
         await driver.manage().window().setRect({ width: 962, height: 1245 });
         await driver.findElement(By.xpath("//a[contains(text(),'Jetzt an Wahl teilnehmen')]")).click();
         await driver.findElement(By.id("Pfad_167")).click();
         await driver.findElement(By.xpath("//button[contains(.,\'Speichern\')]")).click();
-        await driver.findElement(By.xpath("//button[contains(.,\'weiter zur Prüfung\')]")).click();
-        await driver.findElement(By.xpath("//input[@type=\'file\']")).sendKeys(tmp + "/Wahlschlüssel.png");
+        await driver.findElement(By.xpath("//button[contains(.,\'Weiter zum Wahlschein\')]")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Speichern\')]")).click();
 
         await driver.get("https://client-test.opn.vote/runte"); // wrong one on purpose
 
         await driver.executeScript("window.localStorage.clear();");
         await driver.executeScript("window.localStorage.removeItem('opnvote-storage');");
         await driver.executeScript("window.localStorage.setItem('opnvote-storage', '');");
-        await driver.get("https://www.dev-openpetition.de/opn-vote?userId=1&electionId=1&language=de_DE.utf8");
+        await driver.get("https://client-test.opn.vote/?id=0#pollingstation");
         await driver.manage().window().setRect({ width: 962, height: 1245 });
-        await driver.findElement(By.xpath("//a[contains(text(),'Jetzt an Wahl teilnehmen')]")).click();
-        await driver.findElement(By.xpath("//button[contains(.,\'Wahlschein bestellen\')]")).click();
-        await driver.findElement(By.xpath("//button[contains(.,\'Wahlschein bestellen\')]")).click();
-        await driver.findElement(By.xpath("//input[@type=\'file\']")).sendKeys(tmp + "/Wahlschlüssel.png");
-        await driver.findElement(By.css(".Button_secondary__egtBn")).click();
+        await driver.findElement(By.xpath("//button[contains(text(),'Wahlschein hochladen')]")).click();
+        await driver.findElement(By.xpath("//input[@type=\'file\']")).sendKeys(tmp + "/Wahlschein.pdf");
         await driver.findElement(By.id("voteselect_0_yes")).click();
         await driver.findElement(By.id("voteselect_1_no")).click();
         await driver.findElement(By.id("voteselect_2_no")).click();
