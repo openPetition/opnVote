@@ -1,40 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
-<g id="Bild_laden" data-name="Bild laden" transform="translate(-5 -5)">
-    <rect id="Rechteck_613" data-name="Rechteck 613" width="92" height="92" rx="2" transform="translate(5 5)" fill="#a9dfeb"/>
-    <g id="Gruppe_200" data-name="Gruppe 200">
-    <g id="Gruppe_197" data-name="Gruppe 197">
-        <rect id="Rechteck_614" data-name="Rechteck 614" width="22.5" height="22.5" rx="1" transform="translate(9 9)" fill="#29b0cc"/>
-        <rect id="Rechteck_615" data-name="Rechteck 615" width="16.25" height="16.25" rx="1" transform="translate(12.12 12.12)" fill="#a9dfeb"/>
-        <rect id="Rechteck_616" data-name="Rechteck 616" width="10" height="10" rx="1" transform="translate(15.25 15.25)" fill="#29b0cc"/>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="64" height="64.033" viewBox="0 0 64 64.033">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rechteck_967" data-name="Rechteck 967" width="16" height="16" fill="none" stroke="#fff" stroke-width="1"/>
+    </clipPath>
+  </defs>
+  <g id="icon" transform="translate(-298 -707)">
+    <g id="Gruppe_793" data-name="Gruppe 793" transform="translate(297.6 706.6)">
+      <g id="Gruppe_794" data-name="Gruppe 794">
+        <rect id="Rechteck_962" data-name="Rechteck 962" width="16.667" height="16.667" rx="1" transform="translate(2.4 2.4)" fill="none" stroke="#3e3d40" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+        <rect id="Rechteck_963" data-name="Rechteck 963" width="16.667" height="16.667" rx="1" transform="translate(45.733 2.4)" fill="none" stroke="#3e3d40" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+        <rect id="Rechteck_964" data-name="Rechteck 964" width="16.667" height="16.667" rx="1" transform="translate(2.4 45.733)" fill="none" stroke="#3e3d40" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+        <path id="Pfad_904" data-name="Pfad 904" d="M62.4,45.733h-10A6.667,6.667,0,0,0,45.733,52.4v10" fill="none" stroke="#3e3d40" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+        <line id="Linie_10" data-name="Linie 10" y2="0.033" transform="translate(62.4 62.4)" fill="none" stroke="#3e3d40" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+        <path id="Pfad_905" data-name="Pfad 905" d="M32.4,15.733v10A6.667,6.667,0,0,1,25.733,32.4h-10" fill="none" stroke="#3e3d40" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+        <line id="Linie_11" data-name="Linie 11" x2="0.033" transform="translate(2.4 32.4)" fill="none" stroke="#3e3d40" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+        <line id="Linie_12" data-name="Linie 12" x2="0.033" transform="translate(32.4 2.4)" fill="none" stroke="#3e3d40" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+        <line id="Linie_13" data-name="Linie 13" y2="0.033" transform="translate(32.4 45.733)" fill="none" stroke="#3e3d40" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+        <line id="Linie_14" data-name="Linie 14" x2="3.333" transform="translate(45.733 32.4)" fill="none" stroke="#3e3d40" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+        <line id="Linie_15" data-name="Linie 15" y2="0.033" transform="translate(62.4 32.4)" fill="none" stroke="#3e3d40" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+        <line id="Linie_16" data-name="Linie 16" y1="3.333" transform="translate(32.4 59.067)" fill="none" stroke="#3e3d40" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+      </g>
     </g>
-    <g id="Gruppe_198" data-name="Gruppe 198">
-        <rect id="Rechteck_617" data-name="Rechteck 617" width="22.5" height="22.5" rx="1" transform="translate(9 71)" fill="#29b0cc"/>
-        <rect id="Rechteck_618" data-name="Rechteck 618" width="16.25" height="16.25" rx="1" transform="translate(12.12 74.12)" fill="#a9dfeb"/>
-        <rect id="Rechteck_619" data-name="Rechteck 619" width="10" height="10" rx="1" transform="translate(15.25 77.25)" fill="#29b0cc"/>
+    <g id="Rechteck_965" data-name="Rechteck 965" transform="translate(314 723)" fill="#29b0cc" stroke="#efefef" stroke-width="4">
+      <rect width="32" height="32" rx="4" stroke="none"/>
+      <rect x="-2" y="-2" width="36" height="36" rx="6" fill="none"/>
     </g>
-    <g id="Gruppe_199" data-name="Gruppe 199">
-        <rect id="Rechteck_620" data-name="Rechteck 620" width="22.5" height="22.5" rx="1" transform="translate(70 9)" fill="#29b0cc"/>
-        <rect id="Rechteck_621" data-name="Rechteck 621" width="16.25" height="16.25" rx="1" transform="translate(73.13 12.12)" fill="#a9dfeb"/>
-        <rect id="Rechteck_622" data-name="Rechteck 622" width="10" height="10" rx="1" transform="translate(76.25 15.25)" fill="#29b0cc"/>
+    <g id="Gruppe_798" data-name="Gruppe 798" transform="translate(322 731)">
+      <g id="Gruppe_797" data-name="Gruppe 797" transform="translate(0 -0.001)" clip-path="url(#clip-path)">
+        <line id="Linie_18" data-name="Linie 18" y2="9.599" transform="translate(8 0.8)" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        <path id="Pfad_908" data-name="Pfad 908" d="M11.889,4.778l-4-4-4,4" transform="translate(0.111 0.023)" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        <path id="Pfad_909" data-name="Pfad 909" d="M15.178,10.111v3.2a1.6,1.6,0,0,1-1.6,1.6H2.378a1.6,1.6,0,0,1-1.6-1.6v-3.2" transform="translate(0.022 0.289)" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
     </g>
-    <path id="Pfad_391" data-name="Pfad 391" d="M24.99,36.25H10a1,1,0,0,0-1,1v23a1,1,0,0,0,1,1h3a1,1,0,0,0,1-1v-19H24.99a1,1,0,0,0,1-1v-3A1,1,0,0,0,24.99,36.25Z" fill="#29b0cc"/>
-    <rect id="Rechteck_623" data-name="Rechteck 623" width="5" height="23.75" rx="1" transform="translate(92.5 88.51) rotate(90)" fill="#29b0cc"/>
-    <path id="Pfad_392" data-name="Pfad 392" d="M60.63,17.5H40.99V12.25a1,1,0,0,0-1-1h-3a1,1,0,0,0-1,1V21.5a1,1,0,0,0,1,1h11.5v5.25a1,1,0,0,0,1,1h3a1,1,0,0,0,1-1V22.5h7.14a1,1,0,0,0,1-1v-3A1,1,0,0,0,60.63,17.5Z" fill="#29b0cc"/>
-    <path id="Pfad_393" data-name="Pfad 393" d="M91.5,36.25H84.49a1,1,0,0,0-1,1v5.46H64.4a1,1,0,0,0-1,1v3a1,1,0,0,0,1,1h23a.987.987,0,0,0,.95-.73.963.963,0,0,0,.14-.48V41.25H91.5a1,1,0,0,0,1-1v-3a1,1,0,0,0-1-1Z" fill="#29b0cc"/>
-    <rect id="Rechteck_624" data-name="Rechteck 624" width="10" height="5" rx="1" transform="translate(61.64 14) rotate(180)" fill="#29b0cc"/>
-    <path id="Pfad_394" data-name="Pfad 394" d="M62.73,88.5H54.98V66a1,1,0,0,0-1-1h-3a1,1,0,0,0-1,1V88.5H37.23a1,1,0,0,0-1,1v3a1,1,0,0,0,1,1h25.5a1,1,0,0,0,1-1v-3A1,1,0,0,0,62.73,88.5Z" fill="#29b0cc"/>
-    <rect id="Rechteck_625" data-name="Rechteck 625" width="17.5" height="5" rx="1" transform="translate(63.73 73.75) rotate(-90)" fill="#29b0cc"/>
-    <path id="Pfad_395" data-name="Pfad 395" d="M48.98,46.88h-28a1,1,0,0,0-1,1v3a1,1,0,0,0,1,1H34.74V59a1,1,0,0,0,1,1h3a1,1,0,0,0,1-1V51.88h9.24a1,1,0,0,0,1-1v-3a1,1,0,0,0-1-1Z" fill="#29b0cc"/>
-    <rect id="Rechteck_626" data-name="Rechteck 626" width="7.5" height="7.5" rx="1" transform="translate(36.25 32.5)" fill="#29b0cc"/>
-    <rect id="Rechteck_627" data-name="Rechteck 627" width="7.5" height="7.5" rx="1" transform="translate(80 56.25)" fill="#29b0cc"/>
-    <rect id="Rechteck_628" data-name="Rechteck 628" width="7.5" height="7.5" rx="1" transform="translate(36.25 67.5)" fill="#29b0cc"/>
-    </g>
-    <g id="Gruppe_202" data-name="Gruppe 202">
-    <circle id="Ellipse_243" data-name="Ellipse 243" cx="15" cy="15" r="15" transform="translate(75 75)" fill="#0d6c7f"/>
-    <g id="Gruppe_201" data-name="Gruppe 201">
-        <path id="Pfad_396" data-name="Pfad 396" d="M97.71,89.3a1.876,1.876,0,0,1-2.64.29l-3.2-2.56v9.85a1.88,1.88,0,0,1-3.76,0V87.03l-3.2,2.56a1.878,1.878,0,0,1-2.35-2.93l6.25-5h0a1.618,1.618,0,0,1,.5-.27.5.5,0,0,1,.13-.04,2.034,2.034,0,0,1,.54-.09h0a1.9,1.9,0,0,1,.53.09.784.784,0,0,1,.14.05c.05.02.09.03.14.05a1.254,1.254,0,0,1,.24.16c.04.03.08.04.12.07l6.25,5a1.876,1.876,0,0,1,.29,2.64Z" fill="#fff"/>
-        <path id="Pfad_397" data-name="Pfad 397" d="M90.68,80.86c.06.02.12.04.2.07a.939.939,0,0,1,.15.06,1.563,1.563,0,0,1,.29.19c.04.02.14.08.17.1l6.25,5a2.381,2.381,0,0,1,.37,3.34h0a2.368,2.368,0,0,1-3.34.37l-2.39-1.91v8.81a2.38,2.38,0,0,1-4.76,0V88.08l-2.39,1.91a2.376,2.376,0,1,1-2.97-3.71l6.26-5a2.325,2.325,0,0,1,.62-.35,1.619,1.619,0,0,1,.17-.06,2.216,2.216,0,0,1,.7-.11,2.4,2.4,0,0,1,.67.11ZM84.61,89.2l3.2-2.56a.51.51,0,0,1,.53-.06.5.5,0,0,1,.28.45v9.85a1.38,1.38,0,0,0,2.76,0V87.03a.5.5,0,0,1,.28-.45.51.51,0,0,1,.53.06l3.2,2.56a1.36,1.36,0,0,0,1.01.29,1.341,1.341,0,0,0,.92-.51h0a1.378,1.378,0,0,0-.21-1.93L90.9,82.08s-.08-.04-.13-.07a.7.7,0,0,0-.09-.06c-.03-.02-.05-.04-.07-.05l-.11-.04-.11-.04a1.189,1.189,0,0,0-.79,0l-.1.03a1.428,1.428,0,0,0-.37.2l-6.25,5a1.379,1.379,0,0,0-.22,1.93,1.364,1.364,0,0,0,1.08.51,1.406,1.406,0,0,0,.86-.3Z" fill="#0d6c7f"/>
-    </g>
-    </g>
-</g>
+  </g>
 </svg>

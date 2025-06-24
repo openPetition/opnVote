@@ -1,26 +1,38 @@
 .header {
-    text-align:center;
-    padding: .5rem .5rem 1rem 0;
+    display: flex;
+    align-items: flex-start;
+    text-align: left;
+    gap: 1.5rem;
+    padding: 0.5rem;
 }
 
 .innerbox {
     background-color: #FFFFFF;
-    padding: 45px 0;
-    border-radius: .5rem;
+    padding: 25px 0;
+    border-radius: 0.25rem;
+    margin-top: 0.5rem;
 }
 
-.qrbg  {
-    display: none;
+.qrbg {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: bottom;
+    padding-top: 0.75rem;
+
 }
 
 @media only screen and (min-width: 600px) {
-    .header {
-        text-align:left;
-        display: flex;
+
+.header {
+    padding: 1rem;
+}
+
+    .innerbox {
+        padding: 45px 0;
     }
 
     .qrbg {
-        display: inline-block;
-        margin-right: 1rem;
+        margin-top: -1rem;
     }
 }

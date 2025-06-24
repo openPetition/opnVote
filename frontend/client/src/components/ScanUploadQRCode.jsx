@@ -159,8 +159,8 @@ export default function ScanUploadQRCode(props) {
                         <NextImage
                             priority
                             src="/images/scan-qrcode.svg"
-                            height={55}
-                            width={55}
+                            height={60}
+                            width={60}
                             alt=""
                         />
                     </div>

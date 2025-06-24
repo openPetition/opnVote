@@ -293,7 +293,7 @@ export default function Register() {
                         {registerState.showQRCodeUploadPlugin && (
                             <>
                                 <ScanUploadQRCode
-                                    headline={t("")}
+                                    headline={t("register.uploadqrcode.headline")}
                                     subheadline={t("register.uploadqrcode.subheadline")}
                                     uploadSubHeadline={t("register.uploadqrcode.uploadSubHeadline")}
                                     scanSubHeadline={t("register.uploadqrcode.scanSubHeadline")}
