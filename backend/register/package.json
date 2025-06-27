@@ -6,7 +6,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/app.js",
+    "start:jobs": "node dist/jobs/index.js",
     "dev": "tsc-watch --onSuccess \"node dist/app.js\"",
+    "dev:jobs": "tsc-watch --onSuccess \"node dist/jobs/index.js\"",
     "test": "jest"
   },
   "keywords": [],
@@ -22,7 +24,7 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "mysql": "^2.18.1",
-    "node-cron": "^3.0.3",
+    "node-cron": "^4.1.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",
     "typeorm": "^0.3.20",
@@ -35,7 +37,6 @@
     "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.12.7",
-    "@types/node-cron": "^3.0.11",
     "@types/supertest": "^6.0.2",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.6",

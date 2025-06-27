@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50">
+  <g id="icon" transform="translate(-1348 -248)">
+    <g id="Pfad_1" transform="translate(1348 248)" fill="#fff"/>
+    <g id="receipt-text" transform="translate(1361 261)">
+      <path id="Pfad_447" d="M4,2V22l2-1,2,1,2-1,2,1,2-1,2,1,2-1,2,1V2L18,3,16,2,14,3,12,2,10,3,8,2,6,3Z" fill="#2fb1ce" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <path id="Pfad_448" d="M14,8H8" fill="#2fb1ce" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+      <path id="Pfad_449" d="M16,12H8" fill="#2fb1ce" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+      <path id="Pfad_450" d="M13,16H8" fill="#2fb1ce" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+    </g>
+  </g>
+</svg>

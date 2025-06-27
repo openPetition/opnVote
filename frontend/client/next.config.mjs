@@ -9,7 +9,9 @@ const devConfig = {
         graphConnectUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-003',
         gelatoForwardUrl: 'https://svs.opn.vote/api/gelato/forward',
         opnVoteContractAddress: '0xc2958f59C2F333b1ad462C7a3969Da1E0B662459',
+        rpcnodeUrl: 'https://rpc.opn.vote',
         maxVoteRecasts: 2,
+
     },
     images: {
         domains: ['localhost', 'static.openpetition.de', 'client-test.opn.vote'],
@@ -26,6 +28,7 @@ const stagingConfig = {
         graphConnectUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-003',
         gelatoForwardUrl: 'https://svs.opn.vote/api/gelato/forward',
         opnVoteContractAddress: '0xc2958f59C2F333b1ad462C7a3969Da1E0B662459',
+        rpcnodeUrl: 'https://rpc.opn.vote',
         maxVoteRecasts: 2,
     },
 
@@ -56,6 +59,7 @@ const prodConfig = {
         graphConnectUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-003',
         gelatoForwardUrl: 'https://svs.opn.vote/api/gelato/forward',
         opnVoteContractAddress: '0xc2958f59C2F333b1ad462C7a3969Da1E0B662459',
+        rpcnodeUrl: 'https://rpc.opn.vote',
         maxVoteRecasts: 2,
     },
 

@@ -1,4 +1,4 @@
-import {t} from "i18next";
+import { t } from "i18next";
 
 const globalConst = {
     pages: {
@@ -77,8 +77,11 @@ const globalConst = {
             'title': t("faq.content.votingkey.title"),
             'text': t("faq.content.votingkey.text")
         },
-    }
-
+    },
+    pdfType: {
+        'VOTINGKEY': 'votingkey',
+        'ELECTIONPERMIT': 'electionpermit',
+    },
 };
 
 export default globalConst;

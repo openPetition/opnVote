@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from 'react';
 import { Html5Qrcode } from "html5-qrcode";
 import Button from './Button';
 import styles from '../styles/ScanUploadQRCode.module.css';
 import { useTranslation } from 'next-i18next';
-import Notification from "./Notification";
+import Notification from './Notification';
 import NextImage from 'next/image';
+import { PDFDocument } from 'pdf-lib';
 
 const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
 let html5QrCode;
@@ -18,12 +19,33 @@ export default function ScanUploadQRCode(props) {
     const fileRef = useRef(null);
     const [showStopScanBtn, setShowStopScanBtn] = useState(false);
     const [showScanNotification, setShowScanNotification] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         html5QrCode = new Html5Qrcode("reader");
         const oldRegion = document.getElementById("qr-shaded-region");
         oldRegion && oldRegion.remove();
+
     }, []);
+
+    const extractData = async (file) => {
+        if (!(file && file.type === "application/pdf")) {
+            return;
+        };
+        setIsLoading(true);
+        try {
+            const fileBuffer = await file.arrayBuffer();
+            const pdfDoc = await PDFDocument.load(fileBuffer);
+            const extractCode = pdfDoc.getSubject().split('QRCODE:')[1];
+            if (extractCode && extractCode != 'undefined') {
+                props.onResult(extractCode);
+            }
+        } catch (err) {
+            console.debug(`Error scanning File. Reason: ${err}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const startScanClick = () => {
         setShowScanNotification(false);
@@ -68,16 +90,20 @@ export default function ScanUploadQRCode(props) {
         fileRef.current.click();
     };
 
-    const scanFile = (e) => {
+
+    const scanFile = async (e) => {
         if (e.target.files.length === 0) {
-            // No file there -> do nothing for now
             return;
         }
+        const selectedFile = e.target.files[0];
+        if (selectedFile && selectedFile.type === "application/pdf") {
+            extractData(selectedFile);
+        };
 
-        // Use the first item in the list
+        /** OLD IMAGE upload stuff . we dont want to loose it for now.
         const imageFile = e.target.files[0];
         html5QrCode
-            .scanFile(imageFile, /* showImage= */ true)
+            .scanFile(imageFile, true)
             .then((qrCodeMessage) => {
                 // handover -> do sth with result
                 props.onResult(qrCodeMessage);
@@ -86,6 +112,7 @@ export default function ScanUploadQRCode(props) {
             .catch((err) => {
                 console.debug(`Error scanning file. Reason: ${err}`);
             });
+        **/
     };
 
     return (
@@ -120,7 +147,7 @@ export default function ScanUploadQRCode(props) {
                         type="file"
                         hidden
                         ref={fileRef}
-                        accept="image/*"
+                        accept="application/pdf"
                         onChange={scanFile}
                     />
                 </div>
@@ -132,8 +159,8 @@ export default function ScanUploadQRCode(props) {
                         <NextImage
                             priority
                             src="/images/scan-qrcode.svg"
-                            height={55}
-                            width={55}
+                            height={60}
+                            width={60}
                             alt=""
                         />
                     </div>

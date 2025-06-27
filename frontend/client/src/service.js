@@ -70,7 +70,7 @@ export async function getTransactionState(taskId) {
         status: taskStatesSuccess.includes(taskState) ? 'success' : taskStatesCancelled.includes(taskState) ? 'cancelled' : 'pending',
         error: null,
         transactionHash: transactionResult?.task?.transactionHash ? transactionResult.task.transactionHash : '',
-        transactionViewUrl: transactionResult?.task?.transactionHash ? 'https://gnosisscan.io/address/' + transactionResult.task.transactionHash : '',
+        transactionViewUrl: transactionResult?.task?.transactionHash ? 'https://gnosisscan.io/tx/' + transactionResult.task.transactionHash : '',
     };
 }
 
