@@ -1,9 +1,13 @@
-    {
-        "name": "opnvote",
-        "version": "1.0.0",
-        "private": true,
-        "workspaces": [
-          "backend/tests",
-          "votingSystem"
-        ]
-      }
+{
+  "name": "opnvote",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "backend/*",
+    "votingSystem"
+  ],
+  "overrides": {
+    "axios": "^1.6.2",
+    "ws": "^8.18.2"
+  }
+}
