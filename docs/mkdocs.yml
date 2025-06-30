@@ -1,0 +1,6 @@
+site_name: opn.vote Docs
+site_url: https://docs.opn.vote
+theme:
+  name: material
+nav:
+  - Home: index.md
