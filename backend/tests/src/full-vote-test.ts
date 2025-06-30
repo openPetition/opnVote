@@ -88,7 +88,7 @@ interface TestConfig {
   svsSignUrl: string
   svsForwardUrl: string
   opnVoteAddress: string
-  opnVoteInterface: ethers.Interface
+  opnVoteInterface: ethers.Interface | ethers.InterfaceAbi
   provider: ethers.JsonRpcProvider
   subgraphUrl: string
   concurrency: number
@@ -123,7 +123,7 @@ const config: TestConfig = {
   registerUrl: 'https://register.opn.vote/api/sign',
   svsSignUrl: 'https://svs.opn.vote/api/votingTransaction/sign',
   svsForwardUrl: 'https://svs.opn.vote/api/gelato/forward',
-  opnVoteInterface: new ethers.Interface(opnvoteAbi),
+  opnVoteInterface: opnvoteAbi,
   provider: new ethers.JsonRpcProvider(RPC_PROVIDER),
   subgraphUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-003/',
   opnVoteAddress: '0xc2958f59C2F333b1ad462C7a3969Da1E0B662459',
@@ -624,18 +624,19 @@ export async function runLoadTest(
       }
 
       //Retrieve SVS Signature
-      const openVoteAbi = new ethers.Interface(opnvoteAbi)
       const votingTransactionFull: VotingTransaction = addSVSSignatureToVotingTransaction(
         voter.votingTransaction,
         svsSignature,
       )
+
       const relayRequest = await createRelayRequest(
         votingTransactionFull,
         voter.voterCredentials,
         config.opnVoteAddress,
-        openVoteAbi,
+        config.opnVoteInterface,
         config.provider,
       )
+
       const signatureData = await createSignatureData(
         relayRequest,
         voter.voterCredentials,
