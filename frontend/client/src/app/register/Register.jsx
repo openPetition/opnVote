@@ -239,6 +239,7 @@ export default function Register() {
                     text={t("register.headline.text")}
                     infoText={registerState.showBallot ? '' : t("register.headline.infoText")}
                     image="/images/online.svg"
+                    progressBarStep={globalConst.progressBarStep.ballot}
                 />
             </>
 

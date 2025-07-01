@@ -1,6 +1,12 @@
 import { t } from "i18next";
 
 const globalConst = {
+    progressBarStep: {
+        'id': 1,
+        'key': 2,
+        'ballot': 3,
+        'vote': 4,
+    },
     pages: {
         'CREATEKEY': 'createkey',
         'REGISTER': 'register',

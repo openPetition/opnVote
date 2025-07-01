@@ -9,6 +9,7 @@ import Headline from "@/components/Headline";
 import { AlreadyVotedError, ServerError, getTransactionState } from '../../service';
 import { useOpnVoteStore } from "../../opnVoteStore";
 import styles from './styles/votetransaction.module.css';
+import globalConst from "@/constants";
 
 export default function VoteTransaction() {
     const { taskId, voting, updateVoting, updateTaskId } = useOpnVoteStore((state) => state);
@@ -102,7 +103,7 @@ export default function VoteTransaction() {
                 notificationText: notificationText,
             });
         }
-    }
+    };
 
     const BlockchainLinkText = (props) => {
         const { transactionViewUrl } = props;
@@ -137,6 +138,7 @@ export default function VoteTransaction() {
                 title={t("votetransactionstate.headline.title")}
                 text={t("votetransactionstate.headline.text")}
                 backgroundImage="successbanner"
+                progressBarStep={globalConst.progressBarStep.vote}
             />
 
             {voteResultState.showNotification && (
@@ -172,5 +174,5 @@ export default function VoteTransaction() {
                 </div>
             </div>
         </>
-    )
+    );
 }
