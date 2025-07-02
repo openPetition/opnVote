@@ -75,7 +75,7 @@ export default function CreateSecret() {
                     text={t("secret.headline.createSecret.text")}
                     infoText={t("secret.headline.createSecret.infoText")}
                     image="/images/offline.svg"
-                    progressBarStep={globalConst.progressBarSteps.key}
+                    progressBarStep={globalConst.progressBarStep.key}
                 />
             </div>
             <main className="op__contentbox_760">
