@@ -110,7 +110,7 @@ export default function CreateSecret() {
                                         ctaButtonFunction={() => setShowMod(false)}
                                     >
                                         <Notification
-                                            type="success_blue_bg"
+                                            type="success"
                                             text={t("secret.notification.success.text.key-generated")}
                                         />
 
