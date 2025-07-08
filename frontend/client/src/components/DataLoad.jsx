@@ -82,9 +82,9 @@ export default function DataLoad() {
                     if (page.current) {
                         if (page.current === "pollingstation") {
                             if (!user.key) {
-                                updatePage({ previous: globalConst.pages.POLLINGSTATION, current: globalConst.pages.CREATEKEY })
+                                updatePage({ previous: globalConst.pages.POLLINGSTATION, current: globalConst.pages.CREATEKEY });
                             } else if (!voting.registerCode) {
-                                updatePage({ previous: globalConst.pages.POLLINGSTATION, current: globalConst.pages.REGISTER })
+                                updatePage({ previous: globalConst.pages.POLLINGSTATION, current: globalConst.pages.REGISTER });
                             }
                         }
                         updatePage({ loading: false });

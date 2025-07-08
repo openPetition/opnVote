@@ -10,6 +10,7 @@ import { AlreadyVotedError, ServerError, getTransactionState } from '../../servi
 import { useOpnVoteStore } from "../../opnVoteStore";
 import styles from './styles/votetransaction.module.css';
 import globalConst from "@/constants";
+import { Check } from "lucide-react";
 
 export default function VoteTransaction() {
     const { taskId, voting, updateVoting, updateTaskId } = useOpnVoteStore((state) => state);
@@ -17,8 +18,14 @@ export default function VoteTransaction() {
     const [transactionHash, setTransactionHash] = useState();
     const [transactionViewUrl, setTransactionViewUrl] = useState();
 
+    const TRANSACTION_STATE_CHECKING = 'checking';
+    const TRANSACTION_STATE_PENDING = 'pending';
+    const TRANSACTION_STATE_SUCCESS = 'success';
+    const TRANSACTION_STATE_ERROR = 'error';
+
     const [voteResultState, setVoteResultState] = useState({
-        transactionState: t('votetransactionstate.statustitle.checking'),
+        transactionStateText: t('votetransactionstate.statustitle.checking'),
+        transactionState: TRANSACTION_STATE_CHECKING,
         showLoading: true,
         showNotification: false,
         notificationText: '',
@@ -37,7 +44,8 @@ export default function VoteTransaction() {
                 let transactionPendingDelay = 1000;
                 setVoteResultState({
                     ...voteResultState,
-                    transactionState: t('votetransactionstate.statustitle.pending'),
+                    transactionStateText: t('votetransactionstate.statustitle.pending'),
+                    transactionState: TRANSACTION_STATE_PENDING,
                     showLoading: true,
                     showNotification: false,
                 });
@@ -50,7 +58,8 @@ export default function VoteTransaction() {
             if (transactionResult.status === 'success') {
                 setVoteResultState({
                     ...voteResultState,
-                    transactionState: t('votetransactionstate.statustitle.success'),
+                    transactionStateText: t('votetransactionstate.statustitle.success'),
+                    transactionState: TRANSACTION_STATE_SUCCESS,
                     showLoading: false,
                     showNotification: true,
                     notificationText: t('votetransactionstate.info.success'),
@@ -66,7 +75,8 @@ export default function VoteTransaction() {
             if (transactionResult.status === 'cancelled') {
                 setVoteResultState({
                     ...voteResultState,
-                    transactionState: t('votetransactionstate.statustitle.error'),
+                    transactionStateText: t('votetransactionstate.statustitle.error'),
+                    transactionState: TRANSACTION_STATE_ERROR,
                     showLoading: false,
                     showNotification: true,
                     notificationText: t('votetransactionstate.error.transaction'),
@@ -81,7 +91,8 @@ export default function VoteTransaction() {
             } else if (error instanceof AlreadyVotedError) {
                 setVoteResultState({
                     ...voteResultState,
-                    transactionState: t('votetransactionstate.statustitle.error'),
+                    transactionStateText: t('votetransactionstate.statustitle.error'),
+                    transactionState: TRANSACTION_STATE_ERROR,
                     showLoading: false,
                     showNotification: true,
                     notificationType: 'error',
@@ -97,6 +108,7 @@ export default function VoteTransaction() {
             }, errorDelay);
             setVoteResultState({
                 ...voteResultState,
+                transactionState: TRANSACTION_STATE_ERROR,
                 showLoading: true,
                 showNotification: true,
                 notificationType: 'error',
@@ -122,7 +134,8 @@ export default function VoteTransaction() {
         if (voting.votesuccess) {
             setVoteResultState({
                 ...voteResultState,
-                transactionState: t('votetransactionstate.statustitle.success'),
+                transactionStateText: t('votetransactionstate.statustitle.success'),
+                transactionState: TRANSACTION_STATE_SUCCESS,
                 showLoading: false,
                 showNotification: true,
                 notificationText: t('votetransactionstate.info.success'),
@@ -138,28 +151,23 @@ export default function VoteTransaction() {
                 title={t("votetransactionstate.headline.title")}
                 text={t("votetransactionstate.headline.text")}
                 backgroundImage="successbanner"
-                progressBarStep={globalConst.progressBarStep.vote}
             />
 
-            {voteResultState.showNotification && (
-                <div className="op__margin_minus_3_top op__mob_padding_standard_left_right">
-                    <Notification
-                        type={voteResultState.notificationType}
-                        text={voteResultState.notificationText}
-                    />
+                <div className={styles.loadingContainer}>
+                    <div className={styles.loading}>
+                        {voteResultState.transactionState == TRANSACTION_STATE_SUCCESS && (
+                            <Check width={70} height={70} style={{color: "#29B0CC"}} strokeWidth={1} />
+                        ) || (
+                            <Loading />
+                        )}
+                    </div>
                 </div>
-            )}
-
-            {voteResultState.showLoading && (
-                <div className="op__margin_standard_top op__padding_standard_top">
-                    <Loading />
-                </div>
-            )}
 
             <div className="op__contentbox_max op__center-align op__padding_standard">
                 <div className={styles.item}>
-                    <span className={styles.itemvalue}>{voteResultState.transactionState}</span>
-                    <h3 className={styles.itemheadline}>
+                    <h3 className={styles.itemvalue}>{voteResultState.transactionStateText}</h3>
+                    <div className={styles.itemlabel}>{t('votetransactionstate.statuslabel')}</div>
+                    <div className={styles.itemheadline}>
                         {voting.transactionViewUrl ? (
                             <Trans
                                 i18nKey="votetransactionstate.statusWithLink"
@@ -168,9 +176,9 @@ export default function VoteTransaction() {
                                 }}
                             />
                         ) : (
-                            <>{t('votetransactionstate.status')}</>
+                            <>{voteResultState.notificationText}</>
                         )}
-                    </h3>
+                    </div>
                 </div>
             </div>
         </>
