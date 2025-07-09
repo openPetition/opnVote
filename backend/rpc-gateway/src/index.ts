@@ -52,9 +52,14 @@ const ALLOWED_METHODS = [
   'eth_getTransactionReceipt',
 ]
 
-function isLocalRequest(req: FastifyRequest): boolean {
+const WHITELISTED_IPS = process.env.WHITELISTED_IPS
+  ? process.env.WHITELISTED_IPS.split(',').map(ip => ip.trim())
+  : []
+
+function isWhitelistedRequest(req: FastifyRequest): boolean {
   const localIps = ['127.0.0.1', '::1', '::ffff:127.0.0.1']
-  return localIps.includes(req.ip)
+  const allWhitelistedIps = [...localIps, ...WHITELISTED_IPS]
+  return allWhitelistedIps.includes(req.ip)
 }
 
 server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -104,7 +109,7 @@ async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
     }
   }
 
-  if (!isLocalRequest(request) && !ALLOWED_METHODS.includes(rpcRequest.method)) {
+  if (!isWhitelistedRequest(request) && !ALLOWED_METHODS.includes(rpcRequest.method)) {
     return {
       jsonrpc: '2.0',
       error: {
@@ -214,6 +219,13 @@ const start = async () => {
       )
     })
     server.log.info(`⏱️  Request timeout: ${REQUEST_TIMEOUT}ms`)
+
+    const localIps = ['127.0.0.1', '::1', '::ffff:127.0.0.1']
+    const allWhitelistedIps = [...localIps, ...WHITELISTED_IPS]
+    server.log.info(`🔒 Whitelisted IPs (unrestricted access): ${allWhitelistedIps.join(', ')}`)
+    if (WHITELISTED_IPS.length > 0) {
+      server.log.info(`📋 Custom whitelisted IPs from env: ${WHITELISTED_IPS.join(', ')}`)
+    }
   } catch (err) {
     server.log.error(err)
     process.exit(1)
