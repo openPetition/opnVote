@@ -4,7 +4,7 @@ import styles from '../styles/Notification.module.css';
 import Button from './Button';
 
 /**
- * types can be error, info, success, success_blue_bg
+ * types can be error, info, success
  * @param {*} props
  * @returns
  */
@@ -13,10 +13,9 @@ export default function Notification(props) {
     const [NotificationIcon, setNotifcationIcon] = useState('');
 
     const iconComponents = {
-        success: '/images/notificationicons/icon_success.svg',
+        success: '/images/notificationicons/icon_success_white.svg',
         info: '/images/notificationicons/icon_info.svg',
         error: '/images/notificationicons/icon_error.svg',
-        success_blue_bg: '/images/notificationicons/icon_success_white.svg',
     };
 
     useEffect(() => {
@@ -25,7 +24,7 @@ export default function Notification(props) {
 
     return (
         <>
-            <div className={`${styles.basic}  ${styles[type]} ${additionalGlobalClass ? additionalGlobalClass : ''}`} role="alert">
+            <div className={`${styles.basic} ${styles[type]} ${additionalGlobalClass ? additionalGlobalClass : ''}`} role="alert">
                 <div className={styles.notificationflex}>
                     <div className={styles.icon} style={{ backgroundImage: `url(${NotificationIcon})` }}></div>
                     <div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import {useState, useEffect, useCallback} from "react";
 import Notification from "@/components/Notification";
 import Button from '@/components/Button';
 import NavigationBox from '@/components/NavigationBox';
@@ -14,6 +14,7 @@ import { useTranslation } from 'next-i18next';
 import Config from "../../../next.config.mjs";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
+import Modal from "@/components/Modal";
 
 export default function Pollingstation() {
     const { updatePage, voting, updateVoting, updateTaskId, taskId } = useOpnVoteStore((state) => state);
@@ -39,7 +40,23 @@ export default function Pollingstation() {
         isVoteRecast: false
     });
 
+    function ctaButtonState(pollingStationState) {
+        const newState = {
+            ...pollingStationState,
+            showNotification: false,
+        };
 
+        if (pollingStationState.notificationType === 'error' && pollingStationState.showVotingSlipUpload === false || pollingStationState.showVotingSlipSelection === true) {
+            return {
+                ...newState,
+                showNotification: false,
+                showVotingSlipUpload: true,
+                showVotingSlipSelection: false,
+                showQuestions: false,
+            };
+        }
+        return newState;
+    };
     const saveVotes = async () => {
         setPollingStationState({ ...pollingStationState, pending: true });
         //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
@@ -77,7 +94,9 @@ export default function Pollingstation() {
                         allowedToVote: false,
                         showNotification: true,
                         notificationText: t("pollingstation.notification.error.ballotnotfitting"),
-                        notificationType: 'error'
+                        notificationType: 'error',
+                        popupButtonText: t("pollingstation.notification.error.ballotnotfitting.popup.buttontext"),
+                        popupHeadline: t("pollingstation.notification.error.ballotnotfitting.popup.headline"),
                     });
                 } else {
                     setVotingCredentials(credentials);
@@ -100,7 +119,9 @@ export default function Pollingstation() {
                 showVotingSlipSelection: true,
                 showNotification: true,
                 notificationText: t("pollingstation.notification.error.ballotdatacorrupt"),
-                notificationType: 'error'
+                notificationType: 'error',
+                popupButtonText: t("pollingstation.notification.error.ballotdatacorrupt.popup.buttontext"),
+                popupHeadline: t("pollingstation.notification.error.ballotdatacorrupt.popup.headline"),
             });
         }
     };
@@ -113,10 +134,12 @@ export default function Pollingstation() {
                 ...pollingStationState,
                 allowedToVote: false,
                 showNotification: true,
-                notificationText: 'Eine Änderung der Stimmabgabe ist nicht mehr möglich',
+                notificationText: t("pollingstation.notification.error.novotechange"),
                 notificationType: 'error',
                 showVotingSlipUpload: false,
                 showVotingSlipSelection: false,
+                popupButtonText: t("pollingstation.notification.error.novotechange.popup.buttontext"),
+                popupHeadline: t("pollingstation.notification.error.novotechange.popup.headline"),
             });
             return;
         }
@@ -134,7 +157,9 @@ export default function Pollingstation() {
             showQuestions: true,
             showNotification: true,
             notificationType: 'success',
-            notificationText: t("pollingstation.notification.success.ballotfits")
+            notificationText: t("pollingstation.notification.success.ballotfits"),
+            popupButtonText: t("pollingstation.notification.success.popup.buttontext"),
+            popupHeadline: t("pollingstation.notification.success.popup.headline"),
         });
     }, [dataVotings]);
 
@@ -164,21 +189,23 @@ export default function Pollingstation() {
 
     return (
         <>
+            <Modal
+                showModal={pollingStationState.showNotification}
+                headerText={pollingStationState.popupHeadline}
+                ctaButtonText={pollingStationState.popupButtonText}
+                ctaButtonFunction={() => setPollingStationState(ctaButtonState(pollingStationState))}
+            >
+                <Notification
+                    type={pollingStationState.notificationType}
+                    text={pollingStationState.notificationText}
+                />
+            </Modal>
             <title>{t("pollingstation.title")}</title>
             {pollingStationState.showElectionInformation && (
                 <Electionheader
                     election={voting?.election}
                     electionInformation={voting.electionInformation}
                 />
-            )}
-
-            {pollingStationState.showNotification && (
-                <>
-                    <Notification
-                        type={pollingStationState.notificationType}
-                        text={pollingStationState.notificationText}
-                    />
-                </>
             )}
 
             {pollingStationState.showVotingSlipSelection && (
