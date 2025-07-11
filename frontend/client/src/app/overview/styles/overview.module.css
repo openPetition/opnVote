@@ -1,0 +1,131 @@
+.boxes {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 2px;
+}
+
+.box {
+    width: 360px;
+    max-width: 360px;
+    flex: 260px 1 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.line {
+    flex: 10px 1 0;
+    border-top-width: 2px;
+    border-color: var(--op-blue-main);
+    min-width: 3px;
+    min-height: 3px;
+    align-self: center;
+}
+
+.boxActive {
+    background-color: #efefef;
+}
+
+.boxActivatable {
+    background-color: inherit;
+    border: 1px dashed var(--op-blue-main);
+}
+
+.boxPassive {
+    background-color: inherit;
+    border: 1px dashed black;
+}
+
+.iconContainer {
+    position: relative;
+    width: 50px;
+    height: 50px;
+}
+
+.activeIcon,
+.inactiveIcon {
+    border-radius: 12px;
+    border: 2px solid white;
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    top: -5px;
+    right: -9px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.activeIcon {
+    background-color: var(--op-blue-main);
+}
+
+.inactiveIcon {
+    background-color: gray;
+}
+
+.boxHead {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.boxFiller {
+    flex: 50px 1 0;
+    /** minimum gap between text and buttons */
+}
+
+.boxButtons {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: stretch;
+    gap: 20px;
+    height: 30px;
+}
+
+.boxButton {
+    display: flex;
+    flex: 100% 1 1;
+    background: #CFCFCF 0% 0% no-repeat padding-box;
+    color: #000;
+    font-weight: normal;
+    border-radius: 4px;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.boxButton:hover {
+    background-color: #DFDFDF;
+}
+
+.boxButtonActive {
+    background: var(--op-blue-main);
+    color: #fff;
+}
+
+.boxButtonActive:hover {
+    background: var(--op-blue-dark);
+}
+
+@media only screen and (max-width: 1100px) {
+    .boxes {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .box {
+        flex: 100px 1 1;
+    }
+
+    .line {
+        border-top-width: 0px;
+        border-left-width: 1px;
+    }
+}

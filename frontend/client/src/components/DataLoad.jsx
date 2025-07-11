@@ -33,7 +33,7 @@ export default function DataLoad() {
                 linkedPage: linkedPage
             });
         } else {
-            updatePage({ current: globalConst.pages.ERROR });
+            updatePage({ current: globalConst.pages.OVERVIEW });
             return;
         }
     }, []);
@@ -94,7 +94,7 @@ export default function DataLoad() {
                     }
 
                 } else {
-                    updatePage({ current: globalConst.pages.ERROR, loading: false });
+                    updatePage({ current: globalConst.pages.OVERVIEW, loading: false });
                 }
             };
         }

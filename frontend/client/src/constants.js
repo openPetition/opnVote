@@ -8,6 +8,7 @@ const globalConst = {
         'vote': 4,
     },
     pages: {
+        'OVERVIEW': 'overview',
         'CREATEKEY': 'createkey',
         'REGISTER': 'register',
         'POLLINGSTATION': 'pollingstation',

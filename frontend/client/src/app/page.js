@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from 'next-i18next';
 
+import Overview from "@/app/overview/Overview";
 import CreateSecret from "@/app/createsecret/CreateSecret";
 import Pollingstation from "@/app/pollingstation/Pollingstation";
 import Register from "@/app/register/Register";
@@ -54,6 +55,8 @@ export default function Home() {
                 <>
                     {page.current == globalConst.pages.LOADING && (
                         <Loading loadingText={t("common.apploading")} />
+                    ) || page.current == globalConst.pages.OVERVIEW && (
+                        <Overview />
                     ) || page.current == globalConst.pages.REGISTER && (
                         <Register />
                     ) || page.current == globalConst.pages.POLLINGSTATION && (
