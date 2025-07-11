@@ -33,5 +33,3 @@ contract CreateElectionScript is Script {
         opnVote.createElection(startTime, endTime, registerID, apID, svsID, descriptionIPFSCID, electionPubKey);
     }
 }
-
-//        forge script script/CreateElection.s.sol:CreateElectionScript --rpc-url https://gnosis-mainnet.g.alchemy.com/v2/MBXWJJ3MwzGKwdgULrX7vgJd5BF_pDsZ

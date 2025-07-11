@@ -20,5 +20,3 @@ contract StartElectionScript is Script {
         opnVote.startElection(electionID);
     }
 }
-
-//forge script script/StartElection.s.sol:StartElectionScript --rpc-url https://gnosis-mainnet.g.alchemy.com/v2/MBXWJJ3MwzGKwdgULrX7vgJd5BF_pDsZ

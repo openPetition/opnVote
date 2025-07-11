@@ -27,6 +27,3 @@ contract SetRegisterElectionKeyScript is Script {
         opnVote.setElectionRegisterPublicKey(electionID, registerElectionPubKeyN, registerElectionPubKeyE);
     }
 }
-
-//        forge script script/CreateElection.s.sol:CreateElectionScript --rpc-url https://gnosis-mainnet.g.alchemy.com/v2/MBXWJJ3MwzGKwdgULrX7vgJd5BF_pDsZ  --private-key <your_private_key>
-// forge script script/SetRegisterElectionKey.s.sol:SetRegisterElectionKeyScript --rpc-url https://gnosis-mainnet.g.alchemy.com/v2/MBXWJJ3MwzGKwdgULrX7vgJd5BF_pDsZ  --private-key <your_private_key>
