@@ -13,20 +13,20 @@ contract SetRegisterElectionKeyScript is Script {
     }
 
     function run() public {
-        uint256 electionID = 0;
-        bytes memory registerElectionPubKeyE = vm.envBytes(
-            "REGISTER_ELECTION_0_E"
-        ); // Register e
-        bytes memory registerElectionPubKeyN = vm.envBytes(
-            "REGISTER_ELECTION_0_N"
-        ); // Register n
+        uint256 electionID = 7;
+        bytes memory registerElectionPubKeyE = vm.envBytes("REGISTER_ELECTION_0_E"); // Register e
+        bytes memory registerElectionPubKeyN =
+            hex"9b443f48ce9525d7de910c555ee1139ee3636ee3be9579b68d8c12376a7e70b2871fafc088b600d9df46c8541b1561402e5238b8b88681124ff8ecf8dda6389fde744c9e5969cc76fd8755dc6b46ed93bd61177afb29ae3c16da33ee83901109fc1462f8e80f9e4e66c7220561889c7452e515c1b71cf3e59d214a86e600803a57b96cecb05bf753931a3f6261df255c0a6f8b980a9fb6b1f33f0f8ff604d512753cde584c992ccf5fe0435cbff20761017105ca7ad8cd5d1427208645a752cdaf8217674dfdf4628b213cd4c046421a7d77cf3ff4c65e65a72d308ec49b84d9d9272ed42ff725d1acea589efee4d907e6c917fe462638f1b93ebb07f47f2f1d";
+        console.log("electionID:", electionID);
+        // console.log("register private key:", registerElectionPubKeyE);
+        console.logBytes(registerElectionPubKeyE);
+        console.logBytes(registerElectionPubKeyN);
 
         uint256 register = vm.envUint("REGISTER_PRIV_KEY");
         vm.startBroadcast(register);
-        opnVote.setElectionRegisterPublicKey(
-            electionID,
-            registerElectionPubKeyN,
-            registerElectionPubKeyE
-        );
+        opnVote.setElectionRegisterPublicKey(electionID, registerElectionPubKeyN, registerElectionPubKeyE);
     }
 }
+
+//        forge script script/CreateElection.s.sol:CreateElectionScript --rpc-url https://gnosis-mainnet.g.alchemy.com/v2/MBXWJJ3MwzGKwdgULrX7vgJd5BF_pDsZ  --private-key <your_private_key>
+// forge script script/SetRegisterElectionKey.s.sol:SetRegisterElectionKeyScript --rpc-url https://gnosis-mainnet.g.alchemy.com/v2/MBXWJJ3MwzGKwdgULrX7vgJd5BF_pDsZ  --private-key <your_private_key>

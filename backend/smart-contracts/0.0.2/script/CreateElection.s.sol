@@ -9,7 +9,7 @@ contract CreateElectionScript is Script {
     OpnVote opnVote;
 
     function setUp() public {
-        opnVote = OpnVote(vm.envAddress("DEPLOYED_CONTRACT_ADDRESS"));
+        opnVote = OpnVote(address(0x8bacF711C8f7363eec8aE583aE5c70dA8214A23E));
     }
 
     function run() public {

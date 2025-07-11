@@ -219,7 +219,7 @@ contract OpnVote is Ownable, ERC2771Context {
 
             bool isValidSig = _verify(
                 keccak256(
-                    abi.encodePacked(
+                    abi.encode(
                         electionID,
                         voter,
                         vote_encrypted,

@@ -13,10 +13,12 @@ contract StartElectionScript is Script {
     }
 
     function run() public {
-        uint256 electionID = 0;
+        uint256 electionID = 6;
 
         uint256 deployer = vm.envUint("DEPLOYER_PRIV_KEY");
         vm.startBroadcast(deployer);
         opnVote.startElection(electionID);
     }
 }
+
+//forge script script/StartElection.s.sol:StartElectionScript --rpc-url https://gnosis-mainnet.g.alchemy.com/v2/MBXWJJ3MwzGKwdgULrX7vgJd5BF_pDsZ
