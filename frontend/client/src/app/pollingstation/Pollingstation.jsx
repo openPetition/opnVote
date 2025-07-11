@@ -1,9 +1,8 @@
 'use client';
 
-import {useState, useEffect, useCallback} from "react";
+import { useState, useEffect } from "react";
 import Notification from "@/components/Notification";
 import Button from '@/components/Button';
-import NavigationBox from '@/components/NavigationBox';
 import HtmlQRCodePlugin from "@/components/ScanUploadQRCode";
 import Electionheader from "./components/Electionheader";
 import Question from "./components/Question";
@@ -14,6 +13,9 @@ import { useTranslation } from 'next-i18next';
 import Config from "../../../next.config.mjs";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
+import qr_styles from "@/styles/ScanUploadQRCode.module.css";
+import navigationbox_styles from "@/styles/NavigationBox.module.css";
+import NextImage from "next/image";
 import Modal from "@/components/Modal";
 
 export default function Pollingstation() {
@@ -184,7 +186,6 @@ export default function Pollingstation() {
         if (Object.keys(votingCredentials).length > 0 && voting.election.id && Object.keys(voting.electionInformation).length > 0) {
             getVoteCasts();
         }
-
     }, [votingCredentials]);
 
     return (
@@ -201,56 +202,108 @@ export default function Pollingstation() {
                 />
             </Modal>
             <title>{t("pollingstation.title")}</title>
-            {pollingStationState.showElectionInformation && (
-                <Electionheader
-                    election={voting?.election}
-                    electionInformation={voting.electionInformation}
-                />
-            )}
+            {(voting.registerCode || pollingStationState.allowedToVote) &&
+                (pollingStationState.showElectionInformation && (
+                    <Electionheader
+                        election={voting?.election}
+                        electionInformation={voting.electionInformation}
+                    />
+                ))
+            }
 
             {pollingStationState.showVotingSlipSelection && (
-                <>
+                <div className="op__contentbox_760">
                     <div className="op__padding_standard_top_bottom">
                         <h4>{t("pollingstation.headline.ballotneeded")}</h4>
+                        <p className="op__center-align">{t("pollingstation.uploadqrcode.subheadline")}</p>
                     </div>
-                    <div className="op__center-align">
-                        <Button
-                            onClickAction={() =>
-                                setPollingStationState({
-                                    ...pollingStationState,
-                                    showVotingSlipUpload: true,
-                                    showVotingSlipSelection: false,
-                                    showQuestions: false,
-                                    showNotification: false,
-                                })
-                            }
-                            text={t("pollingstation.button.uploadballot")}
-                            type="primary"
-                        />
+                    <div className="op__contentbox_760" style={{ scrollMarginTop: "60px" }}>
+                        <div className="flex op__gap_10_small op__gap_30_wide op__flex_direction_row_wide op__flex_direction_column_small">
+                            <div className="op__outerbox_grey go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
+                                onClick={(e) =>
+                                    setPollingStationState({
+                                        ...pollingStationState,
+                                        showVotingSlipUpload: true,
+                                        showVotingSlipSelection: false,
+                                        showQuestions: false,
+                                        showNotification: false,
+                                    })}>
+                                <div className={`${navigationbox_styles.innerbox} op__width_100`} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
+                                    <div className="flex op__gap_30" >
+                                        <div className={qr_styles.qrbg}>
+                                            <NextImage
+                                                priority
+                                                src="/images/load-picture.svg"
+                                                height={60}
+                                                width={60}
+                                                alt=""
+                                            />
+                                        </div>
+                                        <div>
+                                            <h3>{t('scanuploadqrcode.button.pdf.headline')}</h3>
+                                            <p>{t('scanuploadqrcode.button.pdf.subheadline')}</p>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="op__outerbox_grey go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
+                                onClick={() =>
+                                    setPollingStationState({
+                                        ...pollingStationState,
+                                        showVotingSlipUpload: true,
+                                        showVotingSlipSelection: false,
+                                        showQuestions: false,
+                                        showNotification: false,
+                                    })}>
+                                <div className={`${navigationbox_styles.innerbox} op__width_100`} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
+                                    <div className="flex op__gap_30">
+                                        <div className={qr_styles.qrbg}>
+                                            <NextImage
+                                                priority
+                                                src="/images/scan-qrcode.svg"
+                                                height={60}
+                                                width={60}
+                                                alt=""
+                                            />
+                                        </div>
+                                        <div>
+                                            <h3>{t('scanuploadqrcode.button.camera.headline')}</h3>
+                                            <p>{t('scanuploadqrcode.button.camera.subheadline')}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </>
+
+                </div>
             )}
 
-            <div className={`${pollingStationState.allowedToVote ? 'op__contentbox_max' : 'op__contentbox_760'}`}>
-                {pollingStationState.showQuestions && (
-                    <>
-                        {voting.electionInformation.questions.map((question, index) =>
-                            <Question
-                                key={index}
-                                imageUrl={question.imageUrl}
-                                questionKey={index}
-                                question={question.text}
-                                selectedVote={votes[index]}
-                                showVoteOptions={pollingStationState.allowedToVote}
-                                setVote={(selection) => setVotes(votes => ({
-                                    ...votes,
-                                    [index]: selection
-                                }))}
-                            />
-                        )}
-                    </>
-                )}
+            {(voting.registerCode || pollingStationState.allowedToVote) &&
+                <div className={`${pollingStationState.allowedToVote ? 'op__contentbox_max' : 'op__contentbox_760'}`}>
+                    {pollingStationState.showQuestions && (
+                        <>
+                            {voting.electionInformation.questions.map((question, index) =>
+                                <Question
+                                    key={index}
+                                    imageUrl={question.imageUrl}
+                                    questionKey={index}
+                                    question={question.text}
+                                    selectedVote={votes[index]}
+                                    showVoteOptions={pollingStationState.allowedToVote}
+                                    setVote={(selection) => setVotes(votes => ({
+                                        ...votes,
+                                        [index]: selection
+                                    }))}
+                                />
+                            )}
+                        </>
+                    )}
+                </div>
+            }
 
+            <div className="op__contentbox_760 op__center-align">
                 {pollingStationState.showVotingSlipUpload && (
                     <div className="op__margin_2_top">
                         <HtmlQRCodePlugin

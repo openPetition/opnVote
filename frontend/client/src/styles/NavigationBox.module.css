@@ -4,7 +4,7 @@
     background-repeat: no-repeat;
     padding-right: 2rem;
     background-position: right 10px center;
-    background-size: .75rem;
+    background-size: .5rem;
 }
 
 .innerbox:hover {
@@ -21,9 +21,5 @@
         display: block;
         margin: 0;
         margin-top: 1rem;
-    }
-
-    .innerbox  {
-        background-size: 1rem;
     }
 }

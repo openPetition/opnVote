@@ -211,7 +211,40 @@ h4 {
   ;
 }
 
+.op__flex {
+  display: flex;
+}
+
+.op__flex_center_align {
+  align-items: center;
+}
+
+.op__flex_direction_column_small {
+  flex-direction: column;
+}
+
+.op__flex_grow_standard {
+  flex: 1 1 0px;
+}
+
+.op__gap_10_small {
+  gap: 10px;
+}
+
+.op__gap_30 {
+  gap: 30px;
+}
+
 @media only screen and (min-width: 800px) {
+
+  .op__flex_direction_row_wide {
+    flex-direction: row;
+  }
+
+  .op__gap_30_wide {
+    gap: 30px;
+  }
+
   .op__display_none_wide {
     display: none;
   }
