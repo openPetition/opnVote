@@ -14,6 +14,7 @@ import Button from "@/components/Button";
 import Notification from "@/components/Notification";
 import globalConst from "@/constants";
 import Faq from "@/app/faq/Faq";
+import Head from "@/components/Head";
 
 export default function Home() {
     const { t } = useTranslation();
@@ -53,23 +54,26 @@ export default function Home() {
         <>
             <HydrationZustand>
                 <>
-                    {page.current == globalConst.pages.LOADING && (
-                        <Loading loadingText={t("common.apploading")} />
-                    ) || page.current == globalConst.pages.OVERVIEW && (
-                        <Overview />
-                    ) || page.current == globalConst.pages.REGISTER && (
-                        <Register />
-                    ) || page.current == globalConst.pages.POLLINGSTATION && (
-                        <Pollingstation />
-                    ) || page.current == globalConst.pages.CREATEKEY && (
-                        <CreateSecret />
-                    ) || page.current == globalConst.pages.VOTETRANSACTION && (
-                        <VoteTransaction />
-                    ) || page.current == globalConst.pages.FAQ && (
-                        <Faq />
-                    ) || page.current == globalConst.pages.ERROR && (
-                        <ErrorReturn />
-                    )}
+                    <Head />
+                    <div className="main">
+                        {page.current == globalConst.pages.LOADING && (
+                            <Loading loadingText={t("common.apploading")} />
+                        ) || page.current == globalConst.pages.OVERVIEW && (
+                            <Overview />
+                        ) || page.current == globalConst.pages.REGISTER && (
+                            <Register />
+                        ) || page.current == globalConst.pages.POLLINGSTATION && (
+                            <Pollingstation />
+                        ) || page.current == globalConst.pages.CREATEKEY && (
+                            <CreateSecret />
+                        ) || page.current == globalConst.pages.VOTETRANSACTION && (
+                            <VoteTransaction />
+                        ) || page.current == globalConst.pages.FAQ && (
+                            <Faq />
+                        ) || page.current == globalConst.pages.ERROR && (
+                            <ErrorReturn />
+                        )}
+                    </div>
                 </>
             </HydrationZustand >
         </>

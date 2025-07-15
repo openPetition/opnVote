@@ -1,5 +1,7 @@
 .secrets
+launch.json
 *.pem
+
 
 # Logs
 logs
@@ -136,6 +138,7 @@ dist
 .DS_Store
 .DS_Store?
 frontend/.DS_Store
+frontend/opnreg/src/.DS_Store
 certificates
 
 *.local.ts

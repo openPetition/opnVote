@@ -35,6 +35,7 @@ export default function LanguageSwitch() {
 
     const languageOptions = Object.keys(globalConst.languages).map(key => {
         return (
+
             <button
                 key={key}
                 className={`${styles.languageOption} ${currentLanguage === key ? styles.active : ""}`}

@@ -47,7 +47,7 @@ export default function Headline(props) {
                     {text}
                 </div>)}
             </div>
-            {progressBarStep && (<ProgressBar activeStep={progressBarStep}/>)}
+            {progressBarStep && (<ProgressBar activeStep={progressBarStep} />)}
             {backgroundImage && (
                 <div className={styles.successHeader} style={{ height: '200px', backgroundImage: `url('/images/${backgroundImage}.png')` }}></div>
             )}

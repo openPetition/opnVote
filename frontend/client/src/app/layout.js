@@ -3,7 +3,6 @@ import "./globals.css";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 import './i18n';
 import Config from "../../next.config.mjs";
-import Head from "@/components/Head";
 import Footer from "@/components/Footer"
 import DataLoad from "@/components/DataLoad";
 
@@ -19,7 +18,7 @@ export default function RootLayout({ children }) {
         <html>
             <body>
                 <ApolloProvider client={client}>
-                    <Head />
+
                     <DataLoad />
                     <main>
                         {children}

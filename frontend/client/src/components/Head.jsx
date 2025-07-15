@@ -1,14 +1,13 @@
 'use client';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from 'next/image';
 import styles from '../styles/Header.module.css';
 import { useOpnVoteStore } from "../opnVoteStore";
-import { CircleCheckBig, CircleMinus, CircleHelp, Trash2 } from 'lucide-react';
-import Loading from "./Loading";
+import { Trash2, Menu, X, Check, KeyRound, ReceiptText } from 'lucide-react';
 import { useTranslation } from 'next-i18next';
 import globalConst from "@/constants";
-import Button from "@/components/Button";
-import LanguageSwitch from "./LanguageSwitch";
+import LanguageSwitch from "@/components/LanguageSwitch";
+import LanguageSwitchSelect from "@/components/LanguageSwitchSelect";
 
 export default function Head() {
     const { t } = useTranslation();
@@ -21,130 +20,238 @@ export default function Head() {
         updatePage({ current: globalConst.pages.CREATEKEY });
     };
 
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef(null);
 
-    const HydrationZustand = ({ children }) => {
-        const [isPageHydrated, setIsPageHydrated] = useState(false);
+    const closeMenu = () => {
+        setIsMenuOpen(false);
+    };
 
-        useEffect(() => {
-            setIsPageHydrated(true);
-        }, []);
+    // Click outside menu should close it
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            // Against event bubbling (instant close and open)
+            if (event.target.closest(`.${styles.hamburger}`)) {
+                return
+            }
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                closeMenu();
+            }
+        };
+
+        if (isMenuOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isMenuOpen]);
+
+    const Showkey = ({ showStateIcons }) => {
+        const { user } = useOpnVoteStore((state) => state);
 
         return (
             <>
-                {isPageHydrated && (
-                    <div>{children}</div>
-                ) || (
+                <div className={`${showStateIcons ? 'op__margin_standard_right' : ''} op__position_relative`}>
+                    <KeyRound
+                        size={20}
+                        strokeWidth={2}
+                        color="#000"
+                    />
+                    {showStateIcons && (
                         <>
-                            <Loading
-                                loadingText={''}
-                                theme={'small'}
-                            />
+                            {user?.key ? (
+                                <Check
+                                    className={styles.roundedActive}
+                                    color="#fff"
+                                    size={16}
+                                    strokeWidth={3}
+                                />
+                            ) : (
+                                <X
+                                    className={styles.roundedInactive}
+                                    color="#fff"
+                                    size={16}
+                                    strokeWidth={3}
+                                />
+                            )}
                         </>
-                    )
+                    )}
+                </div>
+                <span className={`${showStateIcons ? 'op__display_none_small op__display_inline_wide_xl op__margin_standard_left' : 'op__margin_standard_left'}`}>
+                    {t('common.electionsecret')}: &nbsp;
+                </span>
+
+                {!user?.key ? (
+                    <strong className={`${showStateIcons ? 'op__display_none_small op__display_inline_wide_xl' : ''}`}>{t('common.nothingset')}</strong>
+                ) : (
+                    <strong className={`${showStateIcons ? 'op__display_none_small op__display_inline_wide_xl ' : ''}`}>
+                        {user.key.substring(0, 7)}..
+                    </strong>
+                )}
+
+                {!showStateIcons && !!user?.key && (
+                    <button
+                        className={`hover op__margin_left_auto`}
+                        onClick={deleteUserKey}
+                        aria-label="navigation.label.delete.votingkey"
+                    >
+                        <Trash2
+                            size={18}
+                            color="#29b0cc"
+                        />
+                    </button>)
                 }
             </>
         );
     };
 
-    const Showkey = () => {
-        const { user } = useOpnVoteStore((state) => state);
-        if (user?.key) {
-            return (
-                <>
-                    <strong className={`op__display_none_small op__display_inline_wide op__margin_standard_left`}>
-                        {user.key.substring(0, 7)}..
-                    </strong>
-                    <CircleCheckBig
-                        size={18}
-                        strokeWidth={3}
-                        color="#2e8444"
-                        className={`op__display_inline_small op__display_none_wide op__margin_standard_left`}
-                    />
-                    <span className={`hover op__margin_standard_left`} onClick={deleteUserKey}>
-                        <Trash2 size={18} />
-                    </span>
-                </>
-            );
-        } else {
-            return (
-                <>
-                    <CircleMinus size={18} className={`op__display_inline_small op__display_none_wide op__margin_standard_left`} />
-                    <strong className={`op__display_none_small op__display_inline_wide op__margin_standard_left`}>{t('common.nothingset')}</strong>
-                </>
-            );
-        }
-    };
 
-    const ShowBallot = () => {
+    const ShowBallot = ({ showStateIcons }) => {
         const { voting } = useOpnVoteStore((state) => state);
 
-        if (voting?.registerCode?.length > 0) {
-            return (
-                <>
-                    <strong className={`op__display_none_small op__display_inline_wide op__margin_standard_left`}>
+        return (
+            <>
+                <div className={`${showStateIcons ? 'op__margin_standard_right' : ''} op__position_relative`}>
+                    <ReceiptText
+                        size={20}
+                        strokeWidth={2}
+                        color="#000"
+                        className={``}
+                    />
+
+                    {showStateIcons && (
+                        <>
+                            {voting?.registerCode?.length > 0 ? (
+                                <Check
+                                    className={styles.roundedActive}
+                                    color="#fff"
+                                    size={16}
+                                    strokeWidth={3}
+                                />
+                            ) : (
+                                <X
+                                    className={styles.roundedInactive}
+                                    color="#fff"
+                                    size={16}
+                                    strokeWidth={3}
+                                />
+                            )}
+                        </>
+                    )}
+
+                </div>
+                <span className={`${showStateIcons ? 'op__display_none_small op__display_inline_wide_xl op__margin_standard_left' : 'op__margin_standard_left'}`}>
+                    {t('common.ballotpaper')}: &nbsp;
+                </span>
+
+                {voting.registerCode ? (
+                    <strong className={`${showStateIcons ? 'op__display_none_small op__display_inline_wide_xl' : ''}`}>
                         {voting.registerCode.substring(0, 7)}..
                     </strong>
-                    <CircleCheckBig
-                        size={18}
-                        strokeWidth={3}
-                        color="#2e8444"
-                        className={`op__display_inline_small op__display_none_wide op__margin_standard_left`}
-                    />
-                    <span className={`hover op__margin_standard_left`} onClick={deleteBallot}>
-                        <Trash2 size={18} />
-                    </span>
-                </>
-            );
-        } else {
-            return (
-                <>
-                    <CircleMinus size={19} className={`op__display_inline_small op__display_none_wide op__margin_standard_left`} />
-                    <strong className={`op__display_none_small op__display_inline_wide op__margin_standard_left`}>{t('common.nothingset')}</strong>
-                </>
-            );
-        }
+                ) : (
+                    <strong className={`${showStateIcons ? 'op__display_none_small op__display_inline_wide_xl' : ''}`}>
+                        {t('common.nothingset')}
+                    </strong>
+                )}
+
+                {!showStateIcons && voting?.registerCode?.length > 0 && (
+                    <button
+                        className={`hover op__margin_left_auto`}
+                        onClick={deleteBallot}
+                        aria-label="navigation.label.delete.ballotpaper"
+                    >
+                        <Trash2
+                            size={18}
+                            color="#29b0cc"
+                        />
+                    </button>
+                )
+                }
+            </>
+        );
+
     };
 
     const goToHelpPage = () => {
-        if(page.current !== "faq") {
-            updatePage({ previous: page.current, current: globalConst.pages.FAQ });
-        } else {
-            updatePage({ previous: globalConst.pages.FAQ, current: page.previous })
+        if (page.current === 'faq') {
+            closeMenu();
+            return;
         }
+        updatePage({ previous: page.current, current: globalConst.pages.FAQ });
     };
 
     return (
         <>
-            <div className={styles.header}>
+            <div className={`op__header ${styles.header}`}>
+
                 <div className={styles.headerbar}>
-                    <HydrationZustand>
-                        <div className={styles.headerbar_content}>
-                            <span className={styles.headerbar_info}>
-                                <span className={styles.headerbar_point}><span>{t('common.electionsecret')}</span><Showkey /></span>
-                                <span className={styles.headerbar_point}><span>{t('common.ballotpaper')}</span><ShowBallot /></span>
-                            </span>
-                            <span className={styles.headerbar_menu}>
-                                <LanguageSwitch />
-                                <span className={styles.help_icon}>
-                                    <Button
-                                        onClickAction={() => goToHelpPage()}
-                                        text={<CircleHelp size={22} />}
-                                    />
-                                </span>
-                            </span>
+                    <div>
+                        <Image
+                            alt="open.vote logo"
+                            src="/images/opnvote-logo.svg"
+                            width="0"
+                            height="0"
+                            sizes="100vw"
+
+                            className={styles.logo}
+                        />
+                    </div>
+                    <div className={styles.navigationbar}>
+                        <Showkey
+                            showStateIcons={true}
+                        />
+                        <div className={`op__margin_standard_left_right ${styles.separator}`}></div>
+                        <ShowBallot
+                            showStateIcons={true}
+                        />
+
+                        <div className={`op__display_none_small op__display_block_wide_xl op__margin_standard_left_right ${styles.separator}`}></div>
+                        <div className={`op__display_none_small op__display_block_wide_xl`}>
+                            <LanguageSwitch />
                         </div>
-                    </HydrationZustand>
+                        <div className={`op__display_none_small op__display_block_wide_xl op__margin_standard_left_right ${styles.separator}`}></div>
+                        <button
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            aria-label="Toggle Menu"
+                            tabIndex="0"
+                        >
+                            <Menu
+                                size={26}
+                                strokeWidth={3}
+                                color="#000"
+                                className={`op__display_inline_small ${styles.hamburger}`}
+                            />
+                        </button>
+                        <div ref={menuRef} className={`${styles.menuBox} ${isMenuOpen ? styles.menuBoxOpen : styles.menuBoxClosed}`}>
+                            <ul>
+                                <li>
+                                    <span className={`${styles.headerbar_point} op__flex_box`}> <Showkey />
+                                    </span>
+                                </li>
+                                <li>
+                                    <span className={`${styles.headerbar_point} op__flex_box`}>
+                                        <ShowBallot />
+                                    </span>
+                                </li>
+                            </ul>
+                            <hr className={styles.borderLine} />
+                            <ul className={styles.menulinks}>
+                                <li><button className={styles.menulink}>{t('navigation.point.electiondocs')}</button></li>
+                                <li><a href="https://www.opn.vote/" className={styles.menulink}>{t('navigation.point.blog')}</a></li>
+                                <li><button className={styles.menulink} onClick={goToHelpPage}>{t('navigation.point.faq')}</button></li>
+                            </ul>
+                            <hr className={styles.borderLine} />
+                            <div>
+                                <LanguageSwitchSelect />
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div className={styles.logobar_content}>
-                    <Image
-                        alt="open.vote logo"
-                        src="/images/opnvote-logo.svg"
-                        height={69}
-                        width={194}
-                        className={styles.logo}
-                    />
-                </div>
-            </div>
+
+
+            </div >
         </>
     );
 }

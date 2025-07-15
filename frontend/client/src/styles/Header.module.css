@@ -1,17 +1,87 @@
-.header {}
+.header {
+    background-color: #fff;
+    padding: 0;
+    margin: 0;
+}
 
 .headerbar {
-    background-color: var(--op-grey-main);
+    padding: 0 var(--op-padding-standard);
+    box-sizing: border-box;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+}
+
+.navigationbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .logo {
-    margin: 1rem 0;
-    margin-left: 1rem;
+    margin: 0;
+    width: auto;
+    height: 24px;
+    padding-right: var(--op-padding-standard);
 }
 
-.logobar_content {
-    max-width: var(--op-max-width-layout);
-    margin: 0 auto;
+.separator {
+    height: 24px;
+    width: 1px;
+    background-color: #ccc;
+}
+
+.menuBox {
+    position: absolute;
+    top: 71px;
+    right: 0;
+    z-index: 1500;
+    box-sizing: border-box;
+    padding: 10px;
+    margin-top: 0;
+    width: 90%;
+    max-width: 320px;
+    padding: 20px var(--op-padding-standard);
+    background: var(--op-white);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.102);
+}
+
+.menuBox .headerbar_point {
+    display: flex;
+}
+
+.menuBoxOpen {
+    display: block;
+}
+
+.menuBoxClosed {
+    display: none;
+}
+
+.borderLine {
+    margin: 20px 0;
+    width: 100%;
+    border: 1px solid #DEDEDE;
+}
+
+.roundedInactive, .roundedActive {
+    border: 2px solid #FFF;
+    display: inline-block;
+    border-radius: 12px;
+    height: 22px;
+    width: 22px;
+    position: absolute;
+    right: -16px;
+    top: -12px;
+    padding: 3px;
+}
+.roundedInactive {
+    background-color: #CFCFCF;
+}
+.roundedActive {
+    background-color: #29B0CC;
 }
 
 .headerbar_content {
@@ -28,7 +98,7 @@
     display: flex;
     grid-template-rows: 1fr 1fr;
     padding: 0;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .headerbar_info {
@@ -90,7 +160,55 @@
     text-align: left;
 }
 
-@media only screen and (min-width: 600px) {
+.navbar {
+    background-color: #fff;
+}
+
+.hamburger {
+    margin-left: calc(var(--op-padding-standard) * 2);
+}
+
+.menulinks li {
+    padding-top: var(--op-padding-standard)
+}
+
+.menulinks li:first-child {
+    padding-top: 0;
+}
+
+.menulink {
+    color: #000;
+    font-weight: bold;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.menulink:hover {
+    cursor: pointer;
+}
+
+@media only screen and (min-width: 1200px) {
+
+    .header {
+        max-width: var(--op-max-width-layout);
+        margin: 0 auto;
+    }
+
+    .hamburger {
+        margin-left: 0;
+    }
+
+    .menuBox {
+        top: 111px;
+    }
+
+    .logo {
+        height: 40px;
+    }
+
+    .headerbar {
+        height: 100%
+    }
 
     .hidden_small {
         display: inline;
@@ -102,12 +220,7 @@
         align-items: center;
         border: 0;
         width: auto;
-    }
-
-    .headerbar_point:after {
-        padding: 0 var(--op-padding-standard);
-        color: var(--op-grey-dark);
-        content: '|';
+        justify-content: flex-start;
     }
 
     .headerbar_point:last-child:after {
