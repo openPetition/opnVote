@@ -98,9 +98,9 @@
 }
 
 .timer_mainbox {
-    margin: .5 auto;
+    margin: .5rem auto;
     display: flex;
-    flex-direction: column;
+    flex-direction: column!important;
     gap: .2rem;
     width: 100%;
 }
@@ -119,7 +119,7 @@
     justify-content: space-evenly;
     max-width: 400px;
     gap: .3rem;
-    margin: 0 auto;
+    margin: 0 auto .5rem;
 }
 
 .timer_item {
@@ -169,7 +169,7 @@
         position: relative;
         margin: 0 auto;
         display: flex;
-        flex-direction: row;
+        flex-direction: row!important;
         gap: 1rem
     }
 }

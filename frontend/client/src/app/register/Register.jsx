@@ -19,6 +19,8 @@ import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
 import Headline from "@/components/Headline";
 import Popup from "@/components/Popup";
+import Modal from "@/components/Modal";
+import CountDown from "@/app/pollingstation/components/CountDown";
 
 export default function Register() {
     const { t } = useTranslation();
@@ -32,6 +34,11 @@ export default function Register() {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [registerCode, setRegisterCode] = useState("");
+    const [showMod, setShowMod] = useState(false);
+
+    const election = voting.election
+    const endDateFormatted = endDate.toLocaleString().slice(0, -3)
+    const startDateFormatted = startDate.toLocaleString().slice(0, -3)
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
     // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
@@ -76,6 +83,7 @@ export default function Register() {
             let qrVoterCredentials = await concatElectionCredentialsForQR(voterCredentials);
             updateVoting({ registerCode: qrVoterCredentials });
             loadingQRchange();
+
         } catch (error) {
             let buttonFunction;
             let buttonText;
@@ -129,6 +137,7 @@ export default function Register() {
             showBallot: true,
             showQRLoadingAnimation: false,
         });
+        setShowMod(true);
     };
 
     const goToStart = () => {
@@ -232,6 +241,57 @@ export default function Register() {
 
     return (
         <>
+            <Modal
+                showModal={showMod}
+                headerText={t("register.popup.aftersave.headline")}
+                ctaButtonText={t("register.popup.aftersave.buttontext")}
+                ctaButtonFunction={() => {
+                    window.scrollTo(0, 0);
+                    setShowMod(false);
+                }}
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <Notification
+                        type="success"
+                        text={t("register.notification.aftersave.text")}
+                    />
+                    {<div dangerouslySetInnerHTML={{ __html: t("register.popup.aftersave.infotext") }} />}
+                    <div style={{ backgroundColor: '#efefef', borderRadius: '4px', padding: '10px' }}>
+                        <div className="op__contentbox_max">
+                            {(electionState !== "finished") ?
+                                election.startTime > Date.now() ?
+                                    <>
+                                        <CountDown
+                                            countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.endTime : election.startTime}
+                                            countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
+                                            countDownState={'planned'}
+                                            electionStartDate={election.startTime}
+                                            electionEndDate={election.endTime}
+                                        />
+                                        <div style={{ textAlign: 'center', fontSize: '13px' }}>
+                                            {<div dangerouslySetInnerHTML={{ __html: t("register.countdown.election.start", { ENDDATE: startDate }) }} />}
+                                        </div>
+                                    </>
+                                    :
+                                    <>
+                                        <CountDown
+                                            countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.endTime : election.startTime}
+                                            countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
+                                            countDownState={'ongoing'}
+                                            electionStartDate={election.startTime}
+                                            electionEndDate={election.endTime}
+                                        />
+                                        <div style={{ textAlign: 'center', fontSize: '13px' }}>
+                                            {<div dangerouslySetInnerHTML={{ __html: t("register.countdown.election.end", { ENDDATE: endDate }) }} />}
+                                        </div>
+                                    </>
+                                : <div style={{ textAlign: 'center', fontWeight: 'bold' }}>{t("pollingstation.electionHeader.statetitle.finished").toUpperCase()}</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </Modal>
+
             <title>{t("register.title")}</title>
             <>
                 <Headline
@@ -305,19 +365,8 @@ export default function Register() {
 
                         {registerState.showBallot && (
                             <>
-                                <Notification
-                                    type="success"
-                                    headline={t("register.notification.success.ballotcreated.headline")}
-                                    text={''}
-                                />
                                 {electionState === globalConst.electionState.ONGOING && (
                                     <>
-                                        <Notification
-                                            type="info"
-                                            headline={t("register.notification.attention.headline")}
-                                            text={t("register.notification.attention.text")}
-                                        />
-
                                         <div className="op__center-align">
                                             <Button
                                                 onClickAction={goToElection}
