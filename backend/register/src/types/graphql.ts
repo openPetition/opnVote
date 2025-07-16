@@ -4,6 +4,6 @@
  * @property {string} endTime - Unix Timestamp when election ends
  */
 export interface ElectionStatusResponse {
-  status: number;
-  endTime: string;
+  status: number
+  votingEndTime: string
 }
