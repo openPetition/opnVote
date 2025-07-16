@@ -20,7 +20,7 @@ import globalConst from "@/constants";
 import Headline from "@/components/Headline";
 import Popup from "@/components/Popup";
 import Modal from "@/components/Modal";
-import CountDown from "@/app/pollingstation/components/CountDown";
+import ElectionTimeInfo from "@/components/ElectionTimeInfo";
 
 export default function Register() {
     const { t } = useTranslation();
@@ -261,7 +261,7 @@ export default function Register() {
                             {(electionState !== "finished") ?
                                 election.startTime > Date.now() ?
                                     <>
-                                        <CountDown
+                                        <ElectionTimeInfo
                                             countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.endTime : election.startTime}
                                             countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
                                             countDownState={'planned'}
@@ -274,7 +274,7 @@ export default function Register() {
                                     </>
                                     :
                                     <>
-                                        <CountDown
+                                        <ElectionTimeInfo
                                             countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.endTime : election.startTime}
                                             countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
                                             countDownState={'ongoing'}

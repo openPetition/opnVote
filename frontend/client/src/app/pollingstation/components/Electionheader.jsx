@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from "react";
 import { useTranslation } from 'next-i18next';
-import CountDown from "./CountDown";
+import ElectionTimeInfo from "@/components/ElectionTimeInfo";
 import styles from "../styles/ElectionHeader.module.css";
 import globalConst from "@/constants";
 import { CircleDot } from 'lucide-react';
@@ -59,19 +59,18 @@ export default function Electionheader(props) {
                 </div>
             </div>
             <div className={styles.bluestripe}>
-                <div className="op__contentbox_max">
-                    <CountDown
-                        countDownEndTime={electionState == globalConst.electionState.ONGOING ? election.endTime : election.startTime}
-                        countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
-                        countDownState={'ongoing'}//{electionState == globalConst.electionState.FINISHED ? globalConst.electionState.FINISHED : globalConst.electionState.ONGOING}
-                        electionStartDate={election.startTime}
-                        electionEndDate={election.endTime}
-                    />
-
+                <div className="op__contentbox_max" >
+                    <div style={{float: "right"}}>
+                        <ElectionTimeInfo
+                            countDownEndTime={electionState == globalConst.electionState.ONGOING ? election.endTime : election.startTime}
+                            countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
+                            countDownState={'ongoing'}//{electionState == globalConst.electionState.FINISHED ? globalConst.electionState.FINISHED : globalConst.electionState.ONGOING}
+                            electionStartDate={election.startTime}
+                            electionEndDate={election.endTime}
+                        />
+                    </div>
                 </div>
             </div>
-
-
         </>
     );
 }

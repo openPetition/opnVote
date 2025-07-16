@@ -1,0 +1,28 @@
+.timer {
+    display: flex;
+    justify-content: space-evenly;
+    max-width: 400px;
+    gap: .3rem;
+    margin: 0 auto;
+}
+
+.timer_item {
+    width: 30%;
+    text-align: center;
+}
+
+.timer_item_between {
+    width: 4%;
+    text-align: center;
+}
+
+@media only screen and (min-width: 800px) {
+    .timer_mainbox {
+        max-width: 520px;
+        position: relative;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: row;
+        gap: 1rem
+    }
+}
