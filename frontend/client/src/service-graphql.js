@@ -6,8 +6,10 @@ const GET_ELECTION = gql`
 query election($id: ID!) {
     election(id: $id)  {
         id,
-        startTime,
-        endTime,
+        votingStartTime,
+        votingEndTime,
+        registrationEndTime,
+        registrationStartTime,
         transactionHash,
         totalVotes,
         registeredVoterCount,
@@ -16,7 +18,7 @@ query election($id: ID!) {
         registerPublicKeyE,
         registerPublicKeyN,
         privateKey,
-        descriptionCID, # ist nun dynamisch
+        descriptionIpfsCid, # ist nun dynamisch
         descriptionBlob, # ist nun dynamisch
         publicKey, # hinzugefuegt
     }
@@ -24,11 +26,11 @@ query election($id: ID!) {
 
 // two queries in one call to prevent more request and hooks
 const GET_VOTECASTS = gql`
-query getVoteCasts($voter: String!, $electionID: ID!) {
-    voteCasts(where: { voter: $voter, electionID: $electionID }) {
+query getVoteCasts($voter: String!, $electionId: ID!) {
+    voteCasts(where: { voter: $voter, electionId: $electionId }) {
         id 
     }
-    voteUpdateds(where: { voter: $voter, electionID: $electionID }) {
+    voteUpdateds(where: { voter: $voter, electionId: $electionId }) {
         id
     }   
 }`;
@@ -38,5 +40,5 @@ export function getElectionData(electionId) {
 }
 
 export function getVoteCastsData(voterAddress, electionId) {
-    return useLazyQuery(GET_VOTECASTS, { variables: { voter: voterAddress, electionID: electionId } })
+    return useLazyQuery(GET_VOTECASTS, { variables: { voter: voterAddress, electionId: electionId } })
 }

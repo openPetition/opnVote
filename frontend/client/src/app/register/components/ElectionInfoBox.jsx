@@ -15,9 +15,9 @@ export default function ElectionInfoBox(props) {
 
     useEffect(() => {
         const currentTime = Math.floor(new Date().getTime() / 1000);
-        const state = Number(currentTime) < Number(voting.election.startTime) ? globalConst.electionState.PLANNED : Number(currentTime) < Number(voting.election.endTime) ? globalConst.electionState.ONGOING : globalConst.electionState.FINISHED;
+        const state = Number(currentTime) < Number(voting.election.votingStartTime) ? globalConst.electionState.PLANNED : Number(currentTime) < Number(voting.election.votingEndTime) ? globalConst.electionState.ONGOING : globalConst.electionState.FINISHED;
         setElectionState(state);
-        const tempEndDate = new Date(Number(voting.election.endTime) * 1000);
+        const tempEndDate = new Date(Number(voting.election.votingEndTime) * 1000);
         setEndDate(tempEndDate.toLocaleString("de-DE", {
             year: "numeric",
             month: "numeric",

@@ -210,11 +210,11 @@ export default function Register() {
     useEffect(() => {
 
         const currentTime = Math.floor(new Date().getTime() / 1000);
-        const tempStartTime = new Date(Number(voting.election.startTime) * 1000);
-        const tempEndTime = new Date(Number(voting.election.endTime) * 1000);
+        const tempStartTime = new Date(Number(voting.election.votingStartTime) * 1000);
+        const tempEndTime = new Date(Number(voting.election.votingEndTime) * 1000);
         setStartDate(tempStartTime);
         setEndDate(tempEndTime);
-        const state = Number(currentTime) < Number(voting.election.startTime) ? globalConst.electionState.PLANNED : Number(currentTime) < Number(voting.election.endTime) ? globalConst.electionState.ONGOING : globalConst.electionState.FINISHED;
+        const state = Number(currentTime) < Number(voting.election.votingStartTime) ? globalConst.electionState.PLANNED : Number(currentTime) < Number(voting.election.votingEndTime) ? globalConst.electionState.ONGOING : globalConst.electionState.FINISHED;
         setElectionState(state);
 
         // register already given? only show it
@@ -262,11 +262,11 @@ export default function Register() {
                                 election.startTime > Date.now() ?
                                     <>
                                         <ElectionTimeInfo
-                                            countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.endTime : election.startTime}
+                                            countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.votingEndTime : election.votingStartTime}
                                             countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
                                             countDownState={'planned'}
-                                            electionStartDate={election.startTime}
-                                            electionEndDate={election.endTime}
+                                            electionStartDate={election.votingStartTime}
+                                            electionEndDate={election.votingEndTime}
                                         />
                                         <div style={{ textAlign: 'center', fontSize: '13px' }}>
                                             {<div dangerouslySetInnerHTML={{ __html: t("register.countdown.election.start", { ENDDATE: startDate }) }} />}
@@ -275,11 +275,11 @@ export default function Register() {
                                     :
                                     <>
                                         <ElectionTimeInfo
-                                            countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.endTime : election.startTime}
+                                            countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.votingEndTime : election.votingStartTime}
                                             countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
                                             countDownState={'ongoing'}
-                                            electionStartDate={election.startTime}
-                                            electionEndDate={election.endTime}
+                                            electionStartDate={election.votingStartTime}
+                                            electionEndDate={election.votingEndTime}
                                         />
                                         <div style={{ textAlign: 'center', fontSize: '13px' }}>
                                             {<div dangerouslySetInnerHTML={{ __html: t("register.countdown.election.end", { ENDDATE: endDate }) }} />}

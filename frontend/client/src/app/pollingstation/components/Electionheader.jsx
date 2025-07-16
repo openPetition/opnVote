@@ -13,7 +13,7 @@ export default function Electionheader(props) {
 
     useEffect(() => {
         const currentTime = Math.floor(new Date().getTime() / 1000);
-        const state = Number(currentTime) < Number(election.startTime) ? globalConst.electionState.PLANNED : Number(currentTime) < Number(election.endTime) ? globalConst.electionState.ONGOING : globalConst.electionState.FINISHED;
+        const state = Number(currentTime) < Number(election.votingStartTime) ? globalConst.electionState.PLANNED : Number(currentTime) < Number(election.votingEndTime) ? globalConst.electionState.ONGOING : globalConst.electionState.FINISHED;
         setElectionState(state);
     }, []);
 
@@ -60,9 +60,9 @@ export default function Electionheader(props) {
             </div>
             <div className={styles.bluestripe}>
                 <div className="op__contentbox_max" >
-                    <div style={{float: "right"}}>
+                    <div style={{ float: "right" }}>
                         <ElectionTimeInfo
-                            countDownEndTime={electionState == globalConst.electionState.ONGOING ? election.endTime : election.startTime}
+                            countDownEndTime={electionState == globalConst.electionState.ONGOING ? election.votingEndTime : election.votingStartTime}
                             countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
                             countDownState={'ongoing'}//{electionState == globalConst.electionState.FINISHED ? globalConst.electionState.FINISHED : globalConst.electionState.ONGOING}
                             electionStartDate={election.startTime}
