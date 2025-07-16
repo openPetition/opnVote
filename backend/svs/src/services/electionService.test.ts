@@ -1,54 +1,52 @@
-import { fetchElectionEndTimeStatus } from '../graphql/graphqlClient';
-import { ElectionService } from './electionService';
+import { fetchElectionEndTimeStatus } from '../graphql/graphqlClient'
+import { ElectionService } from './electionService'
 
 jest.mock('../graphql/graphqlClient', () => ({
-    fetchElectionEndTimeStatus: jest.fn()
-}));
+  fetchElectionEndTimeStatus: jest.fn(),
+}))
 
 describe('ElectionStatusService', () => {
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
 
-    describe('getElectionStatus', () => {
+  describe('getElectionStatus', () => {
+    it('should return null when fetch fails', async () => {
+      ;(fetchElectionEndTimeStatus as jest.Mock).mockRejectedValue(new Error('Fetch failed'))
 
+      const result = await ElectionService.getElectionStatus(1)
 
-        it('should return null when fetch fails', async () => {
-            (fetchElectionEndTimeStatus as jest.Mock).mockRejectedValue(new Error('Fetch failed'));
+      expect(result).toBeNull()
+      expect(fetchElectionEndTimeStatus).toHaveBeenCalledWith(1)
+    })
+  })
 
-            const result = await ElectionService.getElectionStatus(1);
+  describe('isElectionClosed', () => {
+    it('should return true if no election data is present', () => {
+      const result = ElectionService.isElectionClosed(null)
+      expect(result).toBe(true)
+    })
 
-            expect(result).toBeNull();
-            expect(fetchElectionEndTimeStatus).toHaveBeenCalledWith(1);
-        });
-    });
+    it('should return true if election status is Ended, ResultsPublished, or Canceled', () => {
+      const endedElectionData = { status: 2, voteEndTime: '1750236800' }
+      const resultsPublishedElectionData = { status: 3, voteEndTime: '1750236800' }
+      const canceledElectionData = { status: 4, voteEndTime: '1750236800' }
 
-    describe('isElectionClosed', () => {
-        it('should return true if no election data is present', () => {
-            const result = ElectionService.isElectionClosed(null);
-            expect(result).toBe(true);
-        });
+      expect(ElectionService.isElectionClosed(endedElectionData)).toBe(true)
+      expect(ElectionService.isElectionClosed(resultsPublishedElectionData)).toBe(true)
+      expect(ElectionService.isElectionClosed(canceledElectionData)).toBe(true)
+    })
 
-        it('should return true if election status is Ended, ResultsPublished, or Canceled', () => {
-            const endedElectionData = { status: 2, endTime: '1750236800' };
-            const resultsPublishedElectionData = { status: 3, endTime: '1750236800' };
-            const canceledElectionData = { status: 4, endTime: '1750236800' };
+    it('should return true if election status is Active and closing time is past', () => {
+      const activeElectionData = { status: 1, voteEndTime: String(Date.now() / 1000 - 3600) } // Ended one hour ago
 
-            expect(ElectionService.isElectionClosed(endedElectionData)).toBe(true);
-            expect(ElectionService.isElectionClosed(resultsPublishedElectionData)).toBe(true);
-            expect(ElectionService.isElectionClosed(canceledElectionData)).toBe(true);
-        });
+      expect(ElectionService.isElectionClosed(activeElectionData)).toBe(true)
+    })
 
-        it('should return true if election status is Active and closing time is past', () => {
-            const activeElectionData = { status: 1, endTime: String(Date.now() / 1000 - 3600) }; // Ended one hour ago
+    it('should return false if election status is Active and closing time is in the future', () => {
+      const activeElectionData = { status: 1, voteEndTime: String(Date.now() / 1000 + 3600) } // Ending in 1 hour
 
-            expect(ElectionService.isElectionClosed(activeElectionData)).toBe(true);
-        });
-
-        it('should return false if election status is Active and closing time is in the future', () => {
-            const activeElectionData = { status: 1, endTime: String(Date.now() / 1000 + 3600) }; // Ending in 1 hour
-
-            expect(ElectionService.isElectionClosed(activeElectionData)).toBe(false);
-        });
-    });
-});
+      expect(ElectionService.isElectionClosed(activeElectionData)).toBe(false)
+    })
+  })
+})

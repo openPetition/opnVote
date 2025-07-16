@@ -4,8 +4,8 @@
  * @property {string} endTime - Unix Timestamp when election ends
  */
 export interface ElectionStatusResponse {
-  status: number;
-  endTime: string;
+  status: number
+  voteEndTime: string
 }
 
 /**
@@ -14,6 +14,6 @@ export interface ElectionStatusResponse {
  * @property {string} registerPublicKeyN - The public modulus (N)
  */
 export interface ElectionRegisterPublicKeyResponse {
-    registerPublicKeyE: string;
-    registerPublicKeyN: string;
-  }
+  registerPublicKeyE: string
+  registerPublicKeyN: string
+}
