@@ -16,7 +16,6 @@ import {
 import {
   Election,
   ElectionCanceled,
-  ElectionCreated,
   ElectionRegisterPublicKeySet,
   ElectionResultsPublished,
   ElectionStatusChanged,
@@ -62,6 +61,7 @@ export function handleElectionCreated(event: ElectionCreatedEvent): void {
   entity.totalVotes = BigInt.fromI32(0)
   entity.status = 0
   entity.descriptionIpfsCid = event.params.descriptionIpfsCid
+  entity.cancelReasonIpfsCid = ''
   entity.publicKey = event.params.publicKey
   const ipfsBlob = ipfs.cat(event.params.descriptionIpfsCid)
 
@@ -70,10 +70,6 @@ export function handleElectionCreated(event: ElectionCreatedEvent): void {
   } else {
     entity.descriptionBlob = ''
   }
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
 
   entity.save()
 }
