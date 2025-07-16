@@ -11,6 +11,11 @@ import btn_styles from "@/styles/Button.module.css";
 import { ArrowRightIcon } from "lucide-react";
 import Modal from '@/components/Modal';
 import globalConst from "@/constants";
+import styles from "./styles/CreateSecret.module.css";
+import qr_styles from "@/styles/ScanUploadQRCode.module.css";
+import navigationbox_styles from "@/styles/NavigationBox.module.css";
+import NextImage from "next/image";
+import ScanUploadQRCode from "@/components/ScanUploadQRCode";
 
 export default function CreateSecret() {
     const [showMod, setShowMod] = useState(false);
@@ -73,20 +78,80 @@ export default function CreateSecret() {
                 <Headline
                     title={t("secret.headline.createSecret.title")}
                     text={t("secret.headline.createSecret.text")}
-                    infoText={t("secret.headline.createSecret.infoText")}
-                    image="/images/offline.svg"
+
                     progressBarStep={globalConst.progressBarStep.key}
                 />
             </div>
             <main className="op__contentbox_760">
-                {!createSecretState.showKeyCheck && (
+                {!createSecretState.showKeyCheck ? (
                     <>
                         {!createSecretState.showSecret && (
-                            <LoadKey
-                                onClickAction={generateAndCreate}
-                                animationDuration={1}
-                                showLoadingAnimation={createSecretState.loadingAnimation}
-                            />
+                            <>
+                                <LoadKey
+                                    onClickAction={generateAndCreate}
+                                    animationDuration={1}
+                                    showLoadingAnimation={createSecretState.loadingAnimation}
+                                />
+                                <div>
+                                    <h3 className={styles.title}> {t('secret.key.existingKey')} </h3>
+                                    <div style={{ scrollMarginTop: "60px" }}>
+                                        <div className="flex op__gap_10_small op__gap_30_wide op__flex_direction_row_wide op__flex_direction_column_small">
+                                            <div className="op__outerbox_grey go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
+                                                onClick={() => {
+                                                    setCreateSecretState({
+                                                        ...createSecretState,
+                                                        showKeyCheck: true,
+                                                    })
+                                                }}>
+                                                <div className={`${navigationbox_styles.innerbox} op__width_100`} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
+                                                    <div className="flex op__gap_30" >
+                                                        <div className={qr_styles.qrbg}>
+                                                            <NextImage
+                                                                priority
+                                                                src="/images/load-picture.svg"
+                                                                height={60}
+                                                                width={60}
+                                                                alt=""
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <h3>{t('scanuploadqrcode.image.headline')}</h3>
+                                                            <p>{t('register.uploadqrcode.scanSubHeadline')}</p>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="op__outerbox_grey go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
+                                                onClick={() => {
+                                                    setCreateSecretState({
+                                                        ...createSecretState,
+                                                        showKeyCheck: true,
+                                                    })
+                                                }}>
+                                                <div className={`${navigationbox_styles.innerbox} op__width_100`} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
+                                                    <div className="flex op__gap_30">
+                                                        <div className={qr_styles.qrbg}>
+                                                            <NextImage
+                                                                priority
+                                                                src="/images/scan-qrcode.svg"
+                                                                height={60}
+                                                                width={60}
+                                                                alt=""
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <h3>{t('scanuploadqrcode.button.camera.headline')}</h3>
+                                                            <p>{t('scanuploadqrcode.button.camera.subheadline.votingkey')}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+
                         )}
                         {createSecretState.showSecret && (
                             <>
@@ -102,6 +167,27 @@ export default function CreateSecret() {
                                         updateUserKey(user.key, true)
                                     }}
                                 />
+                                {!isNaN(voting.electionId) && voting.jwt && (
+                                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                        <button
+                                            onClick={() => goToRegister()}
+                                            disabled={(!(user?.key?.length > 0))}
+                                            className={`${btn_styles.primary} ${btn_styles.btn}`}
+                                            style={{ display: 'flex', justifyContent: 'center', gap: '10px', alignItems: 'flex-end' }}
+                                        >
+                                            {t("secret.navigationbox.gotoregister.aftergenerated.buttonText")}
+                                            <div style={{ alignSelf: 'center' }}>
+                                                {
+                                                    (!(user?.key?.length > 0))
+                                                        ?
+                                                        <ArrowRightIcon stroke={'#c9c8c8'} strokeWidth={'3'} width={20} />
+                                                        :
+                                                        <ArrowRightIcon stroke={'white'} strokeWidth={'3'} width={20} />
+                                                }
+                                            </div>
+                                        </button>
+                                    </div>
+                                )}
                                 {!user.keySaved && (
                                     <Modal
                                         showModal={showMod}
@@ -127,27 +213,29 @@ export default function CreateSecret() {
 
                             </>
                         )}
-                        {!isNaN(voting.electionId) && voting.jwt && (
-                            <div style={{ display: 'flex', justifyContent: 'center' }}>
-                                <button
-                                    onClick={() => goToRegister()}
-                                    disabled={(!(user?.key?.length > 0))}
-                                    className={`${btn_styles.primary} ${btn_styles.btn}`}
-                                    style={{ display: 'flex', justifyContent: 'center', gap: '10px', alignItems: 'flex-end' }}
-                                >
-                                    {t("secret.navigationbox.gotoregister.aftergenerated.buttonText")}
-                                    <div style={{ alignSelf: 'center' }}>
-                                        {
-                                            (!(user?.key?.length > 0))
-                                                ?
-                                                <ArrowRightIcon stroke={'#c9c8c8'} strokeWidth={'3'} width={20} />
-                                                :
-                                                <ArrowRightIcon stroke={'white'} strokeWidth={'3'} width={20} />
-                                        }
-                                    </div>
-                                </button>
-                            </div>
-                        )}
+
+                    </>
+                ) : (
+                    <>
+                        <ScanUploadQRCode
+                            headline={t("register.uploadqrcode.headline")}
+                            subheadline={t("register.uploadqrcode.subheadline")}
+                            uploadSubHeadline={t("register.uploadqrcode.uploadSubHeadline")}
+                            scanSubHeadline={t("register.uploadqrcode.scanSubHeadline")}
+                            onResult={(res) => updateUserKey(res, true)}
+                        />
+                        <button
+                            onClick={() => {
+                                setCreateSecretState({
+                                    ...createSecretState,
+                                    showKeyCheck: false,
+                                })
+                            }}
+                            className={`${btn_styles.secondary} ${btn_styles.btn}`}
+                        >
+                            {t("common.back")}
+
+                        </button>
                     </>
                 )}
             </main>
