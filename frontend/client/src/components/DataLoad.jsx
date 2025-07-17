@@ -30,10 +30,10 @@ export default function DataLoad() {
                 ...dataStationState,
                 electionId: parseInt(electionIdParam),
                 jwtToken: jwtToken?.length > 0 ? jwtToken : '',
-                linkedPage: linkedPage
+                linkedPage: linkedPage,
             });
         } else {
-            updatePage({ current: globalConst.pages.OVERVIEW });
+            updatePage({ current: globalConst.pages.ERROR, loading: false });
             return;
         }
     }, []);
@@ -77,6 +77,8 @@ export default function DataLoad() {
 
             if (dataStationState.linkedPage && dataStationState.linkedPage == 'pollingstation') { //currently only this case is allowed
                 updatePage({ current: globalConst.pages.POLLINGSTATION, loading: false });
+            } else if (dataStationState.linkedPage && dataStationState.linkedPage == 'overview') { //currently only this case is allowed
+                updatePage({ current: globalConst.pages.OVERVIEW, loading: false });
             } else {
                 if (dataStationState.jwtToken.length > 0) { // jwt Token is needed for other page
                     if (page.current) {
@@ -94,7 +96,7 @@ export default function DataLoad() {
                     }
 
                 } else {
-                    updatePage({ current: globalConst.pages.OVERVIEW, loading: false });
+                    updatePage({ current: globalConst.pages.ERROR, loading: false });
                 }
             };
         }

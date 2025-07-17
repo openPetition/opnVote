@@ -19,29 +19,23 @@ const BOX_STATE_ACTIVATABLE = 'Activatable';
 const BOX_STATE_PASSIVE = 'Passive';
 
 export default function Overview() {
-    const { taskId, user, voting, updateVoting, updateTaskId } = useOpnVoteStore((state) => state);
+    const { user, voting, updateVoting, updatePage, updateUserKey, updateTaskId } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
-    const [transactionHash, setTransactionHash] = useState();
-    const [transactionViewUrl, setTransactionViewUrl] = useState();
     const [boxes, setBoxes] = useState({
-        // id: { state: BOX_STATE_ACTIVATABLE, type: 'id' },
-        // key: { state: BOX_STATE_ACTIVATABLE, type: 'key' },
-        // ballot: { state: BOX_STATE_PASSIVE, type: 'ballot' },
-        // vote: { state: BOX_STATE_PASSIVE, type: 'vote' },
-        // id: { state: BOX_STATE_ACTIVE, type: 'id' },
-        // key: { state: BOX_STATE_ACTIVE, type: 'key' },
-        // ballot: { state: BOX_STATE_ACTIVE, type: 'ballot' },
-        // vote: { state: BOX_STATE_ACTIVE, type: 'vote' },
-        // id: { state: BOX_STATE_PASSIVE, type: 'id' },
-        // key: { state: BOX_STATE_PASSIVE, type: 'key' },
-        // ballot: { state: BOX_STATE_PASSIVE, type: 'ballot' },
-        // vote: { state: BOX_STATE_PASSIVE, type: 'vote' },
         id: { state: BOX_STATE_ACTIVATABLE, type: 'id' },
         key: { state: BOX_STATE_ACTIVATABLE, type: 'key' },
         ballot: { state: BOX_STATE_ACTIVATABLE, type: 'ballot' },
         vote: { state: BOX_STATE_ACTIVATABLE, type: 'vote' },
-
     });
+
+    const goToPage = function (newPage) {
+        updatePage({ current: newPage });
+    };
+    const deleteBallot = () => {
+        updateVoting({ registerCode: '' });
+        updateTaskId('');
+    };
+
     const line = (
         <div className={styles.line}></div>
     );
@@ -77,7 +71,7 @@ export default function Overview() {
         return (
             <div className={styles.iconContainer}>
                 <PhaseIcon variant={variantMap[box.state]} type={box.type} />
-                {tinyIcon[boxes.id.state]}
+                {tinyIcon[box.state]}
             </div>
         );
     };
@@ -129,13 +123,14 @@ export default function Overview() {
                 </BoxHead>
                 <p>{t('overview.box.key.text')}</p>
                 <Buttons>
-                    {box.state == BOX_STATE_ACTIVATABLE && (<>
-                        <Button className={styles.boxButtonActive} onClick={() => {  }}>{t("overview.box.key.button.create")}</Button>
-                        <Button>{t("overview.box.key.button.load")}</Button>
+                    {box.state == BOX_STATE_ACTIVATABLE && voting.jwt && (<>
+                        <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.CREATEKEY)}>{t("overview.box.key.button.create")}</Button>
+                        <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.REGISTER)}>{t("overview.box.key.button.load")}</Button>
                     </>)}
-                    {box.state == BOX_STATE_ACTIVE && (
-                        <Button>{t("overview.box.key.button.remove")}</Button>
-                    )}
+                    {box.state == BOX_STATE_ACTIVE && (<>
+                        <Button onClick={() => updateUserKey('')}>{t("overview.box.key.button.remove")}</Button>
+                        {/*<Button onClick={() => goToPage(globalConst.pages.CREATEKEY)}>{t("overview.box.key.button.save")}</Button>*/}
+                    </>)}
                 </Buttons>
             </Box>
         );
@@ -150,19 +145,19 @@ export default function Overview() {
                 </BoxHead>
                 <p>{t('overview.box.ballot.text')}</p>
                 {box.state == BOX_STATE_ACTIVATABLE && box.future && (
-                    <p dangerouslySetInnerHTML={{ __html: t('overview.box.ballot.future', { REGISTERSTART: box.future }) }}></p>
+                    <p dangerouslySetInnerHTML={{ __html: t('overview.box.ballot.future', { REGISTERSTART: new Date(Number(box.future) * 1000) }) }}></p>
                 )}
                 {box.state == BOX_STATE_ACTIVATABLE && box.past && (
                     <p>{t('overview.box.ballot.past')}</p>
                 )}
                 <Buttons>
                     {box.state == BOX_STATE_ACTIVATABLE && !box.future && !box.past && (<>
-                        <Button className={styles.boxButtonActive}>{t("overview.box.ballot.button.register")}</Button>
-                        <Button className={styles.boxButtonActive}>{t("overview.box.ballot.button.load")}</Button>
+                        {voting.jwt && user.key && Object.keys(voting.election).length > 0 && (<Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.REGISTER)}>{t("overview.box.ballot.button.register")}</Button>)}
+                        <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.POLLINGSTATION)}>{t("overview.box.ballot.button.load")}</Button>
                     </>
                     )}
                     {box.state == BOX_STATE_ACTIVE && (
-                        <Button>{t("overview.box.ballot.button.remove")}</Button>
+                        <Button onClick={() => deleteBallot()}>{t("overview.box.ballot.button.remove")}</Button>
                     )}
                 </Buttons>
             </Box >
@@ -178,20 +173,66 @@ export default function Overview() {
                 </BoxHead>
                 <p>{t('overview.box.vote.text')}</p>
                 {box.state == BOX_STATE_ACTIVATABLE && box.future && (
-                    <p dangerouslySetInnerHTML={{ __html: t('overview.box.vote.future', { VOTESTART: box.future }) }} />
+                    <p dangerouslySetInnerHTML={{ __html: t('overview.box.vote.future', { VOTESTART: new Date(Number(box.future) * 1000) }) }} />
                 )}
                 {box.state == BOX_STATE_ACTIVATABLE && box.past && (
                     <p>{t('overview.box.vote.past')}</p>
                 )}
                 <Buttons>
-                    <Button>{t('overview.box.vote.button')}</Button>
+                    {voting.registerCode && (
+                        <Button onClick={() => goToPage(globalConst.pages.POLLINGSTATION)}>{t('overview.box.vote.button')}</Button>
+                    )}
                 </Buttons>
             </Box>
         );
     };
 
     useEffect(() => {
-        // waiting for logic, to set boxes to their appropriate states
+        let newBoxes = {
+            id: { state: BOX_STATE_ACTIVATABLE, type: 'id' },
+            key: { state: BOX_STATE_ACTIVATABLE, type: 'key' },
+            ballot: { state: BOX_STATE_ACTIVATABLE, type: 'ballot', past: null, future: null },
+            vote: { state: BOX_STATE_ACTIVATABLE, type: 'vote', past: null, future: null },
+        };
+        const now = (new Date()).valueOf() / 1000;
+        const hasElection = voting.electionId !== null && voting.electionId == voting.electionId;
+        const registrationStartTime = voting.electionInformation?.registrationStartTime || voting.election?.startTime || null;
+        const registrationEndTime = voting.electionInformation?.registrationEndTime || voting.election?.endTime || null;
+        const votingStartTime = voting.election?.startTime || null;
+        const votingEndTime = voting.election?.endTime || null;
+
+        if (!hasElection) {
+            newBoxes.key.state = BOX_STATE_PASSIVE;
+            newBoxes.vote.state = BOX_STATE_PASSIVE;
+            setBoxes(newBoxes);
+            return; // abort, rest of code only relevant if there's an election
+        }
+
+        newBoxes.vote.future = now < votingStartTime ? votingStartTime : null;
+        newBoxes.vote.past = votingEndTime < now ? votingEndTime : null;
+        newBoxes.ballot.future = now < registrationStartTime ? registrationStartTime : null;
+        newBoxes.ballot.past = registrationEndTime < now ? registrationEndTime : null;
+
+        if (voting.registerCode && voting.transactionViewUrl) {
+            // there are votes in our local storage! activate all boxes
+            newBoxes.id.state = BOX_STATE_ACTIVE;
+            newBoxes.key.state = BOX_STATE_ACTIVE;
+            newBoxes.ballot.state = BOX_STATE_ACTIVE;
+            newBoxes.vote.state = BOX_STATE_ACTIVE;
+        }
+        if (user.key) {
+            newBoxes.key.state = BOX_STATE_ACTIVE;
+        }
+        if (voting.jwt) {
+            newBoxes.id.state = BOX_STATE_ACTIVE;
+        }
+        if (voting.registerCode) {
+            newBoxes.id.state = BOX_STATE_ACTIVE;
+            newBoxes.key.state = BOX_STATE_ACTIVE;
+            newBoxes.ballot.state = BOX_STATE_ACTIVE;
+        }
+
+        setBoxes(newBoxes);
     }, [voting, user]);
 
     return (
@@ -201,7 +242,7 @@ export default function Overview() {
                 title={t("overview.headline.title")}
                 text={t("overview.headline.text")}
             />
-            {voting.electionId && (
+            {voting.electionId !== null && (
                 <div className="op__contentbox_760">
                     <ElectionInfoBox />
                 </div>

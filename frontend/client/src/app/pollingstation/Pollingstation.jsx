@@ -312,7 +312,7 @@ export default function Pollingstation() {
                             uploadSubHeadline={t("pollingstation.uploadqrcode.uploadSubHeadline")}
                             scanSubHeadline={t("pollingstation.uploadqrcode.scanSubHeadline")}
                             onResult={(res) => {
-                                qrCodeToCredentials(res);
+                                updateVoting({ registerCode: res });
                             }}
                         />
 

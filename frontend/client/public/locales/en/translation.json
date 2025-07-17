@@ -75,6 +75,7 @@
     "overview.box.key.button.create": "create",
     "overview.box.key.button.load": "load",
     "overview.box.key.button.remove": "remove",
+    "overview.box.key.button.save": "save",
     "overview.box.key.text": "Using your vote authorization and your voting key, you can retrieve an election permit",
     "overview.box.key.title": "Voting key",
     "overview.box.vote.button": "cast vote",
