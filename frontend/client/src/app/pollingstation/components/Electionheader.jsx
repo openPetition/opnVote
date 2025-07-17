@@ -65,8 +65,8 @@ export default function Electionheader(props) {
                             countDownEndTime={electionState == globalConst.electionState.ONGOING ? election.votingEndTime : election.votingStartTime}
                             countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
                             countDownState={'ongoing'}//{electionState == globalConst.electionState.FINISHED ? globalConst.electionState.FINISHED : globalConst.electionState.ONGOING}
-                            electionStartDate={election.startTime}
-                            electionEndDate={election.endTime}
+                            electionStartDate={election.votingStartTime}
+                            electionEndDate={election.votingEndTime}
                         />
                     </div>
                 </div>

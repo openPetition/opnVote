@@ -11,6 +11,7 @@
     "common.nothingset": "nicht vergeben",
     "common.save": "Speichern",
     "common.saveimage": "Bild Speichern",
+    "common.gotooverview": "Zur Übersicht",
     "faq.content.anonymouselectionpermit.text": "Ein anonymer Wahlschein ist die Wahlberechtigung. Der anonyme Wahlschein kann von niemandem einer bestimmten Person zugeordnet werden und stellt so das Wahlgeheimnis bei der Abgabe des Stimmzettels sicher. Der anonyme Wahlschein wird aus dem personalisierten Wahlschein und dem Wahlschlüssel kryptografisch errechnet. Das Siegel der Wahlleitung geht dabei nicht verloren. Das ist wichtig, um die Gültigkeit des Wahlscheins prüfen zu können. Der anonyme Wahlschein kann nur mit dem Wahlschlüssel errechnet werden, der beim Wahlantrag verdeckt an die Wahlleitung gesendet wurde. Man kann also nur genau einen anonymen Wahlschein aus dem personalisierten Wahlschein errechnen.",
     "faq.content.anonymouselectionpermit.title": "Anonymer Wahlschein",
     "faq.content.ballotpaper.text": "Stimmzettel ist das Formular mit der Abstimmungsfrage und den Auswahlmöglichkeiten.",

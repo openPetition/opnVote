@@ -11,6 +11,14 @@
     font-weight: bold;
 }
 
+.content_box {
+    max-width: 460px;
+    background-color: #efefef;
+    border-radius: 4px;
+    padding: 20px;
+    margin: 8rem auto 2rem auto;
+}
+
 @media only screen and (min-width: 1024px) {
     .timer_mainbox {
         margin: 0;

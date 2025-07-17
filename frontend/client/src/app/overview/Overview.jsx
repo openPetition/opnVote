@@ -196,10 +196,10 @@ export default function Overview() {
         };
         const now = (new Date()).valueOf() / 1000;
         const hasElection = voting.electionId !== null && voting.electionId == voting.electionId;
-        const registrationStartTime = voting.electionInformation?.registrationStartTime || voting.election?.startTime || null;
-        const registrationEndTime = voting.electionInformation?.registrationEndTime || voting.election?.endTime || null;
-        const votingStartTime = voting.election?.startTime || null;
-        const votingEndTime = voting.election?.endTime || null;
+        const registrationStartTime = voting.electionInformation?.registrationStartTime || voting.election?.votingStartTime || null;
+        const registrationEndTime = voting.electionInformation?.registrationEndTime || voting.election?.votingEndTime || null;
+        const votingStartTime = voting.election?.votingStartTime || null;
+        const votingEndTime = voting.election?.votingEndTime || null;
 
         if (!hasElection) {
             newBoxes.key.state = BOX_STATE_PASSIVE;

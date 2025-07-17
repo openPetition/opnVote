@@ -15,8 +15,10 @@ import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
 import qr_styles from "@/styles/ScanUploadQRCode.module.css";
 import navigationbox_styles from "@/styles/NavigationBox.module.css";
+import election_time_styles from "@/styles/ElectionTime.module.css";
 import NextImage from "next/image";
 import Modal from "@/components/Modal";
+import ElectionTimeInfo from "@/components/ElectionTimeInfo";
 
 export default function Pollingstation() {
     const { updatePage, voting, updateVoting, updateTaskId, taskId } = useOpnVoteStore((state) => state);
@@ -24,6 +26,10 @@ export default function Pollingstation() {
     const [votingCredentials, setVotingCredentials] = useState({});
     const [votes, setVotes] = useState({});
     const [getVoteCasts, { data: dataVotings, loading: loadingVotings }] = getVoteCastsData(votingCredentials?.voterWallet?.address, voting.election.id);
+    const [electionState, setElectionState] = useState(globalConst.electionState.ONGOING);
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const election = voting.election;
 
     // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
     const [pollingStationState, setPollingStationState] = useState({
@@ -78,6 +84,10 @@ export default function Pollingstation() {
                 setPollingStationState({ ...pollingStationState, pending: false });
             }, 10000);
         }
+    };
+
+    const goToLanding = () => {
+        window.location = voting.electionInformation.backLink;
     };
 
     const qrCodeToCredentials = async (code) => {
@@ -166,7 +176,13 @@ export default function Pollingstation() {
     }, [dataVotings]);
 
     useEffect(() => {
-
+        const currentTime = Math.floor(new Date().getTime() / 1000);
+        const state = Number(currentTime) < Number(election.votingStartTime) ? globalConst.electionState.PLANNED : Number(currentTime) < Number(election.votingEndTime) ? globalConst.electionState.ONGOING : globalConst.electionState.FINISHED;
+        setElectionState(state);
+        const tempStartTime = new Date(Number(voting.election.votingStartTime) * 1000);
+        const tempEndTime = new Date(Number(voting.election.votingEndTime) * 1000);
+        setStartDate(tempStartTime);
+        setEndDate(tempEndTime);
         if (taskId && taskId.length > 0) {
             updateVoting({ votesuccess: false, transactionViewUrl: '' }); //invalidate
             updatePage({ current: globalConst.pages.VOTETRANSACTION });
@@ -174,7 +190,7 @@ export default function Pollingstation() {
 
         // only if we have the electioninformations its worth to check
         // wether there is some voter informations stored.
-        if (voting.registerCode?.length == 0 || Object.keys(voting.electionInformation).length === 0 || voting.electionInformation.constructor !== Object) {
+        if (voting.registerCode?.length === 0 || Object.keys(voting.electionInformation).length === 0 || voting.electionInformation.constructor !== Object) {
             return;
         }
 
@@ -190,19 +206,30 @@ export default function Pollingstation() {
 
     return (
         <>
+            <title>{t("pollingstation.title")}</title>
+
             <Modal
                 showModal={pollingStationState.showNotification}
                 headerText={pollingStationState.popupHeadline}
-                ctaButtonText={pollingStationState.popupButtonText}
-                ctaButtonFunction={() => setPollingStationState(ctaButtonState(pollingStationState))}
+                ctaButtonText={electionState === globalConst.electionState.ONGOING ? pollingStationState.popupButtonText : t("common.back")}
+                ctaButtonFunction={
+                    electionState === globalConst.electionState.ONGOING ?
+                        () => setPollingStationState(ctaButtonState(pollingStationState))
+                        :
+                        () => setPollingStationState({
+                            ...pollingStationState,
+                            showNotification: false
+                        })
+                }
             >
                 <Notification
                     type={pollingStationState.notificationType}
                     text={pollingStationState.notificationText}
                 />
             </Modal>
-            <title>{t("pollingstation.title")}</title>
-            {(voting.registerCode || pollingStationState.allowedToVote) &&
+
+            {electionState === globalConst.electionState.ONGOING &&
+                (voting.registerCode || pollingStationState.allowedToVote) &&
                 (pollingStationState.showElectionInformation && (
                     <Electionheader
                         election={voting?.election}
@@ -211,76 +238,78 @@ export default function Pollingstation() {
                 ))
             }
 
-            {pollingStationState.showVotingSlipSelection && (
-                <div className="op__contentbox_760">
-                    <div className="op__padding_standard_top_bottom">
-                        <h4>{t("pollingstation.headline.ballotneeded")}</h4>
-                        <p className="op__center-align">{t("pollingstation.uploadqrcode.subheadline")}</p>
-                    </div>
-                    <div className="op__contentbox_760" style={{ scrollMarginTop: "60px" }}>
-                        <div className="flex op__gap_10_small op__gap_30_wide op__flex_direction_row_wide op__flex_direction_column_small">
-                            <div className="op__outerbox_grey go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
-                                onClick={(e) =>
-                                    setPollingStationState({
-                                        ...pollingStationState,
-                                        showVotingSlipUpload: true,
-                                        showVotingSlipSelection: false,
-                                        showQuestions: false,
-                                        showNotification: false,
-                                    })}>
-                                <div className={`${navigationbox_styles.innerbox} op__width_100`} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
-                                    <div className="flex op__gap_30" >
-                                        <div className={qr_styles.qrbg}>
-                                            <NextImage
-                                                priority
-                                                src="/images/load-picture.svg"
-                                                height={60}
-                                                width={60}
-                                                alt=""
-                                            />
-                                        </div>
-                                        <div>
-                                            <h3>{t('scanuploadqrcode.button.pdf.headline')}</h3>
-                                            <p>{t('scanuploadqrcode.button.pdf.subheadline')}</p>
-                                        </div>
+            {(electionState === globalConst.electionState.ONGOING &&
+                pollingStationState.showVotingSlipSelection) && (
+                    <div className="op__contentbox_760">
+                        <div className="op__padding_standard_top_bottom">
+                            <h4>{t("pollingstation.headline.ballotneeded")}</h4>
+                            <p className="op__center-align">{t("pollingstation.uploadqrcode.subheadline")}</p>
+                        </div>
+                        <div className="op__contentbox_760" style={{ scrollMarginTop: "60px" }}>
+                            <div className="flex op__gap_10_small op__gap_30_wide op__flex_direction_row_wide op__flex_direction_column_small">
+                                <div className="op__outerbox_grey go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
+                                    onClick={(e) =>
+                                        setPollingStationState({
+                                            ...pollingStationState,
+                                            showVotingSlipUpload: true,
+                                            showVotingSlipSelection: false,
+                                            showQuestions: false,
+                                            showNotification: false,
+                                        })}>
+                                    <div className={`${navigationbox_styles.innerbox} op__width_100`} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
+                                        <div className="flex op__gap_30" >
+                                            <div className={qr_styles.qrbg}>
+                                                <NextImage
+                                                    priority
+                                                    src="/images/load-picture.svg"
+                                                    height={60}
+                                                    width={60}
+                                                    alt=""
+                                                />
+                                            </div>
+                                            <div>
+                                                <h3>{t('scanuploadqrcode.button.pdf.headline')}</h3>
+                                                <p>{t('scanuploadqrcode.button.pdf.subheadline')}</p>
+                                            </div>
 
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="op__outerbox_grey go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
-                                onClick={() =>
-                                    setPollingStationState({
-                                        ...pollingStationState,
-                                        showVotingSlipUpload: true,
-                                        showVotingSlipSelection: false,
-                                        showQuestions: false,
-                                        showNotification: false,
-                                    })}>
-                                <div className={`${navigationbox_styles.innerbox} op__width_100`} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
-                                    <div className="flex op__gap_30">
-                                        <div className={qr_styles.qrbg}>
-                                            <NextImage
-                                                priority
-                                                src="/images/scan-qrcode.svg"
-                                                height={60}
-                                                width={60}
-                                                alt=""
-                                            />
-                                        </div>
-                                        <div>
-                                            <h3>{t('scanuploadqrcode.button.camera.headline')}</h3>
-                                            <p>{t('scanuploadqrcode.button.camera.subheadline')}</p>
+                                <div className="op__outerbox_grey go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
+                                    onClick={() =>
+                                        setPollingStationState({
+                                            ...pollingStationState,
+                                            showVotingSlipUpload: true,
+                                            showVotingSlipSelection: false,
+                                            showQuestions: false,
+                                            showNotification: false,
+                                        })}>
+                                    <div className={`${navigationbox_styles.innerbox} op__width_100`} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
+                                        <div className="flex op__gap_30">
+                                            <div className={qr_styles.qrbg}>
+                                                <NextImage
+                                                    priority
+                                                    src="/images/scan-qrcode.svg"
+                                                    height={60}
+                                                    width={60}
+                                                    alt=""
+                                                />
+                                            </div>
+                                            <div>
+                                                <h3>{t('scanuploadqrcode.button.camera.headline')}</h3>
+                                                <p>{t('scanuploadqrcode.button.camera.subheadline')}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                )
+            }
 
-                </div>
-            )}
-
-            {(voting.registerCode || pollingStationState.allowedToVote) &&
+            {electionState === globalConst.electionState.ONGOING &&
+                (voting.registerCode || pollingStationState.allowedToVote) &&
                 <div className={`${pollingStationState.allowedToVote ? 'op__contentbox_max' : 'op__contentbox_760'}`}>
                     {pollingStationState.showQuestions && (
                         <>
@@ -301,6 +330,34 @@ export default function Pollingstation() {
                         </>
                     )}
                 </div>
+            }
+
+            {(electionState !== globalConst.electionState.ONGOING) ?
+                (electionState === globalConst.electionState.PLANNED) ?
+                    <div className={election_time_styles.content_box}>
+                        <ElectionTimeInfo
+                            countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.votingEndTime : election.votingStartTime}
+                            countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
+                            countDownState={'planned'}
+                            electionStartDate={election.votingStartTime}
+                            electionEndDate={election.votingEndTime}
+                        />
+                        <div style={{ textAlign: 'center', fontSize: '13px', marginTop: '10px' }}>
+                            {<div dangerouslySetInnerHTML={{ __html: t("register.countdown.election.start", { STARTDATE: startDate }) }} />}
+                        </div>
+                    </div>
+                    :
+                    <div className={election_time_styles.content_box}>
+                        <ElectionTimeInfo
+                            countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.votingEndTime : election.votingStartTime}
+                            countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
+                            countDownState={'finished'}
+                            electionStartDate={election.votingStartTime}
+                            electionEndDate={election.votingEndTime}
+                        />
+                    </div>
+                :
+                <></>
             }
 
             <div className="op__contentbox_760 op__center-align">
@@ -333,22 +390,34 @@ export default function Pollingstation() {
 
                     </div>
                 )}
-                {pollingStationState.showElection && pollingStationState.allowedToVote && (
-                    <>
-                        <div className="op__center-align">
-                            <Button
-                                onClickAction={saveVotes}
-                                isDisabled={pollingStationState.pending}
-                                text={t("pollingstation.button.savevotes")}
-                                type="primary"
-                                id="test_btn_sendvote"
-                            />
-                        </div>
-                        {pollingStationState.showSendError && (
-                            <Notification type="error" text={pollingStationState.showSendError} />
-                        )}
-                    </>
-                )}
+
+                {electionState === globalConst.electionState.ONGOING ?
+                    pollingStationState.showElection && pollingStationState.allowedToVote && (
+                        <>
+                            <div className="op__center-align">
+                                <Button
+                                    onClickAction={saveVotes}
+                                    isDisabled={pollingStationState.pending}
+                                    text={t("pollingstation.button.savevotes")}
+                                    type="primary"
+                                    id="test_btn_sendvote"
+                                />
+                            </div>
+                            {pollingStationState.showSendError && (
+                                <Notification type="error" text={pollingStationState.showSendError} />
+                            )}
+                        </>
+                    )
+                    :
+                    <div className="op__center-align">
+                        <Button
+                            onClickAction={() => goToLanding()}
+                            isDisabled={pollingStationState.pending}
+                            text={t("common.gotooverview")}
+                            type="primary"
+                        />
+                    </div>
+                }
             </div>
         </>
     );

@@ -35,10 +35,7 @@ export default function Register() {
     const [endDate, setEndDate] = useState("");
     const [registerCode, setRegisterCode] = useState("");
     const [showMod, setShowMod] = useState(false);
-
     const election = voting.election
-    const endDateFormatted = endDate.toLocaleString().slice(0, -3)
-    const startDateFormatted = startDate.toLocaleString().slice(0, -3)
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
     // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.

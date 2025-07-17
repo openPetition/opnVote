@@ -11,6 +11,7 @@
     "common.nothingset": "not set",
     "common.save": "Save",
     "common.saveimage": "Save image",
+    "common.gotooverview": "Go to overview",
     "faq.content.anonymouselectionpermit.text": "An anonymous election permit is the authorisation to vote. An anonymous election permit cannot be associated with a specific person and thus ensures the secrecy of the vote when it is cast. The anonymous election permit is cryptographically generated from the personalised election permit and the voting key. The seal of the electoral authority is not lost in the process. This is important in order to be able to check the validity of the election permit. The anonymous election permit can only be generated using the voting key that was sent to the electoral authority in a concealed form when applying for the election permit. Therefore, only one anonymous election permit can be calculated from the personalised election permit.",
     "faq.content.anonymouselectionpermit.title": "Anonymous election permit",
     "faq.content.ballotpaper.text": "A ballot paper is the form containing the referendum question and the response options.",

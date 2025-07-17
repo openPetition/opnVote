@@ -30,6 +30,14 @@ export default function ElectionTimeInfo(props) {
                     </div>
                 </>
             )}
+            {countDownState === globalConst.electionState.PLANNED && (
+                <>
+                    <div className={electiontime_styles.timer_mainbox}>
+                        <div className={electiontime_styles.timer_headline}>{countDownHeadLine}</div>
+                        <CountDown countDownEndTime={countDownEndTime} />
+                    </div>
+                </>
+            )}
             {countDownState === globalConst.electionState.FINISHED && (
                 <>
                     <div className={electiontime_styles.timer_mainbox}>
