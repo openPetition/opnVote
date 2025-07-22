@@ -6,8 +6,8 @@
     "dev": "next dev --experimental-https",
     "preinstall": "cd ../../votingSystem; npm install; npm run build",
     "build": "next build",
-    "deploy-production": "NODE_ENV=production next build && scp -r dist/* openpetition@web-01.openpetition.de:/var/www/openpetition/client.opn.vote/",
-    "deploy-staging": "NODE_ENV=staging next build && scp -r dist/* openpetition@web-01.openpetition.de:/var/www/openpetition/client-test.opn.vote/",
+    "deploy-production": "cp .env.live .env.production.local && ./make-version-string.sh && next build && scp -r dist/* openpetition@web-01.openpetition.de:/var/www/openpetition/client.opn.vote/",
+    "deploy-staging": "cp .env.staging .env.production.local && ./make-version-string.sh && next build && scp -r dist/* openpetition@web-01.openpetition.de:/var/www/openpetition/client-test.opn.vote/",
     "start": "next start",
     "lint": "next lint",
     "test": "./node_modules/mocha/bin/mocha.js"

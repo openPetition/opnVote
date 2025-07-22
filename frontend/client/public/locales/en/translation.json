@@ -45,6 +45,7 @@
     "footer.links.transparency": "Transparency",
     "footer.logo.text": "A service of",
     "footer.loveforopnvote.text": "Democratic online elections. No paper, no postage – vote securely from home.",
+    "footer.version": "Version: ",
     "keycheck.backToSecretCreation": "Back to creating a voting key",
     "keycheck.error": "The voting key could not be verified. Please try again.",
     "keycheck.popup.button": "Order election permit",

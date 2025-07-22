@@ -45,6 +45,7 @@
     "footer.links.transparency": "Transparenz",
     "footer.logo.text": "Ein Service von",
     "footer.loveforopnvote.text": "Demokratische Online-Abstimmungen. Kein Papier, kein Porto - sicher wählen und abstimmen von zu Hause.",
+    "footer.version": "Version: ",
     "keycheck.backToSecretCreation": "Zurück zur Wahlschlüsselerstellung",
     "keycheck.error": "Der Wahlschlüssel konnte nicht verifiziert werden. Bitte versuchen Sie es erneut.",
     "keycheck.popup.button": "Wahlschein bestellen",

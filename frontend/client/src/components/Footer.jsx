@@ -6,6 +6,7 @@ import FooterDonationBox from './FooterHeartBox';
 import NextImage from 'next/image';
 import { useTranslation } from "next-i18next";
 import Loading from "./Loading";
+import Config from "../../next.config.mjs";
 
 export default function Footer() {
     const { t } = useTranslation();
@@ -30,7 +31,7 @@ export default function Footer() {
                 }
             </>
         );
-    }
+    };
     return (
         <>
             <footer>
@@ -73,6 +74,7 @@ export default function Footer() {
                                 <a href="https://www.openpetition.de/content/data_privacy" className={styles.link}>{t('footer.links.dataprivacy')}</a>
                                 <a href="https://www.openpetition.de/content/legal_details" className={styles.link}>{t('footer.links.impressum')}</a>
                                 <a href="https://www.openpetition.de/blog/transparenzinitiative" className={styles.link}>{t('footer.links.transparency')}</a>
+                                <span className={styles.link}>{t('footer.version')} {Config.env.version}</span>
                             </div>
                         </div>
                     </div>
