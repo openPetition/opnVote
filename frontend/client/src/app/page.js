@@ -8,6 +8,8 @@ import CreateSecret from "@/app/createsecret/CreateSecret";
 import Pollingstation from "@/app/pollingstation/Pollingstation";
 import Register from "@/app/register/Register";
 import VoteTransaction from "@/app/votetransaction/VoteTransaction";
+import LoadSecret from "@/app/loadsecret/LoadSecret";
+import ShowSecret from "@/app/showsecret/ShowSecret";
 import { useOpnVoteStore } from "@/opnVoteStore";
 import Loading from "@/components/Loading";
 import Button from "@/components/Button";
@@ -66,6 +68,10 @@ export default function Home() {
                             <Pollingstation />
                         ) || page.current == globalConst.pages.CREATEKEY && (
                             <CreateSecret />
+                        ) || page.current == globalConst.pages.LOADKEY && (
+                            <LoadSecret />
+                        ) || page.current == globalConst.pages.SHOWKEY && (
+                            <ShowSecret />
                         ) || page.current == globalConst.pages.VOTETRANSACTION && (
                             <VoteTransaction />
                         ) || page.current == globalConst.pages.FAQ && (

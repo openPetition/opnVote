@@ -10,6 +10,8 @@ const globalConst = {
     pages: {
         'OVERVIEW': 'overview',
         'CREATEKEY': 'createkey',
+        'LOADKEY': 'loadkey',
+        'SHOWKEY': 'showkey',
         'REGISTER': 'register',
         'POLLINGSTATION': 'pollingstation',
         'VOTETRANSACTION': 'votetransaction',

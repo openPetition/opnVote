@@ -75,26 +75,20 @@ export default function DataLoad() {
                 electionInformation: dataStationState.updateElection ? dataStationState.electionInformation : voting.electionInformation,
             });
 
-            if (dataStationState.linkedPage && dataStationState.linkedPage == 'pollingstation') { //currently only this case is allowed
+            if (dataStationState.linkedPage && dataStationState.linkedPage == 'pollingstation') {
                 updatePage({ current: globalConst.pages.POLLINGSTATION, loading: false });
-            } else if (dataStationState.linkedPage && dataStationState.linkedPage == 'overview') { //currently only this case is allowed
+            } else if (dataStationState.linkedPage && dataStationState.linkedPage == 'overview') {
                 updatePage({ current: globalConst.pages.OVERVIEW, loading: false });
             } else {
                 if (dataStationState.jwtToken.length > 0) { // jwt Token is needed for other page
-                    if (page.current) {
-                        if (page.current === "pollingstation") {
-                            if (!user.key) {
-                                updatePage({ previous: globalConst.pages.POLLINGSTATION, current: globalConst.pages.CREATEKEY });
-                            } else if (!voting.registerCode) {
-                                updatePage({ previous: globalConst.pages.POLLINGSTATION, current: globalConst.pages.REGISTER });
-                            }
+                    if (!page.current || page.current === "pollingstation") {
+                        if (!user.key) {
+                            updatePage({ previous: globalConst.pages.POLLINGSTATION, current: globalConst.pages.CREATEKEY });
+                        } else if (!voting.registerCode) {
+                            updatePage({ previous: globalConst.pages.POLLINGSTATION, current: globalConst.pages.SHOWKEY });
                         }
-                        updatePage({ loading: false });
                     }
-                    else {
-                        updatePage({ current: globalConst.pages.CREATEKEY, loading: false });
-                    }
-
+                    updatePage({ loading: false });
                 } else {
                     updatePage({ current: globalConst.pages.ERROR, loading: false });
                 }

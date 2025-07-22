@@ -294,7 +294,6 @@ export default function Register() {
                 <Headline
                     title={t("register.headline.title")}
                     text={t("register.headline.text")}
-                    infoText={registerState.showBallot ? '' : t("register.headline.infoText")}
                     image="/images/online.svg"
                     progressBarStep={globalConst.progressBarStep.ballot}
                 />
