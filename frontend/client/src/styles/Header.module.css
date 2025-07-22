@@ -22,6 +22,7 @@
 
 .logo {
     margin: 0;
+    margin-left: -.05rem;
     width: auto;
     height: 24px;
     padding-right: var(--op-padding-standard);
