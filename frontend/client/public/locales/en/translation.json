@@ -67,7 +67,7 @@
     "overview.box.ballot.button.remove": "remove",
     "overview.box.ballot.button.register": "order",
     "overview.box.ballot.future": "Registration starts {{REGISTERSTART, date}}.",
-    "overview.box.ballto.past": "The registration period is over",
+    "overview.box.ballot.past": "The registration period is over",
     "overview.box.ballot.text": "Using your election permit, you will receive a vote for casting.",
     "overview.box.ballot.title": "Election permit",
     "overview.box.id.button": "Request Authorization",

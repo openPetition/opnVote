@@ -60,7 +60,7 @@
     "overview.box.ballot.button.remove": "entfernen",
     "overview.box.ballot.button.register": "bestellen",
     "overview.box.ballot.future": "Die Registrierung startet am {{REGISTERSTART, date}}.",
-    "overview.box.ballto.past": "Der Registrierungszeitraum ist abgelaufen",
+    "overview.box.ballot.past": "Der Registrierungszeitraum ist abgelaufen",
     "overview.box.ballot.text": "Mithilfe Ihres Wahlscheins erhalten Sie einen Stimmzettel zur Stimmabgabe.",
     "overview.box.ballot.title": "Wahlschein",
     "overview.box.id.button": "Berechtigung holen",
