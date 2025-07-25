@@ -411,7 +411,7 @@ export default function Pollingstation() {
                     :
                     <div className="op__center-align">
                         <Button
-                            onClickAction={() => goToLanding()}
+                            onClickAction={() => updatePage({ current: globalConst.pages.OVERVIEW })}
                             isDisabled={pollingStationState.pending}
                             text={t("common.gotooverview")}
                             type="primary"

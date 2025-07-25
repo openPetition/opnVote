@@ -194,7 +194,7 @@ export default function Head() {
                             width="0"
                             height="0"
                             sizes="100vw"
-
+                            onClick={() => updatePage({ current: globalConst.pages.OVERVIEW, loading: false })}
                             className={styles.logo}
                         />
                     </div>
@@ -238,7 +238,12 @@ export default function Head() {
                             </ul>
                             <hr className={styles.borderLine} />
                             <ul className={styles.menulinks}>
-                                <li><button className={styles.menulink}>{t('navigation.point.electiondocs')}</button></li>
+                                <li><button
+                                    className={styles.menulink}
+                                    onClick={() => updatePage({ current: globalConst.pages.OVERVIEW, loading: false })}
+                                >
+                                    {t('navigation.point.electiondocs')}
+                                </button></li>
                                 <li><a href="https://www.opn.vote/" className={styles.menulink}>{t('navigation.point.blog')}</a></li>
                                 <li><button className={styles.menulink} onClick={goToHelpPage}>{t('navigation.point.faq')}</button></li>
                             </ul>

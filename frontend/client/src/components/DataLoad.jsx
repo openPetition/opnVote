@@ -33,7 +33,7 @@ export default function DataLoad() {
                 linkedPage: linkedPage,
             });
         } else {
-            updatePage({ current: globalConst.pages.ERROR, loading: false });
+            updatePage({ current: globalConst.pages.OVERVIEW, loading: false });
             return;
         }
     }, []);
@@ -90,7 +90,7 @@ export default function DataLoad() {
                     }
                     updatePage({ loading: false });
                 } else {
-                    updatePage({ current: globalConst.pages.ERROR, loading: false });
+                    updatePage({ current: globalConst.pages.OVERVIEW, loading: false });
                 }
             };
         }
