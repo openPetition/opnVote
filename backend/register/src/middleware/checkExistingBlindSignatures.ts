@@ -1,39 +1,41 @@
-import { Request, Response, NextFunction } from 'express';
-import { BlindedSignature } from '../models/BlindedSignature';
-import { dataSource } from '../database';
-import { RequestWithUser } from '../types/jwt';
-import { ApiResponse } from '../types/apiResponses';
-import { Token } from 'votingsystem';
-
+import { Request, Response, NextFunction } from 'express'
+import { BlindedSignature } from '../models/BlindedSignature'
+import { dataSource } from '../database'
+import { RequestWithUser } from '../types/jwt'
+import { ApiResponse } from '../types/apiResponses'
+import { Token } from 'votingsystem'
 
 /**
- * Middleware to check if user already received a blinded Signature for election ID
+ * Middleware to check if user already received a blinded Signature for election Id
  */
-export async function checkForExistingBlindedSignature(req: Request, res: Response, next: NextFunction) {
-
-  // Assumes userid, electionid, blindedToken have been checked for and provided in the request body
-  const reqWithUser = req as RequestWithUser;
+export async function checkForExistingBlindedSignature(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  // Assumes voterId, electionId, blindedToken have been checked for and provided in the request body
+  const reqWithUser = req as RequestWithUser
 
   if (!reqWithUser.user) {
     return res.status(401).json({
       data: null,
-      error: "User not authorized",
-    } as ApiResponse<null>);
+      error: 'User not authorized',
+    } as ApiResponse<null>)
   }
 
-  const userID = reqWithUser.user.userID;
-  const electionID = reqWithUser.user.electionID;
-  const blindedToken = req.body.token as Token;
+  const voterId = reqWithUser.user.voterId
+  const electionId = reqWithUser.user.electionId
+  const blindedToken = req.body.token as Token
 
   try {
-    // Search for BlindSignature entries with same userID & electionID
-    const repository = dataSource.getRepository(BlindedSignature);
+    // Search for BlindSignature entries with same voterId & electionId
+    const repository = dataSource.getRepository(BlindedSignature)
     const existingSignature = await repository.findOne({
       where: {
-        userID: userID,
-        electionID: electionID,
+        voterId: voterId,
+        electionId: electionId,
       },
-    });
+    })
 
     if (existingSignature) {
       // Return existing blind Signature if provided same blinded Token
@@ -43,38 +45,42 @@ export async function checkForExistingBlindedSignature(req: Request, res: Respon
             message: 'Existing blinded signature found.',
             blindedSignature: existingSignature.blindedSignature.toLowerCase(),
           },
-          error: null
-        } as ApiResponse<{ message: string, blindedSignature: string }>);
+          error: null,
+        } as ApiResponse<{ message: string; blindedSignature: string }>)
       } else {
-        // User already requested blinded Signature for a different Blinded Token 
+        // User already requested blinded Signature for a different Blinded Token
         return res.status(400).json({
           data: null,
           error: 'Already registered',
-        } as ApiResponse<null>);
+        } as ApiResponse<null>)
       }
     }
 
-    next();
+    next()
   } catch (error) {
-    console.error('Database error:', error);
+    console.error('Database error:', error)
     return res.status(500).json({
       data: null,
       error: 'Internal server error',
-    } as ApiResponse<null>);
+    } as ApiResponse<null>)
   }
-};
+}
 
 /**
- * Middleware to check if user already received a blinded Signature for election ID
- * This middleware is unauthenticated and does not require a JWT
+ * Middleware to check if user already received a blinded Signature for election Id
+ * This middleware is unauthenticated and does not require a Jwt
  */
-export async function unauthenticatedCheckForExistingBlindSignature(req: Request, res: Response, next: NextFunction) {
-  const blindedToken = req.body.token as Token;
+export async function unauthenticatedCheckForExistingBlindSignature(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const blindedToken = req.body.token as Token
   try {
-    const repository = dataSource.getRepository(BlindedSignature);
+    const repository = dataSource.getRepository(BlindedSignature)
     const existingSignature = await repository.findOne({
-      where: { blindedToken: blindedToken.hexString.toLowerCase() }
-    });
+      where: { blindedToken: blindedToken.hexString.toLowerCase() },
+    })
 
     if (existingSignature) {
       return res.status(200).json({
@@ -82,18 +88,17 @@ export async function unauthenticatedCheckForExistingBlindSignature(req: Request
           message: 'Existing blinded signature found.',
           blindedSignature: existingSignature.blindedSignature.toLowerCase(),
         },
-        error: null
-      });
+        error: null,
+      })
     }
-    next();
+    next()
   } catch (error) {
-    console.error('Database error:', error);
+    console.error('Database error:', error)
     return res.status(500).json({
       data: null,
       error: 'Internal server error',
-    } as ApiResponse<null>);
+    } as ApiResponse<null>)
   }
 }
 
-
-export default checkForExistingBlindedSignature;
+export default checkForExistingBlindedSignature

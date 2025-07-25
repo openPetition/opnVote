@@ -12,7 +12,7 @@ if (!endpoint) {
 const client = new GraphQLClient(endpoint)
 
 /**
- * Fetches the election status and end time for a given election ID using GraphQL.
+ * Fetches the election status and end time for a given election Id using GraphQL.
  *
  * @param {number} electionId - Identifier of election.
  * @return {Promise<ElectionStatusResponse | null>} Resolves to current on-chain election status and end time, or null if election not found.
@@ -52,7 +52,7 @@ export interface RecentRegistrationResponse {
 }
 
 /**
- * Fetches recent voter registrations for a given election ID using GraphQL.
+ * Fetches recent voter registrations for a given election Id using GraphQL.
  *
  * @param {string} electionId - Identifier of election.
  * @param {number} limit - Number of recent registrations to fetch (default: 10).

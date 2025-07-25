@@ -6,7 +6,7 @@
  * @property {any[]} details - Optional. Details about errors (e.g. validation errors).
  */
 export interface ApiResponse<T> {
-  data: T | null;
-  error: string | null;
-  details?: any[];
+  data: T | null
+  error: string | null
+  details?: any[]
 }

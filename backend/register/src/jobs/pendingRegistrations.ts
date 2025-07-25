@@ -52,11 +52,11 @@ const wallet = new ethers.Wallet(PRIVATE_KEY!, provider)
 const contract = new ethers.Contract(OPNVOTE_CONTRACT_ADDRESS!, opnvoteAbi, wallet)
 
 interface RegistrationCache {
-  electionID: number
-  voterIDs: bigint[]
+  electionId: number
+  voterIds: bigint[]
   blindedSignatures: string[]
   blindedElectionTokens: string[]
-  batchID?: string
+  batchId?: string
 }
 
 const registrationCacheMemory: RegistrationCache[] = []
@@ -74,16 +74,16 @@ function maintainCacheSize(): void {
 
 /**
  * Checks if a registration has already been processed by looking through the cache
- * @param electionID - The election ID to check
- * @param voterID - The voter ID to check
+ * @param electionId - The election Id to check
+ * @param voterId - The voter Id to check
  * @param blindedSignature - The blinded signature to check
  * @param blindedToken - The blinded token to check
  * @param registrationCache - The registration cache to check
  * @returns true if the registration has been processed, false otherwise
  */
 function isRegistrationProcessed(
-  electionID: number,
-  voterID: bigint,
+  electionId: number,
+  voterId: bigint,
   blindedSignature: string,
   blindedToken: string,
   registrationCache: RegistrationCache[] | undefined = undefined,
@@ -93,13 +93,13 @@ function isRegistrationProcessed(
   }
 
   return registrationCache.some(batch => {
-    if (batch.electionID !== electionID) {
+    if (batch.electionId !== electionId) {
       return false
     }
     const normalizedSignature = blindedSignature.toLowerCase()
     const normalizedToken = blindedToken.toLowerCase()
     return (
-      batch.voterIDs.includes(voterID) ||
+      batch.voterIds.includes(voterId) ||
       batch.blindedSignatures.includes(normalizedSignature) ||
       batch.blindedElectionTokens.includes(normalizedToken)
     )
@@ -150,8 +150,8 @@ export async function processPendingRegistrations(): Promise<void> {
     const memoryFilteredRegistrations = pendingRegistrations.filter(
       registration =>
         !isRegistrationProcessed(
-          registration.electionID,
-          BigInt(registration.userID),
+          registration.electionId,
+          BigInt(registration.voterId),
           registration.blindedSignature,
           registration.blindedToken,
           registrationCacheMemory,
@@ -165,10 +165,10 @@ export async function processPendingRegistrations(): Promise<void> {
 
     if (memoryFilteredRegistrations.length !== pendingRegistrations.length) {
       const memoryFilteredIds = memoryFilteredRegistrations
-        .map(r => `(User: ${r.userID}, Election: ${r.electionID})`)
+        .map(r => `(Voter: ${r.voterId}, Election: ${r.electionId})`)
         .join(', ')
       const pendingIds = pendingRegistrations
-        .map(r => `(User: ${r.userID}, Election: ${r.electionID})`)
+        .map(r => `(Voter: ${r.voterId}, Election: ${r.electionId})`)
         .join(', ')
 
       logger.error(
@@ -176,45 +176,45 @@ export async function processPendingRegistrations(): Promise<void> {
       )
     }
 
-    // Get all unique election IDs from pending registrations
-    const electionIDs: number[] = [
-      ...new Set(memoryFilteredRegistrations.map(reg => reg.electionID)),
+    // Get all unique election Ids from pending registrations
+    const electionIds: number[] = [
+      ...new Set(memoryFilteredRegistrations.map(reg => reg.electionId)),
     ]
 
     const idList = memoryFilteredRegistrations
-      .map(reg => `(User: ${reg.userID}, Election: ${reg.electionID})`)
+      .map(reg => `(Voter: ${reg.voterId}, Election: ${reg.electionId})`)
       .join(', ')
     logger.info(
-      `Found ${memoryFilteredRegistrations.length} pending registrations for ${electionIDs.length} elections: ${idList}`,
+      `Found ${memoryFilteredRegistrations.length} pending registrations for ${electionIds.length} elections: ${idList}`,
     )
 
-    for (const electionID of electionIDs) {
+    for (const electionId of electionIds) {
       let recentGraphRegistrations: RegistrationCache[] | null = null
 
       try {
-        logger.debug(`Fetching recent registrations from The-Graph for election ${electionID}`)
+        logger.debug(`Fetching recent registrations from The-Graph for election ${electionId}`)
 
         const recentRegistrations: RecentRegistrationResponse = await fetchRecentRegistrations(
-          electionID.toString(),
+          electionId.toString(),
           10,
         )
         recentGraphRegistrations = recentRegistrations.votersRegistereds.map(reg => ({
-          electionID: electionID,
-          voterIDs: reg.voterIds.map(voterID => BigInt(voterID)),
+          electionId: electionId,
+          voterIds: reg.voterIds.map(voterId => BigInt(voterId)),
           blindedSignatures: reg.blindedSignatures.map(sig => sig.toLowerCase()),
           blindedElectionTokens: reg.blindedElectionTokens.map(token => token.toLowerCase()),
         }))
         logger.debug(
-          `Fetched ${recentGraphRegistrations.length} registration transactions from The-Graph for election ${electionID}`,
+          `Fetched ${recentGraphRegistrations.length} registration transactions from The-Graph for election ${electionId}`,
         )
       } catch (error) {
         logger.error(`Error fetching recent registrations from The-Graph: ${error}`)
-        logger.warn(`Proceeding without on-chain verification for election ${electionID}`)
+        logger.warn(`Proceeding without on-chain verification for election ${electionId}`)
       }
 
       try {
         const pendingRegistrationsForElection = memoryFilteredRegistrations.filter(
-          reg => reg.electionID === electionID,
+          reg => reg.electionId === electionId,
         )
 
         let finalFilteredRegistrations = pendingRegistrationsForElection
@@ -222,8 +222,8 @@ export async function processPendingRegistrations(): Promise<void> {
           finalFilteredRegistrations = pendingRegistrationsForElection.filter(
             reg =>
               !isRegistrationProcessed(
-                reg.electionID,
-                BigInt(reg.userID),
+                reg.electionId,
+                BigInt(reg.voterId),
                 reg.blindedSignature,
                 reg.blindedToken,
                 recentGraphRegistrations,
@@ -231,10 +231,10 @@ export async function processPendingRegistrations(): Promise<void> {
           )
           if (finalFilteredRegistrations.length !== pendingRegistrationsForElection.length) {
             const finalFilteredIds = finalFilteredRegistrations
-              .map(r => `(User: ${r.userID}, Election: ${r.electionID})`)
+              .map(r => `(Voter: ${r.voterId}, Election: ${r.electionId})`)
               .join(', ')
             const pendingIds = pendingRegistrationsForElection
-              .map(r => `(User: ${r.userID}, Election: ${r.electionID})`)
+              .map(r => `(Voter: ${r.voterId}, Election: ${r.electionId})`)
               .join(', ')
             logger.error(
               `Found registrations that were already processed on-chain.\nFinal Filtered: ${finalFilteredIds}\nPending: ${pendingIds}`,
@@ -243,14 +243,14 @@ export async function processPendingRegistrations(): Promise<void> {
         }
 
         logger.debug(
-          `Filtered ${pendingRegistrationsForElection.length} -> ${finalFilteredRegistrations.length} registrations for election ${electionID}`,
+          `Filtered ${pendingRegistrationsForElection.length} -> ${finalFilteredRegistrations.length} registrations for election ${electionId}`,
         )
 
         logger.info(
-          `Processing ${finalFilteredRegistrations.length} registrations for election ${electionID}`,
+          `Processing ${finalFilteredRegistrations.length} registrations for election ${electionId}`,
         )
         if (finalFilteredRegistrations.length === 0) {
-          logger.error(`No new registrations found for election ${electionID}`)
+          logger.error(`No new registrations found for election ${electionId}`)
           continue
         }
 
@@ -269,20 +269,20 @@ export async function processPendingRegistrations(): Promise<void> {
             } registrations`,
           )
 
-          const voterIDs: bigint[] = []
+          const voterIds: bigint[] = []
           const blindedSignatures: string[] = []
           const blindedElectionTokens: string[] = []
 
           registrationBatch.forEach(registration => {
-            voterIDs.push(BigInt(registration.userID))
+            voterIds.push(BigInt(registration.voterId))
             blindedSignatures.push(registration.blindedSignature.toLowerCase())
             blindedElectionTokens.push(registration.blindedToken.toLowerCase())
           })
 
           logger.info(
             `Preparing to register ${
-              voterIDs.length
-            } voters for election ID: ${electionID} (batch ${batchIndex + 1}/${
+              voterIds.length
+            } voters for election Id: ${electionId} (batch ${batchIndex + 1}/${
               registrationBatches.length
             })`,
           )
@@ -332,8 +332,8 @@ export async function processPendingRegistrations(): Promise<void> {
           }
 
           const estimatedGas = await contract.registerVoters.estimateGas(
-            BigInt(electionID),
-            voterIDs,
+            BigInt(electionId),
+            voterIds,
             blindedSignatures,
             blindedElectionTokens,
             {
@@ -350,8 +350,8 @@ export async function processPendingRegistrations(): Promise<void> {
 
           // Create and send transaction
           const tx: ethers.TransactionResponse = await contract.registerVoters(
-            BigInt(electionID),
-            voterIDs,
+            BigInt(electionId),
+            voterIds,
             blindedSignatures,
             blindedElectionTokens,
             {
@@ -362,67 +362,67 @@ export async function processPendingRegistrations(): Promise<void> {
           )
           logger.info(`Transaction sent: ${tx.hash}`)
 
-          // Generate a batch ID for this group of registrations
-          const batchID = `batch-${Date.now()}-${electionID}-${batchIndex}`
+          // Generate a batch Id for this group of registrations
+          const batchId = `batch-${Date.now()}-${electionId}-${batchIndex}`
 
           registrationCacheMemory.push({
-            electionID,
-            voterIDs,
+            electionId,
+            voterIds,
             blindedSignatures,
             blindedElectionTokens,
-            batchID,
+            batchId,
           })
 
           // Update all registrations to 'submitted' status
           for (const registration of registrationBatch) {
             await BlindedSignatureService.updateRegistrationStatus(
-              registration.userID,
-              registration.electionID,
+              registration.voterId,
+              registration.electionId,
               'submitted',
               tx.hash,
-              batchID,
+              batchId,
             )
             logger.debug(
-              `Updated registration (User: ${registration.userID}, Election: ${registration.electionID}) to submitted status`,
+              `Updated registration (Voter: ${registration.voterId}, Election: ${registration.electionId}) to submitted status`,
             )
           }
 
           try {
             const receipt = await waitForTransaction(tx, TX_LIMITS.DEFAULT_TX_TIMEOUT)
             if (!receipt || receipt.status !== 1) {
-              logger.error(`Transaction failed: ${tx.hash} batchID: ${batchID}`)
+              logger.error(`Transaction failed: ${tx.hash} batchId: ${batchId}`)
               throw new Error(`Transaction failed: ${tx.hash}`)
             }
             logger.info(`Transaction successfully confirmed`, {
-              electionID,
+              electionId,
               txHash: tx.hash,
-              batchID,
-              voterCount: voterIDs.length,
+              batchId,
+              voterCount: voterIds.length,
             })
             for (const registration of registrationBatch) {
               await BlindedSignatureService.updateRegistrationStatus(
-                registration.userID,
-                registration.electionID,
+                registration.voterId,
+                registration.electionId,
                 'confirmed',
                 tx.hash,
-                batchID,
+                batchId,
               )
               logger.debug(
-                `Updated registration (User: ${registration.userID}, Election: ${registration.electionID}) to confirmed status`,
+                `Updated registration (Voter: ${registration.voterId}, Election: ${registration.electionId}) to confirmed status`,
               )
             }
           } catch (error) {
             logger.error('Transaction failed or timeout reached:', error)
             for (const registration of registrationBatch) {
               await BlindedSignatureService.updateRegistrationStatus(
-                registration.userID,
-                registration.electionID,
+                registration.voterId,
+                registration.electionId,
                 'failed',
                 tx.hash,
-                batchID,
+                batchId,
               )
               logger.debug(
-                `Updated registration (User: ${registration.userID}, Election: ${registration.electionID}) to failed status`,
+                `Updated registration (Voter: ${registration.voterId}, Election: ${registration.electionId}) to failed status`,
               )
             }
           } finally {
@@ -430,7 +430,7 @@ export async function processPendingRegistrations(): Promise<void> {
           }
         }
       } catch (error) {
-        logger.error(`Error processing pending Registrations with electionID: ${electionID}`, error)
+        logger.error(`Error processing pending Registrations with electionId: ${electionId}`, error)
         await timeout(30000) // 30 seconds timeout for potential node recovery
       }
     }

@@ -1,15 +1,15 @@
 import { Entity, Column, CreateDateColumn, Unique, PrimaryColumn, Index } from 'typeorm'
 
 @Entity('blindedSignatures')
-@Unique('uc_user_election', ['userID', 'electionID'])
+@Unique('uc_voter_election', ['voterId', 'electionId'])
 @Index('idx_status_created', ['onchainStatus', 'createdDate'])
 @Index('idx_blindedToken', ['blindedToken'])
 export class BlindedSignature {
   @PrimaryColumn({ type: 'bigint', unsigned: true })
-  userID!: number // provided by AP
+  voterId!: number // provided by AP
 
   @PrimaryColumn({ type: 'int', unsigned: true })
-  electionID!: number // provided by Smart Contract
+  electionId!: number // provided by Smart Contract
 
   @Column({ type: 'varchar', length: 1026 })
   blindedToken!: string // user generated
@@ -24,7 +24,7 @@ export class BlindedSignature {
   onchainStatus!: 'pending' | 'submitted' | 'confirmed' | 'failed'
 
   @Column({ type: 'varchar', nullable: true })
-  batchID?: string | null
+  batchId?: string | null
 
   @Column('text')
   jwt!: string // todo: change to hashed jwt

@@ -10,7 +10,7 @@ import { ElectionStatusResponse } from '../types/graphql'
  */
 export class ElectionStatusService {
   /**
-   * Fetches the election status and end time for a given election ID using GraphQL.
+   * Fetches the election status and end time for a given election Id using GraphQL.
    *
    * @param {number} electionId - Identifier for the election.
    * @returns {Promise<ElectionStatusResponse | null>} Resolves to current on-chain election status and end time, or null if election not found.

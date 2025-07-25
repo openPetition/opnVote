@@ -3,21 +3,21 @@ import { ElectionStatusService } from '../services/electionService'
 import { ApiResponse } from '../types/apiResponses'
 
 /**
- * Middleware to check the current election status provided by JWT.
+ * Middleware to check the current election status provided by Jwt.
  * Ensures election is currently open
  */
 export async function checkElectionStatus(req: Request, res: Response, next: NextFunction) {
   try {
-    if (!req.user || req.user.electionID === undefined || req.user.electionID === null) {
+    if (!req.user || req.user.electionId === undefined || req.user.electionId === null) {
       return res.status(401).json({
         data: null,
-        error: 'Unauthorized or missing election ID',
+        error: 'Unauthorized or missing election Id',
       } as ApiResponse<null>)
     }
 
     // Validate election status
     // On-chain status might differ from the current real election status due to delayed status update by election coordinator
-    const electionData = await ElectionStatusService.getElectionStatus(req.user.electionID)
+    const electionData = await ElectionStatusService.getElectionStatus(req.user.electionId)
 
     if (electionData === null) {
       return res.status(500).json({
