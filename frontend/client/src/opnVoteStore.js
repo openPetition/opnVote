@@ -7,7 +7,8 @@ export const useOpnVoteStore = create(
         (set, get) => ({
             user: {
                 key: '',
-                keySaved: false
+                keySaved: false,
+                initKey: false
             },
             voting: {
                 electionId: null,
@@ -27,11 +28,12 @@ export const useOpnVoteStore = create(
                 previous: null,
                 current: null
             },
-            updateUserKey: (key, keySaved) => set(() => ({
+            updateUserKey: (key, keySaved, initKey) => set(() => ({
                 user: {
                     ...get().user,
                     key: key,
-                    keySaved: keySaved
+                    keySaved: keySaved,
+                    initKey: initKey
                     }
                 })),
             updateVoting: (votingData) =>

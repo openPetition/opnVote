@@ -14,9 +14,7 @@ import navigationbox_styles from "@/styles/NavigationBox.module.css";
 import NextImage from "next/image";
 
 export default function CreateSecret() {
-    const [showMod, setShowMod] = useState(false);
     const { t } = useTranslation();
-
     const { user, voting, updateUserKey, updatePage } = useOpnVoteStore((state) => state);
 
     const goToRegister = () => {
@@ -48,7 +46,7 @@ export default function CreateSecret() {
                         saveButtonText={t("secret.generateqrcode.savebuttontext")}
                         qrCodeString={user.key}
                         pdfQRtype={globalConst.pdfType.VOTINGKEY}
-                        afterSaveFunction={() => updateUserKey(user.key, true)}
+                        afterSaveFunction={() => updateUserKey(user.key, true, false)}
                     />
                     {!isNaN(voting.electionId) && voting.jwt && (
                         <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -71,28 +69,26 @@ export default function CreateSecret() {
                             </button>
                         </div>
                     )}
-                    {!user.keySaved && (
-                        <Modal
-                            showModal={showMod}
-                            headerText={t('secret.notification.success.popup.headline')}
-                            ctaButtonText={t('secret.notification.success.popup.understand')}
-                            ctaButtonFunction={() => setShowMod(false)}
-                        >
-                            <Notification
-                                type="success"
-                                text={t("secret.notification.success.text.key-generated")}
-                            />
+                    <Modal
+                        showModal={user.initKey}
+                        headerText={t('secret.notification.success.popup.headline')}
+                        ctaButtonText={t('secret.notification.success.popup.understand')}
+                        ctaButtonFunction={() => updateUserKey(user.key, user.keySaved, false)}
+                    >
+                        <Notification
+                            type="success"
+                            text={t("secret.notification.success.text.key-generated")}
+                        />
 
-                            <p style={{ marginTop: '1rem' }}>
-                                <span style={{ textTransform: 'uppercase', fontSize: '1rem', fontWeight: 'bold', marginRight: '0.5em' }}>
-                                    {t('secret.notification.info.headline.important')}
-                                </span>
-                                <span>
-                                    {t('secret.notification.info.text.important')}
-                                </span>
-                            </p>
-                        </Modal>
-                    )}
+                        <p style={{ marginTop: '1rem' }}>
+                            <span style={{ textTransform: 'uppercase', fontSize: '1rem', fontWeight: 'bold', marginRight: '0.5em' }}>
+                                {t('secret.notification.info.headline.important')}
+                            </span>
+                            <span>
+                                {t('secret.notification.info.text.important')}
+                            </span>
+                        </p>
+                    </Modal>
                 </>
             </main>
         </>
