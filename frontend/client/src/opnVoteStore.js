@@ -12,7 +12,8 @@ export const emptyVoting = {
     revote: {},
     userCredential: '',
     votesuccess: false,
-    transactionViewUrl: ''
+    transactionViewUrl: '',
+    initElectionPermit: false,
 };
 export const emptyUser = {
     key: '',

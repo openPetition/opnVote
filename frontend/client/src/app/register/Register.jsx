@@ -78,7 +78,7 @@ export default function Register() {
             let unblindedSignature = await unblindSignature(blindedSignature, electionR, registerRSA);
             let voterCredentials = await createVoterCredentials(unblindedSignature, unblindedElectionToken, masterTokens.token, voting.electionId);
             let qrVoterCredentials = await concatElectionCredentialsForQR(voterCredentials);
-            updateVoting({ registerCode: qrVoterCredentials });
+            updateVoting({ registerCode: qrVoterCredentials, initElectionPermit: true });
             loadingQRchange();
 
         } catch (error) {
@@ -117,24 +117,34 @@ export default function Register() {
 
     // only loading animation
     const loadingQRchange = async function () {
-        setRegisterState({
-            ...registerState,
-            showStartProcessScreen: false,
-            showNotification: false,
-            showLoading: false,
-            showBallot: false,
-            showQRCodeUploadPlugin: false,
-            showQRLoadingAnimation: true
-        });
-        await delay(1000);
-        setRegisterState({
-            ...registerState,
-            showElectionInformation: true,
-            showQRCodeUploadPlugin: false,
-            showBallot: true,
-            showQRLoadingAnimation: false,
-        });
-        setShowMod(true);
+        if(voting.initElectionPermit) {
+            setRegisterState({
+                ...registerState,
+                showStartProcessScreen: false,
+                showNotification: false,
+                showLoading: false,
+                showBallot: false,
+                showQRCodeUploadPlugin: false,
+                showQRLoadingAnimation: true
+            });
+            await delay(1000);
+            setRegisterState({
+                ...registerState,
+                showElectionInformation: true,
+                showQRCodeUploadPlugin: false,
+                showBallot: true,
+                showQRLoadingAnimation: false,
+            });
+            setShowMod(true);
+        } else {
+            setRegisterState({
+                ...registerState,
+                showElectionInformation: true,
+                showQRCodeUploadPlugin: false,
+                showBallot: true,
+                showQRLoadingAnimation: false,
+            });
+        }
     };
 
     const goToStart = () => {
@@ -201,7 +211,6 @@ export default function Register() {
         if (registerCode && voting.registerCode != registerCode) {
             updateVoting({ registerCode: registerCode });
         }
-
     }, [registerCode]);
 
     useEffect(() => {
@@ -240,11 +249,11 @@ export default function Register() {
         <>
             <Modal
                 showModal={showMod}
-                headerText={t("register.popup.aftersave.headline")}
                 ctaButtonText={t("register.popup.aftersave.buttontext")}
                 ctaButtonFunction={() => {
                     window.scrollTo(0, 0);
                     setShowMod(false);
+                    updateVoting({ initElectionPermit: false })
                 }}
             >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -407,20 +416,25 @@ export default function Register() {
                                     />
                                 </div>
 
-                                <Popup
+                                <Modal
                                     showModal={registerState.showSaveRegisterQRSuccess}
-                                    bodyText={t("register.popup.aftersave.text", { STARTDATE: startDate, ENDDATE: endDate })}
                                     headerText={t("register.popup.aftersave.headline")}
-                                    buttonText={t("common.back")}
-                                    buttonFunction={() => {
+                                    ctaButtonText={t("common.back")}
+                                    ctaButtonFunction={() => {
                                         window.scrollTo(0, 0);
                                         setRegisterState({
                                             ...registerState,
                                             showSaveRegisterQRSuccess: false
                                         });
                                     }}
-                                    notificationType="success"
-                                />
+                                >
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                        <Notification
+                                            type="success"
+                                            text={t("register.popup.aftersave.text", { STARTDATE: startDate, ENDDATE: endDate })}
+                                        />
+                                    </div>
+                                </Modal>
 
                                 <ConfirmPopup
                                     showModal={registerState.showContinueModal}
