@@ -2,32 +2,36 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import globalConst from "@/constants";
 
+export const emptyVoting = {
+    electionId: null,
+    election: {},
+    electionInformation: {},
+    jwt: '',
+    registerCode: '',
+    vote: {},
+    revote: {},
+    userCredential: '',
+    votesuccess: false,
+    transactionViewUrl: ''
+};
+export const emptyUser = {
+    key: '',
+    keySaved: false,
+    initKey: false
+};
+
 export const useOpnVoteStore = create(
     persist(
         (set, get) => ({
-            user: {
-                key: '',
-                keySaved: false,
-                initKey: false
-            },
-            voting: {
-                electionId: null,
-                election: {},
-                electionInformation: {},
-                jwt: '',
-                registerCode: '',
-                vote: {},
-                revote: {},
-                userCredential: '',
-                votesuccess: false,
-                transactionViewUrl: ''
-            },
+            user: emptyUser,
+            voting: emptyVoting,
             taskId: '',
             page: {
                 loading: true,
                 previous: null,
                 current: null
             },
+            clearUser: () => set(() => ({ user: emptyUser })),
             updateUserKey: (key, keySaved, initKey) => set(() => ({
                 user: {
                     ...get().user,
