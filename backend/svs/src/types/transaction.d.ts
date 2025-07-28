@@ -1,10 +1,9 @@
-import { VotingTransaction } from "votingsystem";
+import { VotingTransaction } from 'votingsystem'
 
 declare global {
   namespace Express {
     interface Request {
-      votingTransaction?: VotingTransaction;
+      votingTransaction?: VotingTransaction
     }
   }
 }
-

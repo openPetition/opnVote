@@ -107,4 +107,35 @@ describe('checkEthCall Middleware', () => {
     expect(mockRes.status).toHaveBeenCalledWith(400)
     expect(mockRes.json).toHaveBeenCalled()
   })
+
+  it('should retry once on timeout and succeed', async () => {
+    const voteData = opnVoteInterface.encodeFunctionData('vote', [
+      mockElectionId,
+      mockVoter.address,
+      mockSvsSignature,
+      mockVoteEncryptedRSA,
+      mockVoteEncryptedAES,
+      mockUnblindedElectionToken,
+      mockUnblindedSignature,
+    ])
+
+    mockReq.body = {
+      struct: {
+        user: mockVoter.address,
+        target: mockContractAddress,
+        data: voteData,
+      },
+      signature: '0x1234',
+    } as SignatureData
+
+    mockProvider.call
+      .mockRejectedValueOnce(new Error('request timeout (code=TIMEOUT, version=6.14.4)'))
+      .mockResolvedValueOnce('0x')
+
+    await checkEthCall(mockReq as Request, mockRes as Response, nextFunction)
+
+    expect(mockProvider.call).toHaveBeenCalledTimes(2)
+    expect(nextFunction).toHaveBeenCalled()
+    expect(mockRes.status).not.toHaveBeenCalled()
+  })
 })

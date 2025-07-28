@@ -1,11 +1,11 @@
-import swaggerJsdoc from 'swagger-jsdoc';
-import dotenv from 'dotenv';
-dotenv.config();
+import swaggerJsdoc from 'swagger-jsdoc'
+import dotenv from 'dotenv'
+dotenv.config()
 
 const SERVER_URL = process.env.SERVER_URL
 
 if (!SERVER_URL) {
-  throw new Error('SERVER_URL is not defined in the environment variables');
+  throw new Error('SERVER_URL is not defined in the environment variables')
 }
 
 const options: swaggerJsdoc.Options = {
@@ -33,8 +33,8 @@ const options: swaggerJsdoc.Options = {
     },
   },
   apis: ['./src/routes/**/*.ts'],
-};
+}
 
-const swaggerSpec = swaggerJsdoc(options);
+const swaggerSpec = swaggerJsdoc(options)
 
-export default swaggerSpec;
+export default swaggerSpec
