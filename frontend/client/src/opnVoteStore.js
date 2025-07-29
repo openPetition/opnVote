@@ -1,6 +1,37 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import globalConst from "@/constants";
+
+/**
+ * the split storage will extract the "page" entry from the state object given to the storage and
+ * store it separately. the rest of the state is stored in localStorage while the page entry is
+ * stored in the sessionStorage
+ *
+ * the logic for that is quite verbose and it requires every part of the state to be
+ * JSON-serializable, but that's also true for the former version, as far as I can tell
+ */
+const splitStorage = {
+    getItem: function (name) {
+        let localData = JSON.parse(localStorage.getItem(name));
+        if (!localData) {
+            return localData;
+        }
+        localData.state = { ...localData.state, ...JSON.parse(sessionStorage.getItem(name)) };
+
+        return localData;
+    },
+    setItem: function (name, value) {
+        let {state: stateData, ...nonStateValue} = value;
+        let {page: pageData, ...nonPageState} = stateData;
+
+        sessionStorage.setItem(name, JSON.stringify({page: pageData}));
+        localStorage.setItem(name, JSON.stringify({state: nonPageState, ...nonStateValue}));
+    },
+    removeItem: function (name) {
+        localStorage.removeItem(name);
+        sessionStorage.removeItem(name);
+    },
+};
 
 export const emptyVoting = {
     electionId: null,
@@ -57,5 +88,7 @@ export const useOpnVoteStore = create(
         }),
         {
             name: 'opnvote-storage',
+            storage: splitStorage,
         }
-    ));
+    )
+);

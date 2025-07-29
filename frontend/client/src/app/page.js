@@ -32,11 +32,11 @@ export default function Home() {
                 <Button
                     text={t("common.back")}
                     type="primary"
-                    onClickAction={() => { history.back(); }} // we might dont know anything else here if no data / election loaded
+                    onClickAction={() => history.back()} // we might dont know anything else here if no data / election loaded
                 />
             </div>
         );
-    }
+    };
 
     const HydrationZustand = ({ children }) => {
         const [isPageHydrated, setIsPageHydrated] = useState(false);
@@ -50,7 +50,7 @@ export default function Home() {
                 <div>{children}</div>
             ) || <Loading loadingText={'loading'} />}
         </>;
-    }
+    };
 
     return (
         <>
