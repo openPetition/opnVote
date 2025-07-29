@@ -174,7 +174,6 @@ h4 {
 	display: block;
 	margin: 1rem auto;
 	padding: 1.25rem;
-	border: 1 px solid #000;
 	background-color: var(--op-grey-main);
 	text-align: center;
 	border-radius: .5rem;
@@ -242,7 +241,6 @@ h4 {
 
 /* global layout behaviour elements */
 .op__header {
-	display: fixed;
 	top: 0;
 	z-index: 1000;
 	height: 70px;
