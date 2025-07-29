@@ -10,6 +10,7 @@ import Register from "@/app/register/Register";
 import VoteTransaction from "@/app/votetransaction/VoteTransaction";
 import LoadSecret from "@/app/loadsecret/LoadSecret";
 import ShowSecret from "@/app/showsecret/ShowSecret";
+import LoadBallot from "@/app/loadballot/LoadBallot";
 import { useOpnVoteStore } from "@/opnVoteStore";
 import Loading from "@/components/Loading";
 import Button from "@/components/Button";
@@ -70,6 +71,8 @@ export default function Home() {
                             <CreateSecret />
                         ) || page.current == globalConst.pages.LOADKEY && (
                             <LoadSecret />
+                        ) || page.current == globalConst.pages.LOADBALLOT && (
+                            <LoadBallot />
                         ) || page.current == globalConst.pages.SHOWKEY && (
                             <ShowSecret />
                         ) || page.current == globalConst.pages.VOTETRANSACTION && (

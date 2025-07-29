@@ -125,7 +125,7 @@ export default function Overview() {
                 <Buttons>
                     {box.state == BOX_STATE_ACTIVATABLE && voting.jwt && (<>
                         <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.CREATEKEY)}>{t("overview.box.key.button.create")}</Button>
-                        <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.REGISTER)}>{t("overview.box.key.button.load")}</Button>
+                        <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.LOADKEY)}>{t("overview.box.key.button.load")}</Button>
                     </>)}
                     {box.state == BOX_STATE_ACTIVE && (<>
                         <Button onClick={() => updateUserKey('')}>{t("overview.box.key.button.remove")}</Button>
@@ -153,7 +153,7 @@ export default function Overview() {
                 <Buttons>
                     {box.state == BOX_STATE_ACTIVATABLE && !box.future && !box.past && (<>
                         {voting.jwt && user.key && Object.keys(voting.election).length > 0 && (<Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.REGISTER)}>{t("overview.box.ballot.button.register")}</Button>)}
-                        <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.POLLINGSTATION)}>{t("overview.box.ballot.button.load")}</Button>
+                        <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.LOADBALLOT)}>{t("overview.box.ballot.button.load")}</Button>
                     </>
                     )}
                     {box.state == BOX_STATE_ACTIVE && (

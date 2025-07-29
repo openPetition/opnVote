@@ -177,14 +177,8 @@ export default function Register() {
     };
 
     const activateQRCodeUpload = () => {
-        setRegisterState({
-            ...registerState,
-            showElectionInformation: true,
-            showStartProcessScreen: false,
-            showQRCodeUploadPlugin: true,
-            showNotification: false,
-            notificationButtonText: '',
-        });
+        updateUserKey('');
+        updatePage({ current: globalConst.pages.LOADKEY });
     };
 
     useEffect(() => {

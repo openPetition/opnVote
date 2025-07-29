@@ -55,6 +55,7 @@
     "language.german": "Deutsch",
     "languageswitch.currentlanguage": "Gewählte Sprache:",
     "languageswitch.switchlanguage": "Sprache wechseln",
+    "loadballot.upload.title": "Wahllokal",
     "overview.box.ballot.button.create": "registrieren",
     "overview.box.ballot.button.load": "laden",
     "overview.box.ballot.button.remove": "entfernen",

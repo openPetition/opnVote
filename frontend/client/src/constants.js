@@ -13,6 +13,7 @@ const globalConst = {
         'LOADKEY': 'loadkey',
         'SHOWKEY': 'showkey',
         'REGISTER': 'register',
+        'LOADBALLOT': 'loadballot',
         'POLLINGSTATION': 'pollingstation',
         'VOTETRANSACTION': 'votetransaction',
         'LOADING': 'loading',
