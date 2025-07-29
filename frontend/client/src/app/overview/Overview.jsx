@@ -23,9 +23,9 @@ export default function Overview() {
     const { t } = useTranslation();
     const [boxes, setBoxes] = useState({
         id: { state: BOX_STATE_ACTIVATABLE, type: 'id' },
-        key: { state: BOX_STATE_ACTIVATABLE, type: 'key' },
-        ballot: { state: BOX_STATE_ACTIVATABLE, type: 'ballot' },
-        vote: { state: BOX_STATE_ACTIVATABLE, type: 'vote' },
+        key: { state: BOX_STATE_ACTIVATABLE, type: 'key', canRegister: false },
+        ballot: { state: BOX_STATE_ACTIVATABLE, type: 'ballot', future: null, past: null, canVote: false },
+        vote: { state: BOX_STATE_ACTIVATABLE, type: 'vote', future: null, past: null },
     });
 
     const goToPage = function (newPage) {
@@ -116,20 +116,23 @@ export default function Overview() {
 
     const BoxKey = function ({ box }) {
         return (
-            <Box box={boxes.key}>
+            <Box box={box}>
                 <BoxHead>
-                    <BoxIcon box={boxes.key} />
+                    <BoxIcon box={box} />
                     <h3>{t('overview.box.key.title')}</h3>
                 </BoxHead>
                 <p>{t('overview.box.key.text')}</p>
                 <Buttons>
-                    {box.state == BOX_STATE_ACTIVATABLE && voting.jwt && (<>
+                    {box.state == BOX_STATE_ACTIVATABLE && box.canRegister && voting.jwt && (<>
                         <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.CREATEKEY)}>{t("overview.box.key.button.create")}</Button>
-                        <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.LOADKEY)}>{t("overview.box.key.button.load")}</Button>
+                        <Button onClick={() => goToPage(globalConst.pages.LOADKEY)}>{t("overview.box.key.button.load")}</Button>
                     </>)}
-                    {box.state == BOX_STATE_ACTIVE && (<>
+                    {box.state == BOX_STATE_ACTIVE && user.key && (<>
                         <Button onClick={() => updateUserKey('')}>{t("overview.box.key.button.remove")}</Button>
-                        {/*<Button onClick={() => goToPage(globalConst.pages.CREATEKEY)}>{t("overview.box.key.button.save")}</Button>*/}
+                        <Button onClick={() => goToPage(globalConst.pages.SHOWKEY)}>{t("overview.box.key.button.save")}</Button>
+                    </>)}
+                    {box.state == BOX_STATE_ACTIVE && !user.key && (<>
+                        <Button onClick={() => goToPage(globalConst.pages.LOADKEY)}>{t("overview.box.key.button.load")}</Button>
                     </>)}
                 </Buttons>
             </Box>
@@ -138,9 +141,9 @@ export default function Overview() {
 
     const BoxBallot = function ({ box }) {
         return (
-            <Box box={boxes.ballot}>
+            <Box box={box}>
                 <BoxHead>
-                    <BoxIcon box={boxes.ballot} />
+                    <BoxIcon box={box} />
                     <h3>{t('overview.box.ballot.title')}</h3>
                 </BoxHead>
                 <p>{t('overview.box.ballot.text')}</p>
@@ -152,8 +155,12 @@ export default function Overview() {
                 )}
                 <Buttons>
                     {box.state == BOX_STATE_ACTIVATABLE && !box.future && !box.past && (<>
-                        {voting.jwt && user.key && Object.keys(voting.election).length > 0 && (<Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.REGISTER)}>{t("overview.box.ballot.button.register")}</Button>)}
-                        <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.LOADBALLOT)}>{t("overview.box.ballot.button.load")}</Button>
+                        {voting.jwt && user.key && Object.keys(voting.election).length > 0 && (
+                            <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.REGISTER)}>{t("overview.box.ballot.button.register")}</Button>
+                        )}
+                        {box.canVote && (
+                            <Button className={user.key ? '' : styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.POLLINGSTATION)}>{t("overview.box.ballot.button.load")}</Button>
+                        )}
                     </>
                     )}
                     {box.state == BOX_STATE_ACTIVE && (
@@ -166,9 +173,9 @@ export default function Overview() {
 
     const BoxVote = function ({ box }) {
         return (
-            <Box box={boxes.vote}>
+            <Box box={box}>
                 <BoxHead>
-                    <BoxIcon box={boxes.vote} />
+                    <BoxIcon box={box} />
                     <h3>{t('overview.box.vote.title')}</h3>
                 </BoxHead>
                 <p>{t('overview.box.vote.text')}</p>
@@ -179,8 +186,8 @@ export default function Overview() {
                     <p>{t('overview.box.vote.past')}</p>
                 )}
                 <Buttons>
-                    {voting.registerCode && (
-                        <Button onClick={() => goToPage(globalConst.pages.POLLINGSTATION)}>{t('overview.box.vote.button')}</Button>
+                    {voting.registerCode && !box.future && !box.past && (
+                        <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.POLLINGSTATION)}>{t('overview.box.vote.button')}</Button>
                     )}
                 </Buttons>
             </Box>
@@ -210,8 +217,10 @@ export default function Overview() {
 
         newBoxes.vote.future = now < votingStartTime ? votingStartTime : null;
         newBoxes.vote.past = votingEndTime < now ? votingEndTime : null;
+        newBoxes.ballot.canVote = votingStartTime < now && now < votingEndTime;
         newBoxes.ballot.future = now < registrationStartTime ? registrationStartTime : null;
         newBoxes.ballot.past = registrationEndTime < now ? registrationEndTime : null;
+        newBoxes.key.canRegister = registrationStartTime < now && now < registrationEndTime;
 
         if (voting.registerCode && voting.transactionViewUrl) {
             // there are votes in our local storage! activate all boxes

@@ -65,7 +65,7 @@
     "overview.box.ballot.text": "Mithilfe Ihres Wahlscheins erhalten Sie einen Stimmzettel zur Stimmabgabe.",
     "overview.box.ballot.title": "Wahlschein",
     "overview.box.id.button": "Berechtigung holen",
-    "overview.box.id.text.active": "Die Wahlberechtigung berechtigt Sie für die Teilnahme an einer bestimmten Wahl.",
+    "overview.box.id.text.active": "Die Wahlberechtigung berechtigt Sie für die Teilnahme an einer bestimmten Wahl. Die Wahlberechtigung wurde von openPetition erteilt.",
     "overview.box.id.text.activatable": "Auf <A>openPetition</A> können Sie sich eine Wahlberechtigung zu laufenden Wahlen ausstellen lassen.",
     "overview.box.id.title": "Wahlberechtigung",
     "overview.box.key.button.create": "erstellen",

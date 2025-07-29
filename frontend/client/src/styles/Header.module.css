@@ -26,6 +26,7 @@
     width: auto;
     height: 24px;
     padding-right: var(--op-padding-standard);
+    cursor: pointer;
 }
 
 .separator {
