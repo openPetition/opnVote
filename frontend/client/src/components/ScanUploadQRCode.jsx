@@ -121,7 +121,7 @@ export default function ScanUploadQRCode(props) {
                 <h3>{headline}</h3>
                 {subheadline}
             </div>
-            <div className="op__outerbox_grey">
+            <div className="op__outerbox_grey op__margin_standard_20_top_bottom">
                 <div className={styles.header}>
                     <div className={styles.qrbg}>
                         <NextImage
@@ -153,7 +153,7 @@ export default function ScanUploadQRCode(props) {
                 </div>
             </div>
 
-            <div className="op__outerbox_grey">
+            <div className="op__outerbox_grey op__margin_standard_20_top_bottom">
                 <div className={styles.header}>
                     <div className={styles.qrbg}>
                         <NextImage
@@ -173,10 +173,12 @@ export default function ScanUploadQRCode(props) {
                     <div id="reader" width="100%"></div>
                     {showScanNotification && (
                         <>
-                            <Notification
-                                type="error"
-                                text={t('scanuploadqrcode.cameraaction.failed')}
-                            />
+                            <div className="op__margin_standard">
+                                <Notification
+                                    type="error"
+                                    text={t('scanuploadqrcode.cameraaction.failed')}
+                                />
+                            </div>
                         </>
                     )}
 

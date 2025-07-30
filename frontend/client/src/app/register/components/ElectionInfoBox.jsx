@@ -29,7 +29,7 @@ export default function ElectionInfoBox(props) {
 
     return (
         <>
-            <div className={`${styles.stripe} op__outerbox_grey ${showTitleOnlyMobile ? 'op__display_block_wide op__display_none_small' : ''}`}>
+            <div className={`${styles.stripe} op__outerbox_grey op__margin_standard_20_top_bottom ${showTitleOnlyMobile ? 'op__display_block_wide op__display_none_small' : ''}`}>
 
                 <div className={`${styles.inner_stripe_box}`}>
                     <div>
@@ -68,7 +68,7 @@ export default function ElectionInfoBox(props) {
                 </div>
 
             </div>
-            <div className={`${styles.stripe} op__outerbox_grey ${showTitleOnlyMobile ? 'op__display_block_small op__display_none_wide' : 'op__display_none_small op__display_none_wide'}`}>
+            <div className={`${styles.stripe} op__outerbox_grey op__margin_standard_20_top_bottom ${showTitleOnlyMobile ? 'op__display_block_small op__display_none_wide' : 'op__display_none_small op__display_none_wide'}`}>
                 <h3 className={`${styles.title}`}>{voting.electionInformation.title}</h3>
             </div>
         </>

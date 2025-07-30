@@ -1,0 +1,42 @@
+.h2 {
+	font: bold 1.1875rem/1.5rem var(--op__roboto), serif;
+	text-transform: uppercase;
+}
+
+.ballot_paper_frame {
+	border: 1px solid var(--op-grey-dark);
+	border-radius: var(--op-border-radius);
+	margin: 1.875rem .9375rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.ballot_paper_border {
+	border-top: 1px solid var(--op-grey-dark);
+}
+
+.display_flex {
+	display: flex;
+	flex-direction: column;
+}
+
+.op__wrapper__flex {
+	row-gap: 1.875rem;
+}
+
+@media only screen and (min-width: 960px) {
+	.op__wrapper__flex {
+		row-gap: 3.125rem;
+	}
+	.ballot_paper_frame {
+		margin: 3.125rem auto;
+
+	}
+
+	.justify_content {
+		flex-direction: row;
+		justify-content: space-between;
+	}
+}
+

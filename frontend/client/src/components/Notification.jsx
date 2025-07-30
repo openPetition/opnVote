@@ -24,7 +24,7 @@ export default function Notification(props) {
 
     return (
         <>
-            <div className={`${styles.basic} ${styles[type]} ${additionalGlobalClass ? additionalGlobalClass : ''}`} role="alert">
+            <div className={`op__margin_standard_top ${styles.basic} ${styles[type]} ${additionalGlobalClass ? additionalGlobalClass : ''}`} role="alert">
                 <div className={styles.notificationflex}>
                     <div className={styles.icon} style={{ backgroundImage: `url(${NotificationIcon})` }}></div>
                     <div>
@@ -33,7 +33,7 @@ export default function Notification(props) {
                     </div>
                 </div>
                 {buttonText && (
-                    <div className={`op__center-align op__margin_2_top`} >
+                    <div className={`op__center-align op__margin_standard_top`} >
                         <Button
                             text={buttonText}
                             type="primary"

@@ -46,6 +46,10 @@
     align-items: center;
 }
 
+.h3 {
+	font: bold 1.125rem/1.5rem var(--op__roboto--slab), serif;
+}
+
 .modalBody {
     position: relative;
     flex: 1 1 auto;
@@ -57,6 +61,7 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
+	margin-top: 1.875rem;
 }
 
 .modalClose {

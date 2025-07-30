@@ -1,11 +1,9 @@
 .basic {
     border-radius: 4px;
-    margin-bottom: 0;
     padding: 0.4rem;
     position: relative;
     min-height: 3rem;
     align-items: center;
-    margin: 0.5rem 0;
     text-align: left;
 }
 
@@ -33,7 +31,6 @@
     background-color: var(--op-blue-light);
     box-shadow: 0 0 10px #3E3D401A;
     max-width: 560px;
-    margin: .9375rem auto;
 }
 
 .info {

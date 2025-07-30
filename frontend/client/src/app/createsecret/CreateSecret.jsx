@@ -73,7 +73,7 @@ export default function CreateSecret() {
                     <h3 className={styles.title}> {t('secret.key.existingKey')} </h3>
                     <div style={{ scrollMarginTop: "60px" }}>
                         <div className="flex op__gap_10_small op__gap_30_wide op__flex_direction_row_wide op__flex_direction_column_small">
-                            <div className="op__outerbox_grey go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
+                            <div className="op__outerbox_grey op__margin_standard_20_top go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
                                 onClick={() => {
                                     updatePage({ current: globalConst.pages.LOADKEY });
                                 }}>
@@ -96,7 +96,7 @@ export default function CreateSecret() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="op__outerbox_grey go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
+                            <div className="op__outerbox_grey op__margin_standard_20_top go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
                                 onClick={() => {
                                     updatePage({ current: globalConst.pages.LOADKEY });
                                 }}>

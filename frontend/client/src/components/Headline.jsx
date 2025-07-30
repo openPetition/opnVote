@@ -40,8 +40,8 @@ export default function Headline(props) {
 
     return (
         <div className="bg-op-blue">
-            <div style={{ backgroundColor: "var(--op-grey-main)" }} className="op__padding_standard op__center-align">
-                <div className={styles.title}>{title}</div>
+            <div style={{ backgroundColor: "var(--op-grey-main)" }} className="op__padding_standard_20 op__center-align">
+                <h1 className={styles.title}>{title}</h1>
 
                 {text && /* @TODO: wird der text jemals angezeigt? */(<div className="op__padding_standard_top_bottom">
                     {text}

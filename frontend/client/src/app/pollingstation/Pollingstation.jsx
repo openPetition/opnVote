@@ -1,30 +1,28 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import qr_styles from "@/styles/ScanUploadQRCode.module.css";
+import navigationbox_styles from "@/styles/NavigationBox.module.css";
+import election_time_styles from "@/styles/ElectionTime.module.css";
 import Notification from "@/components/Notification";
 import Button from '@/components/Button';
+import Headline from "@/components/Headline";
 import HtmlQRCodePlugin from "@/components/ScanUploadQRCode";
-import Electionheader from "./components/Electionheader";
-import Question from "./components/Question";
 import { getVoteCastsData } from '../../service-graphql';
 import { qrToElectionCredentials, validateCredentials } from "votingsystem";
-import { sendVotes } from "./sendVotes";
 import { useTranslation } from 'next-i18next';
 import Config from "../../../next.config.mjs";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
-import qr_styles from "@/styles/ScanUploadQRCode.module.css";
-import navigationbox_styles from "@/styles/NavigationBox.module.css";
-import election_time_styles from "@/styles/ElectionTime.module.css";
 import NextImage from "next/image";
 import Modal from "@/components/Modal";
 import ElectionTimeInfo from "@/components/ElectionTimeInfo";
+import BallotPaper from "@/components/BallotPaper";
 
 export default function Pollingstation() {
     const { updatePage, voting, updateVoting, updateTaskId, taskId } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [votingCredentials, setVotingCredentials] = useState({});
-    const [votes, setVotes] = useState({});
     const [getVoteCasts, { data: dataVotings, loading: loadingVotings }] = getVoteCastsData(votingCredentials?.voterWallet?.address, voting.election.id);
     const [electionState, setElectionState] = useState(globalConst.electionState.ONGOING);
     const [startDate, setStartDate] = useState("");
@@ -64,26 +62,6 @@ export default function Pollingstation() {
             };
         }
         return newState;
-    };
-    const saveVotes = async () => {
-        setPollingStationState({ ...pollingStationState, pending: true });
-        //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
-        try {
-            const taskId = await sendVotes(votes, votingCredentials, voting.election.publicKey, pollingStationState.isVoteRecast);
-            if (taskId) {
-                updateTaskId(taskId);
-            }
-        } catch (e) {
-            setPollingStationState({
-                ...pollingStationState,
-                showSendError: t('pollingstation.button.errormessage'),
-                allowedToVote: true,
-                pending: true,
-            });
-            setTimeout(() => {
-                setPollingStationState({ ...pollingStationState, pending: false });
-            }, 10000);
-        }
     };
 
     const goToLanding = () => {
@@ -231,9 +209,9 @@ export default function Pollingstation() {
             {electionState === globalConst.electionState.ONGOING &&
                 (voting.registerCode || pollingStationState.allowedToVote) &&
                 (pollingStationState.showElectionInformation && (
-                    <Electionheader
-                        election={voting?.election}
-                        electionInformation={voting.electionInformation}
+                    <Headline
+                        title={t("pollingstation.headline.title")}
+                        progressBarStep={globalConst.progressBarStep.vote}
                     />
                 ))
             }
@@ -247,7 +225,7 @@ export default function Pollingstation() {
                         </div>
                         <div className="op__contentbox_760" style={{ scrollMarginTop: "60px" }}>
                             <div className="flex op__gap_10_small op__gap_30_wide op__flex_direction_row_wide op__flex_direction_column_small">
-                                <div className="op__outerbox_grey go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
+                                <div className="op__outerbox_grey op__margin_standard_20_top_bottom go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
                                     onClick={(e) =>
                                         setPollingStationState({
                                             ...pollingStationState,
@@ -275,7 +253,7 @@ export default function Pollingstation() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="op__outerbox_grey go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
+                                <div className="op__outerbox_grey op__margin_standard_20_top_bottom go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
                                     onClick={() =>
                                         setPollingStationState({
                                             ...pollingStationState,
@@ -313,20 +291,7 @@ export default function Pollingstation() {
                 <div className={`${pollingStationState.allowedToVote ? 'op__contentbox_max' : 'op__contentbox_760'}`}>
                     {pollingStationState.showQuestions && (
                         <>
-                            {voting.electionInformation.questions.map((question, index) =>
-                                <Question
-                                    key={index}
-                                    imageUrl={question.imageUrl}
-                                    questionKey={index}
-                                    question={question.text}
-                                    selectedVote={votes[index]}
-                                    showVoteOptions={pollingStationState.allowedToVote}
-                                    setVote={(selection) => setVotes(votes => ({
-                                        ...votes,
-                                        [index]: selection
-                                    }))}
-                                />
-                            )}
+                            <BallotPaper />
                         </>
                     )}
                 </div>
@@ -390,34 +355,6 @@ export default function Pollingstation() {
 
                     </div>
                 )}
-
-                {electionState === globalConst.electionState.ONGOING ?
-                    pollingStationState.showElection && pollingStationState.allowedToVote && (
-                        <>
-                            <div className="op__center-align">
-                                <Button
-                                    onClickAction={saveVotes}
-                                    isDisabled={pollingStationState.pending}
-                                    text={t("pollingstation.button.savevotes")}
-                                    type="primary"
-                                    id="test_btn_sendvote"
-                                />
-                            </div>
-                            {pollingStationState.showSendError && (
-                                <Notification type="error" text={pollingStationState.showSendError} />
-                            )}
-                        </>
-                    )
-                    :
-                    <div className="op__center-align">
-                        <Button
-                            onClickAction={() => updatePage({ current: globalConst.pages.OVERVIEW })}
-                            isDisabled={pollingStationState.pending}
-                            text={t("common.gotooverview")}
-                            type="primary"
-                        />
-                    </div>
-                }
             </div>
         </>
     );

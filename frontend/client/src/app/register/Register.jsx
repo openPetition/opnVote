@@ -329,7 +329,7 @@ export default function Register() {
                     <>
                         {registerState.showStartProcessScreen && (
                             <>
-                                <div className="op__center-align">
+                                <div className="op__center-align op__margin_standard_top_bottom">
                                     <Button
                                         onClickAction={activateQRCodeUpload}
                                         text={t("register.button.orderballot")}
@@ -366,7 +366,7 @@ export default function Register() {
                             <>
                                 {electionState === globalConst.electionState.ONGOING && (
                                     <>
-                                        <div className="op__center-align">
+                                        <div className="op__center-align op__margin_standard_20_top_bottom">
                                             <Button
                                                 onClickAction={goToElection}
                                                 text={t("register.button.gotoelection.text")}
@@ -457,7 +457,7 @@ export default function Register() {
                             text={t("register.notification.info.votelater.text")}
                         />
 
-                        <div className="op__outerbox_grey">
+                        <div className="op__outerbox_grey op__margin_standard_20_top_bottom">
                             <input
                                 type="text"
                                 readOnly={true}
@@ -482,7 +482,7 @@ export default function Register() {
                             />
                         </div>
 
-                        <div>
+                        <div className="op__margin_standard_20_top_bottom">
                             <Button
                                 onClickAction={goToElection}
                                 text={t("register.button.gotoelection.text")}

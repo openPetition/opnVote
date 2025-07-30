@@ -69,7 +69,8 @@ export default function Modal(props) {
                                     </div>
 
                                     {headerText && (
-                                        <h3 id="modalTitle">
+                                        <h3 className={styles.h3}
+                                            id="modalTitle">
                                             {headerText}
                                         </h3>
                                     )}

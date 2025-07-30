@@ -8,7 +8,7 @@ export default function NavigationBox(props) {
 
     return (
         <>
-            <div onClick={onClickAction} className="op__outerbox_grey">
+            <div onClick={onClickAction} className="op__outerbox_grey op__margin_standard_20_top_bottom">
                 <div className={styles.innerbox} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
                     {designImagePath && (
                         <>

@@ -127,7 +127,6 @@ export default function GenerateQRCode(props) {
                 fontSize: 10,
                 lineHeight: 12,
                 maxWidth: 500,
-                lineHeight: 12,
                 wordBreaks: [" "],
                 font: font
             },
@@ -512,7 +511,7 @@ export default function GenerateQRCode(props) {
 
     return (
         <>
-            <div className="op__outerbox_grey">
+            <div className="op__outerbox_grey op__margin_standard_20_top_bottom">
                 <div className={styles.innerbox}>
                     <div className="noScreen print-content"></div>
                     <strong>{headline}</strong>

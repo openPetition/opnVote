@@ -49,7 +49,7 @@ export default function CreateSecret() {
                         afterSaveFunction={() => updateUserKey(user.key, true, false)}
                     />
                     {!isNaN(voting.electionId) && voting.jwt && (
-                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.875rem' }}>
                             <button
                                 onClick={() => goToRegister()}
                                 disabled={(!(user?.key?.length > 0))}
