@@ -183,7 +183,7 @@
     "register.navigationbox.gotocreatesecret.buttonText": "Neuen Wahlschlüssel erstellen",
     "register.navigationbox.gotocreatesecret.head": "Ich habe keinen Wahlschlüssel",
     "register.navigationbox.gotocreatesecret.text": "Wenn Sie noch keinen Wahlschlüssel besitzen oder ihn verloren haben, können Sie sich in wenigen Schritten einen neuen erstellen.",
-    "register.notification.aftersave.text": "Der Wahlschein wurde erstellt und kann gespeichert werden. Sie haben jetzt alle Unterlagen zusammen.",
+    "register.notification.aftersave.text": "Der Wahlschein wurde erstellt und kann jetzt gespeichert werden.",
     "register.notification.attention.headline": "Achtung:",
     "register.notification.attention.text": "Wenn Sie nun direkt abstimmen, kann ggf. eine Verbindung zwischen Ihrer Stimme und Ihrer Identität hergestellt werden. Stimmen Sie zu einem späteren Zeitpunkt und von einer anderen Internetverbindung ab, um eine geheime Wahl sicherzustellen und Ihre Privatsphäre zu schützen.",
     "register.notification.error.noelection.text": "Fehlerhafter Aufruf. Bitte gehen Sie zurück und folgen dem vorherigen Link erneut!",

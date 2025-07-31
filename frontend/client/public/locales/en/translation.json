@@ -183,7 +183,7 @@
     "register.navigationbox.gotocreatesecret.buttonText": "Create new voting key",
     "register.navigationbox.gotocreatesecret.head": "I do not have a voting key",
     "register.navigationbox.gotocreatesecret.text": "If you do not yet have a voting key or have lost it you can create a new one in just a few steps.",
-    "register.notification.aftersave.text": "Your election permit has been generated and saved. You now have all of the election papers you need.",
+    "register.notification.aftersave.text": "Your election permit has been generated and needs to be saved now.",
     "register.notification.attention.headline": "Attention:",
     "register.notification.attention.text": "If you vote right now a link may be established between your vote and your identity. Vote at a later time and from a different internet connection to ensure a secret vote and to better protect your privacy.",
     "register.notification.error.noelection.text": "Incorrect call. Please go back and follow the previous link again!",

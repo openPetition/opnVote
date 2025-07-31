@@ -255,7 +255,7 @@ export default function Register() {
                         type="success"
                         text={t("register.notification.aftersave.text")}
                     />
-                    {<div dangerouslySetInnerHTML={{ __html: t("register.popup.aftersave.infotext") }} />}
+                    {electionState === globalConst.electionState.ONGOING && <div dangerouslySetInnerHTML={{ __html: t("register.popup.aftersave.infotext") }} />}
                     <div style={{ backgroundColor: '#efefef', borderRadius: '4px', padding: '10px' }}>
                         <div className="op__contentbox_max">
                             {(electionState !== "finished") ?
@@ -364,18 +364,6 @@ export default function Register() {
 
                         {registerState.showBallot && (
                             <>
-                                {electionState === globalConst.electionState.ONGOING && (
-                                    <>
-                                        <div className="op__center-align op__margin_standard_20_top_bottom">
-                                            <Button
-                                                onClickAction={goToElection}
-                                                text={t("register.button.gotoelection.text")}
-                                                type="secondary"
-                                            />
-                                        </div>
-                                    </>
-                                )}
-
                                 <GenerateQRCode
                                     headline={t("register.generateqrcode.headline")}
                                     text={voting.registerCode}
@@ -410,16 +398,29 @@ export default function Register() {
                                     />
                                 </div>
 
+                                {electionState === globalConst.electionState.ONGOING && (
+                                    <>
+                                        <div className="op__center-align op__margin_standard_20_top_bottom">
+                                            <Button
+                                                onClickAction={goToElection}
+                                                text={t("register.button.gotoelection.text")}
+                                                type="secondary"
+                                            />
+                                        </div>
+                                    </>
+                                )}
+
                                 <Modal
                                     showModal={registerState.showSaveRegisterQRSuccess}
                                     headerText={t("register.popup.aftersave.headline")}
-                                    ctaButtonText={t("common.back")}
+                                    ctaButtonText={ electionState === globalConst.electionState.ONGOING ? t("common.back") : t("common.gotooverview")}
                                     ctaButtonFunction={() => {
-                                        window.scrollTo(0, 0);
+
                                         setRegisterState({
                                             ...registerState,
                                             showSaveRegisterQRSuccess: false
                                         });
+                                        electionState === globalConst.electionState.ONGOING ? window.scrollTo(0, 0) : updatePage({ current: globalConst.pages.OVERVIEW })
                                     }}
                                 >
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
