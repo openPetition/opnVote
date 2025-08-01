@@ -1,13 +1,17 @@
 {
-  "name": "opnvote-dev-0x6df22e4e4ede7e4e73b3608bcb5508b892a1fd28",
+  "name": "opnvote-subgraphs",
   "license": "UNLICENSED",
   "scripts": {
-    "codegen": "graph codegen",
-    "build": "graph build",
-    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ opnvote-dev-0x6df22e4e4ede7e4e73b3608bcb5508b892a1fd28",
-    "create-local": "graph create --node http://127.0.0.1:8020/ opnvote-dev-0x6df22e4e4ede7e4e73b3608bcb5508b892a1fd28",
-    "remove-local": "graph remove --node http://127.0.0.1:8020/ opnvote-dev-0x6df22e4e4ede7e4e73b3608bcb5508b892a1fd28",
-    "deploy-local": "graph deploy --node http://127.0.0.1:8020/ --ipfs http://127.0.0.1:5001 opnvote-dev-0x6df22e4e4ede7e4e73b3608bcb5508b892a1fd28",
+    "codegen:dev": "graph codegen dev/subgraph.yaml  --output-dir ./generated",
+    "codegen:prod": "graph codegen prod/subgraph.yaml --output-dir ./generated",
+    "build:dev": "cd dev  && graph build",
+    "deploy:dev": "cd dev  && graph deploy  --node https://api.studio.thegraph.com/deploy/  opnvote-dev-0x6df22e4e4ede7e4e73b3608bcb5508b892a1fd28",
+    "create-local:dev": "cd dev  && graph create --node http://127.0.0.1:8020/ opnvote-dev-0x6df22e4e4ede7e4e73b3608bcb5508b892a1fd28",
+    "deploy-local:dev": "cd dev  && graph deploy  --node http://127.0.0.1:8020/ --ipfs http://127.0.0.1:5001 opnvote-dev-0x6df22e4e4ede7e4e73b3608bcb5508b892a1fd28",
+    "build:prod": "cd prod  && graph build",
+    "deploy:prod": "cd prod  && graph deploy  --node https://api.studio.thegraph.com/deploy/  opnvote-prod-0x6d293d5F94cC92D3a8a73B3FAe498a790CbBFb90",
+    "create-local:prod": "cd prod  && graph create --node http://127.0.0.1:8020/ opnvote-prod-0x6d293d5F94cC92D3a8a73B3FAe498a790CbBFb90",
+    "deploy-local:prod": "cd prod  && graph deploy  --node http://127.0.0.1:8020/ --ipfs http://127.0.0.1:5001 opnvote-prod-0x6d293d5F94cC92D3a8a73B3FAe498a790CbBFb90",
     "test": "graph test"
   },
   "dependencies": {

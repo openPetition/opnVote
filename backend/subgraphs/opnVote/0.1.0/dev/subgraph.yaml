@@ -2,7 +2,7 @@ specVersion: 1.3.0
 indexerHints:
   prune: auto
 schema:
-  file: ./schema.graphql
+  file: ../schema.graphql
 features:
   - ipfsOnEthereumContracts
 dataSources:
@@ -34,7 +34,7 @@ dataSources:
         - VotersRegistered
       abis:
         - name: OpnVote
-          file: ./abis/OpnVote.json
+          file: ../abis/OpnVote.json
       eventHandlers:
         - event: ElectionCanceled(indexed uint256,string)
           handler: handleElectionCanceled
@@ -62,4 +62,4 @@ dataSources:
           handler: handleVotersAuthorized
         - event: VotersRegistered(indexed uint8,indexed uint256,uint256[],bytes[],bytes[])
           handler: handleVotersRegistered
-      file: ./src/opn-vote.ts
+      file: ../src/opn-vote.ts
