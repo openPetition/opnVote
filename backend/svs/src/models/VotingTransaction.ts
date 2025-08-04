@@ -1,6 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, Unique } from 'typeorm'
 
 @Entity('votingTransactions')
+@Unique(['unblindedElectionToken', 'electionId'])
+@Unique(['unblindedSignature', 'electionId'])
+@Unique(['voterAddress', 'electionId'])
 export class VotingTransactionEntity {
   @PrimaryGeneratedColumn()
   id!: number

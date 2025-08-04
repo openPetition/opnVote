@@ -12,11 +12,79 @@ import { checkVoterSignature } from '../middleware/checkVoterSignature'
 import { validateParameters } from '../middleware/validateParameters'
 import { checkElectionStatus } from '../middleware/checkElectionStatus'
 import { validateBlindSignature } from '../middleware/validateBlindSignature'
-import { checkForExistingSvsSignature } from '../middleware/checkForExistingSvsSignature'
 import { dataSource } from '../database'
 import { VotingTransactionEntity } from '../models/VotingTransaction'
-import { checkVoterHasNotVoted } from '../middleware/checkVoterHasNotVoted'
 import { logger } from '../utils/logger'
+async function upsertVotingTransactionWithValidation(
+  electionId: number,
+  voterAddress: string,
+  encryptedVoteRsa: string,
+  encryptedVoteAes: string,
+  unblindedElectionToken: string,
+  unblindedSignature: string,
+  svsSignature: string,
+) {
+  const queryRunner = dataSource.createQueryRunner()
+  try {
+    await queryRunner.connect()
+    await queryRunner.startTransaction('READ COMMITTED')
+
+    const repo = queryRunner.manager.getRepository(VotingTransactionEntity)
+
+    let record = await repo.findOne({
+      where: {
+        unblindedElectionToken,
+        electionId,
+      },
+      lock: { mode: 'pessimistic_write' },
+    })
+
+    if (!record) {
+      record = repo.create({
+        electionId,
+        voterAddress,
+        encryptedVoteRsa,
+        encryptedVoteAes,
+        unblindedElectionToken,
+        unblindedSignature,
+        svsSignature,
+      })
+      await repo.save(record)
+    } else {
+      if (record.voterAddress !== voterAddress) {
+        await queryRunner.rollbackTransaction()
+        throw new Error('Voter address mismatch for existing unblinded election token')
+      }
+      if (record.unblindedSignature !== unblindedSignature) {
+        await queryRunner.rollbackTransaction()
+        throw new Error('Unblinded signature mismatch for existing unblinded election token')
+      }
+      if (record.electionId !== electionId) {
+        await queryRunner.rollbackTransaction()
+        throw new Error('Election ID mismatch for existing unblinded election token')
+      }
+
+      record.encryptedVoteRsa = encryptedVoteRsa
+      record.encryptedVoteAes = encryptedVoteAes
+      record.svsSignature = svsSignature
+      await repo.save(record)
+    }
+
+    await queryRunner.commitTransaction()
+    return {
+      success: true,
+      isUpdate: !!record.id,
+      record,
+    }
+  } catch (err) {
+    if (queryRunner.isTransactionActive) {
+      await queryRunner.rollbackTransaction()
+    }
+    throw err
+  } finally {
+    await queryRunner.release()
+  }
+}
 
 const router = Router()
 /**
@@ -59,8 +127,6 @@ router.post(
   checkVoterSignature, // Verifies that the voting transaction is correctly signed by the voter
   checkElectionStatus, // Ensures that the election is still open for voting
   validateBlindSignature, // Validates the blind signature from the register
-  checkForExistingSvsSignature, // Checks if an SVS signature already exists for this transaction
-  checkVoterHasNotVoted, // Verifies that the voter hasn't already cast a vote in this election
   async (req: Request, res: Response) => {
     const startTime = Date.now()
     logger.info(`[SignRoute] Starting sign request processing at ${new Date().toISOString()}`)
@@ -95,30 +161,23 @@ router.post(
       logger.info(`[SignRoute] Transaction signing completed in ${signDuration}ms`)
 
       validateEthSignature(svsSignature)
-
-      logger.info('[SignRoute] Creating signed transaction entity')
-      const entityStartTime = Date.now()
-      const signedTransaction = new VotingTransactionEntity()
-      signedTransaction.electionId = votingTransaction.electionID
-      signedTransaction.encryptedVoteRsa = votingTransaction.encryptedVoteRSA.hexString
-      signedTransaction.encryptedVoteAes = votingTransaction.encryptedVoteAES.hexString
-      signedTransaction.svsSignature = svsSignature.hexString
-      signedTransaction.unblindedElectionToken = normalizeHexString(
-        votingTransaction.unblindedElectionToken.hexString.toLowerCase(),
+      logger.info('[SignRoute] Upserting signed transaction to database')
+      const upsertStartTime = Date.now()
+      const result = await upsertVotingTransactionWithValidation(
+        votingTransaction.electionID,
+        normalizeEthAddress(votingTransaction.voterAddress),
+        votingTransaction.encryptedVoteRSA.hexString,
+        votingTransaction.encryptedVoteAES.hexString,
+        normalizeHexString(votingTransaction.unblindedElectionToken.hexString.toLowerCase()),
+        normalizeHexString(votingTransaction.unblindedSignature.hexString.toLowerCase()),
+        svsSignature.hexString,
       )
-      signedTransaction.unblindedSignature = normalizeHexString(
-        votingTransaction.unblindedSignature.hexString.toLowerCase(),
+      const upsertDuration = Date.now() - upsertStartTime
+      logger.info(
+        `[SignRoute] Database upsert completed in ${upsertDuration}ms - ${
+          result.isUpdate ? 'Updated existing' : 'Created new'
+        } record`,
       )
-      signedTransaction.voterAddress = normalizeEthAddress(votingTransaction.voterAddress)
-      const entityDuration = Date.now() - entityStartTime
-      logger.info(`[SignRoute] Entity creation completed in ${entityDuration}ms`)
-
-      logger.info('[SignRoute] Saving signed transaction to database')
-      const saveStartTime = Date.now()
-      const repository = dataSource.getRepository(VotingTransactionEntity)
-      await repository.save(signedTransaction)
-      const saveDuration = Date.now() - saveStartTime
-      logger.info(`[SignRoute] Database save completed in ${saveDuration}ms`)
 
       const totalDuration = Date.now() - startTime
       logger.info(`[SignRoute] Request completed successfully in ${totalDuration}ms`)
