@@ -17,10 +17,10 @@ import globalConst from "@/constants";
 import NextImage from "next/image";
 import Modal from "@/components/Modal";
 import ElectionTimeInfo from "@/components/ElectionTimeInfo";
-import BallotPaper from "@/components/BallotPaper";
+import BallotPaper from "./components/BallotPaper";
 
 export default function Pollingstation() {
-    const { updatePage, voting, updateVoting, updateTaskId, taskId } = useOpnVoteStore((state) => state);
+    const { voting, updateVoting } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [votingCredentials, setVotingCredentials] = useState({});
     const [getVoteCasts, { data: dataVotings, loading: loadingVotings }] = getVoteCastsData(votingCredentials?.voterWallet?.address, voting.election.id);
@@ -31,15 +31,12 @@ export default function Pollingstation() {
 
     // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
     const [pollingStationState, setPollingStationState] = useState({
-        taskId: '',
         showElectionInformation: true,
         showElection: false,
         showVotingSlipUpload: false,
         showVotingSlipSelection: true,
         showNotification: false,
         showQuestions: true,
-        showSendError: false,
-        pending: false,
         allowedToVote: false,
         notificationText: '',
         notificationType: '',
@@ -62,10 +59,6 @@ export default function Pollingstation() {
             };
         }
         return newState;
-    };
-
-    const goToLanding = () => {
-        window.location = voting.electionInformation.backLink;
     };
 
     const qrCodeToCredentials = async (code) => {
@@ -166,10 +159,6 @@ export default function Pollingstation() {
         const tempEndTime = new Date(Number(voting.election.votingEndTime) * 1000);
         setStartDate(tempStartTime);
         setEndDate(tempEndTime);
-        if (taskId && taskId.length > 0) {
-            updateVoting({ votesuccess: false, transactionViewUrl: '' }); //invalidate
-            updatePage({ current: globalConst.pages.VOTETRANSACTION });
-        };
 
         // only if we have the electioninformations its worth to check
         // wether there is some voter informations stored.
@@ -294,7 +283,12 @@ export default function Pollingstation() {
                 <div className={`${pollingStationState.allowedToVote ? 'op__contentbox_max' : 'op__contentbox_760'}`}>
                     {pollingStationState.showQuestions && (
                         <>
-                            <BallotPaper />
+                            <BallotPaper
+                                allowedToVote={pollingStationState.allowedToVote}
+                                votingCredentials={votingCredentials}
+                                isVoteRecast={pollingStationState.isVoteRecast}
+                                showElection={pollingStationState.showElection}
+                            />
                         </>
                     )}
                 </div>
