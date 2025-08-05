@@ -140,6 +140,11 @@ export default function Pollingstation() {
             isVoteRecast = true;
         }
 
+        // do not show notification if election / votingphase is not ongoing
+        if (electionState != globalConst.electionState.ONGOING) {
+            return;
+        };
+
         setPollingStationState({
             ...pollingStationState,
             allowedToVote: true,
