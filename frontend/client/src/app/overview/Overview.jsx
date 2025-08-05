@@ -246,7 +246,6 @@ export default function Overview() {
 
     return (
         <>
-            <title>{t("overview.title")}</title>
             <Headline
                 title={t("overview.headline.title")}
                 text={t("overview.headline.text")}

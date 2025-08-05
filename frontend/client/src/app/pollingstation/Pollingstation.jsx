@@ -184,8 +184,6 @@ export default function Pollingstation() {
 
     return (
         <>
-            <title>{t("pollingstation.title")}</title>
-
             <Modal
                 showModal={pollingStationState.showNotification}
                 headerText={pollingStationState.popupHeadline}

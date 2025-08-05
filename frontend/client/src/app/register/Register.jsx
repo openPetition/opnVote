@@ -292,7 +292,6 @@ export default function Register() {
                 </div>
             </Modal>
 
-            <title>{t("register.title")}</title>
             <>
                 <Headline
                     title={t("register.headline.title")}
