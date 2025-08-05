@@ -1,8 +1,9 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import globalConst from "@/constants";
 import { getElectionData } from '@/service-graphql';
-import { useOpnVoteStore, emptyVoting } from '@/opnVoteStore';
+import { useOpnVoteStore, emptyVoting, modes } from '@/opnVoteStore';
 import { parseJwt } from '@/util';
 
 export default function DataLoad() {
@@ -18,6 +19,29 @@ export default function DataLoad() {
 
     const [getElection, { data: dataElection, loading: loadingElection }] = getElectionData(localState.electionId);
     const { voting, updateVoting, page, updatePage, user, clearUser, updateTaskId } = useOpnVoteStore((state) => state);
+
+    useEffect(() => {
+        const onHashChange = (event) => {
+            const fragment = window.location.hash.substring(1) || '';
+            if (Object.values(globalConst.pages).includes(fragment) ) {
+                updatePage({ current: fragment }, modes.none);
+            }
+        };
+        window.addEventListener('hashchange', onHashChange);
+        return () => window.removeEventListener('hashchange', onHashChange);
+    }, []);
+
+    // onHashChange seems to be enough, but it might be too fragile if the actual URL changes?
+    //useEffect(() => {
+    //    const onPopState = (event) => {
+    //        console.log(event);
+    //        if (Object.values(globalConst.pages).includes(event.state?.current)) {
+    //            updatePage({ current: event.state.current }, modes.none);
+    //        }
+    //    };
+    //    window.addEventListener('popstate', onPopState);
+    //    return () => window.removeEventListener('popstate', onPopState);
+    //}, []);
 
     // get Params and check wethere electionId is given. Continue or Error
     useEffect(() => {
@@ -94,10 +118,8 @@ export default function DataLoad() {
 
             updateVoting(votingUpdate);
 
-            if (localState.fragment == 'pollingstation') {
-                updatePage({ current: globalConst.pages.POLLINGSTATION, loading: false });
-            } else if (localState.fragment == 'overview') {
-                updatePage({ current: globalConst.pages.OVERVIEW, loading: false });
+            if (Object.values(globalConst.pages).includes(localState.fragment)) {
+                updatePage({ current: localState.fragment, loading: false });
             } else {
                 if (localState.jwt) { // jwt Token is needed for other page
                     if (!page.current || page.current === "pollingstation") {

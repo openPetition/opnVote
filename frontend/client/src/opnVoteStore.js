@@ -49,7 +49,13 @@ export const emptyVoting = {
 export const emptyUser = {
     key: '',
     keySaved: false,
-    initKey: false
+    initKey: false,
+};
+
+export const modes = {
+    replace: "replace",
+    push: "push",
+    none: "none",
 };
 
 export const useOpnVoteStore = create(
@@ -79,9 +85,18 @@ export const useOpnVoteStore = create(
                         ...votingData,
                     },
                 })),
-            updatePage: (updates) => set(() => ({
-                page: { ...get().page, ...updates }
-            })),
+            updatePage: (updates, mode = modes.push) => {
+                set(() => ({
+                    page: { ...get().page, ...updates }
+                }))
+                if ("current" in updates) {
+                    if (mode == modes.replace) {
+                        history.replaceState({ current: updates.current }, "", "#" + updates.current);
+                    } else if (mode == modes.push) {
+                        history.pushState({ current: updates.current }, "", "#" + updates.current);
+                    }
+                }
+            },
             updateTaskId: (update) => set(() => ({
                 taskId: update
             })),

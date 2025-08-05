@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { generateMasterTokenAndMasterR, concatTokenAndRForQR } from "votingsystem";
 import LoadKey from "./components/Key";
 import { useTranslation } from "next-i18next";
-import { useOpnVoteStore } from "../../opnVoteStore";
+import { useOpnVoteStore, modes } from "../../opnVoteStore";
 import Headline from "@/components/Headline";
 import globalConst from "@/constants";
 import styles from "./styles/CreateSecret.module.css";
@@ -46,7 +46,7 @@ export default function CreateSecret() {
         }
 
         if (user?.key?.length > 0) {
-            updatePage({ current: globalConst.pages.SHOWKEY });
+            updatePage({ current: globalConst.pages.SHOWKEY }, modes.replace);
         }
     }, [user]);
 

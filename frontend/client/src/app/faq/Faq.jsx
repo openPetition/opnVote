@@ -22,7 +22,7 @@ export default function Faq() {
             </main>
             <div className="op__center-align">
                 <Button
-                    onClickAction={() => updatePage( { previous: page.current, current: page.previous})}
+                    onClickAction={() => history.back()}
                     text={t("common.back")}
                     type="primary"
                 />

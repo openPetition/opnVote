@@ -4,7 +4,7 @@ import { generateMasterTokenAndMasterR, concatTokenAndRForQR } from "votingsyste
 import GenerateQRCode from "../../components/GenerateQRCode";
 import Notification from "../../components/Notification";
 import { useTranslation } from "next-i18next";
-import { useOpnVoteStore } from "../../opnVoteStore";
+import { useOpnVoteStore, modes } from "../../opnVoteStore";
 import Headline from "@/components/Headline";
 import btn_styles from "@/styles/Button.module.css";
 import { ArrowRightIcon } from "lucide-react";
@@ -22,7 +22,7 @@ export default function LoadSecret() {
 
     useEffect(() => {
         if (user?.key?.length > 0) {
-            updatePage({ current: globalConst.pages.SHOWKEY });
+            updatePage({ current: globalConst.pages.SHOWKEY }, modes.replace);
         }
     }, [user]);
 
