@@ -37,6 +37,10 @@ const formatConfigs = {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
+    },
+    time: {
+        hour: "2-digit",
+        minute: "2-digit",
     }
 }
 

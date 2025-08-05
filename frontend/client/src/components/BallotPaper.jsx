@@ -188,7 +188,7 @@ export default function BallotPaper(props) {
                         </div>
                         <div>
                             <p>{t('pollingstation.ballotPaper.ballotSubheading')}:</p>
-                            <p><b>"{t('pollingstation.ballotPaper.ballotQuestion')}"</b> {t('pollingstation.ballotPaper.ballotPeriod')}.</p>
+                            <p><b>"{voting.electionInformation.title}"</b> {t('pollingstation.ballotPaper.ballotPeriod', { STARTDATE: startDate, ENDDATE: endDate, interpolation: { escapeValue: false } })}.</p>
                         </div>
                     </div>
                     <div className={styles.ballot_paper_border}></div>
@@ -233,14 +233,14 @@ export default function BallotPaper(props) {
                                     />
                                 </div>
                                 {pollingStationState.showSendError && (
-                                    <Notification type="error" text={pollingStationState.showSendError}/>
+                                    <Notification type="error" text={pollingStationState.showSendError} />
                                 )}
                             </>
                         )
                         :
                         <div className="op__center-align">
                             <Button
-                                onClickAction={() => updatePage({current: globalConst.pages.OVERVIEW})}
+                                onClickAction={() => updatePage({ current: globalConst.pages.OVERVIEW })}
                                 isDisabled={pollingStationState.pending}
                                 text={t("common.gotooverview")}
                                 type="primary"

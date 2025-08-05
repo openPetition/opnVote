@@ -152,7 +152,7 @@
     "pollingstation.ballotPaper.linkToBallotBooklet": "To the election booklet",
     "pollingstation.ballotPaper.ballotSubheading": "For the election",
     "pollingstation.ballotPaper.ballotQuestion": "I am exactly the topic that can be voted on here online and am waiting for your vote",
-    "pollingstation.ballotPaper.ballotPeriod": "From 1 July 2025 (12:00 noon) to 11 July 2025 (6:00 p.m.)",
+    "pollingstation.ballotPaper.ballotPeriod": "from {{STARTDATE, date}} ({{STARTDATE, time}}) to {{ENDDATE, date}} ({{ENDDATE, time}})",
     "pollingstation.ballotPaper.ballotInfo": "You have one vote for each ballot question. You can repeat the vote during the voting period; the last ballot cast will count.",
     "pollingstation.ballotPaper.voteInvalid": "Vote invalid.",
     "register.countdown.election.end": "(Election end date: {{ENDDATE, datetime}})",

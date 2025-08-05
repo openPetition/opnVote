@@ -152,7 +152,7 @@
     "pollingstation.ballotPaper.linkToBallotBooklet": "Zum Abstimmungsheft",
     "pollingstation.ballotPaper.ballotSubheading": "Für die Abstimmung",
     "pollingstation.ballotPaper.ballotQuestion": "Ich bin genau das Thema, über das man hier online abstimmen kann und warte auf genau deine Stimme",
-    "pollingstation.ballotPaper.ballotPeriod": "vom 01.07.2025 (12:00 Uhr) bis 11.07.2025 (18:00 Uhr)",
+    "pollingstation.ballotPaper.ballotPeriod": "vom {{STARTDATE, date}} ({{STARTDATE, time}}) bis {{ENDDATE, date}} ({{ENDDATE, time}})",
     "pollingstation.ballotPaper.ballotInfo": "Sie haben für jede Abstimmungsfrage eine Stimme. Sie können die Abstimmung im Wahlzeitraum wiederholen, es zählt der letzte abgegebene Stimmzettel.",
     "pollingstation.ballotPaper.voteInvalid": "Ungültig wählen.",
     "register.countdown.election.end": "(Wahlende: {{ENDDATE, datetime}} Uhr)",
