@@ -68,58 +68,11 @@ export default function CreateSecret() {
                     showLoadingAnimation={createSecretState.loadingAnimation}
                 />
 
-                <div>
-                    <h3 className={styles.title}> {t('secret.key.existingKey')} </h3>
-                    <div style={{ scrollMarginTop: "60px" }}>
-                        <div className="flex op__gap_10_small op__gap_30_wide op__flex_direction_row_wide op__flex_direction_column_small">
-                            <div className="op__outerbox_grey op__margin_standard_20_top go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
-                                onClick={() => {
-                                    updatePage({ current: globalConst.pages.LOADKEY });
-                                }}>
-                                <div className={`${navigationbox_styles.innerbox} op__width_100`} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
-                                    <div className="flex op__gap_30" >
-                                        <div className={qr_styles.qrbg}>
-                                            <NextImage
-                                                priority
-                                                src="/images/load-picture.svg"
-                                                height={60}
-                                                width={60}
-                                                alt=""
-                                            />
-                                        </div>
-                                        <div>
-                                            <h3>{t('scanuploadqrcode.image.headline')}</h3>
-                                            <p>{t('register.uploadqrcode.scanSubHeadline')}</p>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="op__outerbox_grey op__margin_standard_20_top go_to_upload op__flex_grow_standard op__width_100 op__flex_center_align op__flex"
-                                onClick={() => {
-                                    updatePage({ current: globalConst.pages.LOADKEY });
-                                }}>
-                                <div className={`${navigationbox_styles.innerbox} op__width_100`} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
-                                    <div className="flex op__gap_30">
-                                        <div className={qr_styles.qrbg}>
-                                            <NextImage
-                                                priority
-                                                src="/images/scan-qrcode.svg"
-                                                height={60}
-                                                width={60}
-                                                alt=""
-                                            />
-                                        </div>
-                                        <div>
-                                            <h3>{t('scanuploadqrcode.button.camera.headline')}</h3>
-                                            <p>{t('scanuploadqrcode.button.camera.subheadline.votingkey')}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <a className={styles.link} onClick={() => {
+                    updatePage({ current: globalConst.pages.LOADKEY });
+                }}>
+                    <p>{t('secret.key.existingKey')}</p>
+                </a>
 
             </main>
         </>

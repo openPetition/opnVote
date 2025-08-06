@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import styles from './../styles/Key.module.css';
 import { useTranslation } from 'next-i18next';
+import Button from "@/components/Button";
 
 export default function LoadKey(props) {
     const [isRendered, setIsRendered] = useState(false);
@@ -33,12 +34,8 @@ export default function LoadKey(props) {
             <div className="op__padding_standard_top_bottom">
                 {isRendered && (
                     <>
-                        <h3 className="op__center-align op__padding_standard_bottom">{t('secret.key.headline')}</h3>
                         <p className="op__center-align op__padding_standard_bottom">{t('secret.headline.createSecret.infoText')}</p>
-                        <button
-                            className={styles.key_circle_button}
-                            onClick={onClickAction}
-                        >
+                        <button className={styles.key_circle_button} onClick={onClickAction}>
                             <svg id={styles.key_svg} xmlns="http://www.w3.org/2000/svg" width="140" height="67.47" viewBox="0 0 140 67.47">
                                 <defs>
                                     <linearGradient id="left-to-right-circle">
@@ -79,6 +76,13 @@ export default function LoadKey(props) {
                                 </g>
                             </svg>
                         </button>
+                        <div className="op__center-align op__margin_standard_20_top_bottom">
+                            <Button
+                                onClickAction={onClickAction}
+                                text={t("secret.key.button")}
+                                type="primary"
+                            />
+                        </div>
                     </>
                 )}
             </div>

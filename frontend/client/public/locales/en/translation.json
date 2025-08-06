@@ -229,6 +229,7 @@
     "secret.headline.createSecret.text": "The voting key guarantees that your vote stays confidental.",
     "secret.headline.createSecret.title": "Create voting key",
     "secret.headline.savekey": "Save your voting key",
+    "secret.key.button": "Create voting key",
     "secret.key.headline": "Click on the key symbol to create the voting key",
     "secret.key.subheadline": "The voting key is created locally on your device without an internet connection.",
     "secret.key.existingKey": "Already got a voting key?",
