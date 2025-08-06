@@ -8,7 +8,7 @@ import btn_styles from '../styles/Button.module.css';
 import PropTypes from "prop-types";
 import { useTranslation } from "next-i18next";
 export default function GenerateQRCode(props) {
-    const { headline, subheadline, qrCodeString, downloadHeadline, downloadSubHeadline, headimage, saveButtonText, pdfQRtype, afterSaveFunction, pdfInformation } = props;
+    const { headline, subheadline, qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, headimage, saveButtonText, pdfQRtype, afterSaveFunction, pdfInformation } = props;
     const { t } = useTranslation();
     const [isGenerating, setIsGenerating] = useState(false);
 
@@ -16,7 +16,7 @@ export default function GenerateQRCode(props) {
         'TEXT': 'text',
         'LINE': 'line',
         'IMAGE': 'image'
-    }
+    };
 
     const wordwrapAndPositionText = (context, text, x, y, lineHeight, fitWidth) => {
         let words = text.split(' ');
@@ -268,8 +268,8 @@ export default function GenerateQRCode(props) {
                 lineHeight: 10,
                 font: font
             },
-        ]
-    }
+        ];
+    };
 
     const createPDF = async () => {
         setIsGenerating(true);
@@ -286,20 +286,20 @@ export default function GenerateQRCode(props) {
 
             // Convert data URL to array buffer for embedding
             // Remove the data URL prefix to get just the base64 data
-            const base64Data = qrDataUrl.split(",")[1]
+            const base64Data = qrDataUrl.split(",")[1];
             if (!base64Data) {
-                throw new Error("Invalid QR code data URL format")
+                throw new Error("Invalid QR code data URL format");
             }
 
             // Convert base64 to binary
-            const binaryData = atob(base64Data)
-            const bytes = new Uint8Array(binaryData.length)
+            const binaryData = atob(base64Data);
+            const bytes = new Uint8Array(binaryData.length);
             for (let i = 0; i < binaryData.length; i++) {
-                bytes[i] = binaryData.charCodeAt(i)
+                bytes[i] = binaryData.charCodeAt(i);
             }
 
             // Embed the QR code image
-            const qrImage = await pdfDoc.embedPng(bytes.buffer)
+            const qrImage = await pdfDoc.embedPng(bytes.buffer);
             // Get the dimensions of the QR code
             const qrDims = qrImage.scale(1);
 
@@ -332,7 +332,7 @@ export default function GenerateQRCode(props) {
                 let pushDown = factor * height;
 
                 return pushDown;
-            }
+            };
 
             let yPos = 0;
             for (const pdfContentLine of pdfContent) {
@@ -365,14 +365,14 @@ export default function GenerateQRCode(props) {
                                 S: "URI",
                                 URI: pdfContentLine.link,
                             },
-                        })
+                        });
 
                         // Add annotation to page
-                        const annotations = page.node.Annots()
+                        const annotations = page.node.Annots();
                         if (annotations) {
-                            annotations.push(linkAnnotation)
+                            annotations.push(linkAnnotation);
                         } else {
-                            page.node.set("Annots", page.doc.context.obj([linkAnnotation]))
+                            page.node.set("Annots", page.doc.context.obj([linkAnnotation]));
                         }
                     }
 
@@ -384,10 +384,10 @@ export default function GenerateQRCode(props) {
                         text: pdfContentLine.text
                     };
 
-                    if (pdfContentLine.maxWidth) { options.maxWidth = pdfContentLine.maxWidth };
-                    if (pdfContentLine.lineHeight) { options.lineHeight = pdfContentLine.lineHeight };
-                    if (pdfContentLine.wordBreaks) { options.wordBreaks = pdfContentLine.wordBreaks };
-                    if (pdfContentLine.color) { options.color = pdfContentLine.color };
+                    if (pdfContentLine.maxWidth) { options.maxWidth = pdfContentLine.maxWidth; };
+                    if (pdfContentLine.lineHeight) { options.lineHeight = pdfContentLine.lineHeight; };
+                    if (pdfContentLine.wordBreaks) { options.wordBreaks = pdfContentLine.wordBreaks; };
+                    if (pdfContentLine.color) { options.color = pdfContentLine.color; };
                     const text = page.drawText(pdfContentLine.text, options);
 
                     if (!pdfContentLine.noPush) {
@@ -404,17 +404,17 @@ export default function GenerateQRCode(props) {
                     // Add the QR code to the center of the page
                     yPos = yPos - pdfContentLine.options.height;
                     pdfContentLine.options.y = yPos;
-                    page.drawImage(pdfContentLine.image, pdfContentLine.options)
+                    page.drawImage(pdfContentLine.image, pdfContentLine.options);
                 }
             }
 
-            pdfDoc.setTitle(downloadHeadline)
-            pdfDoc.setAuthor('opn.vote')
+            pdfDoc.setTitle(downloadHeadline);
+            pdfDoc.setAuthor('opn.vote');
             pdfDoc.setCreationDate(new Date());
-            pdfDoc.setSubject('QRCODE:' + qrCodeString)
+            pdfDoc.setSubject('QRCODE:' + qrCodeString);
 
-            const keywordsWithData = ["QR Code", "Metadata", downloadHeadline]
-            pdfDoc.setKeywords(keywordsWithData)
+            const keywordsWithData = ["QR Code", "Metadata", downloadHeadline];
+            pdfDoc.setKeywords(keywordsWithData);
 
             page.drawImage(pngImage, {
                 x: page.getWidth() - 50 - (pngDims.width / 2),
@@ -423,29 +423,29 @@ export default function GenerateQRCode(props) {
                 height: (pngDims.height / 2),
             });
 
-            const pdfBytes = await pdfDoc.save()
-            const blob = new Blob([pdfBytes], { type: "application/pdf" })
-            const url = URL.createObjectURL(blob)
+            const pdfBytes = await pdfDoc.save();
+            const blob = new Blob([pdfBytes], { type: "application/pdf" });
+            const url = URL.createObjectURL(blob);
 
             // Create a link element and trigger a download
             const link = document.createElement("a");
             link.href = url;
-            link.download = downloadHeadline + '.pdf';
+            link.download = downloadFilename + '.pdf';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            URL.revokeObjectURL(url)
+            URL.revokeObjectURL(url);
         } catch (err) {
-            console.error("PDF creation error:", err)
+            console.error("PDF creation error:", err);
         } finally {
-            setIsGenerating(false)
+            setIsGenerating(false);
         }
-    }
+    };
 
     const givePDF = () => {
         createPDF();
         afterSaveFunction();
-    }
+    };
 
     const DownloadAsPng = () => {
         const textCanvas = document.getElementById("canvas");
@@ -476,7 +476,7 @@ export default function GenerateQRCode(props) {
         textCanvasContext.drawImage(qrCodeCanvasContext, 40, moveQRCodeDownPixel, 220, 220);
 
         const link = document.createElement('a');
-        link.download = downloadHeadline + ".png";
+        link.download = downloadFilename + ".png";
         link.href = textCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
         link.click();
         afterSaveFunction();

@@ -41,6 +41,7 @@ export default function CreateSecret() {
                         headline={t("secret.generateqrcode.headline")}
                         text={user.key}
                         downloadHeadline={(t("secret.generateqrcode.downloadHeadline")).toUpperCase()}
+                        downloadFilename={t("secret.generateqrcode.downloadFilename", { CREATIONDATE: new Date().toISOString().split('T')[0] })}
                         headimage="key"
                         saveButtonText={t("secret.generateqrcode.savebuttontext")}
                         qrCodeString={user.key}

@@ -226,6 +226,7 @@
     "scanuploadqrcode.image.headline": "QR-Code als PDF laden",
     "scanuploadqrcode.image.instruction": "Bild-Datei mit QR-Code auswählen",
     "scanuploadqrcode.image.select": "PDF auswählen",
+    "secret.generateqrcode.downloadFilename": "opnVote_wahlschluessel_{{CREATIONDATE, date}}",
     "secret.generateqrcode.downloadHeadline": "Wahlschlüssel",
     "secret.generateqrcode.headline": "Speichern Sie jetzt Ihren Wahlschlüssel",
     "secret.generateqrcode.savebuttontext": "Als PDF Speichern",

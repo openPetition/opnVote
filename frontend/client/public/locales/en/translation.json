@@ -227,6 +227,7 @@
     "scanuploadqrcode.image.instruction": "Select the PDF containing the QR code",
     "scanuploadqrcode.image.select": "Select PDF",
     "secret.generateqrcode.downloadHeadline": "Voting Key",
+    "secret.generateqrcode.downloadFilename": "opnVote_votingkey_{{CREATIONDATE, date}}",
     "secret.generateqrcode.headline": "Save voting key",
     "secret.generateqrcode.savebuttontext": "Save as PDF",
     "secret.headline.createSecret.infoText": "The voting key is generated locally and without using internet connection on your device.",
