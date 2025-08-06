@@ -144,10 +144,10 @@ export default function Pollingstation() {
             isVoteRecast: isVoteRecast,
             showQuestions: true,
             showNotification: true,
-            notificationType: 'success',
-            notificationText: t("pollingstation.notification.success.ballotfits"),
-            popupButtonText: t("pollingstation.notification.success.popup.buttontext"),
-            popupHeadline: t("pollingstation.notification.success.popup.headline"),
+            notificationType: voting.votesuccess ? 'info' : 'success',
+            notificationText: voting.votesuccess ? t("pollingstation.notification.success.popup.infotext.recast") : t("pollingstation.notification.success.ballotfits"),
+            popupButtonText: voting.votesuccess ? t("pollingstation.notification.success.popup.buttontext.recast") : t("pollingstation.notification.success.popup.buttontext.cast"),
+            popupHeadline: voting.votesuccess ? t("pollingstation.notification.success.popup.headline.recast") : t("pollingstation.notification.success.popup.headline.cast"),
         });
     }, [dataVotings]);
 
@@ -196,6 +196,7 @@ export default function Pollingstation() {
                     type={pollingStationState.notificationType}
                     text={pollingStationState.notificationText}
                 />
+
             </Modal>
 
             {electionState === globalConst.electionState.ONGOING &&

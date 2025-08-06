@@ -186,9 +186,15 @@ export default function Overview() {
                     <p>{t('overview.box.vote.past')}</p>
                 )}
                 <Buttons>
-                    {voting.registerCode && !box.future && !box.past && (
-                        <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.POLLINGSTATION)}>{t('overview.box.vote.button')}</Button>
-                    )}
+                    {voting.votesuccess ?
+                        voting.registerCode && !box.future && !box.past && (
+                            <Button onClick={() => goToPage(globalConst.pages.POLLINGSTATION)}>{t('overview.box.vote.button.recast')}</Button>
+                        )
+                        :
+                        voting.registerCode && !box.future && !box.past && (
+                            <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.POLLINGSTATION)}>{t('overview.box.vote.button.cast')}</Button>
+                        )
+                    }
                 </Buttons>
             </Box>
         );
