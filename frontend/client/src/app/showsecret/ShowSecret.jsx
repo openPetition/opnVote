@@ -1,17 +1,13 @@
 'use client';
-import { useState, useEffect } from "react";
+import btn_styles from "@/styles/Button.module.css";
 import GenerateQRCode from "../../components/GenerateQRCode";
 import Notification from "../../components/Notification";
 import { useTranslation } from "next-i18next";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import Headline from "@/components/Headline";
-import btn_styles from "@/styles/Button.module.css";
 import { ArrowRightIcon } from "lucide-react";
 import Modal from '@/components/Modal';
 import globalConst from "@/constants";
-import qr_styles from "@/styles/ScanUploadQRCode.module.css";
-import navigationbox_styles from "@/styles/NavigationBox.module.css";
-import NextImage from "next/image";
 
 export default function CreateSecret() {
     const { t } = useTranslation();
@@ -52,14 +48,14 @@ export default function CreateSecret() {
                         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.875rem' }}>
                             <button
                                 onClick={() => goToRegister()}
-                                disabled={(!(user?.key?.length > 0))}
+                                disabled={!user.keySaved}
                                 className={`${btn_styles.primary} ${btn_styles.btn}`}
                                 style={{ display: 'flex', justifyContent: 'center', gap: '10px', alignItems: 'flex-end' }}
                             >
                                 {t("secret.navigationbox.gotoregister.aftergenerated.buttonText")}
                                 <div style={{ alignSelf: 'center' }}>
                                     {
-                                        (!(user?.key?.length > 0))
+                                        (!user.keySaved)
                                             ?
                                             <ArrowRightIcon stroke={'#c9c8c8'} strokeWidth={'3'} width={20} />
                                             :
