@@ -28,11 +28,6 @@
 	font: bold 1.125rem/1.5rem var(--op__roboto--slab), serif;
 }
 
-.question_container_text h4 {
-	text-align: left;
-	margin-top: 0;
-}
-
 .wrapper {
 	display: flex;
 	flex-direction: column;
@@ -90,11 +85,12 @@
 	}
 
 	.question_container_image {
-		min-width: 200px;
+		flex: 0 1 300px;
 	}
 
 	.question_container_text {
 		display: flex;
+		flex: 1;
 		flex-direction: column;
 		justify-content: space-between;
 		row-gap: .9375rem;
@@ -117,4 +113,17 @@
 	.vote_option label {
 		text-align: center;
 	}
+}
+
+@media (min-width: 760px) and (max-width: 899px) {
+	.question_container_image {
+		display: flex;
+		justify-content: center;
+	}
+
+	.question_container_text h3 {
+		text-align: justify;
+		margin: 0 var(--op-padding-standard) auto;
+	}
+
 }
