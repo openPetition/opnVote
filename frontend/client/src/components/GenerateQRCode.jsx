@@ -63,13 +63,6 @@ export default function GenerateQRCode(props) {
             },
             {
                 type: pdfContentType.TEXT,
-                text: t("pdf.createdwith") + window.navigator.userAgent.slice(0, 42) + '..',
-                yPos: page.getHeight() - 66,
-                font: font,
-                fontSize: 10,
-            },
-            {
-                type: pdfContentType.TEXT,
                 text: downloadHeadline, //e.g. Wahlschein
                 fontSize: 26,
                 yPos: page.getHeight() - 100,
@@ -87,6 +80,13 @@ export default function GenerateQRCode(props) {
                 path: 'M 0,0 L520,0',
                 moveX: 40,
                 yPos: 670
+            },
+            {
+                type: pdfContentType.TEXT,
+                text: t("pdf.createdwith") + window.navigator.userAgent,
+                yPos: 10,
+                font: font,
+                fontSize: 7,
             },
         ];
     }
