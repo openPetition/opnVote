@@ -255,6 +255,7 @@
     "votetransactionstate.error.alreadyvoted": "You already voted with this election permit.",
     "votetransactionstate.error.servererror": "Connection to server failed.",
     "votetransactionstate.error.transaction": "The transaction was malformed. Please contact election authorities.",
+    "votetransactionstate.error.unknown": "There was an error sending the transaction due to an unknown error. Please try again. If the problem persist please contact election authorities.",
     "votetransactionstate.headline.text": "You have voted",
     "votetransactionstate.headline.title": "Thank you for your participation",
     "votetransactionstate.info.success": "Your vote was successfully processed, encrypted and immutably written to the blockchain.",

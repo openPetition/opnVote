@@ -255,6 +255,7 @@
     "votetransactionstate.error.alreadyvoted": "Mit diesem Wahlschein wurde bereits abgestimmt.",
     "votetransactionstate.error.servererror": "Der Server konnte nicht erreicht werden.",
     "votetransactionstate.error.transaction": "Die Transaktion ist fehlerhaft. Bitte wenden Sie sich an die Wahlleitung.",
+    "votetransactionstate.error.unknown": "Beim Absenden der Transaktion gab es einen unbekannten Fehler. Bitte versuchen Sie es erneut. Sollte der Fehler bestehen bleiben, wenden Sie sich an die Wahlleitung.",
     "votetransactionstate.headline.text": "Sie haben abgestimmt",
     "votetransactionstate.headline.title": "Danke für Ihre Teilnahme",
     "votetransactionstate.info.success": "Ihre Stimme wurde erfolgreich abgegeben, verschlüsselt und unveränderlich in die Blockchain geschrieben.",

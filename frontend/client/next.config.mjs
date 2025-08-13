@@ -10,6 +10,7 @@ const nextConfig = {
         signVotingTransactionUrl: process.env.NEXT_PUBLIC_SIGN_VOTING_TRANSACTION_URL,
         graphConnectUrl: process.env.NEXT_PUBLIC_GRAPH_CONNECT_URL,
         gelatoForwardUrl: process.env.NEXT_PUBLIC_GELATO_FORWARD_URL,
+        gelatoVerifyUrl: process.env.NEXT_PUBLIC_GELATO_VERIFY_URL,
         opnVoteContractAddress: process.env.NEXT_PUBLIC_OPN_VOTE_CONTRACT_ADDRESS,
         rpcnodeUrl: process.env.NEXT_PUBLIC_RPC_NODE_URL,
         version: process.env.NEXT_PUBLIC_VERSION,

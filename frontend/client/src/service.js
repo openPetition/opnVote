@@ -133,3 +133,22 @@ export async function getAbi() {
         throw new ServerError();
     }
 }
+
+export async function gelatoVerify(taskId) {
+    const gelatoHeader = new Headers();
+    gelatoHeader.append("Content-Type", "application/json");
+    const options = {
+        method: "GET",
+        headers: gelatoHeader,
+    };
+    const gelatoVerifyUrl = Config.env.gelatoVerifyUrl + taskId;
+    const response = await fetch(gelatoVerifyUrl, options);
+    if (response.status >= 500) {
+        throw new ServerError();
+    }
+    try {
+        return await response.json();
+    } catch (error) {
+        throw new ServerError();
+    }
+}

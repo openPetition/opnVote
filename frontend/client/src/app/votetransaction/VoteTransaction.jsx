@@ -6,7 +6,7 @@ import { useTranslation, Trans } from "next-i18next";
 import Notification from "@/components/Notification";
 import Loading from '@/components/Loading';
 import Headline from "@/components/Headline";
-import { AlreadyVotedError, ServerError, getTransactionState } from '../../service';
+import { AlreadyVotedError, ServerError, getTransactionState, gelatoVerify } from '../../service';
 import { useOpnVoteStore } from "../../opnVoteStore";
 import styles from './styles/votetransaction.module.css';
 import globalConst from "@/constants";
@@ -23,11 +23,13 @@ export default function VoteTransaction() {
     const TRANSACTION_STATE_SUCCESS = 'success';
     const TRANSACTION_STATE_ERROR = 'error';
 
+    const TRANSACTION_PENDING_DELAY = 1000; // in milli seconds
+    const TRANSACTION_GELATO_TIMEOUT = 30000;
+
     const [voteResultState, setVoteResultState] = useState({
         transactionStateText: t('votetransactionstate.statustitle.checking'),
         transactionState: TRANSACTION_STATE_CHECKING,
-        showLoading: true,
-        showNotification: false,
+        transactionStart: new Date().getTime(),
         notificationText: '',
         notificationType: '',
     });
@@ -35,41 +37,61 @@ export default function VoteTransaction() {
     const checkTransaction = async () => {
         try {
             const transactionResult = await getTransactionState(taskId);
+
             if (transactionResult.transactionHash.length > 0) {
                 setTransactionHash(transactionResult.transactionHash);
                 setTransactionViewUrl(transactionResult.transactionViewUrl);
             }
 
             if (transactionResult.status === 'pending') {
-                let transactionPendingDelay = 1000;
+                let now = new Date().getTime();
+                let pendingInMilliseconds = now - voteResultState.transactionStart;
+
+                if (pendingInMilliseconds > TRANSACTION_GELATO_TIMEOUT) {
+                    let gelatoState = await gelatoVerify(taskId);
+
+                    if (gelatoState.onChainStatus.confirmed) {
+                        updateTaskId(''); //invalidation to prevent wrong redirects from pollingstation
+
+                        updateVoting({
+                            votesuccess: true,
+                            transactionViewUrl: transactionResult.transactionViewUrl,
+                        });
+
+                        setVoteResultState({
+                            ...voteResultState,
+                            transactionStateText: t('votetransactionstate.statustitle.success'),
+                            transactionState: TRANSACTION_STATE_SUCCESS,
+                            notificationText: t('votetransactionstate.info.success'),
+                            notificationType: 'success',
+                        });
+
+                        return;
+                    }
+                }
+
                 setVoteResultState({
                     ...voteResultState,
                     transactionStateText: t('votetransactionstate.statustitle.pending'),
                     transactionState: TRANSACTION_STATE_PENDING,
-                    showLoading: true,
-                    showNotification: false,
                 });
-                transactionPendingDelay = transactionPendingDelay * 2;
-                setTimeout(() => {
-                    checkTransaction();
-                }, transactionPendingDelay);
+                return;
             }
 
             if (transactionResult.status === 'success') {
+                updateVoting({
+                    votesuccess: true,
+                    transactionViewUrl: transactionResult.transactionViewUrl,
+                });
+                updateTaskId(''); //invalidation to prevent wrong redirects from pollingstation
+
                 setVoteResultState({
                     ...voteResultState,
                     transactionStateText: t('votetransactionstate.statustitle.success'),
                     transactionState: TRANSACTION_STATE_SUCCESS,
-                    showLoading: false,
-                    showNotification: true,
                     notificationText: t('votetransactionstate.info.success'),
                     notificationType: 'success',
                 });
-                updateVoting({
-                    votesuccess: true,
-                    transactionViewUrl: transactionResult.transactionViewUrl
-                });
-                updateTaskId(''); //invalidation to prevent wrong redirects from pollingstation
             }
 
             if (transactionResult.status === 'cancelled') {
@@ -77,15 +99,12 @@ export default function VoteTransaction() {
                     ...voteResultState,
                     transactionStateText: t('votetransactionstate.statustitle.error'),
                     transactionState: TRANSACTION_STATE_ERROR,
-                    showLoading: false,
-                    showNotification: true,
                     notificationText: t('votetransactionstate.error.transaction'),
                     notificationType: 'error',
                 });
             }
         } catch (error) {
             let notificationText;
-            let errorDelay = 10000; // reload after
             if (error instanceof ServerError) {
                 notificationText = t('votetransactionstate.error.servererror');
             } else if (error instanceof AlreadyVotedError) {
@@ -93,24 +112,17 @@ export default function VoteTransaction() {
                     ...voteResultState,
                     transactionStateText: t('votetransactionstate.statustitle.error'),
                     transactionState: TRANSACTION_STATE_ERROR,
-                    showLoading: false,
-                    showNotification: true,
                     notificationType: 'error',
                     notificationText: t('votetransactionstate.error.alreadyvoted'),
                 });
                 return;
             } else {
-                console.log(error);
                 notificationText = t('votetransactionstate.error.unknown');
             }
-            setTimeout(() => {
-                checkTransaction();
-            }, errorDelay);
+
             setVoteResultState({
                 ...voteResultState,
                 transactionState: TRANSACTION_STATE_ERROR,
-                showLoading: true,
-                showNotification: true,
                 notificationType: 'error',
                 notificationText: notificationText,
             });
@@ -127,7 +139,16 @@ export default function VoteTransaction() {
     };
 
     useEffect(() => {
-        if (taskId?.length > 0) {
+        if (voteResultState.transactionState === TRANSACTION_STATE_PENDING) {
+            setTimeout(() => {
+                checkTransaction();
+            }, TRANSACTION_PENDING_DELAY);
+        }
+    }, [voteResultState]);
+
+    useEffect(() => {
+        // be sure, that we only call it once at first
+        if (taskId?.length > 0 && voteResultState.transactionState === TRANSACTION_STATE_CHECKING) {
             checkTransaction();
             return;
         }
@@ -136,8 +157,6 @@ export default function VoteTransaction() {
                 ...voteResultState,
                 transactionStateText: t('votetransactionstate.statustitle.success'),
                 transactionState: TRANSACTION_STATE_SUCCESS,
-                showLoading: false,
-                showNotification: true,
                 notificationText: t('votetransactionstate.info.success'),
                 notificationType: 'success',
             });
@@ -152,15 +171,15 @@ export default function VoteTransaction() {
                 backgroundImage="successbanner"
             />
 
-                <div className={styles.loadingContainer}>
-                    <div className={styles.loading}>
-                        {voteResultState.transactionState == TRANSACTION_STATE_SUCCESS && (
-                            <Check width={70} height={70} style={{color: "#29B0CC"}} strokeWidth={1} />
-                        ) || (
-                            <Loading />
-                        )}
-                    </div>
+            <div className={styles.loadingContainer}>
+                <div className={styles.loading}>
+                    {voteResultState.transactionState == TRANSACTION_STATE_SUCCESS && (
+                        <Check width={70} height={70} style={{ color: "#29B0CC" }} strokeWidth={1} />
+                    ) || (
+                        <Loading />
+                    )}
                 </div>
+            </div>
 
             <div className="op__contentbox_max op__center-align op__padding_standard">
                 <div className={styles.item}>
