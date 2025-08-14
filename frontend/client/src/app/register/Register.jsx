@@ -17,6 +17,7 @@ import { qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, blindToke
 import Config from "../../../next.config.mjs";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
+import {translationConst} from "@/constants";
 import Headline from "@/components/Headline";
 import Popup from "@/components/Popup";
 import Modal from "@/components/Modal";
@@ -263,7 +264,7 @@ export default function Register() {
                                     <>
                                         <ElectionTimeInfo
                                             countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.votingEndTime : election.votingStartTime}
-                                            countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
+                                            countDownHeadLine={translationConst.pollingStationElectionHeaderCountdown[electionState]}
                                             countDownState={'planned'}
                                             electionStartDate={election.votingStartTime}
                                             electionEndDate={election.votingEndTime}
@@ -276,7 +277,7 @@ export default function Register() {
                                     <>
                                         <ElectionTimeInfo
                                             countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.votingEndTime : election.votingStartTime}
-                                            countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
+                                            countDownHeadLine={translationConst.pollingStationElectionHeaderCountdown[electionState]}
                                             countDownState={'ongoing'}
                                             electionStartDate={election.votingStartTime}
                                             electionEndDate={election.votingEndTime}

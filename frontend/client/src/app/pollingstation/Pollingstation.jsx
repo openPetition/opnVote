@@ -14,6 +14,7 @@ import { useTranslation } from 'next-i18next';
 import Config from "../../../next.config.mjs";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
+import {translationConst} from "@/constants";
 import NextImage from "next/image";
 import Modal from "@/components/Modal";
 import ElectionTimeInfo from "@/components/ElectionTimeInfo";
@@ -300,7 +301,7 @@ export default function Pollingstation() {
                     <div className={election_time_styles.content_box}>
                         <ElectionTimeInfo
                             countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.votingEndTime : election.votingStartTime}
-                            countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
+                            countDownHeadLine={translationConst.pollingStationElectionHeaderCountdown[electionState]}
                             countDownState={'planned'}
                             electionStartDate={election.votingStartTime}
                             electionEndDate={election.votingEndTime}
@@ -313,7 +314,7 @@ export default function Pollingstation() {
                     <div className={election_time_styles.content_box}>
                         <ElectionTimeInfo
                             countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.votingEndTime : election.votingStartTime}
-                            countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
+                            countDownHeadLine={translationConst.pollingStationElectionHeaderCountdown[electionState]}
                             countDownState={'finished'}
                             electionStartDate={election.votingStartTime}
                             electionEndDate={election.votingEndTime}

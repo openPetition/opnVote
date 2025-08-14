@@ -4,6 +4,7 @@ import { useTranslation } from 'next-i18next';
 import ElectionTimeInfo from "@/components/ElectionTimeInfo";
 import styles from "../styles/ElectionHeader.module.css";
 import globalConst from "@/constants";
+import {translationConst} from "@/constants";
 import { CircleDot } from 'lucide-react';
 
 export default function Electionheader(props) {
@@ -50,7 +51,7 @@ export default function Electionheader(props) {
                                         strokeWidth={5}
                                         className={`${styles.state_circle} ${styles[electionState]}`}
                                     />
-                                    {t('pollingstation.electionHeader.statetitle.' + electionState)}
+                                    {translationConst.pollingStationElectionHeaderStateTitle[electionState]}
                                 </h3>
                                 <small>{t('pollingstation.electionHeader.state')}</small>
                             </div>
@@ -63,7 +64,7 @@ export default function Electionheader(props) {
                     <div style={{ float: "right" }}>
                         <ElectionTimeInfo
                             countDownEndTime={electionState == globalConst.electionState.ONGOING ? election.votingEndTime : election.votingStartTime}
-                            countDownHeadLine={t('pollingstation.electionheader.countdown.headline.' + electionState)}
+                            countDownHeadLine={translationConst.pollingStationElectionHeaderCountdown[electionState]}
                             countDownState={'ongoing'}//{electionState == globalConst.electionState.FINISHED ? globalConst.electionState.FINISHED : globalConst.electionState.ONGOING}
                             electionStartDate={election.votingStartTime}
                             electionEndDate={election.votingEndTime}

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from 'next-i18next';
 import styles from "../styles/electioninfobox.module.css";
 import globalConst from "@/constants";
+import {translationConst} from "@/constants";
 import { CircleDot } from 'lucide-react';
 import { useOpnVoteStore } from "../../../opnVoteStore";
 
@@ -51,7 +52,7 @@ export default function ElectionInfoBox(props) {
                                     strokeWidth={5}
                                     className={`${styles.state_circle} ${styles[electionState]}`}
                                 />
-                                {t('register.smallHeader.statetitle.' + electionState)}
+                                {translationConst.registerSmallHeaderStateTitle[electionState]}
                             </h3>
                             <small>{t('register.smallHeader.state')}</small>
                         </div>
@@ -60,7 +61,7 @@ export default function ElectionInfoBox(props) {
                             <small>{t('register.smallHeader.electionend')}</small>
                         </div>
                         <div className={`${styles.election_informations_box}`}>
-                            <h3>{t('register.smallHeader.whatshappening.state.' + electionState)}</h3>
+                            <h3>{translationConst.registerSmallHeaderWhatshappening[electionState]}</h3>
                             <small>{t('register.smallHeader.whatshappening.title')}</small>
                         </div>
 
