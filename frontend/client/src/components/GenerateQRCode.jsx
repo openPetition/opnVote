@@ -6,9 +6,10 @@ import globalConst from "@/constants";
 import styles from '../styles/GenerateQRCode.module.css';
 import btn_styles from '../styles/Button.module.css';
 import PropTypes from "prop-types";
+import { Download } from "lucide-react";
 import { useTranslation } from "next-i18next";
 export default function GenerateQRCode(props) {
-    const { headline, subheadline, qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, headimage, saveButtonText, pdfQRtype, afterSaveFunction, pdfInformation } = props;
+    const { headline, subheadline, qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, headimage, saveButtonText, pdfQRtype, afterSaveFunction, saved, pdfInformation } = props;
     const { t } = useTranslation();
     const [isGenerating, setIsGenerating] = useState(false);
 
@@ -550,9 +551,17 @@ export default function GenerateQRCode(props) {
                     <div className={styles.buttonbox}>
                         <button
                             onClick={givePDF}
-                            className={`${btn_styles.primary} ${btn_styles.btn}`}
+                            className={saved ? `${btn_styles.secondary} ${btn_styles.btn}` : `${btn_styles.primary} ${btn_styles.btn}`}
                             style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }} >
-                            <img src={'/images/download.svg'} alt={"Download icon"} height={10} width={20} />
+                            <div style={{ alignSelf: 'center' }}>
+                                {
+                                    (saved)
+                                        ?
+                                        <Download stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
+                                        :
+                                        <Download stroke={'white'} strokeWidth={'3'} width={20} />
+                                }
+                            </div>
                             {saveButtonText}
                         </button>
                     </div>

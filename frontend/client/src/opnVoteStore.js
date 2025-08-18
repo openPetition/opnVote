@@ -39,6 +39,7 @@ export const emptyVoting = {
     electionInformation: {},
     jwt: '',
     registerCode: '',
+    registerCodeSaved: false,
     vote: {},
     revote: {},
     userCredential: '',

@@ -36,7 +36,7 @@ export default function Register() {
     const [endDate, setEndDate] = useState("");
     const [registerCode, setRegisterCode] = useState("");
     const [showMod, setShowMod] = useState(false);
-    const election = voting.election
+    const election = voting.election;
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
     // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
@@ -248,7 +248,7 @@ export default function Register() {
                 ctaButtonFunction={() => {
                     window.scrollTo(0, 0);
                     setShowMod(false);
-                    updateVoting({ initElectionPermit: false })
+                    updateVoting({ initElectionPermit: false });
                 }}
             >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -374,17 +374,19 @@ export default function Register() {
                                     saveButtonText={t("register.generateqrcode.savebuttontext")}
                                     pdfQRtype={globalConst.pdfType.ELECTIONPERMIT}
                                     qrCodeString={voting.registerCode}
+                                    saved={voting.registerCodeSaved}
                                     pdfInformation={{
                                         ELECTION_URL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
                                         STARTDATE: startDate,
                                         ENDDATE: endDate
                                     }}
-                                    afterSaveFunction={() =>
+                                    afterSaveFunction={() => {
                                         setRegisterState({
                                             ...registerState,
                                             showSaveRegisterQRSuccess: true
-                                        })
-                                    }
+                                        });
+                                        updateVoting({registerCodeSaved: true});
+                                    }}
                                 />
 
                                 <div className="op__display_none_small op__display_none_wide">
@@ -416,12 +418,15 @@ export default function Register() {
                                     headerText={t("register.popup.aftersave.headline")}
                                     ctaButtonText={ electionState === globalConst.electionState.ONGOING ? t("common.back") : t("common.gotooverview")}
                                     ctaButtonFunction={() => {
-
                                         setRegisterState({
                                             ...registerState,
                                             showSaveRegisterQRSuccess: false
                                         });
-                                        electionState === globalConst.electionState.ONGOING ? window.scrollTo(0, 0) : updatePage({ current: globalConst.pages.OVERVIEW })
+                                        if (electionState === globalConst.electionState.ONGOING) {
+                                            window.scrollTo(0, 0);
+                                        } else {
+                                            updatePage({ current: globalConst.pages.OVERVIEW });
+                                        }
                                     }}
                                 >
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

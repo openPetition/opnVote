@@ -40,6 +40,7 @@ export default function CreateSecret() {
                         downloadFilename={t("secret.generateqrcode.downloadFilename", { CREATIONDATE: new Date().toISOString().split('T')[0] })}
                         headimage="key"
                         saveButtonText={t("secret.generateqrcode.savebuttontext")}
+                        saved={user.keySaved}
                         qrCodeString={user.key}
                         pdfQRtype={globalConst.pdfType.VOTINGKEY}
                         afterSaveFunction={() => updateUserKey(user.key, true, false)}
