@@ -182,6 +182,14 @@ export default function Head() {
         updatePage({ previous: page.current, current: globalConst.pages.FAQ });
     };
 
+    const goToGlossaryPage = () => {
+        if (page.current === 'glossary') {
+            closeMenu();
+            return;
+        }
+        updatePage({ previous: page.current, current: globalConst.pages.GLOSSARY });
+    };
+
     return (
         <>
             <div className={`op__header ${styles.header}`}>
@@ -246,6 +254,8 @@ export default function Head() {
                                 </button></li>
                                 <li><a href="https://www.opn.vote/" className={styles.menulink}>{t('navigation.point.blog')}</a></li>
                                 <li><button className={styles.menulink} onClick={goToHelpPage}>{t('navigation.point.faq')}</button></li>
+                                <li><button className={styles.menulink} onClick={goToGlossaryPage}>{t('navigation.point.glossary')}</button></li>
+
                             </ul>
                             <hr className={styles.borderLine} />
                             <div>

@@ -18,7 +18,8 @@ const globalConst = {
         'VOTETRANSACTION': 'votetransaction',
         'LOADING': 'loading',
         'ERROR': 'error',
-        'FAQ': 'faq'
+        'FAQ': 'faq',
+        'GLOSSARY': 'glossary',
     },
     electionState: {
         'PLANNED': 'planned',
@@ -59,11 +60,11 @@ export const translationConst = {
         [globalConst.electionState.ONGOING]: t('pollingstation.electionHeader.statetitle.ongoing'),
         [globalConst.electionState.FINISHED]: t('pollingstation.electionHeader.statetitle.finished'),
     },
-   registerSmallHeaderStateTitle: {
-       [globalConst.electionState.PLANNED]: t('register.smallHeader.statetitle.planned'),
-       [globalConst.electionState.ONGOING]: t('register.smallHeader.statetitle.ongoing'),
-       [globalConst.electionState.FINISHED]: t('register.smallHeader.statetitle.finished'),
-   },
+    registerSmallHeaderStateTitle: {
+        [globalConst.electionState.PLANNED]: t('register.smallHeader.statetitle.planned'),
+        [globalConst.electionState.ONGOING]: t('register.smallHeader.statetitle.ongoing'),
+        [globalConst.electionState.FINISHED]: t('register.smallHeader.statetitle.finished'),
+    },
     registerSmallHeaderWhatshappening: {
         [globalConst.electionState.PLANNED]: t('register.smallHeader.whatshappening.state.planned'),
         [globalConst.electionState.ONGOING]: t('register.smallHeader.whatshappening.state.ongoing'),

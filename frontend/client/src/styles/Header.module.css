@@ -68,7 +68,8 @@
     border: 1px solid #DEDEDE;
 }
 
-.roundedInactive, .roundedActive {
+.roundedInactive,
+.roundedActive {
     border: 2px solid #FFF;
     display: inline-block;
     border-radius: 12px;
@@ -79,9 +80,11 @@
     top: -12px;
     padding: 3px;
 }
+
 .roundedInactive {
     background-color: #CFCFCF;
 }
+
 .roundedActive {
     background-color: #29B0CC;
 }
@@ -140,27 +143,10 @@
     background: rgba(0, 0, 0, 0.05);
 }
 
-.accordion_grid {
-    display: grid;
-    grid-template-columns: 3fr 1fr;
-    margin-top: 1rem;
-}
 
-.accordion_label {
-    justify-self: end;
-    cursor: pointer;
-}
 
-.list_no_bullets {
-    list-style: none;
-}
 
-.clickable_title {
-    cursor: pointer;
-    display: flex;
-    justify-content: flex-start;
-    text-align: left;
-}
+
 
 .navbar {
     background-color: #fff;
@@ -243,9 +229,5 @@
 
     .headerbar_menu {
         display: flex;
-    }
-
-    .clickable_title {
-        width: 700px;
     }
 }

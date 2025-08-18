@@ -1,0 +1,33 @@
+.accordeon {
+    padding-bottom: var(--op-padding-standard);
+}
+
+.accordeon p {
+    padding-bottom: var(--op-padding-standard);
+}
+
+.accordion_grid {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    cursor: pointer;
+}
+.icon {
+    flex: 0 0 24px;
+}
+.clickable_title {
+    cursor: pointer;
+    display: flex;
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.list_no_bullets {
+    list-style: none;
+}
+
+@media only screen and (min-width: 1200px) {
+    .clickable_title {
+        width: 700px;
+    }
+}
