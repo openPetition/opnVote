@@ -296,33 +296,29 @@ export default function Pollingstation() {
                 </div>
             }
 
-            {(electionState !== globalConst.electionState.ONGOING) ?
-                (electionState === globalConst.electionState.PLANNED) ?
-                    <div className={election_time_styles.content_box}>
-                        <ElectionTimeInfo
-                            countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.votingEndTime : election.votingStartTime}
-                            countDownHeadLine={translationConst.pollingStationElectionHeaderCountdown[electionState]}
-                            countDownState={'planned'}
-                            electionStartDate={election.votingStartTime}
-                            electionEndDate={election.votingEndTime}
-                        />
-                        <div style={{ textAlign: 'center', fontSize: '13px', marginTop: '10px' }}>
+            {electionState === globalConst.electionState.PLANNED && (
+                <div className={election_time_styles.content_box}>
+                    <ElectionTimeInfo
+                        countDownEndTime={election.votingStartTime}
+                        countDownState={electionState}
+                        electionStartDate={election.votingStartTime}
+                        electionEndDate={election.votingEndTime}
+                    />
+                    <div style={{ textAlign: 'center', fontSize: '13px', marginTop: '10px' }}>
                             {<div dangerouslySetInnerHTML={{ __html: t("register.countdown.election.start", { STARTDATE: startDate }) }} />}
-                        </div>
                     </div>
-                    :
-                    <div className={election_time_styles.content_box}>
-                        <ElectionTimeInfo
-                            countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.votingEndTime : election.votingStartTime}
-                            countDownHeadLine={translationConst.pollingStationElectionHeaderCountdown[electionState]}
-                            countDownState={'finished'}
-                            electionStartDate={election.votingStartTime}
-                            electionEndDate={election.votingEndTime}
-                        />
-                    </div>
-                :
-                <></>
-            }
+                </div>
+            )}
+            {electionState === globalConst.electionState.FINISHED && (
+                <div className={election_time_styles.content_box}>
+                    <ElectionTimeInfo
+                        countDownEndTime={election.votingStartTime}
+                        countDownState={electionState}
+                        electionStartDate={election.votingStartTime}
+                        electionEndDate={election.votingEndTime}
+                    />
+                </div>
+            )}
 
             <div className="op__contentbox_760 op__center-align">
                 {pollingStationState.showVotingSlipUpload && (

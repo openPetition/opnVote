@@ -17,7 +17,7 @@ import { qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, blindToke
 import Config from "../../../next.config.mjs";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
-import {translationConst} from "@/constants";
+import { translationConst } from "@/constants";
 import Headline from "@/components/Headline";
 import Popup from "@/components/Popup";
 import Modal from "@/components/Modal";
@@ -118,7 +118,7 @@ export default function Register() {
 
     // only loading animation
     const loadingQRchange = async function () {
-        if(voting.initElectionPermit) {
+        if (voting.initElectionPermit) {
             setRegisterState({
                 ...registerState,
                 showStartProcessScreen: false,
@@ -259,35 +259,37 @@ export default function Register() {
                     {electionState === globalConst.electionState.ONGOING && <div dangerouslySetInnerHTML={{ __html: t("register.popup.aftersave.infotext") }} />}
                     <div style={{ backgroundColor: '#efefef', borderRadius: '4px', padding: '10px' }}>
                         <div className="op__contentbox_max">
-                            {(electionState !== "finished") ?
-                                election.startTime > Date.now() ?
-                                    <>
-                                        <ElectionTimeInfo
-                                            countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.votingEndTime : election.votingStartTime}
-                                            countDownHeadLine={translationConst.pollingStationElectionHeaderCountdown[electionState]}
-                                            countDownState={'planned'}
-                                            electionStartDate={election.votingStartTime}
-                                            electionEndDate={election.votingEndTime}
-                                        />
-                                        <div style={{ textAlign: 'center', fontSize: '13px' }}>
-                                            {<div dangerouslySetInnerHTML={{ __html: t("register.countdown.election.start", { ENDDATE: startDate }) }} />}
-                                        </div>
-                                    </>
-                                    :
-                                    <>
-                                        <ElectionTimeInfo
-                                            countDownEndTime={electionState === globalConst.electionState.ONGOING ? election.votingEndTime : election.votingStartTime}
-                                            countDownHeadLine={translationConst.pollingStationElectionHeaderCountdown[electionState]}
-                                            countDownState={'ongoing'}
-                                            electionStartDate={election.votingStartTime}
-                                            electionEndDate={election.votingEndTime}
-                                        />
-                                        <div style={{ textAlign: 'center', fontSize: '13px' }}>
-                                            {<div dangerouslySetInnerHTML={{ __html: t("register.countdown.election.end", { ENDDATE: endDate }) }} />}
-                                        </div>
-                                    </>
-                                : <div style={{ textAlign: 'center', fontWeight: 'bold' }}>{t("pollingstation.electionHeader.statetitle.finished").toUpperCase()}</div>
-                            }
+                            {electionState === globalConst.electionState.PLANNED && (
+                                <>
+                                    <ElectionTimeInfo
+                                        countDownEndTime={election.votingStartTime}
+                                        countDownState={electionState}
+                                        electionStartDate={election.votingStartTime}
+                                        electionEndDate={election.votingEndTime}
+                                    />
+                                    <div style={{ textAlign: 'center', fontSize: '13px' }}>
+                                        {<div dangerouslySetInnerHTML={{ __html: t("register.countdown.election.start", { STARTDATE: startDate }) }} />}
+                                    </div>
+                                </>
+                            )}
+                            {electionState === globalConst.electionState.ONGOING && (
+                                <>
+                                    <ElectionTimeInfo
+                                        countDownEndTime={election.votingEndTime}
+                                        countDownState={electionState}
+                                        electionStartDate={election.votingStartTime}
+                                        electionEndDate={election.votingEndTime}
+                                    />
+                                    <div style={{ textAlign: 'center', fontSize: '13px' }}>
+                                        {<div dangerouslySetInnerHTML={{ __html: t("register.countdown.election.end", { ENDDATE: endDate }) }} />}
+                                    </div>
+                                </>
+                            )}
+                            {electionState === globalConst.electionState.FINISHED && (
+                                <div style={{ textAlign: 'center', fontWeight: 'bold' }}>
+                                    {t("pollingstation.electionHeader.statetitle.finished").toUpperCase()}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -416,7 +418,7 @@ export default function Register() {
                                 <Modal
                                     showModal={registerState.showSaveRegisterQRSuccess}
                                     headerText={t("register.popup.aftersave.headline")}
-                                    ctaButtonText={ electionState === globalConst.electionState.ONGOING ? t("common.back") : t("common.gotooverview")}
+                                    ctaButtonText={electionState === globalConst.electionState.ONGOING ? t("common.back") : t("common.gotooverview")}
                                     ctaButtonFunction={() => {
                                         setRegisterState({
                                             ...registerState,

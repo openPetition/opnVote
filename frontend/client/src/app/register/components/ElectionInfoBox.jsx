@@ -52,7 +52,11 @@ export default function ElectionInfoBox(props) {
                                     strokeWidth={5}
                                     className={`${styles.state_circle} ${styles[electionState]}`}
                                 />
-                                {translationConst.registerSmallHeaderStateTitle[electionState]}
+                                {{
+                                    [globalConst.electionState.PLANNED]: t('register.smallHeader.statetitle.planned'),
+                                    [globalConst.electionState.ONGOING]: t('register.smallHeader.statetitle.ongoing'),
+                                    [globalConst.electionState.FINISHED]: t('register.smallHeader.statetitle.finished'),
+                                }[electionState]}
                             </h3>
                             <small>{t('register.smallHeader.state')}</small>
                         </div>
@@ -61,7 +65,11 @@ export default function ElectionInfoBox(props) {
                             <small>{t('register.smallHeader.electionend')}</small>
                         </div>
                         <div className={`${styles.election_informations_box}`}>
-                            <h3>{translationConst.registerSmallHeaderWhatshappening[electionState]}</h3>
+                            <h3>{{
+                                [globalConst.electionState.PLANNED]: t('register.smallHeader.whatshappening.state.planned'),
+                                [globalConst.electionState.ONGOING]: t('register.smallHeader.whatshappening.state.ongoing'),
+                                [globalConst.electionState.FINISHED]: t('register.smallHeader.whatshappening.state.finished'),
+                            }[electionState]}</h3>
                             <small>{t('register.smallHeader.whatshappening.title')}</small>
                         </div>
 

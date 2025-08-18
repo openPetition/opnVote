@@ -6,13 +6,19 @@ import CountDown from "@/components/CountDown";
 import electiontime_styles from "@/styles/ElectionTime.module.css";
 
 export default function ElectionTimeInfo(props) {
-    const { countDownHeadLine, countDownEndTime, countDownState, electionStartDate, electionEndDate } = props;
+    const { countDownEndTime, countDownState, electionStartDate, electionEndDate } = props;
     const { t } = useTranslation();
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
+    const countDownHeadLine = {
+        [globalConst.electionState.PLANNED]: t('pollingstation.electionheader.countdown.headline.planned'),
+        [globalConst.electionState.ONGOING]: t('pollingstation.electionheader.countdown.headline.ongoing'),
+        [globalConst.electionState.FINISHED]: t('pollingstation.electionheader.countdown.headline.finished'),
+    }[countDownState];
+
     useEffect(() => {
-        if (countDownState !== globalConst.electionState.ONGOING) {
+        if (countDownState === globalConst.electionState.FINISHED) {
             const tempStartDate = new Date(Number(electionStartDate) * 1000);
             setStartDate(tempStartDate.toLocaleDateString());
             const tempEndDate = new Date(Number(electionEndDate) * 1000);
