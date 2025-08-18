@@ -13,12 +13,6 @@ export default function Head() {
     const { t } = useTranslation();
     const { updatePage, updateUserKey, updateVoting, updateTaskId, page } = useOpnVoteStore((state) => state);
 
-    const deleteUserKey = () => updateUserKey('');
-    const deleteBallot = () => {
-        updateVoting({ registerCode: '' });
-        updateTaskId('');
-        updatePage({ current: globalConst.pages.CREATEKEY });
-    };
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
@@ -90,19 +84,6 @@ export default function Head() {
                         {user.key.substring(0, 7)}..
                     </strong>
                 )}
-
-                {!showStateIcons && !!user?.key && (
-                    <button
-                        className={`hover op__margin_left_auto`}
-                        onClick={deleteUserKey}
-                        aria-label="navigation.label.delete.votingkey"
-                    >
-                        <Trash2
-                            size={18}
-                            color="#29b0cc"
-                        />
-                    </button>)
-                }
             </>
         );
     };
@@ -155,20 +136,6 @@ export default function Head() {
                         {t('common.nothingset')}
                     </strong>
                 )}
-
-                {!showStateIcons && voting?.registerCode?.length > 0 && (
-                    <button
-                        className={`hover op__margin_left_auto`}
-                        onClick={deleteBallot}
-                        aria-label="navigation.label.delete.ballotpaper"
-                    >
-                        <Trash2
-                            size={18}
-                            color="#29b0cc"
-                        />
-                    </button>
-                )
-                }
             </>
         );
 

@@ -31,10 +31,6 @@ export default function Overview() {
     const goToPage = function (newPage) {
         updatePage({ current: newPage });
     };
-    const deleteBallot = () => {
-        updateVoting({ registerCode: '' });
-        updateTaskId('');
-    };
 
     const line = (
         <div className={styles.line}></div>
@@ -128,7 +124,6 @@ export default function Overview() {
                         <Button onClick={() => goToPage(globalConst.pages.LOADKEY)}>{t("overview.box.key.button.load")}</Button>
                     </>)}
                     {box.state == BOX_STATE_ACTIVE && user.key && (<>
-                        <Button onClick={() => updateUserKey('')}>{t("overview.box.key.button.remove")}</Button>
                         <Button onClick={() => goToPage(globalConst.pages.SHOWKEY)}>{t("overview.box.key.button.save")}</Button>
                     </>)}
                     {box.state == BOX_STATE_ACTIVE && !user.key && (<>
@@ -162,9 +157,6 @@ export default function Overview() {
                             <Button className={user.key ? '' : styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.POLLINGSTATION)}>{t("overview.box.ballot.button.load")}</Button>
                         )}
                     </>
-                    )}
-                    {box.state == BOX_STATE_ACTIVE && (
-                        <Button onClick={() => deleteBallot()}>{t("overview.box.ballot.button.remove")}</Button>
                     )}
                 </Buttons>
             </Box >
