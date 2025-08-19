@@ -130,19 +130,53 @@ router.post(
         }
         const gelatoRelay = req.app.get('gelatoRelay') as GelatoRelay
         logger.info(`[GelatoRoute] Calling Gelato relay for user: ${userAddress}`)
-        const relayResponse: RelayResponse = await gelatoRelay.sponsoredCallERC2771WithSignature(
-          signatureData.struct,
-          signatureData.signature,
-          sponsorApiKey,
-        )
-        logger.info(
-          `[GelatoRoute] Successfully forwarded to Gelato. Task ID: ${relayResponse.taskId}`,
-        )
 
-        return res.status(200).json({
-          data: relayResponse,
-          error: null,
-        })
+        // Retry with exponential backoff
+        const maxRetries = 4
+        let lastError: any
+
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+          try {
+            const relayResponse: RelayResponse =
+              await gelatoRelay.sponsoredCallERC2771WithSignature(
+                signatureData.struct,
+                signatureData.signature,
+                sponsorApiKey,
+              )
+            logger.info(
+              `[GelatoRoute] Successfully forwarded to Gelato on attempt ${attempt + 1}. Task ID: ${
+                relayResponse.taskId
+              }`,
+            )
+
+            return res.status(200).json({
+              data: relayResponse,
+              error: null,
+            })
+          } catch (error) {
+            lastError = error
+
+            if (attempt === maxRetries) {
+              break
+            }
+
+            const delay = 400 * Math.pow(2, attempt) // 400ms, 800ms, 1600ms, 3200ms
+            logger.warn(
+              `[GelatoRoute] Gelato call attempt ${
+                attempt + 1
+              } failed, retrying in ${delay}ms. Error: ${error}`,
+            )
+
+            await new Promise(resolve => setTimeout(resolve, delay))
+          }
+        }
+
+        logger.error(
+          `[GelatoRoute] All ${
+            maxRetries + 1
+          } attempts failed for Gelato relay call. Final error: ${lastError}`,
+        )
+        throw lastError
       }
     } catch (error) {
       const processingTime = Date.now() - startTime

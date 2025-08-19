@@ -65,6 +65,7 @@ describe('POST /api/gelato/forward', () => {
     app.set('GELATO_USE_QUEUE', true)
     app.set('OPNVOTE_CONTRACT_ADDRESS', mockSignatureData.struct.target)
     jest.clearAllMocks()
+    mockSponsoredCall.mockClear()
   })
 
   it('should queue request when GELATO_USE_QUEUE is true', async () => {
@@ -116,6 +117,81 @@ describe('POST /api/gelato/forward', () => {
     expect(response.status).toBe(500)
     expect(response.body.error).toBe('Gelato Sponsor API key not configured')
     expect(response.body.data).toBeNull()
+  })
+
+  it('should retry Gelato calls with exponential backoff and succeed on 3rd attempt', async () => {
+    app.set('GELATO_USE_QUEUE', false)
+    app.set('GELATO_SPONSOR_API_KEY', 'test-key')
+
+    const mockTaskId = '0x1234567890123456789012345678901234567890'
+
+    mockSponsoredCall
+      .mockRejectedValueOnce(new Error('503 Service Unavailable'))
+      .mockRejectedValueOnce(new Error('Network timeout'))
+      .mockResolvedValueOnce({ taskId: mockTaskId })
+
+    const startTime = Date.now()
+    const response = await request(app).post('/api/gelato/forward').send(mockSignatureData)
+    const totalTime = Date.now() - startTime
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual({
+      data: { taskId: mockTaskId },
+      error: null,
+    })
+
+    expect(mockSponsoredCall).toHaveBeenCalledTimes(3)
+
+    // Should have taken at least 1200ms
+    expect(totalTime).toBeGreaterThan(1200)
+    expect(totalTime).toBeLessThan(2000)
+  })
+
+  it('should retry Gelato calls and fail after max retries', async () => {
+    app.set('GELATO_USE_QUEUE', false)
+    app.set('GELATO_SPONSOR_API_KEY', 'test-key')
+
+    const mockError = new Error('503 Service Unavailable')
+    mockSponsoredCall
+      .mockRejectedValueOnce(mockError)
+      .mockRejectedValueOnce(mockError)
+      .mockRejectedValueOnce(mockError)
+      .mockRejectedValueOnce(mockError)
+      .mockRejectedValueOnce(mockError)
+
+    const startTime = Date.now()
+    const response = await request(app).post('/api/gelato/forward').send(mockSignatureData)
+    const totalTime = Date.now() - startTime
+
+    expect(response.status).toBe(500)
+    expect(response.body.error).toBe('Failed to queue Gelato request')
+    expect(response.body.data).toBeNull()
+
+    expect(mockSponsoredCall).toHaveBeenCalledTimes(5)
+
+    expect(totalTime).toBeGreaterThan(6000)
+  }, 10000)
+
+  it('should succeed immediately without retries when Gelato works on first try', async () => {
+    app.set('GELATO_USE_QUEUE', false)
+    app.set('GELATO_SPONSOR_API_KEY', 'test-key')
+
+    const mockTaskId = '0x1234567890123456789012345678901234567890'
+    mockSponsoredCall.mockResolvedValueOnce({ taskId: mockTaskId })
+
+    const startTime = Date.now()
+    const response = await request(app).post('/api/gelato/forward').send(mockSignatureData)
+    const totalTime = Date.now() - startTime
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual({
+      data: { taskId: mockTaskId },
+      error: null,
+    })
+
+    expect(mockSponsoredCall).toHaveBeenCalledTimes(1)
+
+    expect(totalTime).toBeLessThan(500)
   })
 })
 
