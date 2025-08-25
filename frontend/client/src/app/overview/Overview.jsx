@@ -145,6 +145,9 @@ export default function Overview() {
                 {box.state == BOX_STATE_ACTIVATABLE && box.future && (
                     <p dangerouslySetInnerHTML={{ __html: t('overview.box.ballot.future', { REGISTERSTART: new Date(Number(box.future) * 1000) }) }}></p>
                 )}
+                {box.state == BOX_STATE_ACTIVATABLE && box.active && (
+                    <p dangerouslySetInnerHTML={{ __html: t('overview.box.ballot.active', { REGISTEREND: new Date(Number(box.active) * 1000) }) }}></p>
+                )}
                 {box.state == BOX_STATE_ACTIVATABLE && box.past && (
                     <p>{t('overview.box.ballot.past')}</p>
                 )}
@@ -170,7 +173,13 @@ export default function Overview() {
                     <BoxIcon box={box} />
                     <h3>{t('overview.box.vote.title')}</h3>
                 </BoxHead>
-                <p>{t('overview.box.vote.text')}</p>
+                <p>
+                    {t('overview.box.vote.text', {
+                        VOTESTART: new Date(Number(voting.election.votingStartTime) * 1000),
+                        VOTEEND: new Date(Number(voting.election.votingEndTime) * 1000), 
+                        interpolation: { escapeValue: false }
+                    })}
+                </p>
                 {box.state == BOX_STATE_ACTIVATABLE && box.future && (
                     <p dangerouslySetInnerHTML={{ __html: t('overview.box.vote.future', { VOTESTART: new Date(Number(box.future) * 1000) }) }} />
                 )}
@@ -217,6 +226,7 @@ export default function Overview() {
         newBoxes.vote.past = votingEndTime < now ? votingEndTime : null;
         newBoxes.ballot.canVote = votingStartTime < now && now < votingEndTime;
         newBoxes.ballot.future = now < registrationStartTime ? registrationStartTime : null;
+        newBoxes.ballot.active = (registrationStartTime < now && now < registrationEndTime) ? registrationEndTime : null;
         newBoxes.ballot.past = registrationEndTime < now ? registrationEndTime : null;
         newBoxes.key.canRegister = registrationStartTime < now && now < registrationEndTime;
 
