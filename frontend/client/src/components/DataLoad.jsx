@@ -113,7 +113,11 @@ export default function DataLoad() {
                 };
                 // remove any possibly stored task id, @todo: why isn't this part of voting?
                 updateTaskId('');
-                updatePage({ current: globalConst.pages.OVERVIEW });
+                // if a fragment is given, we switch to that page, regardless of user/election changes, overview otherwise
+                let targetPage = localState.fragment && Object.values(globalConst.pages).includes(localState.fragment)
+                    ? localState.fragment
+                    : globalConst.pages.OVERVIEW;
+                updatePage({ current: targetPage });
             }
 
             updateVoting(votingUpdate);
