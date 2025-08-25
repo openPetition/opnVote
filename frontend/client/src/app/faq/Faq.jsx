@@ -1,6 +1,6 @@
 import { useTranslation, Trans } from "next-i18next";
 import Headline from "@/components/Headline";
-import Accordion from "@/components/Accordion";
+import Accordeon from "@/components/Accordeon";
 import Button from "@/components/Button";
 import Link from 'next/link';
 
@@ -84,7 +84,7 @@ export default function Faq() {
                 />
             </div>
             <main className="op__contentbox_760">
-                <Accordion
+                <Accordeon
                     contents={faqContent}
                 />
             </main>

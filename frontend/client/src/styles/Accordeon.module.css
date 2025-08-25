@@ -6,28 +6,16 @@
     padding-bottom: var(--op-padding-standard);
 }
 
-.accordion_grid {
+.item {
+    list-style: none;
+}
+.item_header {
     display: flex;
     justify-content: space-between;
+    gap: 20px;
     margin-top: 1rem;
     cursor: pointer;
 }
-.icon {
+.item_header_icon {
     flex: 0 0 24px;
-}
-.clickable_title {
-    cursor: pointer;
-    display: flex;
-    justify-content: flex-start;
-    text-align: left;
-}
-
-.list_no_bullets {
-    list-style: none;
-}
-
-@media only screen and (min-width: 1200px) {
-    .clickable_title {
-        width: 700px;
-    }
 }
