@@ -270,7 +270,7 @@
     "secret.navigationbox.gotoregister.beforegenerated.head": "Wahlschein bestellen",
     "secret.navigationbox.gotoregister.beforegenerated.text": "Ich habe schon meinen Wahlschlüssel und möchte meinen Wahlschein bestellen.",
     "secret.notification.info.headline.important": "Wichtig:",
-    "secret.notification.info.text.important": "Speichern Sie Ihren Wahlschlüssel so auf Ihrem Computer ab, dass Sie ihn sicher wiederfinden. Das Speichern ist sehr wichtig, denn Ihr Wahlschlüssel kann von uns nicht wiederhergestellt werden. Wenn Sie Ihren Wahlschlüssel verlieren, können Sie nicht an der Wahl teilnehmen.",
+    "secret.notification.info.text.important": "Speichern Sie Ihren Wahlschlüssel als PDF so ab, dass Sie ihn sicher wiederfinden. Ein Screenshot reicht nicht aus. Das Speichern ist sehr wichtig, denn Ihr Wahlschlüssel kann von uns nicht wiederhergestellt werden. Ohne Wahlschlüssel können Sie nicht an einer Wahl teilnehmen.",
     "secret.notification.success.popup.headline": "Hurra, das hat geklappt!",
     "secret.notification.success.popup.understand": "Okay, verstanden",
     "secret.notification.success.text.key-generated": "Ihr Wahlschlüssel wurde erfolgreich erstellt. Jetzt müssen Sie ihn speichern.",

@@ -277,7 +277,7 @@
     "secret.navigationbox.gotoregister.beforegenerated.head": "Order election permit",
     "secret.navigationbox.gotoregister.beforegenerated.text": "I already have my voting key and want to order my election permit.",
     "secret.notification.info.headline.important": "Important:",
-    "secret.notification.info.text.important": "Save your voting key securely on your computer where you can easily find it again. Saving it is very important because it cannot be recovered by us. If you lose your voting key you cannot take part in the election.",
+    "secret.notification.info.text.important": "Save your voting key as a PDF so you can easily find it again. A screenshot isn't enough.  Saving it is very important because it cannot be recovered by us. If you lose your voting key you cannot take part in the election.",
     "secret.notification.success.popup.headline": "Success! It worked!",
     "secret.notification.success.popup.understand": "Understood",
     "secret.notification.success.text.key-generated": "Your voting key has been successfully created. Now you need to save it.",

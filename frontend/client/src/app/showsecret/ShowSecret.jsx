@@ -78,7 +78,7 @@ export default function CreateSecret() {
                         />
 
                         <p style={{ marginTop: '1rem' }}>
-                            <span style={{ textTransform: 'uppercase', fontSize: '1rem', fontWeight: 'bold', marginRight: '0.5em' }}>
+                            <span style={{ textTransform: 'uppercase', fontSize: '1rem', color: '#c10315', fontWeight: 'bold', marginRight: '0.5em' }}>
                                 {t('secret.notification.info.headline.important')}
                             </span>
                             <span>
