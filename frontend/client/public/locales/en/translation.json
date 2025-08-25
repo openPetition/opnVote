@@ -205,6 +205,7 @@
     "register.error.general": "Processing Error",
     "register.error.jwtauth": "Your current voting session has expired. To renew the session please go back to the initial page and start the process from the beginning.",
     "register.error.jwtauthbuttontext": "Back to initial page",
+    "register.generateqrcode.downloadFilename": "opnVote_electionpermit_{{ELECTIONTITLE}}",
     "register.generateqrcode.downloadHeadline": "Election permit",
     "register.generateqrcode.headline": "Save election permit",
     "register.generateqrcode.savebuttontext": "Save as PDF",

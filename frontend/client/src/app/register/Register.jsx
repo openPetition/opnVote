@@ -37,6 +37,15 @@ export default function Register() {
     const [registerCode, setRegisterCode] = useState("");
     const [showMod, setShowMod] = useState(false);
     const election = voting.election;
+    const electionTitle = voting.electionInformation.title
+        .toLowerCase()
+        .replace(/ä/g, "ae")
+        .replace(/ö/g, "oe")
+        .replace(/ü/g, "ue")
+        .replace(/ß/g, "ss")
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "_")
+        .slice(0, 20);
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
     // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
@@ -380,7 +389,7 @@ export default function Register() {
                                     text={voting.registerCode}
                                     downloadHeadline={(t("register.generateqrcode.downloadHeadline")).toUpperCase()}
                                     downloadSubHeadline={voting.electionInformation.title}
-                                    downloadFilename={t("register.generateqrcode.downloadHeadline")}
+                                    downloadFilename={t("register.generateqrcode.downloadFilename", { ELECTIONTITLE: electionTitle})}
                                     headimage="election-permit"
                                     saveButtonText={t("register.generateqrcode.savebuttontext")}
                                     pdfQRtype={globalConst.pdfType.ELECTIONPERMIT}

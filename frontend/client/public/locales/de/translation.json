@@ -198,6 +198,7 @@
     "register.error.general": "Fehler bei der Verarbeitung",
     "register.error.jwtauth": "Ihre aktuelle Wahl-Sitzung ist abgelaufen. Um die Sitzung zu erneuern gehen Sie bitte zurück auf die Ausgangsseite und starten Sie von vorn.",
     "register.error.jwtauthbuttontext": "Zur Ausgangsseite",
+    "register.generateqrcode.downloadFilename": "opnVote_wahlschein_{{ELECTIONTITLE}}",
     "register.generateqrcode.downloadHeadline": "Wahlschein",
     "register.generateqrcode.headline": "Speichern Sie jetzt Ihren Wahlschein",
     "register.generateqrcode.savebuttontext": "Als PDF speichern",
