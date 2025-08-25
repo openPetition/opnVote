@@ -73,7 +73,7 @@ export default function Footer() {
                             <div className={styles.links}>
                                 <a href="https://www.openpetition.de/content/data_privacy" className={styles.link}>{t('footer.links.dataprivacy')}</a>
                                 <a href="https://www.openpetition.de/content/legal_details" className={styles.link}>{t('footer.links.impressum')}</a>
-                                <a href="https://www.openpetition.de/blog/transparenzinitiative" className={styles.link}>{t('footer.links.transparency')}</a>
+                                <a href="https://www.openpetition.de/content/about_us" className={styles.link}>{t('footer.links.aboutus')}</a>
                                 <span className={styles.link}>{t('footer.version')} {Config.env.version}</span>
                             </div>
                         </div>
