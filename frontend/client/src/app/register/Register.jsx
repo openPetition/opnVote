@@ -323,6 +323,15 @@ export default function Register() {
                     </>
                 )}
 
+                {electionState === globalConst.electionState.PLANNED && voting.registerCodeSaved && (
+                    <>
+                        <Notification
+                            type={'info'}
+                            text={t("showballot.votingstartfuture.info", { STARTDATE: startDate, ENDDATE: endDate, interpolation: { escapeValue: false } })}
+                        />
+                    </>
+                )}
+
                 {registerState.showQRLoadingAnimation && (
                     <Loading loadingText={t("common.loading.text")} />
                 )}
@@ -387,7 +396,7 @@ export default function Register() {
                                             ...registerState,
                                             showSaveRegisterQRSuccess: true
                                         });
-                                        updateVoting({registerCodeSaved: true});
+                                        updateVoting({ registerCodeSaved: true });
                                     }}
                                 />
 
