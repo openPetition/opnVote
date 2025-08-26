@@ -22,6 +22,7 @@ import Headline from "@/components/Headline";
 import Popup from "@/components/Popup";
 import Modal from "@/components/Modal";
 import ElectionTimeInfo from "@/components/ElectionTimeInfo";
+import { createPDF } from "@/save-pdf";
 
 export default function Register() {
     const { t } = useTranslation();
@@ -258,6 +259,22 @@ export default function Register() {
                     window.scrollTo(0, 0);
                     setShowMod(false);
                     updateVoting({ initElectionPermit: false });
+
+                    updateVoting({ registerCodeSaved: true });
+                    createPDF(
+                        voting.registerCode,
+                        (t("register.generateqrcode.downloadHeadline")).toUpperCase(),
+                        voting.electionInformation.title,
+                        t("register.generateqrcode.downloadFilename", { ELECTIONTITLE: electionTitle }),
+                        globalConst.pdfType.ELECTIONPERMIT,
+                        {
+                            ELECTION_URL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
+                            STARTDATE: startDate,
+                            ENDDATE: endDate
+                        }
+                    );
+
+
                 }}
             >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -389,7 +406,7 @@ export default function Register() {
                                     text={voting.registerCode}
                                     downloadHeadline={(t("register.generateqrcode.downloadHeadline")).toUpperCase()}
                                     downloadSubHeadline={voting.electionInformation.title}
-                                    downloadFilename={t("register.generateqrcode.downloadFilename", { ELECTIONTITLE: electionTitle})}
+                                    downloadFilename={t("register.generateqrcode.downloadFilename", { ELECTIONTITLE: electionTitle })}
                                     headimage="election-permit"
                                     saveButtonText={t("register.generateqrcode.savebuttontext")}
                                     pdfQRtype={globalConst.pdfType.ELECTIONPERMIT}
@@ -401,6 +418,7 @@ export default function Register() {
                                         ENDDATE: endDate
                                     }}
                                     afterSaveFunction={() => {
+                                        updateVoting({ initElectionPermit: false });
                                         setRegisterState({
                                             ...registerState,
                                             showSaveRegisterQRSuccess: true

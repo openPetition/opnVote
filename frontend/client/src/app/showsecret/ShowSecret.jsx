@@ -8,8 +8,11 @@ import Headline from "@/components/Headline";
 import { ArrowRightIcon } from "lucide-react";
 import Modal from '@/components/Modal';
 import globalConst from "@/constants";
+import { createPDF } from "@/save-pdf";
+import { useEffect } from "react";
 
-export default function CreateSecret() {
+
+export default function ShowSecret() {
     const { t } = useTranslation();
     const { user, voting, updateUserKey, updatePage } = useOpnVoteStore((state) => state);
 
@@ -17,9 +20,11 @@ export default function CreateSecret() {
         updatePage({ current: globalConst.pages.REGISTER });
     };
 
-    if (user?.key?.length === 0) {
-        updatePage({ current: globalConst.pages.CREATEKEY });
-    }
+    useEffect(() => {
+        if (user?.key?.length === 0) {
+            updatePage({ current: globalConst.pages.CREATEKEY });
+        }
+    }, [])
 
     return (
         <>
@@ -70,7 +75,18 @@ export default function CreateSecret() {
                         showModal={user.initKey}
                         headerText={t('secret.notification.success.popup.headline')}
                         ctaButtonText={t('secret.notification.success.popup.understand')}
-                        ctaButtonFunction={() => updateUserKey(user.key, user.keySaved, false)}
+                        ctaButtonFunction={() => {
+                            updateUserKey(user.key, true, false);
+                            createPDF(
+                                user.key,
+                                (t("secret.generateqrcode.downloadHeadline")).toUpperCase(),
+                                '',
+                                t("secret.generateqrcode.downloadFilename", { CREATIONDATE: new Date().toISOString().split('T')[0] }),
+                                globalConst.pdfType.VOTINGKEY,
+                                {}
+                            );
+
+                        }}
                     >
                         <Notification
                             type="success"
