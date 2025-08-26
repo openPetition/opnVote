@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="6.8999991"
+   height="6.8999991"
+   viewBox="0 0 22.999997 22.999997"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="icon"
+     transform="translate(-1361.5,-261.5)">
+    <g
+       id="x"
+       transform="translate(1357,257)">
+      <g
+         id="Ellipse_248"
+         transform="translate(6,6)"
+         fill="none"
+         stroke="#a9dfeb"
+         stroke-width="2">
+        <circle
+           cx="10"
+           cy="10"
+           r="10"
+           fill="none"
+           stroke="#000000"
+           stroke-width="3"
+           id="circle1" />
+      </g>
+      <path
+         id="Pfad_451"
+         d="M 26,6 6,26"
+         fill="none"
+         stroke="#29b0cc"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-width="3" />
+      <path
+         id="Pfad_452"
+         d="M 6,6 26,26"
+         fill="none"
+         stroke="#29b0cc"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-width="3" />
+    </g>
+  </g>
+</svg>
