@@ -83,16 +83,22 @@ export default function GenerateQRCode(props) {
 
     return (
         <>
-            <div className="op__outerbox_grey op__margin_standard_20_top_bottom">
+            <div className="op__outerbox_grey op__margin_standard_top_bottom">
                 <div className={styles.innerbox}>
                     <div className="noScreen print-content"></div>
                     <strong>{headline}</strong>
                     <p className="op__margin_standard_top_bottom text_small">{subheadline}</p>
                     <div className={styles.zigzagbox}>
-                        <h3 className="op__margin_standard_top_bottom text_xlarge">{downloadHeadline}</h3>
+                        <div className="op__flex_center-center op__margin_standard_top_bottom">
+                            <div className={styles.icondiv}>
+                                <img src={`/images/icon-${headimage}.svg`} className={styles.icon}></img>
+                            </div>
+                            <h3 className="text_xlarge" >{downloadHeadline}</h3>
+
+                        </div>
                         {downloadSubHeadline && (
                             <>
-                                <p>{downloadSubHeadline}</p>
+                                <p className="op__margin_standard_top_bottom">{downloadSubHeadline}</p>
                             </>
                         )}
                         <QRCodeCanvas
@@ -102,16 +108,17 @@ export default function GenerateQRCode(props) {
                             fgColor={"#000000"}
                             level={"Q"}
                             id="qrCodeCanvas"
-                            style={{ margin: "1rem auto", fontweight: "bold" }}
+                            style={{ margin: "1rem auto", fontweight: "bold", display:  "none" }}
                             imageSettings={
                                 {
                                     src: `/images/icon-${headimage}.svg`,
-                                    width: 90,
-                                    height: 90,
+                                    width: 60,
+                                    height: 60,
                                     excavate: true
                                 }
                             }
                         />
+
                         <canvas
                             id="canvas"
                             width="300"

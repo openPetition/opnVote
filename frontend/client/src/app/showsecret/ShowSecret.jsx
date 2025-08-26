@@ -28,11 +28,10 @@ export default function ShowSecret() {
 
     return (
         <>
-            <div className="op__margin_2_bottom">
+            <div>
                 <Headline
                     title={t("secret.headline.createSecret.title")}
                     text={t("secret.headline.createSecret.text")}
-
                     progressBarStep={globalConst.progressBarStep.key}
                 />
             </div>
@@ -43,7 +42,7 @@ export default function ShowSecret() {
                         text={user.key}
                         downloadHeadline={(t("secret.generateqrcode.downloadHeadline")).toUpperCase()}
                         downloadFilename={t("secret.generateqrcode.downloadFilename", { CREATIONDATE: new Date().toISOString().split('T')[0] })}
-                        headimage="key"
+                        headimage="key-no-whitespace"
                         saveButtonText={t("secret.generateqrcode.savebuttontext")}
                         saved={user.keySaved}
                         qrCodeString={user.key}

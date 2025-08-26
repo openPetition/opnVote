@@ -52,7 +52,7 @@ export default function PhaseIcon({type, variant="blue", width=50, height=50, cl
             {type == "key" && (
                 <g transform="translate(13 13)">
                     <path d="M2.586,17.414A2,2,0,0,0,2,18.828V21a1,1,0,0,0,1,1H6a1,1,0,0,0,1-1V20a1,1,0,0,1,1-1H9a1,1,0,0,0,1-1V17a1,1,0,0,1,1-1h.172a2,2,0,0,0,1.414-.586L13.4,14.6a6.5,6.5,0,1,0-4-4Z" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" fill="none"/>
-                    <circle cx="16.5" cy="7.5" r="0.5" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"/>
+                    <circle cx="16.5" cy="7.5" r="1.5" fill={color} />
                 </g>
             )}
             {type == "vote" && (

@@ -407,7 +407,7 @@ export default function Register() {
                                     downloadHeadline={(t("register.generateqrcode.downloadHeadline")).toUpperCase()}
                                     downloadSubHeadline={voting.electionInformation.title}
                                     downloadFilename={t("register.generateqrcode.downloadFilename", { ELECTIONTITLE: electionTitle })}
-                                    headimage="election-permit"
+                                    headimage="election-permit-no-whitespace"
                                     saveButtonText={t("register.generateqrcode.savebuttontext")}
                                     pdfQRtype={globalConst.pdfType.ELECTIONPERMIT}
                                     qrCodeString={voting.registerCode}

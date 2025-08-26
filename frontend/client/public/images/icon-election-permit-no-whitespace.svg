@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="16"
+   height="20"
+   viewBox="0 0 16 20"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="icon"
+     transform="translate(-1365,-263)">
+    <g
+       id="Pfad_1"
+       transform="translate(1348,248)"
+       fill="#ffffff" />
+    <g
+       id="receipt-text"
+       transform="translate(1361,261)">
+      <path
+         id="Pfad_447"
+         d="m 4,2 v 20 l 2,-1 2,1 2,-1 2,1 2,-1 2,1 2,-1 2,1 V 2 L 18,3 16,2 14,3 12,2 10,3 8,2 6,3 Z"
+         fill="#2fb1ce"
+         stroke="none"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-width="1" />
+      <path
+         id="Pfad_448"
+         d="M 14,8 H 8"
+         fill="#2fb1ce"
+         stroke="#ffffff"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-width="1.5" />
+      <path
+         id="Pfad_449"
+         d="M 16,12 H 8"
+         fill="#2fb1ce"
+         stroke="#ffffff"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-width="1.5" />
+      <path
+         id="Pfad_450"
+         d="M 13,16 H 8"
+         fill="#2fb1ce"
+         stroke="#ffffff"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         stroke-width="1.5" />
+    </g>
+  </g>
+</svg>

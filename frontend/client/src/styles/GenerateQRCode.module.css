@@ -54,5 +54,16 @@
 }
 
 .buttonbox {
-	margin: 1.875rem 0 .625rem;
+	margin: 1.25rem 0 .625rem;
+}
+
+.icondiv {
+	display: flex;
+	justify-content: center;
+}
+
+.icon {
+	width: 35px;
+	height: 35px;
+	margin-right: .625rem;
 }

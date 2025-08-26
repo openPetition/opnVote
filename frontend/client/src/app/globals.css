@@ -341,6 +341,12 @@ hr:last-child {
 	align-items: center;
 }
 
+.op__flex_center-center {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
 .op__flex_direction_column_small {
 	flex-direction: column;
 }
