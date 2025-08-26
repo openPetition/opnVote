@@ -283,41 +283,17 @@ export default function Register() {
                         text={t("register.notification.aftersave.text")}
                     />
                     {electionState === globalConst.electionState.ONGOING && <div dangerouslySetInnerHTML={{ __html: t("register.popup.aftersave.infotext") }} />}
-                    <div style={{ backgroundColor: '#efefef', borderRadius: '4px', padding: '10px' }}>
-                        <div className="op__contentbox_max">
-                            {electionState === globalConst.electionState.PLANNED && (
-                                <>
-                                    <ElectionTimeInfo
-                                        countDownEndTime={election.votingStartTime}
-                                        countDownState={electionState}
-                                        electionStartDate={election.votingStartTime}
-                                        electionEndDate={election.votingEndTime}
-                                    />
-                                    <div style={{ textAlign: 'center', fontSize: '13px' }}>
-                                        {<div dangerouslySetInnerHTML={{ __html: t("register.countdown.election.start", { STARTDATE: startDate }) }} />}
-                                    </div>
-                                </>
-                            )}
-                            {electionState === globalConst.electionState.ONGOING && (
-                                <>
-                                    <ElectionTimeInfo
-                                        countDownEndTime={election.votingEndTime}
-                                        countDownState={electionState}
-                                        electionStartDate={election.votingStartTime}
-                                        electionEndDate={election.votingEndTime}
-                                    />
-                                    <div style={{ textAlign: 'center', fontSize: '13px' }}>
-                                        {<div dangerouslySetInnerHTML={{ __html: t("register.countdown.election.end", { ENDDATE: endDate }) }} />}
-                                    </div>
-                                </>
-                            )}
-                            {electionState === globalConst.electionState.FINISHED && (
+
+                    {electionState === globalConst.electionState.FINISHED && (
+                        <div style={{ backgroundColor: '#efefef', borderRadius: '4px', padding: '10px' }}>
+                            <div className="op__contentbox_max">
                                 <div style={{ textAlign: 'center', fontWeight: 'bold' }}>
                                     {t("pollingstation.electionHeader.statetitle.finished").toUpperCase()}
                                 </div>
-                            )}
+                            </div>
                         </div>
-                    </div>
+                    )}
+
                 </div>
             </Modal>
 
