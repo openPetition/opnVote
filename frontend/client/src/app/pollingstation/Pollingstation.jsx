@@ -9,25 +9,23 @@ import Button from '@/components/Button';
 import Headline from "@/components/Headline";
 import HtmlQRCodePlugin from "@/components/ScanUploadQRCode";
 import { getVoteCastsData } from '../../service-graphql';
-import { qrToElectionCredentials, validateCredentials } from "votingsystem";
 import { useTranslation } from 'next-i18next';
 import Config from "../../../next.config.mjs";
-import { useOpnVoteStore } from "../../opnVoteStore";
+import { modes, useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
-import {translationConst} from "@/constants";
 import NextImage from "next/image";
 import Modal from "@/components/Modal";
 import ElectionTimeInfo from "@/components/ElectionTimeInfo";
 import BallotPaper from "./components/BallotPaper";
+import { checkBallot } from "@/util";
 
 export default function Pollingstation() {
-    const { voting, updateVoting } = useOpnVoteStore((state) => state);
+    const { voting, updateVoting, updatePage } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [votingCredentials, setVotingCredentials] = useState({});
     const [getVoteCasts, { data: dataVotings, loading: loadingVotings }] = getVoteCastsData(votingCredentials?.voterWallet?.address, voting.election.id);
     const [electionState, setElectionState] = useState(globalConst.electionState.ONGOING);
     const [startDate, setStartDate] = useState("");
-    const [endDate, setEndDate] = useState("");
     const election = voting.election;
 
     // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
@@ -62,51 +60,22 @@ export default function Pollingstation() {
         return newState;
     };
 
-    const qrCodeToCredentials = async (code) => {
-        try {
-            let credentials = await qrToElectionCredentials(code);
-            if (Object.keys(credentials).length > 0) {
-                await validateCredentials(credentials);
-                if (parseInt(credentials?.electionID) !== parseInt(voting?.election?.id)) {
-                    setPollingStationState({
-                        ...pollingStationState,
-                        showElectionInformation: true,
-                        showQuestions: true,
-                        showElection: false,
-                        showVotingSlipUpload: false,
-                        showVotingSlipSelection: true,
-                        allowedToVote: false,
-                        showNotification: true,
-                        notificationText: t("pollingstation.notification.error.ballotnotfitting"),
-                        notificationType: 'error',
-                        popupButtonText: t("pollingstation.notification.error.ballotnotfitting.popup.buttontext"),
-                        popupHeadline: t("pollingstation.notification.error.ballotnotfitting.popup.headline"),
-                    });
-                } else {
-                    setVotingCredentials(credentials);
-                    setPollingStationState({
-                        ...pollingStationState,
-                        showElectionInformation: true,
-                        showQuestions: true,
-                        showElection: true,
-                        showVotingSlipUpload: false,
-                        showVotingSlipSelection: false
-                    });
-                }
-            }
-        } catch (err) {
+    const qrCodeToCredentials = (code) => {
+        const check = checkBallot(voting.election, code);
+        if (check.result == 'success') {
+            setVotingCredentials(check.credentials);
             setPollingStationState({
                 ...pollingStationState,
-                showElection: false,
+                showElectionInformation: true,
                 showQuestions: true,
+                showElection: true,
                 showVotingSlipUpload: false,
-                showVotingSlipSelection: true,
-                showNotification: true,
-                notificationText: t("pollingstation.notification.error.ballotdatacorrupt"),
-                notificationType: 'error',
-                popupButtonText: t("pollingstation.notification.error.ballotdatacorrupt.popup.buttontext"),
-                popupHeadline: t("pollingstation.notification.error.ballotdatacorrupt.popup.headline"),
+                showVotingSlipSelection: false
             });
+        }
+        else {
+            updateVoting({ registerCode: '' });
+            updatePage({ current: globalConst.pages.LOADBALLOT, previous: globalConst.pages.POLLINGSTATION }, modes.replace);
         }
     };
 
@@ -157,9 +126,12 @@ export default function Pollingstation() {
         const state = Number(currentTime) < Number(election.votingStartTime) ? globalConst.electionState.PLANNED : Number(currentTime) < Number(election.votingEndTime) ? globalConst.electionState.ONGOING : globalConst.electionState.FINISHED;
         setElectionState(state);
         const tempStartTime = new Date(Number(voting.election.votingStartTime) * 1000);
-        const tempEndTime = new Date(Number(voting.election.votingEndTime) * 1000);
         setStartDate(tempStartTime);
-        setEndDate(tempEndTime);
+
+        if (voting.registerCode?.length === 0) {
+            updatePage({ current: globalConst.pages.LOADBALLOT, previous: globalConst.pages.POLLINGSTATION }, modes.replace);
+            return;
+        }
 
         // only if we have the electioninformations its worth to check
         // wether there is some voter informations stored.
@@ -184,10 +156,9 @@ export default function Pollingstation() {
                 headerText={pollingStationState.popupHeadline}
                 ctaButtonText={electionState === globalConst.electionState.ONGOING ? pollingStationState.popupButtonText : t("common.back")}
                 ctaButtonFunction={
-                    electionState === globalConst.electionState.ONGOING ?
-                        () => setPollingStationState(ctaButtonState(pollingStationState))
-                        :
-                        () => setPollingStationState({
+                    electionState === globalConst.electionState.ONGOING
+                        ? () => setPollingStationState(ctaButtonState(pollingStationState))
+                        : () => setPollingStationState({
                             ...pollingStationState,
                             showNotification: false
                         })
@@ -305,7 +276,7 @@ export default function Pollingstation() {
                         electionEndDate={election.votingEndTime}
                     />
                     <div style={{ textAlign: 'center', fontSize: '13px', marginTop: '10px' }}>
-                            {<div dangerouslySetInnerHTML={{ __html: t("register.countdown.election.start", { STARTDATE: startDate }) }} />}
+                        {<div dangerouslySetInnerHTML={{ __html: t("register.countdown.election.start", { STARTDATE: startDate }) }} />}
                     </div>
                 </div>
             )}

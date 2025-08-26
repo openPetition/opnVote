@@ -11,23 +11,23 @@ import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
 import NextImage from "next/image";
 import Modal from "@/components/Modal";
+import { checkBallot } from "@/util";
 
 export default function LoadBallot() {
     const { updatePage, voting, updateVoting } = useOpnVoteStore((state) => state);
     const [uploadedBallotCode, setUploadedBallotCode] = useState('');
+    const [error, setError] = useState(null);
     const { t } = useTranslation();
 
-    const qrCodeToCredentials = async (code) => {
-        let credentials = await qrToElectionCredentials(code);
-        if (Object.keys(credentials).length > 0) {
-            await validateCredentials(credentials);
-            if (voting?.election?.id && (parseInt(credentials?.electionID) === parseInt(voting?.election?.id))) {
-                updateVoting({ registerCode: code });
-                updatePage({ current: globalConst.pages.POLLINGSTATION });
-            } else {
-                // TODO Case: no election id given 
-            }
+    const qrCodeToCredentials = (code) => {
+        const result = checkBallot(voting.election, code);
+        if (result.result === 'success') {
+            updateVoting({ registerCode: result.registerCode });
+            updatePage({ current: globalConst.pages.POLLINGSTATION });
+        } else {
+            setError(result.error);
         }
+        setUploadedBallotCode('');
     };
 
     useEffect(() => {
@@ -40,6 +40,19 @@ export default function LoadBallot() {
 
     return (
         <>
+            {error && (
+                <Modal
+                    showModal={error}
+                    headerText={t(error.title)}
+                    ctaButtonText={t(error.button)}
+                    ctaButtonFunction={() => setError(null)}
+                >
+                    <Notification
+                        type="error"
+                        text={t(error.text)}
+                    />
+                </Modal>
+            )}
             <div className="op__margin_2_bottom">
                 <Headline
                     title={t("loadballot.upload.title")}

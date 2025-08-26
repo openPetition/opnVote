@@ -152,7 +152,7 @@
     "pollingstation.navigationbox.registerforelection.buttonText": "Wahlschein bestellen",
     "pollingstation.navigationbox.registerforelection.head": "Wahlschein bestellen",
     "pollingstation.navigationbox.registerforelection.text": "Ich habe noch keinen Wahlschein und möchte einen bestellen",
-    "pollingstation.notification.error.ballotdatacorrupt": "Die Daten dieses Wahlscheins konnten nicht verarbeitet werden.",
+    "pollingstation.notification.error.ballotdatacorrupt": "Die Daten dieses Wahlscheins konnten nicht verarbeitet werden. Haben Sie die richtige Datei eingelesen? Wahlscheine haben Dateinamen der Form opnVote_wahlschein_(Titel).pdf",
     "pollingstation.notification.error.ballotdatacorrupt.popup.buttontext": "Zurück zu Wahlschein laden",
     "pollingstation.notification.error.ballotdatacorrupt.popup.headline": "Verarbeitung des Wahlscheins fehlgeschlagen",
     "pollingstation.notification.error.ballotnotfitting": "Die Daten des gespeicherten Wahlscheins passen nicht zu dieser Wahl.",

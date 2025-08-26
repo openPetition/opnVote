@@ -159,7 +159,7 @@
     "pollingstation.navigationbox.registerforelection.buttonText": "Order election permit",
     "pollingstation.navigationbox.registerforelection.head": "Order election permit",
     "pollingstation.navigationbox.registerforelection.text": "I don't have an election permit yet and would like to order one",
-    "pollingstation.notification.error.ballotdatacorrupt": "The data of this election permit could not be processed.",
+    "pollingstation.notification.error.ballotdatacorrupt": "The data of this election permit could not be processed. Did you select the right file? Election permits have filenames like opnVote_electionpermit_(title).pdf",
     "pollingstation.notification.error.ballotdatacorrupt.popup.buttontext": "Back to load election permit",
     "pollingstation.notification.error.ballotdatacorrupt.popup.headline": "Failed to process the election permit",
     "pollingstation.notification.error.ballotnotfitting": "The data of the saved election permit does not match this election.",
