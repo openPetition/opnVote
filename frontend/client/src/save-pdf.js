@@ -332,19 +332,18 @@ export async function createPDF(qrCodeString, downloadHeadline, downloadSubHeadl
                         page.node.set("Annots", page.doc.context.obj([linkAnnotation]));
                     }
                 }
-                console.log(pdfContentLine);
                 let options = {
                     x: pdfContentLine.xPos ? pdfContentLine.xPos : 50,
                     y: yPos,
                     size: pdfContentLine.fontSize ? pdfContentLine.fontSize : 12,
                     font: pdfContentLine.font ? pdfContentLine.font : font,
-                    text: pdfContentLine.text
+                    text: pdfContentLine.text,
+                    color: pdfContentLine.color ? pdfContentLine.color : rgb(62 / 255, 61 / 255, 64 / 255)
                 };
 
                 if (pdfContentLine.maxWidth) { options.maxWidth = pdfContentLine.maxWidth; };
                 if (pdfContentLine.lineHeight) { options.lineHeight = pdfContentLine.lineHeight; };
                 if (pdfContentLine.wordBreaks) { options.wordBreaks = pdfContentLine.wordBreaks; };
-                if (pdfContentLine.color) { options.color = pdfContentLine.color; };
                 const text = page.drawText(pdfContentLine.text, options);
 
                 if (!pdfContentLine.noPush) {
@@ -354,7 +353,7 @@ export async function createPDF(qrCodeString, downloadHeadline, downloadSubHeadl
 
             if (pdfContentLine.type === pdfContentType.LINE) {
                 page.moveTo(pdfContentLine.moveX, yPos);
-                page.drawSvgPath(pdfContentLine.path, { borderColor: rgb(0, 0, 0), borderWidth: 1 });
+                page.drawSvgPath(pdfContentLine.path, { borderColor: rgb(62 / 255, 61 / 255, 64 / 255), borderWidth: 1 });
             }
 
             if (pdfContentLine.type === pdfContentType.IMAGE) {
