@@ -277,6 +277,8 @@
     "secret.notification.success.popup.understand": "Wahlschlüssel speichern",
     "secret.notification.success.text.key-generated": "Ihr Wahlschlüssel wurde erfolgreich erstellt. Jetzt müssen Sie ihn speichern.",
     "showballot.votingstartfuture.info": "<p><strong>Vom {{STARTDATE, date}} bis {{ENDDATE, date}} um {{ENDDATE, time}}  Uhr kann abgestimmt werden - wir werden Sie dann erneut per Mail und auf unserer Webseite informieren!</strong></p><p>Warum kann ich nicht direkt abstimmen? Das Erstellen von Wahlschlüssel und Wahlschein ist vom Abstimmungszeitraum getrennt, damit das System Ihre Identität nicht mit Ihrer Stimme verknüpfen kann: So wird sichergestellt, dass Ihre Wahl geheim bleibt. Nachdem Sie das PDF mit dem Wahlschein sicher abgespeichert haben, können Sie dieses Fenster schließen.</p>",
+    "showsecret.savedinfo.headline": "Klasse, Sie haben Ihren Wahlschlüssel gespeichert!",
+    "showsecret.savedinfo.text": "Jetzt können Sie Ihren Wahlschein erstellen. Klicken Sie dafür auf den folgenden Button:",
     "votetransactionstate.error.alreadyvoted": "Mit diesem Wahlschein wurde bereits abgestimmt.",
     "votetransactionstate.error.servererror": "Der Server konnte nicht erreicht werden.",
     "votetransactionstate.error.transaction": "Die Transaktion ist fehlerhaft. Bitte wenden Sie sich an die Wahlleitung.",

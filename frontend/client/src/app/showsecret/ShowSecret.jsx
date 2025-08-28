@@ -37,18 +37,26 @@ export default function ShowSecret() {
             </div>
             <main className="op__contentbox_760">
                 <>
-                    <GenerateQRCode
-                        headline={t("secret.generateqrcode.headline")}
-                        text={user.key}
-                        downloadHeadline={(t("secret.generateqrcode.downloadHeadline")).toUpperCase()}
-                        downloadFilename={t("secret.generateqrcode.downloadFilename", { CREATIONDATE: new Date().toISOString().split('T')[0] })}
-                        headimage="key-no-whitespace"
-                        saveButtonText={t("secret.generateqrcode.savebuttontext")}
-                        saved={user.keySaved}
-                        qrCodeString={user.key}
-                        pdfQRtype={globalConst.pdfType.VOTINGKEY}
-                        afterSaveFunction={() => updateUserKey(user.key, true, false)}
-                    />
+                    {!user.keySaved && (
+                        <GenerateQRCode
+                            headline={t("secret.generateqrcode.headline")}
+                            text={user.key}
+                            downloadHeadline={(t("secret.generateqrcode.downloadHeadline")).toUpperCase()}
+                            downloadFilename={t("secret.generateqrcode.downloadFilename", { CREATIONDATE: new Date().toISOString().split('T')[0] })}
+                            headimage="key-no-whitespace"
+                            saveButtonText={t("secret.generateqrcode.savebuttontext")}
+                            saved={user.keySaved}
+                            qrCodeString={user.key}
+                            pdfQRtype={globalConst.pdfType.VOTINGKEY}
+                            afterSaveFunction={() => updateUserKey(user.key, true, false)}
+                        />
+                    )}
+                    {user.keySaved && (
+                        <div className="op__margin_standard_top_bottom op__outerbox_grey op__padding_standard">
+                            <h3>{t("showsecret.savedinfo.headline")}</h3>
+                            <p>{t("showsecret.savedinfo.text")}</p>
+                        </div>
+                    )}
                     {!isNaN(voting.electionId) && voting.jwt && (
                         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.875rem' }}>
                             <button
