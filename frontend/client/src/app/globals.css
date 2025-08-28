@@ -363,6 +363,11 @@ hr:last-child {
 	gap: 30px;
 }
 
+.op__overflowwrap_breakword {
+	overflow: hidden;
+	overflow-wrap: break-word;
+}
+
 @media only screen and (min-width: 800px) {
 
 	/* layout behaviour elements */

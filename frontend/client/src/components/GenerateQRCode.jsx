@@ -89,42 +89,44 @@ export default function GenerateQRCode(props) {
                     <strong>{headline}</strong>
                     <p className="op__margin_standard_top_bottom text_small">{subheadline}</p>
                     <div className={styles.zigzagbox}>
-                        <div className="op__flex_center-center op__margin_standard_top_bottom">
-                            <div className={styles.icondiv}>
-                                <img src={`/images/icon-${headimage}.svg`} className={styles.icon}></img>
+                        <div className="op__margin_standard op__overflowwrap_breakword">
+                            <div className="op__flex_center-center op__margin_standard_top_bottom">
+                                <div className={styles.icondiv}>
+                                    <img src={`/images/icon-${headimage}.svg`} className={styles.icon}></img>
+                                </div>
+                                <h3 className="op__overflowwrap_breakword text_xlarge" >{downloadHeadline}</h3>
+
                             </div>
-                            <h3 className="text_xlarge" >{downloadHeadline}</h3>
-
-                        </div>
-                        {downloadSubHeadline && (
-                            <>
-                                <p className="op__margin_standard_top_bottom">{downloadSubHeadline}</p>
-                            </>
-                        )}
-                        <QRCodeCanvas
-                            value={qrCodeString}
-                            size={300}
-                            bgColor={"#ffffff"}
-                            fgColor={"#000000"}
-                            level={"Q"}
-                            id="qrCodeCanvas"
-                            style={{ margin: "1rem auto", fontweight: "bold", display:  "none" }}
-                            imageSettings={
-                                {
-                                    src: `/images/icon-${headimage}.svg`,
-                                    width: 60,
-                                    height: 60,
-                                    excavate: true
+                            {downloadSubHeadline && (
+                                <>
+                                    <p className="op__margin_standard_top_bottom">{downloadSubHeadline}</p>
+                                </>
+                            )}
+                            <QRCodeCanvas
+                                value={qrCodeString}
+                                size={300}
+                                bgColor={"#ffffff"}
+                                fgColor={"#000000"}
+                                level={"Q"}
+                                id="qrCodeCanvas"
+                                style={{ margin: "1rem auto", fontweight: "bold", display: "none" }}
+                                imageSettings={
+                                    {
+                                        src: `/images/icon-${headimage}.svg`,
+                                        width: 60,
+                                        height: 60,
+                                        excavate: true
+                                    }
                                 }
-                            }
-                        />
+                            />
 
-                        <canvas
-                            id="canvas"
-                            width="300"
-                            height="400"
-                            style={{ display: "none" }}
-                        />
+                            <canvas
+                                id="canvas"
+                                width="300"
+                                height="400"
+                                style={{ display: "none" }}
+                            />
+                        </div>
                     </div>
                     <div className={styles.buttonbox}>
                         <button
@@ -143,6 +145,7 @@ export default function GenerateQRCode(props) {
                             {saveButtonText}
                         </button>
                     </div>
+
                 </div>
             </div>
         </>
