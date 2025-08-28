@@ -208,6 +208,7 @@
     "register.generateqrcode.downloadFilename": "opnVote_electionpermit_{{ELECTIONTITLE}}",
     "register.generateqrcode.downloadHeadline": "Election permit",
     "register.generateqrcode.headline": "Save election permit",
+    "register.generateqrcode.saveagainbuttontext": "Save election permit (PDF) again",
     "register.generateqrcode.savebuttontext": "Save as PDF",
     "register.headline.infoText": "You need an internet connection to order your election permit. If you were offline previously, you must now reactivate your internet connection!",
     "register.headline.orderballot": "Order election permit",
