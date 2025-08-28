@@ -24,11 +24,11 @@ export async function getBlindedSignature(jwttoken, blindedElectionToken) {
     const response = await fetch(Config.env.blindedSignatureUrl, signOptions);
     const jsondata = await response.json();
     if (jsondata.error?.length > 0) {
-        switch (jsondata.error) {
-            case 'Already registered':
+        switch (jsondata.error.toLowerCase()) {
+            case 'already registered':
                 throw new ServerError(globalConst.ERROR.ALREADYREGISTERED);
                 break;
-            case 'Failed to authenticate JWT':
+            case 'failed to authenticate jwt':
                 throw new ServerError(globalConst.ERROR.JWTAUTH);
                 break;
             default:

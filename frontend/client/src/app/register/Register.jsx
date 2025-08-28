@@ -159,7 +159,7 @@ export default function Register() {
     };
 
     const goToStart = () => {
-        window.location = voting.electionInformation.backLink;
+        window.location = voting.electionInformation.backLink + '?refreshElectionPermit=' + voting.electionId;
     };
 
     const copyToClipboard = () => {
