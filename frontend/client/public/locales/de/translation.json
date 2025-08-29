@@ -254,6 +254,7 @@
     "secret.generateqrcode.downloadFilename": "opnVote_wahlschluessel_{{CREATIONDATE, date}}",
     "secret.generateqrcode.downloadHeadline": "Wahlschlüssel",
     "secret.generateqrcode.headline": "Speichern Sie jetzt Ihren Wahlschlüssel",
+    "secret.generateqrcode.saveagainbuttontext": "Wahlschlüssel erneut speichern",
     "secret.generateqrcode.savebuttontext": "Als PDF speichern",
     "secret.headline.createSecret.infoText": "Der Wahlschlüssel wird lokal und ohne Internetverbindung auf Ihrem Gerät erstellt.",
     "secret.headline.createSecret.text": "Der Wahlschlüssel garantiert, dass Ihre Stimmabgabe geheim ist.",

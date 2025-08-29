@@ -261,6 +261,7 @@
     "secret.generateqrcode.downloadFilename": "opnVote_votingkey_{{CREATIONDATE, date}}",
     "secret.generateqrcode.downloadHeadline": "Voting Key",
     "secret.generateqrcode.headline": "Save voting key",
+    "secret.generateqrcode.saveagainbuttontext": "Save voting key again",
     "secret.generateqrcode.savebuttontext": "Save as PDF",
     "secret.headline.createSecret.infoText": "The voting key is generated locally and without using internet connection on your device.",
     "secret.headline.createSecret.text": "The voting key guarantees that your vote stays confidental.",
