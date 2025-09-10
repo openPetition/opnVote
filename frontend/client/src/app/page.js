@@ -32,10 +32,9 @@ export default function Home() {
                     text={t("common.apploadfailed")}
                 />
                 <Button
-                    text={t("common.back")}
                     type="primary"
-                    onClickAction={() => history.back()} // we might dont know anything else here if no data / election loaded
-                />
+                    onClick={() => history.back()} // we might dont know anything else here if no data / election loaded
+                >{t("common.back")}</Button>
             </div>
         );
     };

@@ -83,11 +83,10 @@ export default function Modal(props) {
                                 {ctaButtonText && (
                                     <div className={styles.modalFooter}>
                                         <Button
-                                            onClickAction={ctaButtonFunction}
-                                            text={ctaButtonText}
+                                            onClick={ctaButtonFunction}
                                             type="primary"
                                             stretched={true}
-                                        />
+                                        >{ctaButtonText}</Button>
                                     </div>
                                 )}
                             </div>

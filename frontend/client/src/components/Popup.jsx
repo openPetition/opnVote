@@ -44,10 +44,9 @@ export default function Popup(props) {
                             {buttonText && (
                                 <div className={styles.popupFooter}>
                                     <Button
-                                        onClickAction={buttonFunction}
-                                        text={buttonText}
+                                        onClick={buttonFunction}
                                         type="primary"
-                                    />
+                                    >{buttonText}</Button>
                                 </div>
                             )}
                         </div>

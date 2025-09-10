@@ -1,0 +1,34 @@
+.navigationbox_upload_bg_qr {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: bottom;
+    padding-top: 0.75rem;
+}
+
+.electiontime_content_box {
+    max-width: 460px;
+    background-color: #efefef;
+    border-radius: 4px;
+    padding: 20px;
+    margin: 8rem auto 2rem auto;
+}
+
+.innerbox {
+    position: relative;
+    text-align: left;
+    background-repeat: no-repeat;
+    padding-right: 2rem;
+    background-position: right 10px center;
+    background-size: .5rem;
+}
+
+.innerbox:hover {
+    cursor: pointer;
+}
+
+@media only screen and (min-width: 600px) {
+    .navigationbox_upload_bg_qr {
+        margin-top: -1rem;
+    }
+}

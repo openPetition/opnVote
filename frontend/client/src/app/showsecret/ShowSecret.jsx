@@ -1,5 +1,4 @@
 'use client';
-import btn_styles from "@/styles/Button.module.css";
 import GenerateQRCode from "../../components/GenerateQRCode";
 import Notification from "../../components/Notification";
 import { useTranslation } from "next-i18next";
@@ -10,7 +9,7 @@ import Modal from '@/components/Modal';
 import globalConst from "@/constants";
 import { createPDF } from "@/save-pdf";
 import { useEffect } from "react";
-
+import Button from '@/components/Button';
 
 export default function ShowSecret() {
     const { t } = useTranslation();
@@ -42,10 +41,10 @@ export default function ShowSecret() {
                             <h3>{t("showsecret.savedinfo.headline")}</h3>
                             <p>{t("showsecret.savedinfo.text")}</p>
                             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.875rem' }}>
-                                <button
+                                <Button
                                     onClick={() => goToRegister()}
                                     disabled={!user.keySaved}
-                                    className={`${btn_styles.primary} ${btn_styles.btn}`}
+                                    type="primary"
                                     style={{ display: 'flex', justifyContent: 'center', gap: '10px', alignItems: 'flex-end' }}
                                 >
                                     {t("secret.navigationbox.gotoregister.aftergenerated.buttonText")}
@@ -58,7 +57,7 @@ export default function ShowSecret() {
                                                 <ArrowRightIcon stroke={'white'} strokeWidth={'3'} width={20} />
                                         }
                                     </div>
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     )}

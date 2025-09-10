@@ -1,5 +1,3 @@
-import { t } from "i18next";
-
 const globalConst = {
     progressBarStep: {
         'id': 1,
@@ -46,29 +44,6 @@ const globalConst = {
     pdfType: {
         'VOTINGKEY': 'votingkey',
         'ELECTIONPERMIT': 'electionpermit',
-    },
-};
-
-export const translationConst = {
-    pollingStationElectionHeaderCountdown: {
-        [globalConst.electionState.PLANNED]: t('pollingstation.electionheader.countdown.headline.planned'),
-        [globalConst.electionState.ONGOING]: t('pollingstation.electionheader.countdown.headline.ongoing'),
-        [globalConst.electionState.FINISHED]: t('pollingstation.electionheader.countdown.headline.finished'),
-    },
-    pollingStationElectionHeaderStateTitle: {
-        [globalConst.electionState.PLANNED]: t('pollingstation.electionHeader.statetitle.planned'),
-        [globalConst.electionState.ONGOING]: t('pollingstation.electionHeader.statetitle.ongoing'),
-        [globalConst.electionState.FINISHED]: t('pollingstation.electionHeader.statetitle.finished'),
-    },
-    registerSmallHeaderStateTitle: {
-        [globalConst.electionState.PLANNED]: t('register.smallHeader.statetitle.planned'),
-        [globalConst.electionState.ONGOING]: t('register.smallHeader.statetitle.ongoing'),
-        [globalConst.electionState.FINISHED]: t('register.smallHeader.statetitle.finished'),
-    },
-    registerSmallHeaderWhatshappening: {
-        [globalConst.electionState.PLANNED]: t('register.smallHeader.whatshappening.state.planned'),
-        [globalConst.electionState.ONGOING]: t('register.smallHeader.whatshappening.state.ongoing'),
-        [globalConst.electionState.FINISHED]: t('register.smallHeader.whatshappening.state.finished'),
     },
 };
 

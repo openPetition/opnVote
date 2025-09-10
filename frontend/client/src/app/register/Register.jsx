@@ -17,9 +17,7 @@ import { qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, blindToke
 import Config from "../../../next.config.mjs";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
-import { translationConst } from "@/constants";
 import Headline from "@/components/Headline";
-import Popup from "@/components/Popup";
 import Modal from "@/components/Modal";
 import ElectionTimeInfo from "@/components/ElectionTimeInfo";
 import { createPDF } from "@/save-pdf";
@@ -344,15 +342,14 @@ export default function Register() {
                             <>
                                 <div className="op__center-align op__margin_standard_top_bottom">
                                     <Button
-                                        onClickAction={activateQRCodeUpload}
-                                        text={t("register.button.orderballot")}
+                                        onClick={activateQRCodeUpload}
                                         type="primary"
-                                    />
+                                    >{t("register.button.orderballot")}</Button>
                                 </div>
                                 <div className="flex items-center justify-center">
                                     <div>
                                         <NavigationBox
-                                            onClickAction={goToCreatesecret}
+                                            onClick={goToCreatesecret}
                                             head={t("register.navigationbox.gotocreatesecret.head")}
                                             text={t("register.navigationbox.gotocreatesecret.text")}
                                             buttonText={t("register.navigationbox.gotocreatesecret.buttonText")}
@@ -405,24 +402,22 @@ export default function Register() {
 
                                 <div className="op__display_none_small op__display_none_wide">
                                     <Button
-                                        onClickAction={() =>
+                                        onClick={() =>
                                             setRegisterState({
                                                 ...registerState,
                                                 showContinueModal: true
                                             })}
-                                        text={t("register.button.votelater.text")}
                                         type="primary"
-                                    />
+                                    >{t("register.button.votelater.text")}</Button>
                                 </div>
 
                                 {electionState === globalConst.electionState.ONGOING && (
                                     <>
                                         <div className="op__center-align op__margin_standard_20_top_bottom">
                                             <Button
-                                                onClickAction={goToElection}
-                                                text={t("register.button.gotoelection.text")}
+                                                onClick={goToElection}
                                                 type="secondary"
-                                            />
+                                            >{t("register.button.gotoelection.text")}</Button>
                                         </div>
                                     </>
                                 )}
@@ -505,10 +500,9 @@ export default function Register() {
 
                         <div className="op__margin_standard_20_top_bottom">
                             <Button
-                                onClickAction={goToElection}
-                                text={t("register.button.gotoelection.text")}
+                                onClick={goToElection}
                                 type="secondary"
-                            />
+                            >{t("register.button.gotoelection.text")}</Button>
                         </div>
                     </>
                 )}

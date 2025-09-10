@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import Notification from "@/components/Notification";
-import Button from '@/components/Button';
 import HtmlQRCodePlugin from "@/components/ScanUploadQRCode";
 import Headline from "@/components/Headline";
 import { qrToElectionCredentials, validateCredentials } from "votingsystem";

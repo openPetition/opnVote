@@ -35,10 +35,9 @@ export default function Notification(props) {
                 {buttonText && (
                     <div className={`op__center-align op__margin_standard_top`} >
                         <Button
-                            text={buttonText}
                             type="primary"
-                            onClickAction={buttonAction}
-                        />
+                            onClick={buttonAction}
+                        >{buttonText}</Button>
                     </div>
                 )}
             </div>

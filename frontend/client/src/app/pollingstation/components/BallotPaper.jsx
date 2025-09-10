@@ -95,10 +95,7 @@ export default function BallotPaper(props) {
 
                     )}
                 </div>
-                <div className={styles.ballot_paper_border}></div>
-                <div className={'op__padding_standard_20'}>
-                    <p>{t('pollingstation.ballotPaper.voteInvalid')}</p>
-                </div>
+
             </div>
             <div className="op__contentbox_960 op__center-align">
 
@@ -106,12 +103,11 @@ export default function BallotPaper(props) {
                     <>
                         <div className="op__center-align">
                             <Button
-                                onClickAction={saveVotes}
-                                isDisabled={ballotStationState.pending}
-                                text={t("pollingstation.button.savevotes")}
+                                onClick={saveVotes}
+                                disabled={ballotStationState.pending}
                                 type="primary"
                                 id="test_btn_sendvote"
-                            />
+                            >{t("pollingstation.button.savevotes")}</Button>
                         </div>
                         {ballotStationState.showSendError && (
                             <Notification type="error" text={ballotStationState.showSendError} />
@@ -121,11 +117,10 @@ export default function BallotPaper(props) {
                     :
                     <div className="op__center-align">
                         <Button
-                            onClickAction={() => updatePage({ current: globalConst.pages.OVERVIEW })}
-                            isDisabled={ballotStationState.pending}
-                            text={t("common.gotooverview")}
+                            onClick={() => updatePage({ current: globalConst.pages.OVERVIEW })}
+                            disabled={ballotStationState.pending}
                             type="primary"
-                        />
+                        >{t("common.gotooverview")}</Button>
                     </div>
                 }
             </div>

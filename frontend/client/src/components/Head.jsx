@@ -141,7 +141,7 @@ export default function Head() {
 
     };
 
-    const goToHelpPage = () => {
+    const goToFaqPage = () => {
         if (page.current === 'faq') {
             closeMenu();
             return;
@@ -220,7 +220,7 @@ export default function Head() {
                                     {t('navigation.point.electiondocs')}
                                 </button></li>
                                 <li><a href="https://www.opn.vote/" className={styles.menulink}>{t('navigation.point.blog')}</a></li>
-                                <li><button className={styles.menulink} onClick={goToHelpPage}>{t('navigation.point.faq')}</button></li>
+                                <li><button className={styles.menulink} onClick={goToFaqPage}>{t('navigation.point.faq')}</button></li>
                                 <li><button className={styles.menulink} onClick={goToGlossaryPage}>{t('navigation.point.glossary')}</button></li>
 
                             </ul>

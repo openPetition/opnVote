@@ -1,31 +1,22 @@
 'use client';
-import { useState, useEffect } from "react";
-import { generateMasterTokenAndMasterR, concatTokenAndRForQR } from "votingsystem";
-import GenerateQRCode from "../../components/GenerateQRCode";
-import Notification from "../../components/Notification";
+import { useEffect } from "react";
 import { useTranslation } from "next-i18next";
 import { useOpnVoteStore, modes } from "../../opnVoteStore";
 import Headline from "@/components/Headline";
-import btn_styles from "@/styles/Button.module.css";
-import { ArrowRightIcon } from "lucide-react";
-import Modal from '@/components/Modal';
 import globalConst from "@/constants";
-import navigationbox_styles from "@/styles/NavigationBox.module.css";
-import NextImage from "next/image";
 import ScanUploadQRCode from "@/components/ScanUploadQRCode";
+import Button from "@/components/Button";
 
 export default function LoadSecret() {
-    const [showMod, setShowMod] = useState(false);
     const { t } = useTranslation();
 
-    const { user, voting, updateUserKey, updatePage } = useOpnVoteStore((state) => state);
+    const { user, updateUserKey, updatePage } = useOpnVoteStore((state) => state);
 
     useEffect(() => {
         if (user?.key?.length > 0) {
             updatePage({ current: globalConst.pages.SHOWKEY }, modes.replace);
         }
     }, [user]);
-
 
     return (
         <>
@@ -45,14 +36,11 @@ export default function LoadSecret() {
                         scanSubHeadline={t("register.uploadqrcode.scanSubHeadline")}
                         onResult={(res) => updateUserKey(res, true)}
                     />
-                    <button
+                    <Button
                         onClick={() => { updatePage({ current: globalConst.pages.CREATEKEY }); }}
-                        className={`${btn_styles.secondary} ${btn_styles.btn}`}
-                    >
-                        {t("keycheck.backToSecretCreation")}
-                    </button>
+                        type="primary"
+                    >{t("loadsecret.backToSecretCreation")}</Button>
                 </>
-
             </main>
         </>
     );

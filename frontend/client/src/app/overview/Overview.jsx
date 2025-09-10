@@ -3,10 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from 'next/link';
 import { useTranslation, Trans } from "next-i18next";
-import Notification from "@/components/Notification";
-import Loading from '@/components/Loading';
 import Headline from "@/components/Headline";
-import { AlreadyVotedError, ServerError, getTransactionState } from '../../service';
 import { useOpnVoteStore } from "../../opnVoteStore";
 import styles from './styles/overview.module.css';
 import globalConst from "@/constants";

@@ -90,10 +90,9 @@ export default function Faq() {
             </main>
             <div className="op__center-align">
                 <Button
-                    onClickAction={() => history.back()}
-                    text={t("common.back")}
+                    onClick={() => history.back()}
                     type="primary"
-                />
+                >{t("common.back")}</Button>
             </div>
         </>
     );

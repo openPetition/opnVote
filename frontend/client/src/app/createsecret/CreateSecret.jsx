@@ -1,15 +1,12 @@
 'use client';
 import { useState, useEffect } from "react";
 import { generateMasterTokenAndMasterR, concatTokenAndRForQR } from "votingsystem";
-import LoadKey from "./components/Key";
+import LoadKey from "./components/LoadKey";
 import { useTranslation } from "next-i18next";
 import { useOpnVoteStore, modes } from "../../opnVoteStore";
 import Headline from "@/components/Headline";
 import globalConst from "@/constants";
 import styles from "./styles/CreateSecret.module.css";
-import qr_styles from "@/styles/ScanUploadQRCode.module.css";
-import navigationbox_styles from "@/styles/NavigationBox.module.css";
-import NextImage from "next/image";
 
 export default function CreateSecret() {
     const { t } = useTranslation();
@@ -63,7 +60,7 @@ export default function CreateSecret() {
             <main className="op__contentbox_760">
 
                 <LoadKey
-                    onClickAction={generateAndCreate}
+                    onClick={generateAndCreate}
                     animationDuration={1}
                     showLoadingAnimation={createSecretState.loadingAnimation}
                 />

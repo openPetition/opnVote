@@ -7,7 +7,7 @@ import Button from "@/components/Button";
 export default function LoadKey(props) {
     const [isRendered, setIsRendered] = useState(false);
     const { t } = useTranslation();
-    const { showLoadingAnimation, animationDuration, onClickAction } = props;
+    const { showLoadingAnimation, animationDuration, onClick } = props;
 
     const startAnimation = () => {
         var elements = document.getElementsByClassName('animatefirst');
@@ -35,7 +35,7 @@ export default function LoadKey(props) {
                 {isRendered && (
                     <>
                         <p className="op__center-align op__padding_standard_bottom">{t('secret.headline.createSecret.infoText')}</p>
-                        <button className={styles.key_circle_button} onClick={onClickAction}>
+                        <button className={styles.key_circle_button} onClick={onClick}>
                             <svg id={styles.key_svg} xmlns="http://www.w3.org/2000/svg" width="140" height="67.47" viewBox="0 0 140 67.47">
                                 <defs>
                                     <linearGradient id="left-to-right-circle">
@@ -78,10 +78,9 @@ export default function LoadKey(props) {
                         </button>
                         <div className="op__center-align op__margin_standard_20_top_bottom">
                             <Button
-                                onClickAction={onClickAction}
-                                text={t("secret.key.button")}
+                                onClick={onClick}
                                 type="primary"
-                            />
+                            >{t("secret.key.button")}</Button>
                         </div>
                     </>
                 )}

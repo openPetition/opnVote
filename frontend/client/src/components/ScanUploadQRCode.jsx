@@ -139,10 +139,9 @@ export default function ScanUploadQRCode(props) {
                 </div>
                 <div className={styles.innerbox}>
                     <Button
-                        onClickAction={scanLocalFile}
+                        onClick={scanLocalFile}
                         type="primary_light"
-                        text={t('scanuploadqrcode.image.select')}
-                    />
+                    >{t('scanuploadqrcode.image.select')}</Button>
                     <input
                         type="file"
                         hidden
@@ -183,15 +182,13 @@ export default function ScanUploadQRCode(props) {
                     )}
 
                     <Button
-                        onClickAction={() => startScanClick()}
+                        onClick={() => startScanClick()}
                         type={`${showStopScanBtn ? "hide" : "primary_light"}`}
-                        text={t('scanuploadqrcode.camera.start')}
-                    />
+                    >{t('scanuploadqrcode.camera.start')}</Button>
                     <Button
-                        onClickAction={() => handleStop()}
+                        onClick={() => handleStop()}
                         type={`${showStopScanBtn ? "primary_light" : "hide"}`}
-                        text={t('scanuploadqrcode.camera.stop')}
-                    />
+                    >{t('scanuploadqrcode.camera.stop')}</Button>
                 </div>
             </div>
         </>

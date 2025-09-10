@@ -1,14 +1,11 @@
 'use client';
-import { useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import globalConst from "@/constants";
 import styles from '../styles/GenerateQRCode.module.css';
-import btn_styles from '../styles/Button.module.css';
 import PropTypes from "prop-types";
 import { Download } from "lucide-react";
 import { useTranslation } from "next-i18next";
 import { createPDF } from "@/save-pdf";
+import Button from './Button';
 
 export default function GenerateQRCode(props) {
     const { headline, subheadline, qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, headimage, saveButtonText, pdfQRtype, afterSaveFunction, saved, pdfInformation } = props;
@@ -129,10 +126,11 @@ export default function GenerateQRCode(props) {
                         </div>
                     </div>
                     <div className={styles.buttonbox}>
-                        <button
+                        <Button
                             onClick={givePDF}
-                            className={saved ? `${btn_styles.secondary} ${btn_styles.btn}` : `${btn_styles.primary} ${btn_styles.btn}`}
-                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }} >
+                            type={saved ? 'secondary' : 'primary'}
+                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }}
+                        >
                             <div style={{ alignSelf: 'center' }}>
                                 {
                                     (saved)
@@ -143,7 +141,7 @@ export default function GenerateQRCode(props) {
                                 }
                             </div>
                             {saveButtonText}
-                        </button>
+                        </Button>
                     </div>
 
                 </div>

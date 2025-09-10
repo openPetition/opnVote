@@ -22,8 +22,8 @@ html {
 
 	--op-padding-small: .6255rem; 		/*10px*/
 	--op-padding-standard: .9375rem;	/*15px*/
-	--op-padding-standard--20: 1.25rem;	/*20px*/
-	--op-padding-large: 1.875rem;		/*30px*/
+	--op-padding-standard--20: 1.25rem; /*20px*/
+	--op-padding-large: 1.875rem; 		/*30px*/
 
 	--op-border-radius: 4px;
 
@@ -34,7 +34,7 @@ html {
 	--op-font-size-standard: 1rem/1.4375rem;
 	--op-font-size-bigger: 1.125rem/1.5rem;
 
-	--op-viewport--small: 660px; /* checken warum 660 oder lieber 760 px nutzen????*/
+	--op-viewport--small: 660px; 		/* checken warum 660 oder lieber 760 px nutzen????*/
 	--op-viewport--medium: 960px;
 	--op-viewport--large: 1200px;
 
@@ -166,7 +166,6 @@ hr:last-child {
 .op__padding_large {
 	padding: var(--op-padding-large);
 }
-
 
 .op__margin_left_auto {
 	margin-left: auto;

@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import qr_styles from "@/styles/ScanUploadQRCode.module.css";
-import navigationbox_styles from "@/styles/NavigationBox.module.css";
-import election_time_styles from "@/styles/ElectionTime.module.css";
+import styles from "./styles/Pollingstation.module.css";
 import Notification from "@/components/Notification";
 import Button from '@/components/Button';
 import Headline from "@/components/Headline";
@@ -199,9 +197,9 @@ export default function Pollingstation() {
                                             showQuestions: false,
                                             showNotification: false,
                                         })}>
-                                    <div className={`${navigationbox_styles.innerbox} op__width_100`} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
+                                    <div className={`${styles.innerbox} op__width_100`} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
                                         <div className="flex op__gap_30" >
-                                            <div className={qr_styles.qrbg}>
+                                            <div className={styles.navigationbox_upload_bg_qr}>
                                                 <NextImage
                                                     priority
                                                     src="/images/load-picture.svg"
@@ -227,9 +225,9 @@ export default function Pollingstation() {
                                             showQuestions: false,
                                             showNotification: false,
                                         })}>
-                                    <div className={`${navigationbox_styles.innerbox} op__width_100`} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
+                                    <div className={`${styles.innerbox} op__width_100`} style={{ backgroundImage: `url('/images/arrow-right-dark-grey.svg')` }}>
                                         <div className="flex op__gap_30">
-                                            <div className={qr_styles.qrbg}>
+                                            <div className={styles.navigationbox_upload_bg_qr}>
                                                 <NextImage
                                                     priority
                                                     src="/images/scan-qrcode.svg"
@@ -268,7 +266,7 @@ export default function Pollingstation() {
             }
 
             {electionState === globalConst.electionState.PLANNED && (
-                <div className={election_time_styles.content_box}>
+                <div className={styles.electiontime_content_box}>
                     <ElectionTimeInfo
                         countDownEndTime={election.votingStartTime}
                         countDownState={electionState}
@@ -281,7 +279,7 @@ export default function Pollingstation() {
                 </div>
             )}
             {electionState === globalConst.electionState.FINISHED && (
-                <div className={election_time_styles.content_box}>
+                <div className={styles.electiontime_content_box}>
                     <ElectionTimeInfo
                         countDownEndTime={election.votingStartTime}
                         countDownState={electionState}
@@ -306,7 +304,7 @@ export default function Pollingstation() {
 
                         <div className="op__center_align">
                             <Button
-                                onClickAction={() =>
+                                onClick={() =>
                                     setPollingStationState({
                                         ...pollingStationState,
                                         showVotingSlipUpload: false,
@@ -314,9 +312,8 @@ export default function Pollingstation() {
                                         showVotingSlipSelection: true,
                                     })
                                 }
-                                text={t("pollingstation.button.cancel")}
                                 type="primary"
-                            />
+                            >{t("pollingstation.button.cancel")}</Button>
                         </div>
 
                     </div>
