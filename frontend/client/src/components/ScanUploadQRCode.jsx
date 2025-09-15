@@ -25,7 +25,6 @@ export default function ScanUploadQRCode(props) {
         html5QrCode = new Html5Qrcode("reader");
         const oldRegion = document.getElementById("qr-shaded-region");
         oldRegion && oldRegion.remove();
-
     }, []);
 
     const extractData = async (file) => {
@@ -33,19 +32,59 @@ export default function ScanUploadQRCode(props) {
             return;
         };
         setIsLoading(true);
+
+        const fileBuffer = await file.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(fileBuffer);
+        const extractCode = pdfDoc.getSubject()?.split('QRCODE:')[1];
+        if (extractCode && extractCode != 'undefined') {
+            props.onResult(extractCode);
+        } else {
+            extractWithConvert(file);
+            return;
+        }
+        setIsLoading(true);
+    };
+
+    const extractWithConvert = async (file) => {
         try {
-            const fileBuffer = await file.arrayBuffer();
-            const pdfDoc = await PDFDocument.load(fileBuffer);
-            const extractCode = pdfDoc.getSubject().split('QRCODE:')[1];
-            if (extractCode && extractCode != 'undefined') {
-                props.onResult(extractCode);
+            let pdfjsLib = await import('pdfjs-dist', { ssr: false });
+            pdfjsLib.GlobalWorkerOptions.workerSrc = window.location.origin + "/pdf.worker.min.js";
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 2 });
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            await page.render({
+                canvasContext: context,
+                viewport: viewport,
+            }).promise;
+
+            try {
+                // Convert canvas to blob
+                const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+                const newImageFile = new File([blob], `qrcode.png`, { type: "image/png" });
+                html5QrCode
+                    .scanFile(newImageFile, false)
+                    .then((qrCodeMessage) => {
+                        // handover -> do sth with result
+                        props.onResult(qrCodeMessage);
+                        html5QrCode.clear();
+                    })
+                    .catch((err) => {
+                        console.debug(`Error scanning file. Reason: ${err}`);
+                    });
+            } catch (qrError) {
+                console.log(`No QR code found`);
             }
         } catch (err) {
-            console.debug(`Error scanning File. Reason: ${err}`);
-        } finally {
-            setIsLoading(false);
+            console.log("Error processing PDF: " + err.message);
         }
     };
+
 
     const startScanClick = () => {
         setShowScanNotification(false);

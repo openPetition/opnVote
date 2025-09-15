@@ -170,13 +170,14 @@ export default function Overview() {
                     <BoxIcon box={box} />
                     <h3>{t('overview.box.vote.title')}</h3>
                 </BoxHead>
-                <p>
-                    {t('overview.box.vote.text', {
-                        VOTESTART: new Date(Number(voting.election.votingStartTime) * 1000),
-                        VOTEEND: new Date(Number(voting.election.votingEndTime) * 1000), 
-                        interpolation: { escapeValue: false }
-                    })}
-                </p>
+                <p dangerouslySetInnerHTML={{
+                    __html:
+                        t('overview.box.vote.text', {
+                            VOTESTART: new Date(Number(voting.election.votingStartTime) * 1000),
+                            VOTEEND: new Date(Number(voting.election.votingEndTime) * 1000),
+                            interpolation: { escapeValue: false }
+                        })
+                }} />
                 {box.state == BOX_STATE_ACTIVATABLE && box.future && (
                     <p dangerouslySetInnerHTML={{ __html: t('overview.box.vote.future', { VOTESTART: new Date(Number(box.future) * 1000) }) }} />
                 )}
