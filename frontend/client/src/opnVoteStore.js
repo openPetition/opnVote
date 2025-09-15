@@ -79,6 +79,16 @@ export const useOpnVoteStore = create(
                     initKey: initKey
                     }
                 })),
+            clear: () => set((state) => ({
+                user: emptyUser,
+                voting: {
+                    ...emptyVoting,
+                    electionId: state.voting.electionId,
+                    election: state.voting.election,
+                    electionInformation: state.voting.electionInformation,
+                },
+                taskId: '',
+            })),
             updateVoting: (votingData) =>
                 set((state) => ({
                     voting: {

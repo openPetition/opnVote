@@ -34,6 +34,13 @@
     padding: 1rem;
 }
 
+.danger {
+    background-color: var(--op-red);
+    color: white;
+    padding: 1rem;
+    font: normal normal bold var(--op-font-size-standard) 'op__roboto';
+}
+
 .dark {
     color: white;
     background-color: var(--op-blue-dark);
