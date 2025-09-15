@@ -10,6 +10,7 @@ import globalConst from "@/constants";
 import NextImage from "next/image";
 import Modal from "@/components/Modal";
 import { checkBallot } from "@/util";
+import Notification from "@/components/Notification";
 
 export default function LoadBallot() {
     const { updatePage, voting, updateVoting } = useOpnVoteStore((state) => state);
@@ -70,5 +71,5 @@ export default function LoadBallot() {
                 />
             </main>
         </>
-    )
+    );
 }
