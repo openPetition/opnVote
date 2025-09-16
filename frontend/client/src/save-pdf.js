@@ -394,7 +394,6 @@ export async function createPDF(qrCodeString, downloadHeadline, downloadSubHeadl
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
 
-
     } catch (err) {
         console.error("PDF creation error:", err);
     }

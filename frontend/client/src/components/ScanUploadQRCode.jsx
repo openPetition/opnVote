@@ -8,6 +8,8 @@ import { useTranslation } from 'next-i18next';
 import Notification from './Notification';
 import NextImage from 'next/image';
 import { PDFDocument } from 'pdf-lib';
+import Modal from "@/components/Modal";
+import BallotInvalidError from '@/errors/BallotInvalidError';
 
 const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
 let html5QrCode;
@@ -20,6 +22,7 @@ export default function ScanUploadQRCode(props) {
     const [showStopScanBtn, setShowStopScanBtn] = useState(false);
     const [showScanNotification, setShowScanNotification] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         html5QrCode = new Html5Qrcode("reader");
@@ -34,13 +37,18 @@ export default function ScanUploadQRCode(props) {
         setIsLoading(true);
 
         const fileBuffer = await file.arrayBuffer();
-        const pdfDoc = await PDFDocument.load(fileBuffer);
-        const extractCode = pdfDoc.getSubject()?.split('QRCODE:')[1];
-        if (extractCode && extractCode != 'undefined') {
-            props.onResult(extractCode);
-        } else {
-            extractWithConvert(file);
-            return;
+        try {
+            const pdfDoc = await PDFDocument.load(fileBuffer, {ignoreEncryption: true});
+            const extractCode = pdfDoc.getSubject()?.split('QRCODE:')[1];
+            if (extractCode && extractCode != 'undefined') {
+                props.onResult(extractCode);
+            } else {
+                extractWithConvert(file);
+                return;
+            }
+        } catch (err) {
+            setError(new BallotInvalidError());
+            console.debug(err);
         }
         setIsLoading(true);
     };
@@ -76,12 +84,15 @@ export default function ScanUploadQRCode(props) {
                     })
                     .catch((err) => {
                         console.debug(`Error scanning file. Reason: ${err}`);
+                        setError(new BallotInvalidError());
                     });
             } catch (qrError) {
                 console.log(`No QR code found`);
+                setError(new BallotInvalidError());
             }
         } catch (err) {
             console.log("Error processing PDF: " + err.message);
+            setError(new BallotInvalidError());
         }
     };
 
@@ -138,6 +149,7 @@ export default function ScanUploadQRCode(props) {
         if (selectedFile && selectedFile.type === "application/pdf") {
             extractData(selectedFile);
         };
+        e.target.value = null;
 
         /** OLD IMAGE upload stuff . we dont want to loose it for now.
         const imageFile = e.target.files[0];
@@ -156,6 +168,20 @@ export default function ScanUploadQRCode(props) {
 
     return (
         <>
+            {error && (
+                <Modal
+                    showModal={error}
+                    headerText={t(error.title)}
+                    ctaButtonText={t(error.button)}
+                    ctaButtonFunction={() => setError(null)}
+                >
+                    <Notification
+                        type="error"
+                        text={t(error.text)}
+                    />
+                </Modal>
+            )}
+
             <div className="op__contentbox_760">
                 <h3>{headline}</h3>
                 {subheadline}
