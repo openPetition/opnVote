@@ -2,6 +2,7 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import globalConst from "@/constants";
 import { t } from "i18next";
+import { saveAs } from 'file-saver';
 
 const pdfContentType = {
     'TEXT': 'text',
@@ -381,19 +382,7 @@ export async function createPDF(qrCodeString, downloadHeadline, downloadSubHeadl
 
         const pdfBytes = await pdfDoc.save();
         const blob = new Blob([pdfBytes], { type: "application/pdf" });
-        const url = URL.createObjectURL(blob);
-
-
-
-        // Create a link element and trigger a download
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = downloadFilename + '.pdf';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-
+        saveAs(blob, downloadFilename + '.pdf');
     } catch (err) {
         console.error("PDF creation error:", err);
     }
