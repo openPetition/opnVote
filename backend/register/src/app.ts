@@ -10,6 +10,7 @@ import path from 'path'
 import { dataSource } from './database'
 import signRoutes from './routes/signRoutes'
 import authRoutes from './routes/authRoutes'
+import adminRoutes from './routes/adminRoutes'
 import swaggerUi from 'swagger-ui-express'
 import swaggerSpec from './config/swaggerConfig'
 import https from 'https'
@@ -78,6 +79,7 @@ dataSource
 
     app.use('/api/auth', authRoutes)
     app.use('/api/sign', signRoutes)
+    app.use('/api/admin', adminRoutes)
   })
   .catch(err => {
     console.error('Error during Data Source initialization', err)

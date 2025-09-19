@@ -1,4 +1,5 @@
 import { RegisterKeyService } from '../services/registerKeyService'
+import { isValidHex } from 'votingsystem'
 
 // Create register key array from .env variables REGISTER_ELECTION_[0-99]_*
 const registerKeys = Array.from({ length: 100 }, (_, i) => i)
@@ -33,6 +34,21 @@ export async function initializeRegisterKeys() {
         console.error(`Warning: Register key already exist in db for election ${key.electionId}.`)
         console.info(`Info: Register key initialization skipped for election ${key.electionId}`)
         continue
+      }
+
+      if (!isValidHex(key.N, false, false)) {
+        throw new Error(`Invalid hex format for N: ${key.N}`)
+      }
+      if (!isValidHex(key.D, false, false)) {
+        throw new Error(`Invalid hex format for D: ${key.D}`)
+      }
+      if (isValidHex(key.E)) {
+        throw new Error(`E must be a decimal number, not hex: ${key.E}`)
+      }
+
+      // Sanity check: N and D must not be equal
+      if (key.N.toLowerCase() === key.D.toLowerCase()) {
+        throw new Error(`N and D cannot be equal for election ${key.electionId}`)
       }
 
       const rsaParams = {
