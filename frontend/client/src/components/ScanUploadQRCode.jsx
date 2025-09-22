@@ -16,7 +16,7 @@ let html5QrCode;
 
 export default function ScanUploadQRCode(props) {
     const { t } = useTranslation();
-    const { headline, subheadline, uploadSubHeadline, scanSubHeadline } = props;
+    const { headline, subheadline, uploadHeadline, uploadSubHeadline, scanSubHeadline } = props;
 
     const fileRef = useRef(null);
     const [showStopScanBtn, setShowStopScanBtn] = useState(false);
@@ -38,7 +38,7 @@ export default function ScanUploadQRCode(props) {
 
         const fileBuffer = await file.arrayBuffer();
         try {
-            const pdfDoc = await PDFDocument.load(fileBuffer, {ignoreEncryption: true});
+            const pdfDoc = await PDFDocument.load(fileBuffer, { ignoreEncryption: true });
             const extractCode = pdfDoc.getSubject()?.split('QRCODE:')[1];
             if (extractCode && extractCode != 'undefined') {
                 props.onResult(extractCode);
@@ -198,7 +198,7 @@ export default function ScanUploadQRCode(props) {
                         />
                     </div>
                     <div>
-                        <h3>{t('scanuploadqrcode.image.headline')}</h3>
+                        <h3>{uploadHeadline ? uploadHeadline : t('scanuploadqrcode.image.headline')}</h3>
                         <p>{uploadSubHeadline}</p>
                     </div>
                 </div>

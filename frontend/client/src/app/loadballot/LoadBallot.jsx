@@ -65,6 +65,7 @@ export default function LoadBallot() {
                     subheadline={t("pollingstation.uploadqrcode.subheadline")}
                     uploadSubHeadline={t("pollingstation.uploadqrcode.uploadSubHeadline")}
                     scanSubHeadline={t("pollingstation.uploadqrcode.scanSubHeadline")}
+                    uploadHeadline={t("pollingstation.uploadheadline.ballot")}
                     onResult={(res) => {
                         setUploadedBallotCode(res);
                     }}

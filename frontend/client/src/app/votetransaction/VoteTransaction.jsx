@@ -28,6 +28,7 @@ export default function VoteTransaction() {
 
     const [voteResultState, setVoteResultState] = useState({
         transactionStateText: t('votetransactionstate.statustitle.checking'),
+        transactionStateSubText: '',
         transactionState: TRANSACTION_STATE_CHECKING,
         transactionStart: new Date().getTime(),
         notificationText: '',
@@ -61,6 +62,7 @@ export default function VoteTransaction() {
                         setVoteResultState({
                             ...voteResultState,
                             transactionStateText: t('votetransactionstate.statustitle.success'),
+                            transactionStateSubText: t('votetransactionstate.statustext.success'),
                             transactionState: TRANSACTION_STATE_SUCCESS,
                             notificationText: t('votetransactionstate.info.success'),
                             notificationType: 'success',
@@ -73,6 +75,7 @@ export default function VoteTransaction() {
                 setVoteResultState({
                     ...voteResultState,
                     transactionStateText: t('votetransactionstate.statustitle.pending'),
+                    transactionStateSubText: t('votetransactionstate.statustext.pending'),
                     transactionState: TRANSACTION_STATE_PENDING,
                 });
                 return;
@@ -88,6 +91,7 @@ export default function VoteTransaction() {
                 setVoteResultState({
                     ...voteResultState,
                     transactionStateText: t('votetransactionstate.statustitle.success'),
+                    transactionStateSubText: t('votetransactionstate.statustext.success'),
                     transactionState: TRANSACTION_STATE_SUCCESS,
                     notificationText: t('votetransactionstate.info.success'),
                     notificationType: 'success',
@@ -98,6 +102,7 @@ export default function VoteTransaction() {
                 setVoteResultState({
                     ...voteResultState,
                     transactionStateText: t('votetransactionstate.statustitle.error'),
+                    transactionStateSubText: '',
                     transactionState: TRANSACTION_STATE_ERROR,
                     notificationText: t('votetransactionstate.error.transaction'),
                     notificationType: 'error',
@@ -111,6 +116,7 @@ export default function VoteTransaction() {
                 setVoteResultState({
                     ...voteResultState,
                     transactionStateText: t('votetransactionstate.statustitle.error'),
+                    transactionStateSubText: '',
                     transactionState: TRANSACTION_STATE_ERROR,
                     notificationType: 'error',
                     notificationText: t('votetransactionstate.error.alreadyvoted'),
@@ -156,6 +162,7 @@ export default function VoteTransaction() {
             setVoteResultState({
                 ...voteResultState,
                 transactionStateText: t('votetransactionstate.statustitle.success'),
+                transactionStateSubText: t('votetransactionstate.statustext.success'),
                 transactionState: TRANSACTION_STATE_SUCCESS,
                 notificationText: t('votetransactionstate.info.success'),
                 notificationType: 'success',
@@ -167,7 +174,6 @@ export default function VoteTransaction() {
         <>
             <Headline
                 title={t("votetransactionstate.headline.title")}
-                text={t("votetransactionstate.headline.text")}
                 backgroundImage="successbanner"
             />
 
@@ -176,15 +182,15 @@ export default function VoteTransaction() {
                     {voteResultState.transactionState == TRANSACTION_STATE_SUCCESS && (
                         <Check width={70} height={70} style={{ color: "#29B0CC" }} strokeWidth={1} />
                     ) || (
-                        <Loading />
-                    )}
+                            <Loading />
+                        )}
                 </div>
             </div>
 
             <div className="op__contentbox_max op__center-align op__padding_standard">
                 <div className={styles.item}>
                     <h3 className={styles.itemvalue}>{voteResultState.transactionStateText}</h3>
-                    <div className={styles.itemlabel}>{t('votetransactionstate.statuslabel')}</div>
+                    <div className={styles.itemlabel}>{voteResultState.transactionStateSubText}</div>
                     <div className={styles.itemheadline}>
                         {voting.transactionViewUrl ? (
                             <Trans
