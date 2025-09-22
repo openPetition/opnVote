@@ -257,7 +257,7 @@ export default function Pollingstation() {
                             <BallotPaper
                                 allowedToVote={pollingStationState.allowedToVote}
                                 votingCredentials={votingCredentials}
-                                isVoteRecast={pollingStationState.isVoteRecast}
+                                isVoteRecast={pollingStationState.isVoteRecast || voting.votesuccess}
                                 showElection={pollingStationState.showElection}
                             />
                         </>

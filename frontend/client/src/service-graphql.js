@@ -40,5 +40,5 @@ export function getElectionData(electionId) {
 }
 
 export function getVoteCastsData(voterAddress, electionId) {
-    return useLazyQuery(GET_VOTECASTS, { variables: { voter: voterAddress, electionId: electionId } })
+    return useLazyQuery(GET_VOTECASTS, { variables: { voter: voterAddress, electionId: electionId }, fetchPolicy: "cache-and-network", })
 }
