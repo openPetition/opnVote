@@ -5,6 +5,7 @@ import { Authorization } from '../models/Authorization'
 import { dataSource } from '../database'
 import { ApiResponse } from '../types/apiResponses'
 import { logger } from '../utils/logger'
+import { fetchElectionAuthProvider } from '../graphql/graphqlClient'
 
 const router = Router()
 
@@ -113,6 +114,41 @@ router.post(
         return res.status(403).json({
           data: null,
           error: 'JWT electionId does not match request electionId',
+        } as ApiResponse<null>)
+      }
+
+      const currentApId = req.app.get('AP_ID')
+      if (!currentApId) {
+        logger.error('AP_ID not configured')
+        return res.status(500).json({
+          data: null,
+          error: 'AP not configured',
+        } as ApiResponse<null>)
+      }
+
+      try {
+        const electionAuthProvider = await fetchElectionAuthProvider(electionId)
+        if (!electionAuthProvider) {
+          return res.status(404).json({
+            data: null,
+            error: 'Election not found',
+          } as ApiResponse<null>)
+        }
+
+        if (electionAuthProvider.authProviderId !== Number(currentApId)) {
+          logger.warn(
+            `AP ${currentApId} tried to authorize for election ${electionId}. Election belongs to AP ${electionAuthProvider.authProviderId}`,
+          )
+          return res.status(403).json({
+            data: null,
+            error: 'AP not allowed to authorize for this election',
+          } as ApiResponse<null>)
+        }
+      } catch (error) {
+        logger.error(`Failed to retrieve AP for election ${electionId}: ${error}`)
+        return res.status(500).json({
+          data: null,
+          error: 'Failed to retrieve AP for election',
         } as ApiResponse<null>)
       }
 

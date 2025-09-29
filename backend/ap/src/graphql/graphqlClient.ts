@@ -50,6 +50,10 @@ export interface RecentAuthorizationResponse {
   }[]
 }
 
+export interface ElectionAuthProviderResponse {
+  authProviderId: number
+}
+
 /**
  * Fetches recent voter authorizations for a given election Id using GraphQL.
  *
@@ -85,6 +89,37 @@ export async function fetchRecentAuthorizations(
   try {
     const response: RecentAuthorizationResponse = await client.request(query, variables)
     return response
+  } catch (error) {
+    logger.error(`GraphQL Error: ${error}`)
+    throw error
+  }
+}
+
+/**
+ * Fetches authProviderId for an election.
+ *
+ * @param {number} electionId
+ * @return {Promise<ElectionAuthProviderResponse | null>}
+ */
+export async function fetchElectionAuthProvider(
+  electionId: number,
+): Promise<ElectionAuthProviderResponse | null> {
+  const query = gql`
+    query GetElectionAuthProvider($id: ID!) {
+      election(id: $id) {
+        authProviderId
+      }
+    }
+  `
+
+  const variables = { id: electionId }
+
+  try {
+    const response: { election: ElectionAuthProviderResponse | null } = await client.request(
+      query,
+      variables,
+    )
+    return response.election
   } catch (error) {
     logger.error(`GraphQL Error: ${error}`)
     throw error

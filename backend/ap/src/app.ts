@@ -18,6 +18,7 @@ const AP_JWT_PUBLIC_KEY_PATH = process.env.AP_JWT_PUBLIC_KEY_PATH
 const SERVER_URL = process.env.SERVER_URL
 const SSL_KEY_PATH = process.env.SSL_KEY_PATH
 const SSL_CERT_PATH = process.env.SSL_CERT_PATH
+const AP_ID = process.env.AP_ID
 
 if (!AP_JWT_PUBLIC_KEY_PATH) {
   throw new Error('AP_JWT_PUBLIC_KEY_PATH is not defined in the environment variables')
@@ -25,6 +26,10 @@ if (!AP_JWT_PUBLIC_KEY_PATH) {
 
 if (!SERVER_URL) {
   throw new Error('SERVER_URL is not defined in the environment variables')
+}
+
+if (!AP_ID) {
+  throw new Error('AP_ID is not defined in the environment variables')
 }
 
 if ((SSL_KEY_PATH && !SSL_CERT_PATH) || (!SSL_KEY_PATH && SSL_CERT_PATH)) {
@@ -52,6 +57,8 @@ try {
   console.error('❌ Failed to load AP JWT Public Key:', error)
   process.exit(1)
 }
+
+app.set('AP_ID', AP_ID)
 
 if (SSL_KEY_PATH && SSL_CERT_PATH) {
   // Load HTTPS options
