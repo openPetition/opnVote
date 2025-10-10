@@ -2,10 +2,9 @@
 const { Builder, By, Key, until } = require('selenium-webdriver')
 const chromeDriver = require("selenium-webdriver/chrome");
 const assert = require('assert')
-const { mkdtemp } = require('node:fs/promises');
+const { mkdtemp, rm, glob } = require('node:fs/promises');
 const { join } = require('node:path');
 const { tmpdir } = require('node:os');
-const { rm } = require('node:fs/promises');
 
 const browserList = ['chrome', 'firefox', 'safari'];
 
@@ -48,15 +47,18 @@ describe('standard flow', function () {
         await driver.manage().window().setRect({ width: 962, height: 1245 });
         await driver.findElement(By.xpath("//a[contains(text(),'Jetzt an Wahl teilnehmen')]")).click();
         await driver.findElement(By.id("Pfad_167")).click();
-        await driver.findElement(By.xpath("//button[contains(.,\'Speichern\')]")).click();
-        await driver.findElement(By.xpath("//button[contains(.,\'Weiter zum Wahlschein\')]")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Wahlschlüssel speichern\')]")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Wahlschein bestellen\')]")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Wahlschein speichern\')]")).click();
         await driver.executeScript("window.scrollTo(0,0)");
 
-        await driver.findElement(By.css(".Button_secondary__egtBn")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Direkt zur Wahlkabine\')]")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Jetzt abstimmen\')]")).click();
         await driver.findElement(By.id("voteselect_0_yes")).click();
         await driver.findElement(By.id("voteselect_1_no")).click();
-        await driver.findElement(By.id("voteselect_2_no")).click();
-        await driver.findElement(By.css(".Button_primary__JRIAm")).click();
+        //await driver.findElement(By.id("voteselect_2_no")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Stimmzettel abgeben\')]")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Stimmzettel abgeben\')]")).click();
     });
 
     //standard flow 1: user comes back and has existing key - can upload it to generate register paper
@@ -70,23 +72,39 @@ describe('standard flow', function () {
         await driver.manage().window().setRect({ width: 962, height: 1245 });
         await driver.findElement(By.xpath("//a[contains(text(),'Jetzt an Wahl teilnehmen')]")).click();
         await driver.findElement(By.id("Pfad_167")).click();
-        await driver.findElement(By.xpath("//button[contains(.,\'Speichern\')]")).click();
-        await driver.findElement(By.xpath("//button[contains(.,\'Weiter zum Wahlschein\')]")).click();
-        await driver.findElement(By.xpath("//button[contains(.,\'Speichern\')]")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Wahlschlüssel speichern\')]")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Wahlschein bestellen\')]")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Wahlschein speichern\')]")).click();
 
+        // wait for ballot to be created & downloaded
+        await driver.findElement(By.xpath("//button[contains(.,\'Direkt zur Wahlkabine\')]"));
+        let filename = null;
+        for await (const entry of glob(tmp + "/opnVote_wahlschein_*.pdf")) {
+            filename = entry;
+            break;
+        }
+
+        // clear localstorage
         await driver.get("https://client-test.opn.vote/runte"); // wrong one on purpose
-
         await driver.executeScript("window.localStorage.clear();");
         await driver.executeScript("window.localStorage.removeItem('opnvote-storage');");
         await driver.executeScript("window.localStorage.setItem('opnvote-storage', '');");
+
+        // going to load the created ballot to vote
         await driver.get("https://client-test.opn.vote/?id=0#pollingstation");
         await driver.manage().window().setRect({ width: 962, height: 1245 });
-        await driver.findElement(By.xpath("//button[contains(text(),'Wahlschein hochladen')]")).click();
-        await driver.findElement(By.xpath("//input[@type=\'file\']")).sendKeys(tmp + "/Wahlschein.pdf");
+
+        // wait to not trigger rate limiting
+        await driver.sleep(3000);
+        await driver.findElement(By.xpath("//input[@type=\'file\']")).sendKeys(filename);
+        await driver.findElement(By.xpath("//button[contains(text(),'Jetzt abstimmen')]")).click();
         await driver.findElement(By.id("voteselect_0_yes")).click();
         await driver.findElement(By.id("voteselect_1_no")).click();
-        await driver.findElement(By.id("voteselect_2_no")).click();
-        await driver.findElement(By.css(".Button_primary__JRIAm")).click();
+        //await driver.findElement(By.id("voteselect_2_no")).click();
+
+        // wait to not trigger rate limiting
+        await driver.sleep(3000);
+        await driver.findElement(By.xpath("//button[contains(.,\'Stimmzettel abgeben\')]")).click();
     });
 
 });
