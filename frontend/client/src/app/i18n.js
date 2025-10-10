@@ -74,7 +74,7 @@ i18n
         interpolation: {
             formatSeparator: ',',
             format: function (value, formatting, lng) {
-                if (value instanceof Date) {
+                if (value instanceof Date && !isNaN(value)) {
                     return formatDate(value, formatting, lng)
                 }
                 return value.toString();
