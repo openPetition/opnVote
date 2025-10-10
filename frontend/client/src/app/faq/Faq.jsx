@@ -69,6 +69,10 @@ export default function Faq() {
             title: t("faq.content.whydowedoit.title"),
             text: <Trans i18nKey="faq.content.whydowedoit.text" />,
         },
+        multivote: {
+            title: t("faq.content.multivote.title"),
+            text: <Trans i18nKey="faq.content.multivote.text" />,
+        },
         security: {
             title: t("faq.content.security.title"),
             text: <Trans i18nKey="faq.content.security.text"
