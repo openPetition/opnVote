@@ -64,7 +64,7 @@ export default function BallotPaper(props) {
         <>
             <div className={`${styles.ballot_paper_frame} op__contentbox_960`}>
                 <div className={'op__padding_standard_20'}>
-                    <div className={`${styles.display_flex} ${styles.justify_content}`}>
+                    <div className={`${styles.display_flex} ${styles.justify_content} op__padding_standard_bottom`}>
                         <h2 className={styles.h2}>{t("pollingstation.ballotPaper.headline")}</h2>
                         {/*<a className={'op__arrow-right'}>{t('pollingstation.ballotPaper.linkToBallotBooklet')}</a>*/}
                     </div>
