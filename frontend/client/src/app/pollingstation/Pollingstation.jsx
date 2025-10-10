@@ -117,7 +117,7 @@ export default function Pollingstation() {
             popupButtonText: voting.votesuccess ? t("pollingstation.notification.success.popup.buttontext.recast") : t("pollingstation.notification.success.popup.buttontext.cast"),
             popupHeadline: voting.votesuccess ? t("pollingstation.notification.success.popup.headline.recast") : t("pollingstation.notification.success.popup.headline.cast"),
         });
-    }, [dataVotings]);
+    }, [dataVotings, loadingVotings]);
 
     useEffect(() => {
         const currentTime = Math.floor(new Date().getTime() / 1000);
