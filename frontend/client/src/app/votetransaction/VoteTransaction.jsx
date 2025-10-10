@@ -193,12 +193,20 @@ export default function VoteTransaction() {
                     <div className={styles.itemlabel}>{voteResultState.transactionStateSubText}</div>
                     <div className={styles.itemheadline}>
                         {voting.transactionViewUrl ? (
-                            <Trans
-                                i18nKey="votetransactionstate.statusWithLink"
-                                components={{
-                                    CustomLink: <BlockchainLinkText transactionViewUrl={voting.transactionViewUrl} />
-                                }}
-                            />
+                            <>
+                                <p className="op__padding_standard_bottom">
+                                    <Trans
+                                        i18nKey="votetransactionstate.statusWithLink"
+                                        components={{
+                                            CustomLink: <BlockchainLinkText transactionViewUrl={voting.transactionViewUrl} />
+                                        }}
+                                    />
+                                </p>
+                                {voting.electionId == 15 && (<>
+                                    <p className="op__padding_standard_bottom" dangerouslySetInnerHTML={{ __html: t("votetransactionstate.election15.1") }}/>
+                                    <p className="op__padding_standard_bottom" dangerouslySetInnerHTML={{ __html: t("votetransactionstate.election15.2") }}/>
+                                </>)}
+                            </>
                         ) : (
                             <>{voteResultState.notificationText}</>
                         )}
