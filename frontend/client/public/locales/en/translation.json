@@ -178,6 +178,7 @@
     "pollingstation.question.answer.abstain": "I abstain.",
     "pollingstation.question.answer.no": "I disagree.",
     "pollingstation.question.answer.yes": "I agree.",
+    "pollingstation.uploadheadline.ballot": "Load election permit from PDF",
     "pollingstation.uploadqrcode.headline": "You need an election permit to vote",
     "pollingstation.uploadqrcode.scanSubHeadline": "Scan your election permit via your device camera.",
     "pollingstation.uploadqrcode.subheadline": "Welcome to the polling station! Please upload your election permit now to receive a vote for casting.",
