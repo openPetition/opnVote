@@ -15,6 +15,7 @@ import { checkEligibility } from '../middleware/checkEligibility'
 import { checkForwardLimit } from '../middleware/checkForwardLimit'
 import { checkEthCall } from '../middleware/checkEthCall'
 import { logger } from '../utils/logger'
+import { checkVoteConfirmation } from '../graphql/graphqlClient'
 
 const router = Router()
 const GELATO_USE_QUEUE_ERROR = 'GELATO_USE_QUEUE is not set in the environment variables.'
@@ -316,7 +317,7 @@ router.get('/tasks/:taskId', async (req: Request, res: Response) => {
  * /api/gelato/verify/{gelatoTaskId}:
  *   get:
  *     summary: Verifies status of an external Gelato task ID and returns both Gelato and on-chain status
- *     description: Takes an external Gelato task ID to verify its status
+ *     description: Takes an external Gelato task ID to verify its status. Checks graph-gateway for transaction hash if not available from Gelato, then verifies on-chain.
  *     tags: [Gelato Relay]
  *     security: []
  *     parameters:
@@ -326,6 +327,24 @@ router.get('/tasks/:taskId', async (req: Request, res: Response) => {
  *           type: string
  *         required: true
  *         description: The external Gelato task ID to verify
+ *       - in: query
+ *         name: wallet-address
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Optional voter wallet address for graph-gateway fallback check
+ *       - in: query
+ *         name: vote_encrypted
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Optional encrypted vote bytes for graph-gateway fallback check
+ *       - in: query
+ *         name: election_id
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Optional election ID for graph-gateway fallback check
  *     responses:
  *       200:
  *         description: Status verified successfully
@@ -378,6 +397,9 @@ router.get('/tasks/:taskId', async (req: Request, res: Response) => {
  */
 router.get('/verify/:gelatoTaskId', async (req: Request, res: Response) => {
   const { gelatoTaskId } = req.params
+  const walletAddress = req.query['wallet-address'] as string | undefined
+  const voteEncrypted = req.query['vote_encrypted'] as string | undefined
+  const electionId = req.query['election_id'] as string | undefined
 
   try {
     logger.info(`[GelatoRoute] Verifying status for Gelato task ID: ${gelatoTaskId}`)
@@ -396,7 +418,7 @@ router.get('/verify/:gelatoTaskId', async (req: Request, res: Response) => {
     }
 
     const gelatoStatus = statusResponse.taskState
-    const transactionHash = statusResponse.transactionHash || null
+    let transactionHash = statusResponse.transactionHash || null
 
     let onChainStatus = {
       confirmed: false,
@@ -404,6 +426,31 @@ router.get('/verify/:gelatoTaskId', async (req: Request, res: Response) => {
       status: null as number | null,
     }
 
+    // If no transaction hash from Gelato -> try to get it from graph gateway
+    if (!transactionHash && walletAddress && voteEncrypted && electionId) {
+      logger.info(
+        `[GelatoRoute] No transaction hash from Gelato. Querying graph gateway for vote confirmation.`,
+      )
+      try {
+        const txHashFromGraph = await checkVoteConfirmation(
+          walletAddress,
+          voteEncrypted,
+          electionId,
+        )
+        if (txHashFromGraph) {
+          transactionHash = txHashFromGraph
+          logger.info(
+            `[GelatoRoute] Transaction hash retrieved from graph gateway: ${transactionHash}`,
+          )
+        } else {
+          logger.info(`[GelatoRoute] Vote not found in graph gateway for wallet ${walletAddress}`)
+        }
+      } catch (error) {
+        logger.error(`[GelatoRoute] Error checking graph gateway for vote existence:`, error)
+      }
+    }
+
+    // Verify transaction hash on-chain
     if (transactionHash) {
       try {
         const rpcProvider: ethers.JsonRpcProvider = req.app.get('rpcProvider')
