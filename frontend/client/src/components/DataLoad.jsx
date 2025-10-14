@@ -80,11 +80,16 @@ export default function DataLoad() {
     useEffect(() => {
         if (loadingElection) return;
         if (dataElection && dataElection?.election && Object.keys(dataElection?.election).length > 0) {
+            let election = dataElection.election;
+            if (election.id == 15) {
+                // hard coded end time, since the graphql data is temporarily outdated
+                election = {...dataElection.election, votingEndTime: "1761692399"};
+            }
             setLocalState({
                 ...localState,
                 updatePage: true,
                 updateElection: true,
-                election: dataElection.election,
+                election: election,
                 electionInformation: JSON.parse(dataElection.election?.descriptionBlob)
             });
         }
