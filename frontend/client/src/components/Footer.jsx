@@ -46,13 +46,15 @@ export default function Footer() {
                             </div>
                             <div className={styles.logo}>
                                 {t('footer.logo.text')}
-                                <NextImage
-                                    alt="openpetition logo"
-                                    src="/images/openpetition-logo.png"
-                                    height={68}
-                                    width={194}
-                                    style={{ marginTop: ".5rem" }}
-                                />
+                                <a href="https://www.openpetition.de/opn-vote">
+                                    <NextImage
+                                        alt="openpetition logo"
+                                        src="/images/openpetition-logo.png"
+                                        height={68}
+                                        width={194}
+                                        style={{ marginTop: ".5rem" }}
+                                    />
+                                </a>
                             </div>
                         </div>
                     </div>
