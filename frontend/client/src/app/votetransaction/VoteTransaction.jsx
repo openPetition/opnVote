@@ -3,17 +3,18 @@
 import { useState, useEffect } from "react";
 import Link from 'next/link';
 import { useTranslation, Trans } from "next-i18next";
+import Button from '@/components/Button';
 import Notification from "@/components/Notification";
 import Loading from '@/components/Loading';
 import Headline from "@/components/Headline";
 import { AlreadyVotedError, ServerError, getTransactionState, gelatoVerify } from '../../service';
-import { useOpnVoteStore } from "../../opnVoteStore";
+import { useOpnVoteStore, modes } from "../../opnVoteStore";
 import styles from './styles/votetransaction.module.css';
 import globalConst from "@/constants";
 import { Check } from "lucide-react";
 
 export default function VoteTransaction() {
-    const { taskId, voting, updateVoting, updateTaskId } = useOpnVoteStore((state) => state);
+    const { taskId, voting, updateVoting, updateTaskId, updatePage } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [transactionHash, setTransactionHash] = useState();
     const [transactionViewUrl, setTransactionViewUrl] = useState();
@@ -22,6 +23,7 @@ export default function VoteTransaction() {
     const TRANSACTION_STATE_PENDING = 'pending';
     const TRANSACTION_STATE_SUCCESS = 'success';
     const TRANSACTION_STATE_ERROR = 'error';
+    const TRANSACTION_STATE_ERROR_RETRY = 'error-retry';
 
     const TRANSACTION_PENDING_DELAY = 1000; // in milli seconds
     const TRANSACTION_GELATO_TIMEOUT = 30000;
@@ -103,7 +105,7 @@ export default function VoteTransaction() {
                     ...voteResultState,
                     transactionStateText: t('votetransactionstate.statustitle.error'),
                     transactionStateSubText: '',
-                    transactionState: TRANSACTION_STATE_ERROR,
+                    transactionState: TRANSACTION_STATE_ERROR_RETRY,
                     notificationText: t('votetransactionstate.error.transaction'),
                     notificationType: 'error',
                 });
@@ -212,6 +214,11 @@ export default function VoteTransaction() {
                         )}
                     </div>
                 </div>
+                {voteResultState.transactionState == TRANSACTION_STATE_ERROR_RETRY && (
+                    <div className="op__padding_standard_top">
+                        <Button type="primary" onClick={() => {updateTaskId(''); updatePage({current: globalConst.pages.POLLINGSTATION}, modes.replace);}}>{t("votetransactionstate.errorretry")}</Button>
+                    </div>
+                )}
             </div>
         </>
     );
