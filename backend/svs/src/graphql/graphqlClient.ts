@@ -91,3 +91,74 @@ export async function fetchElectionRegisterPublicKey(
     throw error
   }
 }
+
+/**
+ * Checks if a vote exists on-chain for the given voter address and encrypted vote.
+ *
+ * @param {string} voterAddress - The voter wallet address.
+ * @param {string} voteEncrypted - The encrypted vote.
+ * @param {string} electionId - The election ID.
+ * @return {Promise<string | null>} Resolves to transaction hash if vote exists on-chain, null otherwise.
+ */
+export async function checkVoteConfirmation(
+  voterAddress: string,
+  voteEncrypted: string,
+  electionId: string,
+): Promise<string | null> {
+  const startTime = Date.now()
+  logger.info(
+    `[GraphQL] Checking if vote exists for voter ${voterAddress} in election ${electionId}`,
+  )
+
+  const query = gql`
+    query CheckVoteCast($electionId: Bytes!, $voter: Bytes!, $voteEncrypted: Bytes!) {
+      voteCasts(
+        where: { electionId: $electionId, voter: $voter, voteEncrypted: $voteEncrypted }
+        first: 1
+      ) {
+        transactionHash
+      }
+      voteUpdateds(
+        where: { electionId: $electionId, voter: $voter, voteEncrypted: $voteEncrypted }
+        first: 1
+      ) {
+        transactionHash
+      }
+    }
+  `
+
+  const variables = {
+    electionId: electionId.toLowerCase(),
+    voter: voterAddress.toLowerCase(),
+    voteEncrypted: voteEncrypted.toLowerCase(),
+  }
+
+  try {
+    const response: {
+      voteCasts: Array<{ transactionHash: string }>
+      voteUpdateds: Array<{ transactionHash: string }>
+    } = await client.request(query, variables)
+    const duration = Date.now() - startTime
+
+    // Check voteCasts, then voteUpdateds
+    let transactionHash: string | null = null
+    if (response.voteCasts && response.voteCasts.length > 0) {
+      transactionHash = response.voteCasts[0].transactionHash
+    } else if (response.voteUpdateds && response.voteUpdateds.length > 0) {
+      transactionHash = response.voteUpdateds[0].transactionHash
+    }
+
+    logger.info(
+      `[GraphQL] Vote confirmation check completed in ${duration}ms for voter ${voterAddress}: ${
+        transactionHash ? `found with tx ${transactionHash}` : 'not found'
+      }`,
+    )
+    return transactionHash
+  } catch (error) {
+    const duration = Date.now() - startTime
+    logger.error(
+      `[GraphQL] Error checking vote after ${duration}ms for voter ${voterAddress}: ${error}`,
+    )
+    throw error
+  }
+}
