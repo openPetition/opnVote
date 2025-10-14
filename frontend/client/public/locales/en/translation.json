@@ -286,7 +286,7 @@
     "votetransactionstate.election15.2": "We at openPetition will inform you of the results shortly thereafter via email and on our <a href=\"https://www.openpetition.de/opn-vote/wahl/deutschlands-vierte-selbstorganisierte-bundesweite-volksabstimmung\">website</a>.",
     "votetransactionstate.error.alreadyvoted": "You already voted with this election permit.",
     "votetransactionstate.error.servererror": "Connection to server failed.",
-    "votetransactionstate.error.transaction": "The ballot could not be sent. Please try again in a moment. If this error occurs again, please contact election authorities at info@opn.vote",
+    "votetransactionstate.error.transaction": "The ballot could not be sent. Please try again by pressing the following button. If this error occurs again, please contact election authorities at info@opn.vote",
     "votetransactionstate.error.unknown": "There was an error sending the transaction due to an unknown error. Please try again. If the problem persist please contact election authorities.",
     "votetransactionstate.errorretry": "Reset and try again",
     "votetransactionstate.headline.title": "Thank you for your participation",
