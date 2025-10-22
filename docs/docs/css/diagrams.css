@@ -1,0 +1,69 @@
+.mermaid-container {
+  position: relative;
+  overflow: hidden;
+  margin: 1.5rem 0;
+}
+
+.mermaid-container .mermaid {
+  width: 100%;
+  min-width: 0;
+}
+
+.mermaid-container svg {
+  width: 100%;
+  height: auto;
+  cursor: grab;
+  touch-action: none;
+  display: block;
+}
+
+.mermaid-container svg:active {
+  cursor: grabbing;
+}
+
+.mermaid-container svg text {
+  font-size: 16px !important;
+}
+
+.mermaid-controls {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.35rem 0.45rem;
+  background: rgba(17, 24, 39, 0.75);
+  border-radius: 0.5rem;
+  backdrop-filter: blur(4px);
+  z-index: 2;
+}
+
+.mermaid-controls button {
+  border: none;
+  color: #ffffff;
+  background: transparent;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.35rem;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.mermaid-controls button:hover,
+.mermaid-controls button:focus-visible {
+  background: rgba(255, 255, 255, 0.18);
+  outline: none;
+}
+
+.mermaid-controls button:active {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+@media (max-width: 768px) {
+  .mermaid-controls {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+}

@@ -2,5 +2,24 @@ site_name: opn.vote Docs
 site_url: https://docs.opn.vote
 theme:
   name: material
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js
+  - js/mermaid-init.js
+extra_css:
+  - css/diagrams.css
 nav:
   - Home: index.md
+  - Quick Start: quick-start.md
+  - Architecture: architecture.md
+  - Election Lifecycle: lifecycle.md
+  - Deployments: deployments.md
+  - Roadmap: roadmap.md
