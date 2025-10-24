@@ -144,3 +144,5 @@ certificates
 *.local.ts
 
 **/broadcast/
+
+.venv
