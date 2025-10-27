@@ -18,6 +18,7 @@ const RPC_PROVIDER = getEnvVar<string>('RPC_PROVIDER', 'string')
 const OPNVOTE_CONTRACT_ADDRESS = getEnvVar<string>('OPNVOTE_CONTRACT_ADDRESS', 'string')
 const ELECTION_ID = getEnvVar<number>('ELECTION_ID', 'number')
 const VERSION = getEnvVar<string>('VERSION', 'string')
+const NUMBER_OF_QUESTIONS = getEnvVar<number>('NUMBER_OF_QUESTIONS', 'number')
 
 let ELECTION_PRIVATE_KEY_FROM_ENV: string | undefined
 try {
@@ -210,10 +211,6 @@ async function main() {
   let replacedCount = 0
 
   while (true) {
-    if (votesMap.size >= 10) {
-      logger.info('🔧 Testing mode: Breaking at 10 votes')
-      break
-    }
     const response: {
       voteUpdateds: Array<{
         voter: string
@@ -262,19 +259,18 @@ async function main() {
 
   logger.info(`Processed votes: ${votesMap.size} unique voters`)
 
-  logger.info('\n=== Vote Count Verification ===')
   const expectedTotalVotes = Number(election.totalVotes)
   const actualTotalVotes = votesMap.size
 
   if (actualTotalVotes !== expectedTotalVotes) {
     logger.warn(`Vote count mismatch! Expected: ${expectedTotalVotes}, Got: ${actualTotalVotes}`)
-    logger.info('Re-fetching election data...')
+    logger.info('Fetching election data...')
 
     const updatedElection = await contract.elections(ELECTION_ID)
     const updatedTotalVotes = Number(updatedElection.totalVotes)
 
     if (actualTotalVotes !== updatedTotalVotes) {
-      const msg = `ERROR: Vote count still mismatched! Expected: ${updatedTotalVotes}, Got: ${actualTotalVotes}}`
+      const msg = `ERROR: Vote count mismatched! Expected: ${updatedTotalVotes}, Got: ${actualTotalVotes}}`
       logger.error(msg)
       errors.push(msg)
     } else {
@@ -283,13 +279,21 @@ async function main() {
   } else {
     logger.info(`Vote count matches: ${actualTotalVotes} votes`)
   }
-  logger.info('================================\n')
+
   if (!privateKeyToUse || privateKeyToUse === '0x') {
     logger.error('Unable to tally votes without a valid private key')
   } else {
     logger.info('Decrypting votes and tallying results...')
 
     const tallyByQuestion = new Map<number, Record<VoteOption, number>>()
+
+    for (let questionId = 0; questionId < NUMBER_OF_QUESTIONS; questionId++) {
+      tallyByQuestion.set(questionId, {
+        [VoteOption.Yes]: 0,
+        [VoteOption.No]: 0,
+        [VoteOption.Abstain]: 0,
+      })
+    }
 
     const optionLabels: Record<VoteOption, string> = {
       [VoteOption.Yes]: 'Yes',
@@ -315,38 +319,43 @@ async function main() {
 
       try {
         const decryptedVotes = await decryptVotes(voteEncrypted, privateKey, EncryptionType.RSA)
-        successfullyDecrypted++
 
-        for (let questionId = 0; questionId < decryptedVotes.length; questionId++) {
+        if (decryptedVotes.length !== NUMBER_OF_QUESTIONS) {
+          invalidBallots++
+          const msg = `ERROR: Invalid ballot from ${vote.voter}: has ${decryptedVotes.length} questions, expected ${NUMBER_OF_QUESTIONS}`
+          logger.error(msg)
+          errors.push(msg)
+          continue
+        }
+
+        let ballotIsValid = true
+        for (let questionId = 0; questionId < NUMBER_OF_QUESTIONS; questionId++) {
           const decryptedVote = decryptedVotes[questionId]
-
-          if (!tallyByQuestion.has(questionId)) {
-            tallyByQuestion.set(questionId, {
-              [VoteOption.Yes]: 0,
-              [VoteOption.No]: 0,
-              [VoteOption.Abstain]: 0,
-            })
-          }
-
-          const questionTally = tallyByQuestion.get(questionId)!
-
           if (
-            typeof decryptedVote?.value === 'number' &&
-            VoteOption[decryptedVote.value as VoteOption] !== undefined
+            typeof decryptedVote?.value !== 'number' ||
+            VoteOption[decryptedVote.value as VoteOption] === undefined
           ) {
-            questionTally[decryptedVote.value as VoteOption]++
-          } else {
+            ballotIsValid = false
             invalidBallots++
-            const msg = `WARNING: Invalid vote from ${
+            const msg = `ERROR: Invalid vote value from ${
               vote.voter
             } for question ${questionId} - decrypted value: ${JSON.stringify(decryptedVote)}`
-            logger.warn(msg)
-            warnings.push(msg)
+            logger.error(msg)
+            errors.push(msg)
+            break
           }
         }
 
-        if (successfullyDecrypted % 100 === 0) {
-          logger.info(`  Decrypted ${successfullyDecrypted} / ${votesMap.size} votes...`)
+        if (!ballotIsValid) {
+          continue
+        }
+
+        successfullyDecrypted++
+
+        for (let questionId = 0; questionId < NUMBER_OF_QUESTIONS; questionId++) {
+          const decryptedVote = decryptedVotes[questionId]
+          const questionTally = tallyByQuestion.get(questionId)!
+          questionTally[decryptedVote.value as VoteOption]++
         }
       } catch (error) {
         decryptionErrors++
@@ -361,24 +370,17 @@ async function main() {
       }
     }
 
-    logger.info('\n=== Decryption Summary ===')
     logger.info(`Total votes to decrypt: ${votesMap.size}`)
     logger.info(`Successfully decrypted: ${successfullyDecrypted}`)
     logger.info(`Decryption errors: ${decryptionErrors}`)
     logger.info(`Invalid ballots (decrypted but invalid): ${invalidBallots}`)
 
-    if (failedDecryptionAddresses.length > 0) {
-      logger.info('\nFailed decryption addresses:')
-      failedDecryptionAddresses.forEach(addr => logger.info(`  ${addr}`))
-    }
-    logger.info('==========================\n')
-
-    logger.info('\n=== Vote Tally by Question ===')
     const sortedQuestions = Array.from(tallyByQuestion.keys()).sort((a, b) => a - b)
+    const expectedAnswersPerQuestion = successfullyDecrypted
 
     for (const questionId of sortedQuestions) {
       const questionTally = tallyByQuestion.get(questionId)!
-      logger.info(`\nQuestion ${questionId}:`)
+      logger.info(`Question ${questionId}:`)
       logger.info(`  ${optionLabels[VoteOption.Yes]}: ${questionTally[VoteOption.Yes]}`)
       logger.info(`  ${optionLabels[VoteOption.No]}: ${questionTally[VoteOption.No]}`)
       logger.info(`  ${optionLabels[VoteOption.Abstain]}: ${questionTally[VoteOption.Abstain]}`)
@@ -387,8 +389,53 @@ async function main() {
         questionTally[VoteOption.No] +
         questionTally[VoteOption.Abstain]
       logger.info(`  Total: ${total}`)
+
+      if (total !== expectedAnswersPerQuestion) {
+        const msg = `ERROR: Question ${questionId} has ${total} answers but expected ${expectedAnswersPerQuestion}`
+        logger.error(`  ${msg}`)
+        errors.push(msg)
+      }
     }
-    logger.info('===============================\n')
+    logger.info(`Expected answers per question: ${expectedAnswersPerQuestion}`)
+    logger.info(`Number of questions: ${NUMBER_OF_QUESTIONS}`)
+
+    let allQuestionsValid = true
+    for (const questionId of sortedQuestions) {
+      const questionTally = tallyByQuestion.get(questionId)!
+      const total =
+        questionTally[VoteOption.Yes] +
+        questionTally[VoteOption.No] +
+        questionTally[VoteOption.Abstain]
+
+      logger.info(`  Q${questionId}: ${total}/${expectedAnswersPerQuestion} answers`)
+
+      if (total !== expectedAnswersPerQuestion) {
+        allQuestionsValid = false
+      }
+    }
+
+    if (allQuestionsValid) {
+      logger.info('All questions have the expected number of answers')
+    } else {
+      logger.warn('ERROR: Some questions have mismatched answer counts')
+    }
+  }
+
+  logger.info(`Total Warnings: ${warnings.length}`)
+  logger.info(`Total Errors: ${errors.length}`)
+
+  if (warnings.length > 0) {
+    logger.info('Warnings:')
+    warnings.forEach((warning, index) => {
+      logger.warn(`  ${index + 1}. ${warning}`)
+    })
+  }
+
+  if (errors.length > 0) {
+    logger.info('Errors:')
+    errors.forEach((error, index) => {
+      logger.error(`  ${index + 1}. ${error}`)
+    })
   }
 }
 
