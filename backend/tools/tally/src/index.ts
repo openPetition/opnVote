@@ -75,7 +75,7 @@ async function main() {
     errors.push(msg)
   }
 
-  if (election.status !== 2) {
+  if (election.status !== 2n) {
     // 2 == Open
     const msg = `WARNING: Election status is ${
       ELECTION_STATUS_NAMES[election.status] || election.status
