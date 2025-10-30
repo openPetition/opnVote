@@ -75,11 +75,11 @@ async function main() {
     errors.push(msg)
   }
 
-  if (election.status !== 2n) {
-    // 2 == Open
+  if (election.status !== 2n && election.status !== 3n) {
+    // 2 == Ended, 3 == ResultsPublished
     const msg = `WARNING: Election status is ${
       ELECTION_STATUS_NAMES[election.status] || election.status
-    }, expected "Ended" (2)`
+    }, expected "Ended" (2) or "ResultsPublished" (3)`
     logger.warn(msg)
     warnings.push(msg)
   }
