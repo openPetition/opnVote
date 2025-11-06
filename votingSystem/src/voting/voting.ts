@@ -1,8 +1,31 @@
-
-import { ethers } from "ethers";
-import { ElectionCredentials, EncryptedVotes, EncryptionKey, EncryptionType, EthSignature, RecastingVotingTransaction, Vote, VotingTransaction, } from "../types/types";
-import { RSA_BIT_LENGTH } from "../utils/constants";
-import { getSubtleCrypto, hexToBuffer, stringToVotes, validateCredentials, validateEncryptedVotes, validateEncryptionKey, validateEthAddress, validateEthSignature, validateRecastingVotingTransaction, validateSignature, validateToken, validateVotes, validateVotingTransaction, votesToString } from '../utils/utils';
+import { ethers } from 'ethers'
+import {
+  ElectionCredentials,
+  EncryptedVotes,
+  EncryptionKey,
+  EncryptionType,
+  EthSignature,
+  RecastingVotingTransaction,
+  Vote,
+  VotingTransaction,
+} from '../types/types'
+import { RSA_BIT_LENGTH } from '../utils/constants'
+import {
+  getSubtleCrypto,
+  hexToBuffer,
+  stringToVotes,
+  validateCredentials,
+  validateEncryptedVotes,
+  validateEncryptionKey,
+  validateEthAddress,
+  validateEthSignature,
+  validateRecastingVotingTransaction,
+  validateSignature,
+  validateToken,
+  validateVotes,
+  validateVotingTransaction,
+  votesToString,
+} from '../utils/utils'
 import * as crypto from 'crypto'
 
 /**
@@ -13,43 +36,43 @@ import * as crypto from 'crypto'
  * @returns {VotingTransaction} Voting transaction without SVS signature
  * @throws {Error} If any validation (Signature, EncryptedVotes, Token, Signature, ...) fails
  */
-export function createVotingTransactionWithoutSVSSignature(voterCredentials: ElectionCredentials, encryptedVotesRSA: EncryptedVotes, encryptedVotesAES: EncryptedVotes): VotingTransaction {
+export function createVotingTransactionWithoutSVSSignature(
+  voterCredentials: ElectionCredentials,
+  encryptedVotesRSA: EncryptedVotes,
+  encryptedVotesAES: EncryptedVotes,
+): VotingTransaction {
+  validateEncryptedVotes(encryptedVotesRSA, EncryptionType.RSA)
+  validateEncryptedVotes(encryptedVotesAES, EncryptionType.AES)
 
-    validateEncryptedVotes(encryptedVotesRSA, EncryptionType.RSA)
-    validateEncryptedVotes(encryptedVotesAES, EncryptionType.AES)
+  validateToken(voterCredentials.unblindedElectionToken)
+  validateSignature(voterCredentials.unblindedSignature)
+  validateEthAddress(voterCredentials.voterWallet.address)
 
-    validateToken(voterCredentials.unblindedElectionToken)
-    validateSignature(voterCredentials.unblindedSignature)
-    validateEthAddress(voterCredentials.voterWallet.address)
+  if (voterCredentials.unblindedElectionToken.isMaster) {
+    throw new Error('Voting transaction must not include a Master Token')
+  }
 
-    if (voterCredentials.unblindedElectionToken.isMaster) {
-        throw new Error("Voting transaction must not include a Master Token");
+  if (voterCredentials.unblindedElectionToken.isBlinded) {
+    throw new Error('Voting transaction must not include a blinded Token')
+  }
 
-    }
+  if (voterCredentials.unblindedSignature.isBlinded) {
+    throw new Error('Voting transaction must not include a blinded Signature')
+  }
 
-    if (voterCredentials.unblindedElectionToken.isBlinded) {
-        throw new Error("Voting transaction must not include a blinded Token");
+  const votingTransaction: VotingTransaction = {
+    electionID: voterCredentials.electionID,
+    voterAddress: voterCredentials.voterWallet.address,
+    encryptedVoteRSA: encryptedVotesRSA,
+    encryptedVoteAES: encryptedVotesAES,
+    unblindedElectionToken: voterCredentials.unblindedElectionToken,
+    unblindedSignature: voterCredentials.unblindedSignature,
+    svsSignature: null,
+  }
 
-    }
+  validateVotingTransaction(votingTransaction)
 
-    if (voterCredentials.unblindedSignature.isBlinded) {
-        throw new Error("Voting transaction must not include a blinded Signature");
-
-    }
-
-    const votingTransaction: VotingTransaction = {
-        electionID: voterCredentials.electionID,
-        voterAddress: voterCredentials.voterWallet.address,
-        encryptedVoteRSA: encryptedVotesRSA,
-        encryptedVoteAES: encryptedVotesAES,
-        unblindedElectionToken: voterCredentials.unblindedElectionToken,
-        unblindedSignature: voterCredentials.unblindedSignature,
-        svsSignature: null
-    }
-
-    validateVotingTransaction(votingTransaction)
-
-    return votingTransaction;
+  return votingTransaction
 }
 
 /**
@@ -59,20 +82,21 @@ export function createVotingTransactionWithoutSVSSignature(voterCredentials: Ele
  * @returns {VotingTransaction} Updated voting transaction with SVS signature
  * @throws {Error} If any validation (Signature, EncryptedVotes, Token, Signature, ...) fails
  */
-export function addSVSSignatureToVotingTransaction(votingTransaction: VotingTransaction, svsSignature: EthSignature): VotingTransaction {
+export function addSVSSignatureToVotingTransaction(
+  votingTransaction: VotingTransaction,
+  svsSignature: EthSignature,
+): VotingTransaction {
+  if (votingTransaction.svsSignature) {
+    throw new Error('Voting Transaction already contains SVS Signature')
+  }
 
-    if (votingTransaction.svsSignature) {
-        throw new Error("Voting Transaction already contains SVS Signature");
-    }
+  validateVotingTransaction(votingTransaction)
+  validateEthSignature(svsSignature)
 
-    validateVotingTransaction(votingTransaction)
-    validateEthSignature(svsSignature)
-
-    return {
-        ...votingTransaction,
-        svsSignature: svsSignature
-    }
-
+  return {
+    ...votingTransaction,
+    svsSignature: svsSignature,
+  }
 }
 
 /**
@@ -83,21 +107,25 @@ export function addSVSSignatureToVotingTransaction(votingTransaction: VotingTran
  * @returns {RecastingVotingTransaction} Recasting voting transaction
  * @throws {Error} If any validation (ElectionID, EncryptedVotes, EthAddress) fails
  */
-export function createVoteRecastTransaction(voterCredentials: ElectionCredentials, encryptedVotesRSA: EncryptedVotes, encryptedVotesAES: EncryptedVotes): RecastingVotingTransaction {
-    validateCredentials(voterCredentials)
-    validateEncryptedVotes(encryptedVotesRSA, EncryptionType.RSA)
-    validateEncryptedVotes(encryptedVotesAES, EncryptionType.AES)
+export function createVoteRecastTransaction(
+  voterCredentials: ElectionCredentials,
+  encryptedVotesRSA: EncryptedVotes,
+  encryptedVotesAES: EncryptedVotes,
+): RecastingVotingTransaction {
+  validateCredentials(voterCredentials)
+  validateEncryptedVotes(encryptedVotesRSA, EncryptionType.RSA)
+  validateEncryptedVotes(encryptedVotesAES, EncryptionType.AES)
 
-    const recastingVotingTransaction: RecastingVotingTransaction = {
-        electionID: voterCredentials.electionID,
-        voterAddress: voterCredentials.voterWallet.address,
-        encryptedVoteRSA: encryptedVotesRSA,
-        encryptedVoteAES: encryptedVotesAES,
-    }
+  const recastingVotingTransaction: RecastingVotingTransaction = {
+    electionID: voterCredentials.electionID,
+    voterAddress: voterCredentials.voterWallet.address,
+    encryptedVoteRSA: encryptedVotesRSA,
+    encryptedVoteAES: encryptedVotesAES,
+  }
 
-    validateRecastingVotingTransaction(recastingVotingTransaction)
+  validateRecastingVotingTransaction(recastingVotingTransaction)
 
-    return recastingVotingTransaction;
+  return recastingVotingTransaction
 }
 
 /**
@@ -105,20 +133,31 @@ export function createVoteRecastTransaction(voterCredentials: ElectionCredential
  * @param {Array<Vote>} votes - Array of votes to encrypt
  * @param {EncryptionKey} encryptionKey - Encryption key
  * @param {EncryptionType} encryptionType - Encryption type to use (AES or RSA)
+ * @param {number} version - Version of the vote format (1 = legacy). Defaults to 2
  * @returns {EncryptedVotes} Encrypted votes
  */
-export async function encryptVotes(votes: Array<Vote>, encryptionKey: EncryptionKey, encryptionType: EncryptionType): Promise<EncryptedVotes> {
-    if (encryptionKey.encryptionType !== encryptionType) {
-        throw new Error("Encryption type mismatch. Encryption type: " + encryptionKey.encryptionType + ", Encryption type: " + encryptionType)
-    }
+export async function encryptVotes(
+  votes: Array<Vote>,
+  encryptionKey: EncryptionKey,
+  encryptionType: EncryptionType,
+  version: number = 2,
+): Promise<EncryptedVotes> {
+  if (encryptionKey.encryptionType !== encryptionType) {
+    throw new Error(
+      'Encryption type mismatch. Encryption type: ' +
+        encryptionKey.encryptionType +
+        ', Encryption type: ' +
+        encryptionType,
+    )
+  }
 
-    if (encryptionKey.encryptionType === EncryptionType.AES) {
-        return await encryptVotesAES(votes, encryptionKey)
-    } else if (encryptionKey.encryptionType === EncryptionType.RSA) {
-        return await encryptVotesRSA(votes, encryptionKey)
-    } else {
-        throw new Error("Invalid encryption type. Encryption type: " + encryptionKey.encryptionType)
-    }
+  if (encryptionKey.encryptionType === EncryptionType.AES) {
+    return await encryptVotesAES(votes, encryptionKey, version)
+  } else if (encryptionKey.encryptionType === EncryptionType.RSA) {
+    return await encryptVotesRSA(votes, encryptionKey, version)
+  } else {
+    throw new Error('Invalid encryption type. Encryption type: ' + encryptionKey.encryptionType)
+  }
 }
 
 /**
@@ -126,234 +165,276 @@ export async function encryptVotes(votes: Array<Vote>, encryptionKey: Encryption
  * @param {EncryptedVotes} encryptedVotes - Encrypted votes to decrypt
  * @param {EncryptionKey} encryptionKey - Encryption key
  * @param {EncryptionType} encryptionType - Encryption type to use (AES or RSA)
+ * @param {number} version - Version of the vote format (1 = legacy). Defaults to 2
+ * @param {number} expectedVoteCount - Expected number of votes. version 1: pads arrays with Abstain
  * @returns {Array<Vote>} An array of votes
  */
-export async function decryptVotes(encryptedVotes: EncryptedVotes, encryptionKey: EncryptionKey, encryptionType: EncryptionType): Promise<Array<Vote>> {
-    if (encryptionKey.encryptionType !== encryptionType) {
-        throw new Error("Encryption type mismatch. Encryption type: " + encryptionKey.encryptionType + ", Encryption type: " + encryptionType)
-    }
+export async function decryptVotes(
+  encryptedVotes: EncryptedVotes,
+  encryptionKey: EncryptionKey,
+  encryptionType: EncryptionType,
+  version: number = 2,
+  expectedVoteCount?: number,
+): Promise<Array<Vote>> {
+  if (encryptionKey.encryptionType !== encryptionType) {
+    throw new Error(
+      'Encryption type mismatch. Encryption type: ' +
+        encryptionKey.encryptionType +
+        ', Encryption type: ' +
+        encryptionType,
+    )
+  }
 
-
-    if (encryptionKey.encryptionType === EncryptionType.AES) {
-        const votes = await decryptVotesAES(encryptedVotes, encryptionKey)
-        validateVotes(votes, encryptionType)
-        return votes
-    } else if (encryptionKey.encryptionType === EncryptionType.RSA) {
-        const votes = await decryptVotesRSA(encryptedVotes, encryptionKey)
-        validateVotes(votes, encryptionType)
-        return votes
-    } else {
-        throw new Error("Invalid encryption type. Encryption type: " + encryptionKey.encryptionType)
-    }
+  if (encryptionKey.encryptionType === EncryptionType.AES) {
+    const votes = await decryptVotesAES(encryptedVotes, encryptionKey, version, expectedVoteCount)
+    validateVotes(votes, encryptionType, version)
+    return votes
+  } else if (encryptionKey.encryptionType === EncryptionType.RSA) {
+    const votes = await decryptVotesRSA(encryptedVotes, encryptionKey, version, expectedVoteCount)
+    validateVotes(votes, encryptionType, version)
+    return votes
+  } else {
+    throw new Error('Invalid encryption type. Encryption type: ' + encryptionKey.encryptionType)
+  }
 }
-
-
-
 
 /**
  * Encrypts an array of votes using AES-GCM.
  * @param {Array<Vote>} votes - Array of votes to encrypt
  * @param {EncryptionKey} encryptionKey - Encryption key in DER format
+ * @param {number} version - Version of the vote format. Defaults to 2
  * @returns {EncryptedVotes} Encrypted votes
  */
-async function encryptVotesAES(votes: Array<Vote>, encryptionKey: EncryptionKey): Promise<EncryptedVotes> {
-    try {
-        validateEncryptionKey(encryptionKey, EncryptionType.AES)
-        validateVotes(votes, EncryptionType.AES)
+async function encryptVotesAES(
+  votes: Array<Vote>,
+  encryptionKey: EncryptionKey,
+  version: number = 2,
+): Promise<EncryptedVotes> {
+  try {
+    validateEncryptionKey(encryptionKey, EncryptionType.AES)
+    validateVotes(votes, EncryptionType.AES, version)
 
-        const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
+    const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
 
-        const keyBuffer = Buffer.from(encryptionKey.hexString.substring(2), "hex");
-        const iv = ethers.randomBytes(12); // 12 bytes (96 bits)
-        const encoder = new TextEncoder();
-        const voteBytes = encoder.encode(votesToString(votes));
+    const keyBuffer = Buffer.from(encryptionKey.hexString.substring(2), 'hex')
+    const iv = ethers.randomBytes(12) // 12 bytes (96 bits)
+    const encoder = new TextEncoder()
+    const voteBytes = encoder.encode(votesToString(votes))
 
-        const cryptoKey = await subtle.importKey(
-            "raw",
-            keyBuffer,
-            { name: "AES-GCM", length: 256 },
-            false,
-            ["encrypt"]
-        );
-        const encrypted = await subtle.encrypt(
-            { name: "AES-GCM", iv },
-            cryptoKey,
-            voteBytes
-        );
-        const encryptedHex = ethers.hexlify(Buffer.concat([iv, new Uint8Array(encrypted)]));
+    const cryptoKey = await subtle.importKey(
+      'raw',
+      keyBuffer,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt'],
+    )
+    const encrypted = await subtle.encrypt({ name: 'AES-GCM', iv }, cryptoKey, voteBytes)
+    const encryptedHex = ethers.hexlify(Buffer.concat([iv, new Uint8Array(encrypted)]))
 
-        return { hexString: encryptedHex, encryptionType: EncryptionType.AES }
-    } catch (error) {
-        if (error instanceof Error) {
-            throw new Error("Failed to encrypt votes: " + error.message);
-        } else {
-            throw new Error("Failed to encrypt votes due to an unknown error. Error: " + error);
-        }
+    return { hexString: encryptedHex, encryptionType: EncryptionType.AES }
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error('Failed to encrypt votes: ' + error.message)
+    } else {
+      throw new Error('Failed to encrypt votes due to an unknown error. Error: ' + error)
     }
+  }
 }
 
 /**
  * Decrypts an array of votes using AES-GCM.
  * @param {EncryptedVotes} encryptedVotes - Encrypted votes
  * @param {EncryptionKey} encryptionKey - Encryption key in DER format
+ * @param {number} version - Version of the vote format (1 = legacy). Defaults to 2
+ * @param {number} expectedVoteCount - Expected number of votes. Version 1: pads arrays with Abstain
  * @returns {Array<Vote>} An array of votes
  */
-async function decryptVotesAES(encryptedVotes: EncryptedVotes, encryptionKey: EncryptionKey): Promise<Array<Vote>> {
-    try {
-        validateEncryptionKey(encryptionKey, EncryptionType.AES)
-        validateEncryptedVotes(encryptedVotes, EncryptionType.AES)
-        const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
+async function decryptVotesAES(
+  encryptedVotes: EncryptedVotes,
+  encryptionKey: EncryptionKey,
+  version: number = 2,
+  expectedVoteCount?: number,
+): Promise<Array<Vote>> {
+  try {
+    validateEncryptionKey(encryptionKey, EncryptionType.AES)
+    validateEncryptedVotes(encryptedVotes, EncryptionType.AES)
+    const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
 
-        const keyBuffer = Buffer.from(encryptionKey.hexString.substring(2), "hex");
-        const encryptedBuffer = Buffer.from(encryptedVotes.hexString.substring(2), "hex");
+    const keyBuffer = Buffer.from(encryptionKey.hexString.substring(2), 'hex')
+    const encryptedBuffer = Buffer.from(encryptedVotes.hexString.substring(2), 'hex')
 
-        const iv = encryptedBuffer.subarray(0, 12);
-        const ciphertext = encryptedBuffer.subarray(12);
+    const iv = encryptedBuffer.subarray(0, 12)
+    const ciphertext = encryptedBuffer.subarray(12)
 
-        const cryptoKey = await subtle.importKey(
-            "raw",
-            keyBuffer,
-            { name: "AES-GCM", length: 256 },
-            false,
-            ["decrypt"]
-        );
+    const cryptoKey = await subtle.importKey(
+      'raw',
+      keyBuffer,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['decrypt'],
+    )
 
-        const decryptedBytes = await subtle.decrypt(
-            { name: "AES-GCM", iv },
-            cryptoKey,
-            ciphertext
-        );
+    const decryptedBytes = await subtle.decrypt({ name: 'AES-GCM', iv }, cryptoKey, ciphertext)
 
-        const decryptedString = new TextDecoder().decode(decryptedBytes);
+    const decryptedString = new TextDecoder().decode(decryptedBytes)
 
-        const votes: Array<Vote> = stringToVotes(decryptedString);
-        validateVotes(votes, EncryptionType.AES)
-        return votes;
-    } catch (error) {
-        if (error instanceof Error) {
-            throw new Error("Failed to decrypt votes: " + error.message);
-        } else {
-            throw new Error("Failed to decrypt votes due to an unknown error. Error: " + error);
-        }
+    const votes: Array<Vote> = stringToVotes(decryptedString, version, expectedVoteCount)
+    validateVotes(votes, EncryptionType.AES, version)
+    return votes
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error('Failed to decrypt votes: ' + error.message)
+    } else {
+      throw new Error('Failed to decrypt votes due to an unknown error. Error: ' + error)
     }
+  }
 }
-
 
 /**
  * Encrypts an array of votes using RSA-OAEP with SHA-256 as hash function.
  * @param {Array<Vote>} votes - Array of votes to encrypt
  * @param {EncryptionKey} encryptionKey - Encryption key in DER format
-* @returns {EncryptedVotes} Encrypted votes
+ * @param {number} version - Version of the vote format. Defaults to 2
+ * @returns {EncryptedVotes} Encrypted votes
  * @throws {Error} if no votes are provided or if any error occurs during the encryption process
  */
-async function encryptVotesRSA(votes: Array<Vote>, encryptionKey: EncryptionKey): Promise<EncryptedVotes> {
-    if (votes.length === 0) {
-        throw new Error("Encryption error: No votes provided.");
+async function encryptVotesRSA(
+  votes: Array<Vote>,
+  encryptionKey: EncryptionKey,
+  version: number = 2,
+): Promise<EncryptedVotes> {
+  if (votes.length === 0) {
+    throw new Error('Encryption error: No votes provided.')
+  }
+  if (encryptionKey.encryptionType !== EncryptionType.RSA) {
+    throw new Error(
+      'Encryption type mismatch. Encryption type: ' +
+        encryptionKey.encryptionType +
+        ', expected: ' +
+        EncryptionType.RSA,
+    )
+  }
+
+  try {
+    validateVotes(votes, EncryptionType.RSA, version)
+    const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
+    const publicKeyBuffer = hexToBuffer(encryptionKey.hexString)
+    const publicKey = await subtle.importKey(
+      'spki',
+      publicKeyBuffer,
+      {
+        name: 'RSA-OAEP',
+        hash: 'SHA-256',
+      },
+      true,
+      ['encrypt'],
+    )
+
+    // Validate Key size
+    const keyDetails = await subtle.exportKey('jwk', publicKey)
+    if (keyDetails.n) {
+      const keySize = (keyDetails.n.length * 6) / 8 // Approximate bit length
+      const expectedKeySize = RSA_BIT_LENGTH / 8
+      if (Math.abs(keySize - expectedKeySize) > 1) {
+        throw new Error(
+          `Invalid key size. Expected around ${RSA_BIT_LENGTH} bits, but got approximately ${Math.round(
+            keySize * 8,
+          )} bits.`,
+        )
+      }
+    } else {
+      throw new Error('Unable to determine key size.')
     }
-    if (encryptionKey.encryptionType !== EncryptionType.RSA) {
-        throw new Error("Encryption type mismatch. Encryption type: " + encryptionKey.encryptionType + ", expected: " + EncryptionType.RSA)
+
+    const votesString: string = votesToString(votes)
+    const buffer = new TextEncoder().encode(votesString)
+    const encrypted = await subtle.encrypt(
+      {
+        name: 'RSA-OAEP',
+      },
+      publicKey,
+      buffer,
+    )
+    const encryptedVotes: EncryptedVotes = {
+      hexString: '0x' + Buffer.from(encrypted).toString('hex'),
+      encryptionType: EncryptionType.RSA,
     }
+    validateEncryptedVotes(encryptedVotes, EncryptionType.RSA)
 
-    try {
-
-        validateVotes(votes, EncryptionType.RSA)
-        const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
-        const publicKeyBuffer = hexToBuffer(encryptionKey.hexString);
-        const publicKey = await subtle.importKey(
-            'spki',
-            publicKeyBuffer,
-            {
-                name: "RSA-OAEP",
-                hash: "SHA-256"
-            },
-            true,
-            ["encrypt"]
-        );
-
-        // Validate Key size
-        const keyDetails = await subtle.exportKey('jwk', publicKey);
-        if (keyDetails.n) {
-            const keySize = keyDetails.n.length * 6 / 8; // Approximate bit length
-            const expectedKeySize = RSA_BIT_LENGTH / 8;
-            if (Math.abs(keySize - expectedKeySize) > 1) {
-                throw new Error(`Invalid key size. Expected around ${RSA_BIT_LENGTH} bits, but got approximately ${Math.round(keySize * 8)} bits.`);
-            }
-        } else {
-            throw new Error("Unable to determine key size.");
-        }
-
-
-        const votesString: string = votesToString(votes);
-        const buffer = new TextEncoder().encode(votesString);
-        const encrypted = await subtle.encrypt(
-            {
-                name: "RSA-OAEP"
-            },
-            publicKey,
-            buffer
-        );
-        const encryptedVotes: EncryptedVotes = { hexString: '0x' + Buffer.from(encrypted).toString('hex'), encryptionType: EncryptionType.RSA }
-        validateEncryptedVotes(encryptedVotes, EncryptionType.RSA)
-
-        return encryptedVotes;
-    } catch (error) {
-        if (error instanceof Error) {
-            throw new Error("Failed to encrypt votes: " + error.message);
-        } else {
-            throw new Error("Failed to encrypt votes due to an unknown error. Error: " + error);
-        }
+    return encryptedVotes
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error('Failed to encrypt votes: ' + error.message)
+    } else {
+      throw new Error('Failed to encrypt votes due to an unknown error. Error: ' + error)
     }
+  }
 }
 
 /**
  * Decrypts a string of encrypted votes using RSA-OAEP with SHA-256.
  * @param {EncryptedVotes} encryptedVotes - Encrypted votes
  * @param {EncryptionKey} encryptionKey - Encryption key in DER format
-* @returns {Array<Vote>} An array of votes
+ * @param {number} version - Version of the vote format (1 = legacy). Defaults to 2.
+ * @param {number} expectedVoteCount - Expected number of votes. version 1: pads arrays with Abstain
+ * @returns {Array<Vote>} An array of votes
  * @throws {Error} If no valid encrypted data is provided or if any error occurs during the decryption process.
  */
-async function decryptVotesRSA(encryptedVotes: EncryptedVotes, encryptionKey: EncryptionKey): Promise<Array<Vote>> {
-    if (encryptionKey.encryptionType !== EncryptionType.RSA) {
-        throw new Error("Encryption type mismatch. Encryption type: " + encryptionKey.encryptionType + ", expected: " + EncryptionType.RSA)
+async function decryptVotesRSA(
+  encryptedVotes: EncryptedVotes,
+  encryptionKey: EncryptionKey,
+  version: number = 2,
+  expectedVoteCount?: number,
+): Promise<Array<Vote>> {
+  if (encryptionKey.encryptionType !== EncryptionType.RSA) {
+    throw new Error(
+      'Encryption type mismatch. Encryption type: ' +
+        encryptionKey.encryptionType +
+        ', expected: ' +
+        EncryptionType.RSA,
+    )
+  }
+
+  if (
+    !encryptedVotes.hexString ||
+    encryptedVotes.hexString.length <= 2 ||
+    !encryptedVotes.hexString.startsWith('0x')
+  ) {
+    throw new Error('Decryption error: No valid encrypted data provided.')
+  }
+  validateEncryptedVotes(encryptedVotes, EncryptionType.RSA)
+
+  try {
+    const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
+    const privateKeyBuffer = hexToBuffer(encryptionKey.hexString)
+    const privateKey = await subtle.importKey(
+      'pkcs8',
+      privateKeyBuffer,
+      {
+        name: 'RSA-OAEP',
+        hash: 'SHA-256',
+      },
+      true,
+      ['decrypt'],
+    )
+    const encryptedBuf = hexToBuffer(encryptedVotes.hexString)
+    const decrypted = await subtle.decrypt(
+      {
+        name: 'RSA-OAEP',
+      },
+      privateKey,
+      encryptedBuf,
+    )
+    const votesString = new TextDecoder().decode(decrypted)
+    const votes = stringToVotes(votesString, version, expectedVoteCount)
+    validateVotes(votes, EncryptionType.RSA, version)
+
+    return votes
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error('Failed to decrypt votes: ' + error.message)
+    } else {
+      throw new Error('Failed to decrypt votes due to an unknown error. Error: ' + error)
     }
-
-    if (!encryptedVotes.hexString || encryptedVotes.hexString.length <= 2 || !encryptedVotes.hexString.startsWith('0x')) {
-        throw new Error("Decryption error: No valid encrypted data provided.");
-    }
-    validateEncryptedVotes(encryptedVotes, EncryptionType.RSA)
-
-    try {
-        const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
-        const privateKeyBuffer = hexToBuffer(encryptionKey.hexString);
-        const privateKey = await subtle.importKey(
-            'pkcs8',
-            privateKeyBuffer,
-            {
-                name: "RSA-OAEP",
-                hash: "SHA-256"
-            },
-            true,
-            ["decrypt"]
-        );
-        const encryptedBuf = hexToBuffer(encryptedVotes.hexString)
-        const decrypted = await subtle.decrypt(
-            {
-                name: "RSA-OAEP"
-            },
-            privateKey,
-            encryptedBuf
-        );
-        const votesString = new TextDecoder().decode(decrypted);
-        const votes = stringToVotes(votesString)
-        validateVotes(votes, EncryptionType.RSA)
-
-        return votes;
-    } catch (error) {
-        if (error instanceof Error) {
-            throw new Error("Failed to decrypt votes: " + error.message);
-        } else {
-            throw new Error("Failed to decrypt votes due to an unknown error. Error: " + error);
-        }
-
-    }
+  }
 }
