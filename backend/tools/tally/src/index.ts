@@ -19,6 +19,7 @@ const OPNVOTE_CONTRACT_ADDRESS = getEnvVar<string>('OPNVOTE_CONTRACT_ADDRESS', '
 const ELECTION_ID = getEnvVar<number>('ELECTION_ID', 'number')
 const VERSION = getEnvVar<string>('VERSION', 'string')
 const NUMBER_OF_QUESTIONS = getEnvVar<number>('NUMBER_OF_QUESTIONS', 'number')
+const VOTE_FORMAT_VERSION = getEnvVar<number>('VOTE_FORMAT_VERSION', 'number')
 
 let ELECTION_PRIVATE_KEY_FROM_ENV: string | undefined
 try {
@@ -318,7 +319,13 @@ async function main() {
       }
 
       try {
-        const decryptedVotes = await decryptVotes(voteEncrypted, privateKey, EncryptionType.RSA)
+        const decryptedVotes = await decryptVotes(
+          voteEncrypted,
+          privateKey,
+          EncryptionType.RSA,
+          VOTE_FORMAT_VERSION,
+          NUMBER_OF_QUESTIONS,
+        )
 
         if (decryptedVotes.length !== NUMBER_OF_QUESTIONS) {
           invalidBallots++
@@ -398,6 +405,7 @@ async function main() {
     }
     logger.info(`Expected answers per question: ${expectedAnswersPerQuestion}`)
     logger.info(`Number of questions: ${NUMBER_OF_QUESTIONS}`)
+    logger.info(`Vote format version: ${VOTE_FORMAT_VERSION}`)
 
     let allQuestionsValid = true
     for (const questionId of sortedQuestions) {
