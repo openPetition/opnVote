@@ -572,6 +572,10 @@ export function stringToVotes(
   version: number = 2,
   expectedVoteCount?: number,
 ): Array<Vote> {
+  if (!votesString || votesString.trim() === '') {
+    throw new Error('votesString cannot be empty')
+  }
+
   // Version 1 needs expectedVoteCount for padding
   if (version === 1 && expectedVoteCount === undefined) {
     throw new Error('expectedVoteCount is required for version 1')
@@ -583,10 +587,10 @@ export function stringToVotes(
       return { value: VoteOption.Abstain }
     }
 
-    const voteValue = parseInt(vote)
-
-    if (version === 1 && isNaN(voteValue)) {
-      return { value: VoteOption.Abstain }
+    const voteValue = parseInt(vote, 10)
+    if (isNaN(voteValue) || vote.trim() !== voteValue.toString()) {
+      // catching 1.5, 1abc etc.
+      throw new Error(`Invalid vote format: ${vote}`)
     }
 
     if (!Object.values(VoteOption).includes(voteValue)) {
@@ -602,6 +606,9 @@ export function stringToVotes(
     }
   }
 
+  if (expectedVoteCount && votes.length !== expectedVoteCount) {
+    throw new Error(`Unexpected vote count. Got ${votes.length}, expected ${expectedVoteCount}`)
+  }
   return votes
 }
 
