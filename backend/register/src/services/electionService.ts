@@ -59,4 +59,29 @@ export class ElectionStatusService {
     // If none of the above true, the election is open
     return false
   }
+
+  /**
+   * Checks if registration is closed based on the registration end time
+   *
+   * @param {ElectionStatusResponse | null} electionData - election data returned by `getElectionStatus`.
+   * @returns {boolean} `true` if registration is closed, `false` otherwise.
+   */
+  static isRegistrationClosed(electionData: ElectionStatusResponse | null): boolean {
+    // Closed if no election data present
+    if (!electionData) {
+      return true
+    }
+
+    const now = Math.floor(Date.now() / 1000)
+    const registrationEndTime = parseInt(electionData.registrationEndTime)
+
+    // If registrationEndTime is 0 or not set, registration is open indefinitely
+    // Check if registration end time has passed
+    if (registrationEndTime !== 0 && now >= registrationEndTime) {
+      return true
+    }
+
+    // Registration is open
+    return false
+  }
 }

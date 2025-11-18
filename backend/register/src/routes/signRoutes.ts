@@ -12,6 +12,7 @@ import { dataSource } from '../database'
 import { ApiResponse } from '../types/apiResponses'
 import { RegisterKeyService } from '../services/registerKeyService'
 import { logger } from '../utils/logger'
+import { checkRegistrationStatus } from '../middleware/checkRegistrationStatus'
 
 const router = Router()
 
@@ -80,6 +81,7 @@ router.post(
   unauthenticatedCheckForExistingBlindSignature, // Check if token exists in DB (no Jwt required)
   jwtTokenValidator(), // Checks if Jwt is present in Authorization header.
   authenticateJwt, // Checks if Jwt is valid
+  checkRegistrationStatus, // Confirms that registration is open
   checkElectionStatus, // Confirms that election status is Pending or Open
   checkForExistingBlindedSignature, // Confirms that user didnt receive a blinded Signature for this election
   async (req: Request, res: Response) => {

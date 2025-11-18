@@ -25,6 +25,7 @@ export async function fetchElectionEndTimeStatus(
       election(id: $id) {
         status
         votingEndTime
+        registrationEndTime
       }
     }
   `
