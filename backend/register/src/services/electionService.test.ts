@@ -31,16 +31,19 @@ describe('ElectionStatusService', () => {
       const endedElectionData = {
         status: 2,
         votingEndTime: '1750236800',
+        registrationStartTime: '1750236800',
         registrationEndTime: '1750236800',
       }
       const resultsPublishedElectionData = {
         status: 3,
         votingEndTime: '1750236800',
+        registrationStartTime: '1750236800',
         registrationEndTime: '1750236800',
       }
       const canceledElectionData = {
         status: 4,
         votingEndTime: '1750236800',
+        registrationStartTime: '1750236800',
         registrationEndTime: '1750236800',
       }
 
@@ -53,6 +56,7 @@ describe('ElectionStatusService', () => {
       const activeElectionData = {
         status: 1,
         votingEndTime: String(Date.now() / 1000 - 3600),
+        registrationStartTime: String(Date.now() / 1000 - 7200),
         registrationEndTime: String(Date.now() / 1000 - 7200),
       } // Ended one hour ago
 
@@ -63,6 +67,7 @@ describe('ElectionStatusService', () => {
       const activeElectionData = {
         status: 1,
         votingEndTime: String(Date.now() / 1000 + 3600),
+        registrationStartTime: String(Date.now() / 1000 - 3600),
         registrationEndTime: String(Date.now() / 1000 - 3600),
       } // Ending in 1 hour
 
@@ -76,20 +81,44 @@ describe('ElectionStatusService', () => {
       expect(result).toBe(true)
     })
 
+    it('should return true if registration has not started yet', () => {
+      const electionData = {
+        status: 1,
+        votingEndTime: String(Date.now() / 1000 + 7200),
+        registrationStartTime: String(Date.now() / 1000 + 3600),
+        registrationEndTime: String(Date.now() / 1000 + 7200),
+      }
+
+      expect(ElectionStatusService.isRegistrationClosed(electionData)).toBe(true)
+    })
+
+    it('should return false if registrationStartTime is 0 (not enforced)', () => {
+      const electionData = {
+        status: 1,
+        votingEndTime: String(Date.now() / 1000 + 7200),
+        registrationStartTime: '0',
+        registrationEndTime: String(Date.now() / 1000 + 3600),
+      }
+
+      expect(ElectionStatusService.isRegistrationClosed(electionData)).toBe(false)
+    })
+
     it('should return true if registration end time has passed', () => {
       const electionData = {
         status: 1,
         votingEndTime: String(Date.now() / 1000 + 3600),
+        registrationStartTime: String(Date.now() / 1000 - 7200),
         registrationEndTime: String(Date.now() / 1000 - 3600),
       }
 
       expect(ElectionStatusService.isRegistrationClosed(electionData)).toBe(true)
     })
 
-    it('should return false if registration end time is in the future', () => {
+    it('should return false if registration is currently open', () => {
       const electionData = {
         status: 1,
         votingEndTime: String(Date.now() / 1000 + 7200),
+        registrationStartTime: String(Date.now() / 1000 - 3600),
         registrationEndTime: String(Date.now() / 1000 + 3600),
       }
 
@@ -100,6 +129,18 @@ describe('ElectionStatusService', () => {
       const electionData = {
         status: 1,
         votingEndTime: String(Date.now() / 1000 + 7200),
+        registrationStartTime: String(Date.now() / 1000 - 3600),
+        registrationEndTime: '0',
+      }
+
+      expect(ElectionStatusService.isRegistrationClosed(electionData)).toBe(false)
+    })
+
+    it('should return false if registrationStartTime and registrationEndTime are 0 (not enforced)', () => {
+      const electionData = {
+        status: 1,
+        votingEndTime: String(Date.now() / 1000 + 7200),
+        registrationStartTime: '0',
         registrationEndTime: '0',
       }
 

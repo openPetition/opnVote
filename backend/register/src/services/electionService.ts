@@ -61,7 +61,7 @@ export class ElectionStatusService {
   }
 
   /**
-   * Checks if registration is closed based on the registration end time
+   * Checks if registration is closed based on the registration start and end times
    *
    * @param {ElectionStatusResponse | null} electionData - election data returned by `getElectionStatus`.
    * @returns {boolean} `true` if registration is closed, `false` otherwise.
@@ -73,9 +73,15 @@ export class ElectionStatusService {
     }
 
     const now = Math.floor(Date.now() / 1000)
+    const registrationStartTime = parseInt(electionData.registrationStartTime)
     const registrationEndTime = parseInt(electionData.registrationEndTime)
 
-    // If registrationEndTime is 0 or not set, registration is open indefinitely
+    // If registrationStartTime is 0 or not set -> registration start time check is not enforced
+    if (registrationStartTime !== 0 && now < registrationStartTime) {
+      return true
+    }
+
+    // If registrationEndTime is 0 or not set -> registration end time check is not enforced
     // Check if registration end time has passed
     if (registrationEndTime !== 0 && now >= registrationEndTime) {
       return true
