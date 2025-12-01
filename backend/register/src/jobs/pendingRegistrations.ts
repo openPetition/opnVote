@@ -459,7 +459,7 @@ async function timeout(ms: number) {
  * @param baseDelayMs - Initial delay
  * @returns The result of fn
  */
-async function withRetry<T>(fn: () => Promise<T>, maxRetries = 2, baseDelayMs = 1000): Promise<T> {
+async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3, baseDelayMs = 1000): Promise<T> {
   let lastError: any
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
