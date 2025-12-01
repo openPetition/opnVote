@@ -95,7 +95,7 @@ function isAuthorizationProcessed(
 }
 
 async function init() {
-  const balance = await provider.getBalance(wallet.address)
+  const balance = await withRetry(() => provider.getBalance(wallet.address))
   const isBalanceSufficient = validateBalance(balance)
   if (!isBalanceSufficient) {
     throw new Error('Insufficient balance')
@@ -120,7 +120,7 @@ export async function processPendingAuthorizations(): Promise<void> {
   isProcessing = true
   try {
     logger.debug('Processing pending Authorizations...')
-    const balance = await provider.getBalance(wallet.address)
+    const balance = await withRetry(() => provider.getBalance(wallet.address))
     const isBalanceSufficient = validateBalance(balance)
     if (!isBalanceSufficient) {
       logger.error(`Aborting due to insufficient balance`)
@@ -264,7 +264,7 @@ export async function processPendingAuthorizations(): Promise<void> {
               authorizationBatches.length
             })`,
           )
-          const feeData = await provider.getFeeData()
+          const feeData = await withRetry(() => provider.getFeeData())
           const maxFeePerGas = feeData.maxFeePerGas
           const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
 
@@ -280,7 +280,7 @@ export async function processPendingAuthorizations(): Promise<void> {
 
           let adjustedMaxFeePerGas = (maxFeePerGas * TX_MULTIPLIERS.MAX_FEE_PERCENTAGE) / 100n
 
-          const block = await provider.getBlock('latest')
+          const block = await withRetry(() => provider.getBlock('latest'))
           if (!block || !block.baseFeePerGas) {
             throw new Error('Could not get baseFeePerGas')
           }
@@ -309,13 +309,11 @@ export async function processPendingAuthorizations(): Promise<void> {
             throw new Error('Max fee per gas or max priority fee per gas is too high')
           }
 
-          const estimatedGas = await contract.authorizeVoters.estimateGas(
-            BigInt(electionId),
-            voterIds,
-            {
+          const estimatedGas = await withRetry(() =>
+            contract.authorizeVoters.estimateGas(BigInt(electionId), voterIds, {
               maxFeePerGas: adjustedMaxFeePerGas,
               maxPriorityFeePerGas: adjustedMaxPriorityFeePerGas,
-            },
+            }),
           )
           const gasLimitWithBuffer = (estimatedGas * TX_MULTIPLIERS.GAS_LIMIT_PERCENTAGE) / 100n
 
@@ -423,6 +421,32 @@ export async function processPendingAuthorizations(): Promise<void> {
  */
 async function timeout(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+/**
+ * Executes a rpc-request with exp backoff on timeouts
+ * @param fn - The function to execute
+ * @param maxRetries - Maximum number of retries
+ * @param baseDelayMs - Initial delay
+ * @returns The result of fn
+ */
+async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3, baseDelayMs = 1000): Promise<T> {
+  let lastError: any
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn()
+    } catch (error: any) {
+      const isTimeout = error?.code === 'TIMEOUT' || error?.message?.includes('timeout')
+      if (!isTimeout || attempt === maxRetries) {
+        throw error
+      }
+      lastError = error
+      const delay = baseDelayMs * Math.pow(2, attempt) // 1s, 2s, 4s
+      logger.warn(`RPC call timeout, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`)
+      await timeout(delay)
+    }
+  }
+  throw lastError
 }
 
 /**
