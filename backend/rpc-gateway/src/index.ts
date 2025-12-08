@@ -1,9 +1,10 @@
 import fastify, { FastifyRequest, FastifyReply } from 'fastify'
 import axios from 'axios'
 import * as dotenv from 'dotenv'
+import { logger } from './utils/logger'
 dotenv.config()
 
-const server = fastify({ logger: true, trustProxy: true })
+const server = fastify({ logger: false, trustProxy: true })
 
 server.register(require('@fastify/cors'), {
   origin: true,
@@ -90,13 +91,13 @@ async function checkNodeSync(): Promise<void> {
   secondaryBlockNumber = await getBlockNumber(RPC_ENDPOINTS[1])
 
   if (primaryBlockNumber === null) {
-    server.log.error(`❌ Primary node unreachable`)
+    logger.error(`Primary node unreachable`)
     usePrimaryNode = false
     return
   }
 
   if (secondaryBlockNumber === null) {
-    server.log.warn(`⚠️ Secondary node unreachable`)
+    logger.warn(`Secondary node unreachable`)
     usePrimaryNode = true
     return
   }
@@ -105,17 +106,17 @@ async function checkNodeSync(): Promise<void> {
   const secondaryBehind = primaryBlockNumber - secondaryBlockNumber
 
   if (primaryBehind >= FAILOVER_BLOCK_LAG) {
-    server.log.error(`🔴 Primary node ${primaryBehind} blocks behind secondary! Failing over`)
+    logger.error(`Primary node ${primaryBehind} blocks behind secondary! Failing over`)
     usePrimaryNode = false
   } else if (primaryBehind >= WARNING_BLOCK_LAG) {
-    server.log.warn(`⚠️ Primary node ${primaryBehind} blocks behind secondary`)
+    logger.warn(`Primary node ${primaryBehind} blocks behind secondary`)
     usePrimaryNode = true
   } else if (secondaryBehind >= FAILOVER_BLOCK_LAG) {
-    server.log.warn(`⚠️ Secondary node ${secondaryBehind} blocks behind primary`)
+    logger.warn(`Secondary node ${secondaryBehind} blocks behind primary`)
     usePrimaryNode = true
   } else {
     if (!usePrimaryNode) {
-      server.log.info(`✅ Primary node in sync. Switching back to primary`)
+      logger.info(`✅ Primary node in sync. Switching back to primary`)
     }
     usePrimaryNode = true
   }
@@ -144,7 +145,7 @@ server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
     const response = await processRPCRequest(body, request)
     return reply.send(response)
   } catch (error) {
-    server.log.error('Error processing request:', error)
+    logger.error('Error processing request:', error)
     return reply.status(500).send({
       jsonrpc: '2.0',
       error: {
@@ -188,7 +189,7 @@ async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
     const endpointName = `RPC-${i + 1} (${new URL(rpcUrl).hostname})`
 
     try {
-      server.log.info(`Attempting request to ${endpointName} for method: ${rpcRequest.method}`)
+      logger.info(`Attempting request to ${endpointName} for method: ${rpcRequest.method}`)
 
       const response = await axios.post(rpcUrl, rpcRequest, {
         headers: {
@@ -197,7 +198,7 @@ async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
         timeout: REQUEST_TIMEOUT,
       })
 
-      server.log.info(`✅ Success: ${endpointName} responded for method: ${rpcRequest.method}`)
+      logger.info(`✅ Success: ${endpointName} responded for method: ${rpcRequest.method}`)
       return response.data
     } catch (error: any) {
       const errorMsg =
@@ -209,16 +210,16 @@ async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
           ? `HTTP ${error.response.status}`
           : error.message || 'Unknown error'
 
-      server.log.error(`❌ Failed: ${endpointName} - ${errorMsg} for method: ${rpcRequest.method}`)
+      logger.error(`Failed: ${endpointName} - ${errorMsg} for method: ${rpcRequest.method}`)
 
       if (i < orderedEndpoints.length - 1) {
-        server.log.warn(`🔄 Failing over to next RPC endpoint...`)
+        logger.warn(`🔄 Failing over to next RPC endpoint...`)
         continue
       }
     }
   }
 
-  server.log.error(`💥 All RPC endpoints failed for method: ${rpcRequest.method}`)
+  logger.error(`All RPC endpoints failed for method: ${rpcRequest.method}`)
 
   return {
     jsonrpc: '2.0',
@@ -281,35 +282,35 @@ server.get('/health', async (request: FastifyRequest, reply: FastifyReply) => {
 const start = async () => {
   try {
     await server.listen({ port: PORT, host: '0.0.0.0' })
-    server.log.info(`🚀 RPC Gateway server listening on port ${PORT}`)
-    server.log.info(`📡 Configured RPC endpoints:`)
+    logger.info(`🚀 RPC Gateway server listening on port ${PORT}`)
+    logger.info(`📡 Configured RPC endpoints:`)
     RPC_ENDPOINTS.forEach((url, index) => {
-      server.log.info(
+      logger.info(
         `   ${index + 1}. ${new URL(url).hostname} (${index === 0 ? 'Primary' : 'Failover'})`,
       )
     })
-    server.log.info(`⏱️  Request timeout: ${REQUEST_TIMEOUT}ms`)
+    logger.info(`⏱️  Request timeout: ${REQUEST_TIMEOUT}ms`)
 
     const localIps = ['127.0.0.1', '::1', '::ffff:127.0.0.1']
     const allWhitelistedIps = [...localIps, ...WHITELISTED_IPS]
-    server.log.info(`🔒 Whitelisted IPs (unrestricted access): ${allWhitelistedIps.join(', ')}`)
+    logger.info(`🔒 Whitelisted IPs (unrestricted access): ${allWhitelistedIps.join(', ')}`)
     if (WHITELISTED_IPS.length > 0) {
-      server.log.info(`📋 Custom whitelisted IPs from env: ${WHITELISTED_IPS.join(', ')}`)
+      logger.info(`📋 Custom whitelisted IPs from env: ${WHITELISTED_IPS.join(', ')}`)
     }
 
     if (RPC_ENDPOINTS.length >= 2) {
       await checkNodeSync()
       setInterval(checkNodeSync, SYNC_CHECK_INTERVAL)
-      server.log.info(
+      logger.info(
         `Node sync monitor started (interval: ${
           SYNC_CHECK_INTERVAL / 1000
         }s, warning: ${WARNING_BLOCK_LAG} blocks, failover: ${FAILOVER_BLOCK_LAG} blocks)`,
       )
     } else {
-      server.log.warn(`Node sync monitor disabled: Set 2 RPC endpoints`)
+      logger.warn(`Node sync monitor disabled: Set 2 RPC endpoints`)
     }
   } catch (err) {
-    server.log.error(err)
+    logger.error(err)
     process.exit(1)
   }
 }
