@@ -91,13 +91,13 @@ async function checkNodeSync(): Promise<void> {
   secondaryBlockNumber = await getBlockNumber(RPC_ENDPOINTS[1])
 
   if (primaryBlockNumber === null) {
-    logger.error(`❌ Primary node unreachable`)
+    logger.error(`Primary node unreachable`)
     usePrimaryNode = false
     return
   }
 
   if (secondaryBlockNumber === null) {
-    logger.warn(`⚠️ Secondary node unreachable`)
+    logger.warn(`Secondary node unreachable`)
     usePrimaryNode = true
     return
   }
@@ -106,13 +106,13 @@ async function checkNodeSync(): Promise<void> {
   const secondaryBehind = primaryBlockNumber - secondaryBlockNumber
 
   if (primaryBehind >= FAILOVER_BLOCK_LAG) {
-    logger.error(`🔴 Primary node ${primaryBehind} blocks behind secondary! Failing over`)
+    logger.error(`Primary node ${primaryBehind} blocks behind secondary! Failing over`)
     usePrimaryNode = false
   } else if (primaryBehind >= WARNING_BLOCK_LAG) {
-    logger.warn(`⚠️ Primary node ${primaryBehind} blocks behind secondary`)
+    logger.warn(`Primary node ${primaryBehind} blocks behind secondary`)
     usePrimaryNode = true
   } else if (secondaryBehind >= FAILOVER_BLOCK_LAG) {
-    logger.warn(`⚠️ Secondary node ${secondaryBehind} blocks behind primary`)
+    logger.warn(`Secondary node ${secondaryBehind} blocks behind primary`)
     usePrimaryNode = true
   } else {
     if (!usePrimaryNode) {
@@ -210,7 +210,7 @@ async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
           ? `HTTP ${error.response.status}`
           : error.message || 'Unknown error'
 
-      logger.error(`❌ Failed: ${endpointName} - ${errorMsg} for method: ${rpcRequest.method}`)
+      logger.error(`Failed: ${endpointName} - ${errorMsg} for method: ${rpcRequest.method}`)
 
       if (i < orderedEndpoints.length - 1) {
         logger.warn(`🔄 Failing over to next RPC endpoint...`)
@@ -219,7 +219,7 @@ async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
     }
   }
 
-  logger.error(`💥 All RPC endpoints failed for method: ${rpcRequest.method}`)
+  logger.error(`All RPC endpoints failed for method: ${rpcRequest.method}`)
 
   return {
     jsonrpc: '2.0',
