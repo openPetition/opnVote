@@ -71,7 +71,7 @@ function isWhitelistedRequest(req: FastifyRequest): boolean {
 
 async function getBlockNumber(rpcUrl: string): Promise<number | null> {
   try {
-    const response = await axios.post(
+    const response = await axios.post<any>(
       rpcUrl,
       { jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 },
       { headers: { 'Content-Type': 'application/json' }, timeout: 5000 },
@@ -254,7 +254,7 @@ server.get('/health', async (request: FastifyRequest, reply: FastifyReply) => {
         id: 1,
       }
 
-      const response = await axios.post(rpcUrl, testRequest, {
+      const response = await axios.post<any>(rpcUrl, testRequest, {
         headers: { 'Content-Type': 'application/json' },
         timeout: 5000,
       })
