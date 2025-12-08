@@ -40,6 +40,13 @@ if (RPC_ENDPOINTS.length === 0) {
 
 const PORT = parseInt(process.env.PORT || '3000')
 const REQUEST_TIMEOUT = parseInt(process.env.REQUEST_TIMEOUT || '10000')
+const SYNC_CHECK_INTERVAL = parseInt(process.env.SYNC_CHECK_INTERVAL || '60000')
+const WARNING_BLOCK_LAG = parseInt(process.env.WARNING_BLOCK_LAG || '3')
+const FAILOVER_BLOCK_LAG = parseInt(process.env.FAILOVER_BLOCK_LAG || '5')
+
+let primaryBlockNumber: number | null = null
+let secondaryBlockNumber: number | null = null
+let usePrimaryNode = true
 
 const ALLOWED_METHODS = [
   'eth_blockNumber',
@@ -60,6 +67,58 @@ function isWhitelistedRequest(req: FastifyRequest): boolean {
   const localIps = ['127.0.0.1', '::1', '::ffff:127.0.0.1']
   const allWhitelistedIps = [...localIps, ...WHITELISTED_IPS]
   return allWhitelistedIps.includes(req.ip)
+}
+
+async function getBlockNumber(rpcUrl: string): Promise<number | null> {
+  try {
+    const response = await axios.post<any>(
+      rpcUrl,
+      { jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 },
+      { headers: { 'Content-Type': 'application/json' }, timeout: 5000 },
+    )
+    const hex = response.data?.result
+    return hex ? parseInt(hex, 16) : null
+  } catch {
+    return null
+  }
+}
+
+async function checkNodeSync(): Promise<void> {
+  if (RPC_ENDPOINTS.length < 2) return
+
+  primaryBlockNumber = await getBlockNumber(RPC_ENDPOINTS[0])
+  secondaryBlockNumber = await getBlockNumber(RPC_ENDPOINTS[1])
+
+  if (primaryBlockNumber === null) {
+    server.log.error(`❌ Primary node unreachable`)
+    usePrimaryNode = false
+    return
+  }
+
+  if (secondaryBlockNumber === null) {
+    server.log.warn(`⚠️ Secondary node unreachable`)
+    usePrimaryNode = true
+    return
+  }
+
+  const primaryBehind = secondaryBlockNumber - primaryBlockNumber
+  const secondaryBehind = primaryBlockNumber - secondaryBlockNumber
+
+  if (primaryBehind >= FAILOVER_BLOCK_LAG) {
+    server.log.error(`🔴 Primary node ${primaryBehind} blocks behind secondary! Failing over`)
+    usePrimaryNode = false
+  } else if (primaryBehind >= WARNING_BLOCK_LAG) {
+    server.log.warn(`⚠️ Primary node ${primaryBehind} blocks behind secondary`)
+    usePrimaryNode = true
+  } else if (secondaryBehind >= FAILOVER_BLOCK_LAG) {
+    server.log.warn(`⚠️ Secondary node ${secondaryBehind} blocks behind primary`)
+    usePrimaryNode = true
+  } else {
+    if (!usePrimaryNode) {
+      server.log.info(`✅ Primary node in sync. Switching back to primary`)
+    }
+    usePrimaryNode = true
+  }
 }
 
 server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
@@ -120,8 +179,12 @@ async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
     }
   }
 
-  for (let i = 0; i < RPC_ENDPOINTS.length; i++) {
-    const rpcUrl = RPC_ENDPOINTS[i]
+  const orderedEndpoints = usePrimaryNode
+    ? RPC_ENDPOINTS
+    : [RPC_ENDPOINTS[1], RPC_ENDPOINTS[0]].filter(Boolean)
+
+  for (let i = 0; i < orderedEndpoints.length; i++) {
+    const rpcUrl = orderedEndpoints[i]
     const endpointName = `RPC-${i + 1} (${new URL(rpcUrl).hostname})`
 
     try {
@@ -148,7 +211,7 @@ async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
 
       server.log.error(`❌ Failed: ${endpointName} - ${errorMsg} for method: ${rpcRequest.method}`)
 
-      if (i < RPC_ENDPOINTS.length - 1) {
+      if (i < orderedEndpoints.length - 1) {
         server.log.warn(`🔄 Failing over to next RPC endpoint...`)
         continue
       }
@@ -171,6 +234,11 @@ server.get('/health', async (request: FastifyRequest, reply: FastifyReply) => {
   const healthStatus = {
     status: 'ok',
     timestamp: new Date().toISOString(),
+    syncStatus: {
+      usePrimaryNode,
+      primaryBlockNumber,
+      secondaryBlockNumber,
+    },
     rpcEndpoints: [] as any[],
   }
 
@@ -186,15 +254,17 @@ server.get('/health', async (request: FastifyRequest, reply: FastifyReply) => {
         id: 1,
       }
 
-      await axios.post(rpcUrl, testRequest, {
+      const response = await axios.post<any>(rpcUrl, testRequest, {
         headers: { 'Content-Type': 'application/json' },
         timeout: 5000,
       })
 
+      const blockNumber = response.data?.result ? parseInt(response.data.result, 16) : null
+
       healthStatus.rpcEndpoints.push({
         name: endpointName,
         status: 'healthy',
-        responseTime: 'ok',
+        blockNumber,
       })
     } catch (error: any) {
       healthStatus.rpcEndpoints.push({
@@ -225,6 +295,18 @@ const start = async () => {
     server.log.info(`🔒 Whitelisted IPs (unrestricted access): ${allWhitelistedIps.join(', ')}`)
     if (WHITELISTED_IPS.length > 0) {
       server.log.info(`📋 Custom whitelisted IPs from env: ${WHITELISTED_IPS.join(', ')}`)
+    }
+
+    if (RPC_ENDPOINTS.length >= 2) {
+      await checkNodeSync()
+      setInterval(checkNodeSync, SYNC_CHECK_INTERVAL)
+      server.log.info(
+        `Node sync monitor started (interval: ${
+          SYNC_CHECK_INTERVAL / 1000
+        }s, warning: ${WARNING_BLOCK_LAG} blocks, failover: ${FAILOVER_BLOCK_LAG} blocks)`,
+      )
+    } else {
+      server.log.warn(`Node sync monitor disabled: Set 2 RPC endpoints`)
     }
   } catch (err) {
     server.log.error(err)
