@@ -44,10 +44,13 @@ const REQUEST_TIMEOUT = parseInt(process.env.REQUEST_TIMEOUT || '10000')
 const SYNC_CHECK_INTERVAL = parseInt(process.env.SYNC_CHECK_INTERVAL || '60000')
 const WARNING_BLOCK_LAG = parseInt(process.env.WARNING_BLOCK_LAG || '3')
 const FAILOVER_BLOCK_LAG = parseInt(process.env.FAILOVER_BLOCK_LAG || '5')
+const SECONDARY_UNREACHABLE_THRESHOLD = 3
+const SECONDARY_WARN_INTERVAL = 9
 
 let primaryBlockNumber: number | null = null
 let secondaryBlockNumber: number | null = null
 let usePrimaryNode = true
+let secondaryUnreachableCount = 0
 
 const ALLOWED_METHODS = [
   'eth_blockNumber',
@@ -97,9 +100,24 @@ async function checkNodeSync(): Promise<void> {
   }
 
   if (secondaryBlockNumber === null) {
-    logger.warn(`Secondary node unreachable`)
+    secondaryUnreachableCount++
+    const shouldWarn =
+      secondaryUnreachableCount === SECONDARY_UNREACHABLE_THRESHOLD ||
+      (secondaryUnreachableCount > SECONDARY_UNREACHABLE_THRESHOLD &&
+        (secondaryUnreachableCount - SECONDARY_UNREACHABLE_THRESHOLD) % SECONDARY_WARN_INTERVAL ===
+          0)
+    if (shouldWarn) {
+      logger.warn(
+        `Secondary node unreachable: connection failed ${secondaryUnreachableCount} times`,
+      )
+    }
     usePrimaryNode = true
     return
+  }
+
+  if (secondaryUnreachableCount > 0) {
+    logger.info(`Secondary node recovered after ${secondaryUnreachableCount} fails`)
+    secondaryUnreachableCount = 0
   }
 
   const primaryBehind = secondaryBlockNumber - primaryBlockNumber
