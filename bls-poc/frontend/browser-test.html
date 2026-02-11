@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>BLS Blind Signature - PoC</title>
+  </head>
+  <body>
+    <h1>BLS Blind Signature - PoC</h1>
+    <input id="msg-input" type="text" value="this is the unblinded message" size="50" />
+    <br /><br />
+    <button id="btn-blind">1. Blind Message</button>
+    <button id="btn-sign" disabled>2. Request Blind Signature</button>
+    <button id="btn-unblind" disabled>3. Unblind Signature</button>
+    <button id="btn-verify" disabled>4. Verify Onchain</button>
+    <pre id="output"></pre>
+
+    <script type="module">
+      import { bls12_381 } from 'https://esm.sh/@noble/curves@1.9.0/bls12-381'
+      window.bls12_381 = bls12_381
+
+      const FR_ORDER = bls12_381.fields.Fr.ORDER
+
+      const out = document.getElementById('output')
+      function log(label, value) {
+        out.textContent += `${label}: ${value}\n\n`
+        console.log(label, value)
+      }
+
+      function randomScalar() {
+        const bytes = crypto.getRandomValues(new Uint8Array(48))
+        let n = 0n
+        for (const b of bytes) n = (n << 8n) + BigInt(b)
+        return (n % (FR_ORDER - 1n)) + 1n
+      }
+
+      let blindedPointHex, r, H_m, pk, blindSigHex, unblindedSigHex, msgHex
+
+      // Step 1: Blind
+      document.getElementById('btn-blind').addEventListener('click', () => {
+        out.textContent = ''
+        document.getElementById('btn-sign').disabled = true
+        document.getElementById('btn-unblind').disabled = true
+        document.getElementById('btn-verify').disabled = true
+
+        const msg = document.getElementById('msg-input').value
+        const msgBytes = new TextEncoder().encode(msg)
+        msgHex =
+          '0x' +
+          Array.from(msgBytes)
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('')
+        log('Message', msg)
+
+        H_m = bls12_381.G1.hashToCurve(msgBytes)
+        log('H(m)', H_m.toHex(false))
+
+        r = randomScalar()
+        log('r', '0x' + r.toString(16))
+
+        const M_prime = H_m.multiply(r)
+        blindedPointHex = M_prime.toHex(false)
+        log("M' (blinded)", blindedPointHex)
+
+        document.getElementById('btn-sign').disabled = false
+      })
+
+      // Step 2: Request blind signature
+      document.getElementById('btn-sign').addEventListener('click', async () => {
+        log('Status', 'Sending blinded point to backend...')
+
+        const res = await fetch('http://localhost:3000/sign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ blindedPoint: blindedPointHex }),
+        })
+        const data = await res.json()
+
+        pk = data.pk
+        blindSigHex = data.blindSig
+
+        log('pk (from signer)', pk)
+        log("S' (blind signature)", blindSigHex)
+
+        document.getElementById('btn-unblind').disabled = false
+      })
+
+      // Step 3: Unblind & verify locally
+      document.getElementById('btn-unblind').addEventListener('click', () => {
+        const Fr = bls12_381.fields.Fr
+
+        const r_inv = Fr.inv(r)
+        log('r⁻¹', '0x' + r_inv.toString(16))
+
+        const S_prime = bls12_381.G1.ProjectivePoint.fromHex(blindSigHex)
+        const S = S_prime.multiply(r_inv)
+        unblindedSigHex = S.toHex(false)
+        log('S (unblinded sig)', unblindedSigHex)
+
+        // e(S, G2) == e(H(m), pk)
+        const pkPoint = bls12_381.G2.ProjectivePoint.fromHex(pk)
+        const lhs = bls12_381.pairing(S, bls12_381.G2.ProjectivePoint.BASE)
+        const rhs = bls12_381.pairing(H_m, pkPoint)
+        const valid = bls12_381.fields.Fp12.eql(lhs, rhs)
+
+        log('Local verify', valid ? 'VALID' : 'INVALID')
+
+        document.getElementById('btn-verify').disabled = false
+      })
+
+      // Noble 48-byte coords → EVM 64-byte padded (EIP-2537)
+      function nobleG1ToEvm(hex) {
+        const raw = hex.startsWith('0x') ? hex.slice(2) : hex
+        const x = raw.slice(0, 96)
+        const y = raw.slice(96, 192)
+        return '0x' + x.padStart(128, '0') + y.padStart(128, '0')
+      }
+
+      function nobleG2ToEvm(hex) {
+        const raw = hex.startsWith('0x') ? hex.slice(2) : hex
+        // noble: c1_x(48) + c0_x(48) + c1_y(48) + c0_y(48)
+        // EVM:   c0_x(64) + c1_x(64) + c0_y(64) + c1_y(64)
+        const c1x = raw.slice(0, 96)
+        const c0x = raw.slice(96, 192)
+        const c1y = raw.slice(192, 288)
+        const c0y = raw.slice(288, 384)
+        return (
+          '0x' +
+          c0x.padStart(128, '0') +
+          c1x.padStart(128, '0') +
+          c0y.padStart(128, '0') +
+          c1y.padStart(128, '0')
+        )
+      }
+
+      // Step 4: Show contract verify() parameters
+      document.getElementById('btn-verify').addEventListener('click', () => {
+        log('--- Contract verify() parameters ---', '')
+        log('message', msgHex)
+        log('signature (128 bytes)', nobleG1ToEvm(unblindedSigHex))
+        log('publicKey (256 bytes)', nobleG2ToEvm(pk))
+      })
+    </script>
+  </body>
+</html>
