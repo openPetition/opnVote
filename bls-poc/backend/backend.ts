@@ -1,3 +1,5 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import express from 'express'
 import cors from 'cors'
 import { bls12_381 } from '@noble/curves/bls12-381'
@@ -14,9 +16,12 @@ function randomScalar(): bigint {
   return (n % (Fr.ORDER - 1n)) + 1n
 }
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
 const app = express()
 app.use(cors())
 app.use(express.json())
+app.use(express.static(path.join(__dirname, '..', '..', 'frontend')))
 
 app.post('/sign', (req, res) => {
   const { blindedPoint } = req.body
@@ -37,4 +42,4 @@ app.post('/sign', (req, res) => {
   })
 })
 
-app.listen(3000, () => console.log('Signing server on http://localhost:3000'))
+app.listen(7419, () => console.log('Signing server on http://localhost:7419'))

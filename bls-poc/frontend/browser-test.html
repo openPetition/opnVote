@@ -3,6 +3,46 @@
   <head>
     <meta charset="UTF-8" />
     <title>BLS Blind Signature - PoC</title>
+    <style>
+      body {
+        font-family: monospace;
+        padding: 20px;
+      }
+      pre {
+        background: #f5f5f5;
+        padding: 16px;
+        border-radius: 4px;
+        overflow-x: auto;
+        line-height: 1.6;
+      }
+      button {
+        padding: 8px 16px;
+        cursor: pointer;
+        margin: 4px;
+      }
+      button:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+      input {
+        padding: 8px;
+        font-family: monospace;
+      }
+      .ok {
+        color: green;
+        font-weight: bold;
+      }
+      .err {
+        color: red;
+        font-weight: bold;
+      }
+      .dim {
+        color: #999;
+      }
+      .bold {
+        font-weight: bold;
+      }
+    </style>
   </head>
   <body>
     <h1>BLS Blind Signature - PoC</h1>
@@ -19,10 +59,15 @@
       window.bls12_381 = bls12_381
 
       const FR_ORDER = bls12_381.fields.Fr.ORDER
+      const GAS_PRICE_GWEI = 1.019477967
+      const GWEI_TO_XDAI = 1e-9
+      const VOTE_OVERHEAD_GAS = 188000
 
       const out = document.getElementById('output')
-      function log(label, value) {
-        out.textContent += `${label}: ${value}\n\n`
+      function log(label, value, cls = '') {
+        const span = document.createElement('span')
+        span.innerHTML = `<b>${label}:</b> <span class="${cls}">${value}</span>\n\n`
+        out.appendChild(span)
         console.log(label, value)
       }
 
@@ -37,7 +82,7 @@
 
       // Step 1: Blind
       document.getElementById('btn-blind').addEventListener('click', () => {
-        out.textContent = ''
+        out.innerHTML = ''
         document.getElementById('btn-sign').disabled = true
         document.getElementById('btn-unblind').disabled = true
         document.getElementById('btn-verify').disabled = true
@@ -52,14 +97,14 @@
         log('Message', msg)
 
         H_m = bls12_381.G1.hashToCurve(msgBytes)
-        log('H(m)', H_m.toHex(false))
+        log('H(m)', H_m.toHex(false), 'dim')
 
         r = randomScalar()
-        log('r', '0x' + r.toString(16))
+        log('r', '0x' + r.toString(16), 'dim')
 
         const M_prime = H_m.multiply(r)
         blindedPointHex = M_prime.toHex(false)
-        log("M' (blinded)", blindedPointHex)
+        log("M' (blinded)", blindedPointHex, 'dim')
 
         document.getElementById('btn-sign').disabled = false
       })
@@ -68,7 +113,7 @@
       document.getElementById('btn-sign').addEventListener('click', async () => {
         log('Status', 'Sending blinded point to backend...')
 
-        const res = await fetch('http://localhost:3000/sign', {
+        const res = await fetch('/sign', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ blindedPoint: blindedPointHex }),
@@ -78,8 +123,8 @@
         pk = data.pk
         blindSigHex = data.blindSig
 
-        log('pk (from signer)', pk)
-        log("S' (blind signature)", blindSigHex)
+        log('pk (from signer)', pk, 'dim')
+        log("S' (blind signature)", blindSigHex, 'dim')
 
         document.getElementById('btn-unblind').disabled = false
       })
@@ -89,12 +134,12 @@
         const Fr = bls12_381.fields.Fr
 
         const r_inv = Fr.inv(r)
-        log('r⁻¹', '0x' + r_inv.toString(16))
+        log('r⁻¹', '0x' + r_inv.toString(16), 'dim')
 
         const S_prime = bls12_381.G1.ProjectivePoint.fromHex(blindSigHex)
         const S = S_prime.multiply(r_inv)
         unblindedSigHex = S.toHex(false)
-        log('S (unblinded sig)', unblindedSigHex)
+        log('S (unblinded sig)', unblindedSigHex, 'dim')
 
         // e(S, G2) == e(H(m), pk)
         const pkPoint = bls12_381.G2.ProjectivePoint.fromHex(pk)
@@ -102,7 +147,7 @@
         const rhs = bls12_381.pairing(H_m, pkPoint)
         const valid = bls12_381.fields.Fp12.eql(lhs, rhs)
 
-        log('Local verify', valid ? 'VALID' : 'INVALID')
+        log('Local verify', valid ? 'VALID' : 'INVALID', valid ? 'ok' : 'err')
 
         document.getElementById('btn-verify').disabled = false
       })
@@ -132,12 +177,73 @@
         )
       }
 
-      // Step 4: Show contract verify() parameters
-      document.getElementById('btn-verify').addEventListener('click', () => {
-        log('--- Contract verify() parameters ---', '')
-        log('message', msgHex)
-        log('signature (128 bytes)', nobleG1ToEvm(unblindedSigHex))
-        log('publicKey (256 bytes)', nobleG2ToEvm(pk))
+      const CONTRACT = '0xb87137deC2Af323501780e84A2484926358C3dcE'
+      const RPC = 'https://rpc.chiadochain.net'
+
+      function encodeBytes(hex) {
+        const raw = hex.startsWith('0x') ? hex.slice(2) : hex
+        const len = raw.length / 2
+        const lenHex = len.toString(16).padStart(64, '0')
+        const padded = raw + '0'.repeat((64 - (raw.length % 64)) % 64)
+        return lenHex + padded
+      }
+
+      function encodeVerifyCall(msgHex, sigHex, pkHex) {
+        const selector = '0xde8f50a1'
+        const msgData = encodeBytes(msgHex)
+        const sigData = encodeBytes(sigHex)
+        const pkData = encodeBytes(pkHex)
+
+        const msgOffset = (3 * 32).toString(16).padStart(64, '0')
+        const sigOffset = (3 * 32 + msgData.length / 2).toString(16).padStart(64, '0')
+        const pkOffset = (3 * 32 + msgData.length / 2 + sigData.length / 2)
+          .toString(16)
+          .padStart(64, '0')
+
+        return selector + msgOffset + sigOffset + pkOffset + msgData + sigData + pkData
+      }
+
+      async function rpcCall(method, params) {
+        const res = await fetch(RPC, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+        })
+        return res.json()
+      }
+
+      // Step 4: Call contract verify()
+      document.getElementById('btn-verify').addEventListener('click', async () => {
+        const sigEvm = nobleG1ToEvm(unblindedSigHex)
+        const pkEvm = nobleG2ToEvm(pk)
+        const calldata = encodeVerifyCall(msgHex, sigEvm, pkEvm)
+        const txObj = { to: CONTRACT, data: calldata }
+
+        log('--- Onchain verification ---', '')
+
+        const [callRes, gasRes] = await Promise.all([
+          rpcCall('eth_call', [txObj, 'latest']),
+          rpcCall('eth_estimateGas', [txObj]),
+        ])
+
+        if (callRes.error) {
+          log('Onchain verify', callRes.error.message, 'err')
+        } else {
+          const valid = BigInt(callRes.result) === 1n
+          log('Onchain verify', valid ? 'VALID' : 'INVALID', valid ? 'ok' : 'err')
+        }
+
+        if (gasRes.result) {
+          const gas = Number(BigInt(gasRes.result))
+          const costXdai = gas * GAS_PRICE_GWEI * GWEI_TO_XDAI
+          log('BLS verify gas', `${gas.toLocaleString()} gas`)
+          log('BLS verify cost', `$${costXdai.toFixed(6)} USD`)
+
+          const totalGas = gas + VOTE_OVERHEAD_GAS
+          const totalCost = totalGas * GAS_PRICE_GWEI * GWEI_TO_XDAI
+          log('Total vote gas (verify + 188k overhead)', `${totalGas.toLocaleString()} gas`, 'bold')
+          log('Total vote cost', `$${totalCost.toFixed(6)} USD (@ ${GAS_PRICE_GWEI} Gwei)`, 'bold')
+        }
       })
     </script>
   </body>
