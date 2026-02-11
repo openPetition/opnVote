@@ -1,3 +1,6 @@
+import crypto from 'node:crypto'
+import fs from 'node:fs'
+import https from 'node:https'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import express from 'express'
@@ -42,4 +45,10 @@ app.post('/sign', (req, res) => {
   })
 })
 
-app.listen(7419, () => console.log('Signing server on http://localhost:7419'))
+const certDir = path.join(__dirname, '..', '..')
+const sslOpts = {
+  key: fs.readFileSync(path.join(certDir, 'key.pem')),
+  cert: fs.readFileSync(path.join(certDir, 'cert.pem')),
+}
+
+https.createServer(sslOpts, app).listen(7419, () => console.log('Signing server on https://localhost:7419'))
