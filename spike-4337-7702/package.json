@@ -1,0 +1,19 @@
+{
+  "name": "spike-4337-7702",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Spike: ERC-4337 + EIP-7702 gasless flow on Gnosis Chiado via Pimlico",
+  "scripts": {
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "permissionless": "^0.3.0",
+    "viem": "^2.28.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.0"
+  }
+}
