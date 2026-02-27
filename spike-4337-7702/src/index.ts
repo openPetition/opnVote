@@ -1,5 +1,16 @@
 import 'dotenv/config'
-import { createPublicClient, http, zeroAddress, type Hex } from 'viem'
+import {
+  createPublicClient,
+  concat,
+  encodeAbiParameters,
+  http,
+  keccak256,
+  pad,
+  toHex,
+  zeroAddress,
+  type Address,
+  type Hex,
+} from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { gnosisChiado } from 'viem/chains'
 import { createSmartAccountClient } from 'permissionless'
@@ -8,6 +19,8 @@ import { createPimlicoClient } from 'permissionless/clients/pimlico'
 
 const CHAIN = gnosisChiado
 const DELEGATION_ADDRESS = '0xe6Cae83BdE06E4c305530e199D7217f42808555B' as const
+const ENTRY_POINT = '0x4337084d9e255ff0702461cf8895ce9e3b5ff108' as const
+const PAYMASTER_ADDRESS = '0xd4726750592678a45F24734354094717D0362D94' as const
 
 function getPimlicoUrl(apiKey: string): string {
   return `https://api.pimlico.io/v2/${CHAIN.id}/rpc?apikey=${apiKey}`
@@ -22,13 +35,76 @@ function log(label: string, value?: unknown): void {
   }
 }
 
+function packUint128(high: bigint, low: bigint): Hex {
+  return pad(toHex((high << 128n) | low), { size: 32 })
+}
+
+function getPaymasterHash(params: {
+  sender: Address
+  nonce: bigint
+  initCode: Hex
+  callData: Hex
+  verificationGasLimit: bigint
+  callGasLimit: bigint
+  paymasterVerificationGasLimit: bigint
+  paymasterPostOpGasLimit: bigint
+  preVerificationGas: bigint
+  maxPriorityFeePerGas: bigint
+  maxFeePerGas: bigint
+  validUntil: number
+  validAfter: number
+}): Hex {
+  const accountGasLimits = packUint128(params.verificationGasLimit, params.callGasLimit)
+  const paymasterGasData = packUint128(
+    params.paymasterVerificationGasLimit,
+    params.paymasterPostOpGasLimit,
+  )
+  const gasFees = packUint128(params.maxPriorityFeePerGas, params.maxFeePerGas)
+
+  return keccak256(
+    encodeAbiParameters(
+      [
+        { type: 'address' },
+        { type: 'uint256' },
+        { type: 'bytes32' },
+        { type: 'bytes32' },
+        { type: 'bytes32' },
+        { type: 'uint256' },
+        { type: 'uint256' },
+        { type: 'bytes32' },
+        { type: 'uint256' },
+        { type: 'address' },
+        { type: 'uint48' },
+        { type: 'uint48' },
+      ],
+      [
+        params.sender,
+        params.nonce,
+        keccak256(params.initCode),
+        keccak256(params.callData),
+        accountGasLimits,
+        BigInt(paymasterGasData),
+        params.preVerificationGas,
+        gasFees,
+        BigInt(CHAIN.id),
+        PAYMASTER_ADDRESS,
+        params.validUntil,
+        params.validAfter,
+      ],
+    ),
+  )
+}
+
 async function main(): Promise<void> {
-  log('ERC-4337 + EIP-7702 Spike on Gnosis Chiado')
+  log('ERC-4337 + EIP-7702 Spike — Own Paymaster on Chiado')
 
   const apiKey = process.env.PIMLICO_API_KEY
-  if (!apiKey) {
-    throw new Error('PIMLICO_API_KEY is required')
-  }
+  if (!apiKey) throw new Error('PIMLICO_API_KEY required')
+
+  const signerKey = process.env.VERIFYING_SIGNER_KEY as Hex
+  if (!signerKey) throw new Error('VERIFYING_SIGNER_KEY required')
+  const signer = privateKeyToAccount(signerKey)
+  log('Verifying signer', signer.address)
 
   const privateKey = (process.env.EOA_PRIVATE_KEY as Hex) || generatePrivateKey()
   const eoa = privateKeyToAccount(privateKey)
@@ -50,17 +126,57 @@ async function main(): Promise<void> {
     client: publicClient,
     owner: eoa,
     accountLogicAddress: DELEGATION_ADDRESS,
-    entryPoint: { address: '0x4337084d9e255ff0702461cf8895ce9e3b5ff108', version: '0.8' },
+    entryPoint: { address: ENTRY_POINT, version: '0.8' },
   })
-  log('Smart account address (== EOA address), smartAccount.address')
+  log('Smart account (== EOA)', smartAccount.address)
 
-  const sponsorshipPolicyId = process.env.SPONSORSHIP_POLICY_ID
+  const now = Math.floor(Date.now() / 1000)
+  const validAfter = now
+  const validUntil = now + 600 // 10 min validity
+
+  const validityData = encodeAbiParameters(
+    [{ type: 'uint48' }, { type: 'uint48' }],
+    [validUntil, validAfter],
+  )
+  const sig = await signer.signMessage({ message: 'stub' })
+
   const smartAccountClient = createSmartAccountClient({
     client: publicClient,
     chain: CHAIN,
     account: smartAccount,
-    paymaster: pimlicoClient,
-    paymasterContext: sponsorshipPolicyId ? { sponsorshipPolicyId } : undefined,
+    paymaster: {
+      async getPaymasterStubData() {
+        return {
+          paymaster: PAYMASTER_ADDRESS,
+          paymasterData: concat([validityData, sig]) as Hex,
+        }
+      },
+      async getPaymasterData(userOperation) {
+        const hash = getPaymasterHash({
+          sender: userOperation.sender,
+          nonce: userOperation.nonce,
+          initCode: '0x',
+          callData: userOperation.callData,
+          verificationGasLimit: userOperation.verificationGasLimit ?? 0n,
+          callGasLimit: userOperation.callGasLimit ?? 0n,
+          paymasterVerificationGasLimit: userOperation.paymasterVerificationGasLimit ?? 0n,
+          paymasterPostOpGasLimit: userOperation.paymasterPostOpGasLimit ?? 0n,
+          preVerificationGas: userOperation.preVerificationGas ?? 0n,
+          maxPriorityFeePerGas: userOperation.maxPriorityFeePerGas ?? 0n,
+          maxFeePerGas: userOperation.maxFeePerGas ?? 0n,
+          validUntil,
+          validAfter,
+        })
+
+        const signature = await signer.signMessage({ message: { raw: hash } })
+        log('Paymaster signature created')
+
+        return {
+          paymaster: PAYMASTER_ADDRESS,
+          paymasterData: concat([validityData, signature]) as Hex,
+        }
+      },
+    },
     bundlerTransport: http(pimlicoUrl),
     userOperation: {
       estimateFeesPerGas: async () => {
