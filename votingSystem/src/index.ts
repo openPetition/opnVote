@@ -1,6 +1,7 @@
 export * from './config';
 export * from './utils/utils';
 export * from './blockchain/gelato';
+export * from './blockchain/bundler';
 export * from './types/types';
 export * from './blind-signature/generateTokens';
 export * from './voter-credentials/voterCredentials';
