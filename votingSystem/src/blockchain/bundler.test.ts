@@ -38,9 +38,16 @@ function makeVotingTransaction(svsSignature: string | null = null): VotingTransa
   return {
     electionID: 1,
     voterAddress: wallet.address,
-    encryptedVoteRSA: { hexString: '0x' + '1'.repeat(RSA_BIT_LENGTH / 4), encryptionType: EncryptionType.RSA },
+    encryptedVoteRSA: {
+      hexString: '0x' + '1'.repeat(RSA_BIT_LENGTH / 4),
+      encryptionType: EncryptionType.RSA,
+    },
     encryptedVoteAES: { hexString: '0x' + '1'.repeat(80), encryptionType: EncryptionType.AES },
-    unblindedElectionToken: { hexString: '0x' + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false },
+    unblindedElectionToken: {
+      hexString: '0x' + BigInt(3).toString(16).padStart(64, '0'),
+      isMaster: false,
+      isBlinded: false,
+    },
     unblindedSignature: { hexString: '0x' + '1'.repeat(RSA_BIT_LENGTH / 4), isBlinded: false },
     svsSignature: svsSignature ? { hexString: svsSignature } : null,
   }
@@ -53,8 +60,12 @@ describe('getPaymasterHash', () => {
   })
 
   it('produces different hashes for different senders', () => {
-    const hash1 = getPaymasterHash(makeUserOpParams({ sender: ethers.Wallet.createRandom().address }))
-    const hash2 = getPaymasterHash(makeUserOpParams({ sender: ethers.Wallet.createRandom().address }))
+    const hash1 = getPaymasterHash(
+      makeUserOpParams({ sender: ethers.Wallet.createRandom().address }),
+    )
+    const hash2 = getPaymasterHash(
+      makeUserOpParams({ sender: ethers.Wallet.createRandom().address }),
+    )
     expect(hash1).not.toEqual(hash2)
   })
 
@@ -115,16 +126,24 @@ describe('createStubPaymasterData', () => {
 })
 
 describe('createVoteCalldata', () => {
-  const VOTE_ABI = ['function vote(uint256 electionId, address voter, bytes svsSignature, bytes voteEncrypted, bytes voteEncryptedUser, bytes unblindedElectionToken, bytes unblindedSignature)']
+  const VOTE_ABI = [
+    'function vote(uint256 electionId, address voter, bytes svsSignature, bytes voteEncrypted, bytes voteEncryptedUser, bytes unblindedElectionToken, bytes unblindedSignature)',
+  ]
 
-  it('throws if svsSignature is missing', () => {
-    expect(() => createVoteCalldata(makeVotingTransaction(null), VOTE_ABI)).toThrow('SVS signature required')
+  it('returns valid calldata with empty svsSignature for recasts', () => {
+    const tx = makeVotingTransaction(null)
+    const calldata = createVoteCalldata(tx, VOTE_ABI)
+    const iface = new ethers.Interface(VOTE_ABI)
+    const decoded = iface.decodeFunctionData('vote', calldata)
+    expect(ethers.hexlify(decoded[2])).toBe('0x')
   })
 
   it('returns valid hex calldata starting with vote() selector', () => {
     const tx = makeVotingTransaction('0x' + '1'.repeat(130))
     const calldata = createVoteCalldata(tx, VOTE_ABI)
-    const iface = new ethers.Interface(['function vote(uint256,address,bytes,bytes,bytes,bytes,bytes)'])
+    const iface = new ethers.Interface([
+      'function vote(uint256,address,bytes,bytes,bytes,bytes,bytes)',
+    ])
     const selector = iface.getFunction('vote')!.selector
     expect(calldata.startsWith(selector)).toBe(true)
   })

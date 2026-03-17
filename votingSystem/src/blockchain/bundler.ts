@@ -76,11 +76,11 @@ export type PaymasterDataResult = {
 }
 
 /**
- * Signs the paymaster hash and returns the encoded paymasterData field
- * The returned paymasterData is 129 bytes: 64 bytes validity windows, a 65-byte ECDSA signature.
+ * Signs the paymaster hash and returns the encoded paymasterData
+ * The returned paymasterData is 129 bytes: 64 bytes validity windows, 65-byte ECDSA signature.
  * @param {PaymasterHashParams} params - UserOperation fields and paymaster metadata
- * @param {string} signerKey - Private key of the paymaster
- * @returns {Promise<PaymasterDataResult>} The encoded paymasterData ready to include in a UserOperation
+ * @param {string} signerKey - Private key of paymaster
+ * @returns {Promise<PaymasterDataResult>} The encoded paymasterData
  */
 export async function signPaymasterData(
   params: PaymasterHashParams,
@@ -99,15 +99,12 @@ export async function signPaymasterData(
 }
 
 /**
- * Creates a stub paymasterData for gas estimation.
- * Uses a valid-format dummy ECDSA signature so that `ECDSA.recover` does not revert during simulation.
- * The recovered address will not match the real signer, so `sigFailed=true` is returned by the paymaster — which is acceptable during gas estimation.
- * @param {number} validUntil - Unix timestamp after which the paymaster approval expires
- * @param {number} validAfter - Unix timestamp before which the paymaster approval is not valid
- * @returns {string} Encoded paymasterData (129 bytes) suitable for use in `getPaymasterStubData`
+ * Creates paymasterData for gas estimation.
+ * @param {number} validUntil - Expiration time of the signature
+ * @param {number} validAfter - Start time of the signature validity
+ * @returns {string} Encoded paymasterData (129 bytes)
  */
 export function createStubPaymasterData(validUntil: number, validAfter: number): string {
-  // Dummy ECDSA signature — non-zero so ECDSA.recover does not revert during simulation
   const stubSig =
     '0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c'
   const abiCoder = new ethers.AbiCoder()
@@ -116,25 +113,24 @@ export function createStubPaymasterData(validUntil: number, validAfter: number):
 }
 
 /**
- * ABI-encodes the `vote()` calldata for the OpnVote contract.
- * @param {VotingTransaction} votingTransaction - The fully populated voting transaction, including the SVS signature
- * @param {ethers.Interface | ethers.InterfaceAbi} opnVoteABI - ABI of the OpnVote contract
- * @returns {string} Hex-encoded calldata for the `vote()` function
- * @throws {Error} if the SVS signature is missing from the voting transaction
+ * ABI-encodes the `vote()` calldata
+ * @param {VotingTransaction} votingTransaction
+ * @param {ethers.Interface | ethers.InterfaceAbi} opnVoteABI
+ * @returns {string} Hex-encoded calldata for vote()
  */
 export function createVoteCalldata(
   votingTransaction: VotingTransaction,
   opnVoteABI: ethers.Interface | ethers.InterfaceAbi,
 ): string {
-  if (!votingTransaction.svsSignature) {
-    throw new Error('SVS signature required to create vote calldata')
-  }
+  const svsSignatureHex = votingTransaction.svsSignature
+    ? votingTransaction.svsSignature.hexString
+    : '0x'
   const iface =
     opnVoteABI instanceof ethers.Interface ? opnVoteABI : new ethers.Interface(opnVoteABI)
   return iface.encodeFunctionData('vote', [
     votingTransaction.electionID,
     votingTransaction.voterAddress,
-    votingTransaction.svsSignature.hexString,
+    svsSignatureHex,
     votingTransaction.encryptedVoteRSA.hexString,
     votingTransaction.encryptedVoteAES.hexString,
     votingTransaction.unblindedElectionToken.hexString,
