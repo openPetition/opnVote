@@ -20,6 +20,8 @@ const GAS_DEFAULTS = {
 
 const ENTRYPOINT_ABI = ['function getNonce(address sender, uint192 key) view returns (uint256)']
 
+const EXECUTE_ABI = ['function execute(address dest, uint256 value, bytes func)']
+
 const router = Router()
 
 /**
@@ -114,7 +116,15 @@ async function buildPaymasterData(req: Request, votingTransaction: VotingTransac
   const entryPoint = new ethers.Contract(entryPointAddress, ENTRYPOINT_ABI, provider)
   const nonce: bigint = await entryPoint.getNonce(votingTransaction.voterAddress, 0)
 
-  const callData = createVoteCalldata(votingTransaction, opnvoteAbi)
+  const opnVoteAddress = req.app.get('OPNVOTE_CONTRACT_ADDRESS') as string
+  if (!opnVoteAddress) {
+    throw new Error('OPNVOTE_CONTRACT_ADDRESS not configured')
+  }
+
+  const voteCalldata = createVoteCalldata(votingTransaction, opnvoteAbi)
+  const executeIface = new ethers.Interface(EXECUTE_ABI)
+  const callData = executeIface.encodeFunctionData('execute', [opnVoteAddress, 0, voteCalldata])
+
   const now = Math.floor(Date.now() / 1000)
   const validUntil = now + 3600
   const validAfter = now - 120

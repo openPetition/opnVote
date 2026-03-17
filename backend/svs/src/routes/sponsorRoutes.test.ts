@@ -36,7 +36,7 @@ jest.mock('votingsystem', () => {
     signPaymasterData: jest.fn().mockResolvedValue({
       paymasterData: '0xmockpaymasterdata',
     }),
-    createVoteCalldata: jest.fn().mockReturnValue('0xmockcalldata'),
+    createVoteCalldata: jest.fn().mockReturnValue('0x' + 'ab'.repeat(32)),
   }
 })
 
