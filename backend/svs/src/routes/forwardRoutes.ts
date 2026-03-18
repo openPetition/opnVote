@@ -32,8 +32,8 @@ function validateSendUserOperation(
     return 'Invalid entrypoint'
   }
 
-  const paymasterAndData: string = userOp?.paymasterAndData ?? ''
-  if (paymasterAndData.slice(0, 42).toLowerCase() !== paymasterAddress.toLowerCase()) {
+  const paymaster: string = userOp?.paymaster ?? ''
+  if (paymaster.toLowerCase() !== paymasterAddress.toLowerCase()) {
     return 'Invalid paymaster'
   }
 

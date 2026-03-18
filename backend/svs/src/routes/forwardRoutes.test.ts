@@ -14,8 +14,6 @@ global.fetch = mockFetch
 
 const PAYMASTER = '0xd4726750592678a45F24734354094717D0362D94'
 const ENTRY_POINT = '0x4337084d9e255ff0702461cf8895ce9e3b5ff108'
-const VALID_PAYMASTER_AND_DATA = PAYMASTER + '0'.repeat(64) + 'ab'.repeat(65)
-
 beforeEach(() => {
   mockFetch.mockReset()
   ipRequests.clear()
@@ -28,7 +26,7 @@ describe('POST /api/forward', () => {
   const validSendRequest = {
     jsonrpc: '2.0',
     method: 'eth_sendUserOperation',
-    params: [{ sender: '0x1234', paymasterAndData: VALID_PAYMASTER_AND_DATA }, ENTRY_POINT],
+    params: [{ sender: '0x1234', paymaster: PAYMASTER, paymasterData: '0x' + 'ab'.repeat(65) }, ENTRY_POINT],
     id: 1,
   }
 
@@ -141,13 +139,12 @@ describe('POST /api/forward', () => {
       expect(mockFetch).not.toHaveBeenCalled()
     })
 
-    it('should reject wrong paymaster address in paymasterAndData', async () => {
-      const wrongPaymaster = '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
+    it('should reject wrong paymaster address', async () => {
       const res = await request(app)
         .post('/api/forward')
         .send({
           ...validSendRequest,
-          params: [{ sender: '0x1234', paymasterAndData: wrongPaymaster + '0'.repeat(64) }, ENTRY_POINT],
+          params: [{ sender: '0x1234', paymaster: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' }, ENTRY_POINT],
         })
 
       expect(res.status).toBe(403)
@@ -159,10 +156,9 @@ describe('POST /api/forward', () => {
       const bundlerResponse = { jsonrpc: '2.0', result: '0xHash', id: 1 }
       mockFetch.mockResolvedValue({ json: () => Promise.resolve(bundlerResponse) })
 
-      const lowercasePaymasterData = PAYMASTER.toLowerCase() + '0'.repeat(64) + 'ab'.repeat(65)
       const res = await request(app)
         .post('/api/forward')
-        .send({ ...validSendRequest, params: [{ sender: '0x1234', paymasterAndData: lowercasePaymasterData }, ENTRY_POINT] })
+        .send({ ...validSendRequest, params: [{ sender: '0x1234', paymaster: PAYMASTER.toLowerCase() }, ENTRY_POINT] })
 
       expect(res.status).toBe(200)
     })
