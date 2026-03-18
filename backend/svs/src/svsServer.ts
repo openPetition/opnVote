@@ -7,14 +7,13 @@ import helmet from 'helmet'
 import cors from 'cors'
 import { dataSource } from './database'
 import signRoutes from './routes/signRoutes'
-import gelatoRoutes from './routes/gelatoRoutes'
-import { GelatoRelay } from '@gelatonetwork/relay-sdk'
+import sponsorRoutes from './routes/sponsorRoutes'
+import forwardRoutes from './routes/forwardRoutes'
 import swaggerUi from 'swagger-ui-express'
 import swaggerSpec from './config/swaggerConfig'
 import https from 'https'
 import fs from 'fs'
 import http from 'http'
-import { startGelatoWorker } from './workers/gelatoWorker'
 import { ethers } from 'ethers'
 import { logger } from './utils/logger'
 import { getEnvVar } from './utils/utils'
@@ -26,23 +25,24 @@ const SSL_CERT_PATH = process.env.SSL_CERT_PATH
 
 const SERVER_URL = getEnvVar<string>('SERVER_URL', 'string')
 const SVS_SIGN_KEY = getEnvVar<string>('SVS_SIGN_KEY', 'string')
-const GELATO_SPONSOR_API_KEY = getEnvVar<string>('GELATO_SPONSOR_API_KEY', 'string')
+const PAYMASTER_SIGNER_KEY = getEnvVar<string>('PAYMASTER_SIGNER_KEY', 'string')
+const PAYMASTER_ADDRESS = getEnvVar<string>('PAYMASTER_ADDRESS', 'string')
 const OPNVOTE_CONTRACT_ADDRESS = getEnvVar<string>('OPNVOTE_CONTRACT_ADDRESS', 'string')
-const GELATO_MAX_FORWARDS = getEnvVar<number>('GELATO_MAX_FORWARDS', 'number')
 const CHAIN_ID = getEnvVar<number>('CHAIN_ID', 'number')
 const RPC_PROVIDER = getEnvVar<string>('RPC_PROVIDER', 'string')
-const GELATO_USE_QUEUE = getEnvVar<string>('GELATO_USE_QUEUE', 'string')
+const ENTRYPOINT_ADDRESS = getEnvVar<string>('ENTRYPOINT_ADDRESS', 'string')
+const ACCOUNT_IMPLEMENTATION_ADDRESS = getEnvVar<string>('ACCOUNT_IMPLEMENTATION_ADDRESS', 'string')
+const MAX_SPONSOR_COUNT = getEnvVar<number>('MAX_SPONSOR_COUNT', 'number')
+const BUNDLER_URL = process.env.BUNDLER_URL
 
 if ((SSL_KEY_PATH && !SSL_CERT_PATH) || (!SSL_KEY_PATH && SSL_CERT_PATH)) {
   throw new Error('SSL_KEY_PATH and SSL_CERT_PATH must be provided for HTTPS')
 }
 
-if (GELATO_USE_QUEUE.toLowerCase() !== 'true' && GELATO_USE_QUEUE.toLowerCase() !== 'false') {
-  throw new Error('GELATO_USE_QUEUE must be "true" or "false"')
-}
-
 const app: Express = express()
 const port = process.env.PORT || 3005
+
+app.set('trust proxy', 1)
 
 app.use(helmet())
 
@@ -54,23 +54,17 @@ app.use(
 )
 
 app.set('SVS_SIGN_KEY', SVS_SIGN_KEY)
-app.set('GELATO_SPONSOR_API_KEY', GELATO_SPONSOR_API_KEY)
+app.set('PAYMASTER_SIGNER_KEY', PAYMASTER_SIGNER_KEY)
+app.set('PAYMASTER_ADDRESS', PAYMASTER_ADDRESS)
 app.set('OPNVOTE_CONTRACT_ADDRESS', OPNVOTE_CONTRACT_ADDRESS)
-app.set('GELATO_MAX_FORWARDS', GELATO_MAX_FORWARDS)
 app.set('CHAIN_ID', CHAIN_ID)
+app.set('ENTRYPOINT_ADDRESS', ENTRYPOINT_ADDRESS)
+app.set('ACCOUNT_IMPLEMENTATION_ADDRESS', ACCOUNT_IMPLEMENTATION_ADDRESS)
+app.set('MAX_SPONSOR_COUNT', MAX_SPONSOR_COUNT)
+if (BUNDLER_URL) app.set('BUNDLER_URL', BUNDLER_URL)
 
-const gelatoRelay = new GelatoRelay()
-app.set('gelatoRelay', gelatoRelay)
 const provider = new ethers.JsonRpcProvider(RPC_PROVIDER)
 app.set('rpcProvider', provider)
-
-if (GELATO_USE_QUEUE.toLowerCase() === 'true') {
-  app.set('GELATO_USE_QUEUE', true)
-} else if (GELATO_USE_QUEUE.toLowerCase() === 'false') {
-  app.set('GELATO_USE_QUEUE', false)
-} else {
-  throw new Error('GELATO_USE_QUEUE must be "true" or "false"')
-}
 
 if (require.main === module) {
   if (SSL_KEY_PATH && SSL_CERT_PATH) {
@@ -100,13 +94,12 @@ dataSource
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
     app.use('/api/votingTransaction', signRoutes)
-    app.use('/api/gelato', gelatoRoutes)
+    app.use('/api/userOp', sponsorRoutes)
+    app.use('/api/forward', forwardRoutes)
 
-    app.get('/', (req, res) => {
+    app.get('/', (_req, res) => {
       res.redirect('/api-docs')
     })
-
-    startGelatoWorker()
   })
   .catch(err => {
     logger.error('Error during Data Source initialization', err)
