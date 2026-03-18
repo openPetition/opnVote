@@ -2,7 +2,7 @@
  *
  */
 import 'dotenv/config'
-import { hashMessage, createPublicClient, http, type Hex } from 'viem'
+import { hashMessage, createPublicClient, http, custom, type Hex } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { gnosisChiado } from 'viem/chains'
 import { createSmartAccountClient } from 'permissionless'
@@ -45,6 +45,23 @@ function log(label: string, value?: unknown): void {
   }
 }
 
+function createSvsForwardTransport(svsUrl: string) {
+  return custom({
+    async request({ method, params }: { method: string; params: unknown[] }) {
+      const res = await fetch(`${svsUrl}/api/forward`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', method, params, id: 1 }),
+      })
+      const json = await res.json()
+      if (!res.ok || json.error) throw new Error(`SVS forward [${res.status}]: ${json.error ?? JSON.stringify(json)}`)
+      const bundlerResponse = json.data
+      if (bundlerResponse.error) throw new Error(`Bundler error: ${JSON.stringify(bundlerResponse.error)}`)
+      return bundlerResponse.result
+    },
+  })
+}
+
 async function postJson<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
     method: 'POST',
@@ -61,9 +78,6 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 async function main(): Promise<void> {
   log('ERC-4337 + EIP-7702 — SVS integration spike on Chiado')
 
-  const apiKey = process.env.PIMLICO_API_KEY
-  if (!apiKey) throw new Error('PIMLICO_API_KEY required')
-
   const svsUrl = process.env.SVS_URL
   if (!svsUrl) throw new Error('SVS_URL required (e.g. http://localhost:3005)')
 
@@ -76,8 +90,6 @@ async function main(): Promise<void> {
     chain: CHAIN,
     transport: http('https://rpc.chiadochain.net'),
   })
-  const pimlicoUrl = `https://api.pimlico.io/v2/${CHAIN.id}/rpc?apikey=${apiKey}`
-
   const smartAccount = await to7702SimpleSmartAccount({
     client: publicClient,
     owner: eoa,
@@ -185,7 +197,7 @@ async function main(): Promise<void> {
         throw new Error('getPaymasterData should not be called when isFinal: true')
       },
     },
-    bundlerTransport: http(pimlicoUrl),
+    bundlerTransport: createSvsForwardTransport(svsUrl),
     userOperation: {
       estimateFeesPerGas: async () => ({
         maxFeePerGas: BigInt(userOpParams.maxFeePerGas),
