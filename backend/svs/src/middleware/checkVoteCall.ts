@@ -3,7 +3,7 @@ import { ApiResponse } from '../types/apiResponses'
 import { VotingTransaction, createVoteCalldata } from 'votingsystem'
 import { ethers } from 'ethers'
 import { logger } from '../utils/logger'
-import opnvoteAbi from '../abi/opnvote-0.1.0.json'
+import opnvoteAbi from '../abi/opnvote-0.2.0.json'
 
 /**
  * Middleware simulating the vote() call on-chai

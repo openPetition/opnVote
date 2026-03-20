@@ -2,7 +2,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 import { BlindedSignatureService } from '../services/blindedSignatureService'
-import opnvoteAbi from '../abi/opnvote-0.1.0.json'
+import opnvoteAbi from '../abi/opnvote-0.2.0.json'
 import { ethers } from 'ethers'
 import { logger } from '../utils/logger'
 import {

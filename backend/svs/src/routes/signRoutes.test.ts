@@ -27,7 +27,7 @@ jest.mock('../middleware/validateBlindSignature', () => ({
 jest.mock('../middleware/checkVoterHasNotVoted', () => ({
   checkVoterHasNotVoted: (req: any, res: any, next: any) => next(),
 }))
-jest.mock('../abi/opnvote-0.1.0.json', () => [], { virtual: true })
+jest.mock('../abi/opnvote-0.2.0.json', () => [], { virtual: true })
 
 jest.mock('../database', () => ({
   dataSource: {
