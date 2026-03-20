@@ -345,14 +345,13 @@ async function main(): Promise<void> {
 
   log('--- Step 7: Verify on subgraph ---')
   const voterAddress = voterAccount.address.toLowerCase()
-  const electionIdHex = `0x${ELECTION_ID.toString(16).padStart(64, '0')}`
 
   for (let attempt = 1; attempt <= 10; attempt++) {
     const { voteCasts } = await querySubgraph<{
       voteCasts: { transactionHash: string }[]
     }>(
       subgraphUrl,
-      `{ voteCasts(where: { electionId: "${electionIdHex}", voter: "${voterAddress}" }, first: 1) { transactionHash } }`,
+      `{ voteCasts(where: { electionId: "${ELECTION_ID}", voter: "${voterAddress}" }, first: 1) { transactionHash } }`,
     )
 
     if (voteCasts.length > 0) {
