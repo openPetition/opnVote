@@ -7,7 +7,8 @@
     "start": "tsx src/index.ts",
     "start:local": "tsx src/index.local.ts",
     "start:votingsystem": "tsx src/index.votingsystem.ts",
-    "start:svs": "tsx src/index.svs-integration.ts"
+    "start:svs": "tsx src/index.svs-integration.ts",
+    "start:integration": "tsx src/index.integration.ts"
   },
   "dependencies": {
     "dotenv": "^16.5.0",
