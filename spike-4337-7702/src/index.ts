@@ -12,17 +12,17 @@ import {
   type Hex,
 } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
-import { gnosisChiado } from 'viem/chains'
+import { gnosis } from 'viem/chains'
 import { createSmartAccountClient } from 'permissionless'
 import { to7702SimpleSmartAccount } from 'permissionless/accounts'
 import { createPimlicoClient } from 'permissionless/clients/pimlico'
 
-const CHAIN = gnosisChiado
+const CHAIN = gnosis
 const DELEGATION_ADDRESS = '0xe6Cae83BdE06E4c305530e199D7217f42808555B' as const
 const ENTRY_POINT = '0x4337084d9e255ff0702461cf8895ce9e3b5ff108' as const
-const PAYMASTER_ADDRESS = '0xd4726750592678a45F24734354094717D0362D94' as const
-const OPNVOTE_ADDRESS = '0x675ca387A6355cdF9c6710B2D59e19131E79eE39' as const
-const ELECTION_ID = 16n
+const PAYMASTER_ADDRESS = '0x53f9b337ce2Ea37D87dBAf0D08a9B931ef9D7eae' as const
+const OPNVOTE_ADDRESS = '0xa36f6cF07eF1DeD3B8B4283E779A4514E30576a8' as const
+const ELECTION_ID = 17n
 
 const voteAbi = [{
   type: 'function',
@@ -182,7 +182,7 @@ async function main(): Promise<void> {
 
   const publicClient = createPublicClient({
     chain: CHAIN,
-    transport: http('https://rpc.chiadochain.net'),
+    transport: http('https://rpc.gnosischain.com'),
   })
   const pimlicoUrl = getPimlicoUrl(apiKey)
   const pimlicoClient = createPimlicoClient({
@@ -326,7 +326,7 @@ async function main(): Promise<void> {
   log('Gas used', receipt.actualGasUsed.toString())
   log('Gas cost (wei)', receipt.actualGasCost.toString())
   log('Gas cost (xDAI)', (Number(receipt.actualGasCost) / 1e18).toFixed(8))
-  log('Explorer', `https://gnosis-chiado.blockscout.com/tx/${receipt.receipt.transactionHash}`)
+  log('Explorer', `https://gnosisscan.io/tx/${receipt.receipt.transactionHash}`)
 }
 
 main().catch(err => {
