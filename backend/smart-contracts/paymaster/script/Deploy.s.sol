@@ -9,11 +9,10 @@ contract DeployScript is Script {
     function setUp() public {}
 
     function run() public {
-        uint256 deployerPrivkey = vm.envUint("DEPLOYER_PRIV_KEY");
         address verifyingSigner = vm.envAddress("VERIFYING_SIGNER");
         address entryPoint = vm.envAddress("ENTRY_POINT");
 
-        vm.startBroadcast(deployerPrivkey);
+        vm.startBroadcast();
 
         OpnVotePaymaster paymaster = new OpnVotePaymaster(IEntryPoint(entryPoint), verifyingSigner);
 

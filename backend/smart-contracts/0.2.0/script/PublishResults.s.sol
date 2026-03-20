@@ -12,7 +12,10 @@ contract PublishResultsScript is Script {
     }
 
     function run() public {
-        uint256 electionId = 0;
+        uint256 electionId = vm.envUint("ELECTION_ID");
+        bytes memory privateKey = vm.envBytes("ELECTION_PRIVATE_KEY");
+
+        // TODO: pass vote counts via env or JSON
         uint256[] memory yesVotes = new uint256[](3);
         uint256[] memory noVotes = new uint256[](3);
         uint256[] memory invalidVotes = new uint256[](3);
@@ -25,10 +28,8 @@ contract PublishResultsScript is Script {
         invalidVotes[0] = 0;
         invalidVotes[1] = 1;
         invalidVotes[2] = 2;
-        bytes memory privateKey = vm.envBytes("ELECTION_0_PRIVATE_KEY");
 
-        uint256 deployer = vm.envUint("DEPLOYER_PRIV_KEY");
-        vm.startBroadcast(deployer);
+        vm.startBroadcast();
         opnVote.publishElectionResults(electionId, yesVotes, noVotes, invalidVotes, privateKey);
     }
 }

@@ -22,14 +22,18 @@ contract CreateElectionEnvironmentScript is Script {
         address svsOwner = vm.envAddress("SVS_OWNER_ADDRESS");
         uint8 svsId = uint8(vm.envUint("SVS_ID"));
 
-        AuthorizationProvider memory ap =
-            AuthorizationProvider(apId, apOwner, "OpenPetition AP", "https://www.openpetition.de/ap/");
-        Register memory register = Register(registerId, registerOwner, "OpenVote Register", "https://register.opn.vote");
-        SignatureValidationServer memory svs =
-            SignatureValidationServer(svsId, svsOwner, "OpenVote SVS", "https://svs.opn.vote");
+        string memory apName = vm.envString("AP_NAME");
+        string memory apUri = vm.envString("AP_URI");
+        string memory registerName = vm.envString("REGISTER_NAME");
+        string memory registerUri = vm.envString("REGISTER_URI");
+        string memory svsName = vm.envString("SVS_NAME");
+        string memory svsUri = vm.envString("SVS_URI");
 
-        uint256 deployer = vm.envUint("DEPLOYER_PRIV_KEY");
-        vm.startBroadcast(deployer);
+        AuthorizationProvider memory ap = AuthorizationProvider(apId, apOwner, apName, apUri);
+        Register memory register = Register(registerId, registerOwner, registerName, registerUri);
+        SignatureValidationServer memory svs = SignatureValidationServer(svsId, svsOwner, svsName, svsUri);
+
+        vm.startBroadcast();
 
         opnVote.addAp(ap);
         opnVote.addRegister(register);

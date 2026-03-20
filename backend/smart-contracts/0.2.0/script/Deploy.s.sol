@@ -8,10 +8,10 @@ contract DeployScript is Script {
     function setUp() public {}
 
     function run() public {
-        uint256 deployerPrivkey = vm.envUint("DEPLOYER_PRIV_KEY");
+        uint256 startId = vm.envUint("START_ID");
 
-        vm.startBroadcast(deployerPrivkey);
-        OpnVote opnVote = new OpnVote(0);
+        vm.startBroadcast();
+        OpnVote opnVote = new OpnVote(startId);
         console.log(address(opnVote));
     }
 }

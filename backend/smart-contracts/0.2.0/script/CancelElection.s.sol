@@ -12,11 +12,10 @@ contract CancelElectionScript is Script {
     }
 
     function run() public {
-        uint256 electionId = 0;
-        string memory cancelReasonIpfsCid = "Qm.....";
+        uint256 electionId = vm.envUint("ELECTION_ID");
+        string memory cancelReasonIpfsCid = vm.envString("CANCEL_REASON_CID");
 
-        uint256 deployer = vm.envUint("DEPLOYER_PRIV_KEY");
-        vm.startBroadcast(deployer);
+        vm.startBroadcast();
         opnVote.cancelElection(electionId, cancelReasonIpfsCid);
     }
 }

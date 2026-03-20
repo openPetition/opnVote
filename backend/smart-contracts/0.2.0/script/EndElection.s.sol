@@ -12,10 +12,9 @@ contract EndElectionScript is Script {
     }
 
     function run() public {
-        uint256 electionId = 0;
+        uint256 electionId = vm.envUint("ELECTION_ID");
 
-        uint256 deployer = vm.envUint("DEPLOYER_PRIV_KEY");
-        vm.startBroadcast(deployer);
+        vm.startBroadcast();
         opnVote.endElection(electionId);
     }
 }
