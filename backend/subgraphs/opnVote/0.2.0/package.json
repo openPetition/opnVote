@@ -1,0 +1,19 @@
+{
+  "name": "opnvote-subgraphs",
+  "license": "UNLICENSED",
+  "scripts": {
+    "codegen:staging": "graph codegen staging/subgraph.yaml --output-dir ./generated",
+    "build:staging": "cd staging && graph build",
+    "deploy:staging": "cd staging && graph deploy --node https://api.studio.thegraph.com/deploy/ opnvote-staging-0xa36f6cf07ef1ded3b8b4283e779a4514e30576a8",
+    "create-local:staging": "cd staging && graph create --node http://127.0.0.1:8020/ opnvote-staging-0xa36f6cf07ef1ded3b8b4283e779a4514e30576a8",
+    "deploy-local:staging": "cd staging && graph deploy --node http://127.0.0.1:8020/ --ipfs http://127.0.0.1:5001 opnvote-staging-0xa36f6cf07ef1ded3b8b4283e779a4514e30576a8",
+    "test": "graph test"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.98.1",
+    "@graphprotocol/graph-ts": "0.38.2"
+  },
+  "devDependencies": {
+    "matchstick-as": "0.6.0"
+  }
+}

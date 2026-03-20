@@ -1,0 +1,16 @@
+{
+  "network": "Gnosis Chiado",
+  "chainId": 10200,
+  "deployer": "0xf9562D5EaC0ACFAe5274Aa30F7231d62818B593C",
+  "contracts": {
+    "OpnVote_v0_2_0": "0x675ca387A6355cdF9c6710B2D59e19131E79eE39",
+    "OpnVotePaymaster": "0xd4726750592678a45F24734354094717D0362D94"
+  },
+  "roles": {
+    "paymasterVerifyingSigner": "0xf9562D5EaC0ACFAe5274Aa30F7231d62818B593C",
+    "apOwner": "0x4BCEE727e6f7c3c896B22b513d8C259C8a32d290",
+    "registerOwner": "0x20271F12D8359C672EE574b2f67282984F42a3F8",
+    "svsOwner": "0x847507B935658Bdf58F166E0B54C662Bc3942a6f"
+  },
+  "entryPoint": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108"
+}

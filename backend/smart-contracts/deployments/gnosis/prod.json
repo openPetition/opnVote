@@ -1,0 +1,16 @@
+{
+  "network": "Gnosis Chain",
+  "chainId": 100,
+  "deployer": "",
+  "contracts": {
+    "OpnVote_v0_2_0": "",
+    "OpnVotePaymaster": ""
+  },
+  "roles": {
+    "paymasterVerifyingSigner": "",
+    "apOwner": "",
+    "registerOwner": "",
+    "svsOwner": ""
+  },
+  "entryPoint": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108"
+}

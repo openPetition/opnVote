@@ -5,7 +5,7 @@ import { ethers } from 'ethers'
 import { GraphQLClient, gql } from 'graphql-request'
 import { logger } from './utils/logger'
 import { getEnvVar } from './utils/utils'
-import opnvoteAbi from './abis/opnvote-0.1.0.json'
+import opnvoteAbi from './abis/opnvote-0.2.0.json'
 import {
   decryptVotes,
   EncryptedVotes,

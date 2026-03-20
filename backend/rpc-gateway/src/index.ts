@@ -61,6 +61,7 @@ const ALLOWED_METHODS = [
   'eth_getBlockByHash',
   'eth_chainId',
   'eth_getTransactionReceipt',
+  'eth_getCode',
 ]
 
 const WHITELISTED_IPS = process.env.WHITELISTED_IPS
@@ -223,10 +224,10 @@ async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
         error.code === 'ECONNABORTED'
           ? 'Timeout'
           : error.code === 'ECONNREFUSED'
-          ? 'Connection refused'
-          : error.response?.status
-          ? `HTTP ${error.response.status}`
-          : error.message || 'Unknown error'
+            ? 'Connection refused'
+            : error.response?.status
+              ? `HTTP ${error.response.status}`
+              : error.message || 'Unknown error'
 
       logger.error(`Failed: ${endpointName} - ${errorMsg} for method: ${rpcRequest.method}`)
 

@@ -38,6 +38,7 @@ async function upsertVotingTransactionWithValidation(
       },
       lock: { mode: 'pessimistic_write' },
     })
+    const isNew = !record
 
     if (!record) {
       record = repo.create({
@@ -73,8 +74,7 @@ async function upsertVotingTransactionWithValidation(
     await queryRunner.commitTransaction()
     return {
       success: true,
-      isUpdate: !!record.id,
-      record,
+      isNew,
     }
   } catch (err) {
     if (queryRunner.isTransactionActive) {
@@ -92,7 +92,7 @@ const router = Router()
  * /api/votingTransaction/sign:
  *   post:
  *     summary: Sign a voting transaction
- *     description: Validates and signs a voting transaction, ensuring the voter hasn't already voted and the election is still open.
+ *     description: Validates and signs a voting transaction, returning the SVS signature.
  *     tags: [Voting]
  *     requestBody:
  *       required: true
@@ -134,16 +134,45 @@ router.post(
     try {
       const votingTransaction = req.body.votingTransaction as VotingTransaction
       if (!votingTransaction) {
-        logger.warn('[SignRoute] Missing voting transaction in request')
-        return res.status(401).json({
-          data: null,
-          error: 'Unauthorized',
-        } as ApiResponse<null>)
+        return res.status(401).json({ data: null, error: 'Unauthorized' } as ApiResponse<null>)
       }
 
       logger.info(
         `[SignRoute] Processing sign request for election ${votingTransaction.electionID} and voter ${votingTransaction.voterAddress}`,
       )
+
+      const normalizedToken = normalizeHexString(
+        votingTransaction.unblindedElectionToken.hexString.toLowerCase(),
+      )
+      const normalizedSig = normalizeHexString(
+        votingTransaction.unblindedSignature.hexString.toLowerCase(),
+      )
+      const repository = dataSource.getRepository(VotingTransactionEntity)
+      const existingRecord = await repository.findOne({
+        where: {
+          electionId: votingTransaction.electionID,
+          unblindedElectionToken: normalizedToken,
+          unblindedSignature: normalizedSig,
+          encryptedVoteRsa: votingTransaction.encryptedVoteRSA.hexString,
+          encryptedVoteAes: votingTransaction.encryptedVoteAES.hexString,
+        },
+      })
+
+      if (existingRecord) {
+        logger.info(
+          `[SignRoute] Reusing existing SVS signature for election ${votingTransaction.electionID}`,
+        )
+        const svsSignature: EthSignature = { hexString: existingRecord.svsSignature }
+        validateEthSignature(svsSignature)
+
+        logger.info(
+          `[SignRoute] Request completed (existing record) in ${Date.now() - startTime}ms`,
+        )
+        return res.status(200).json({
+          data: { svsSignature },
+          error: null,
+        })
+      }
 
       const signingKey = req.app.get('SVS_SIGN_KEY')
       if (!signingKey) {
@@ -154,38 +183,29 @@ router.post(
         } as ApiResponse<null>)
       }
 
-      logger.info('[SignRoute] Starting transaction signing process')
       const signStartTime = Date.now()
       const svsSignature: EthSignature = await signVotingTransaction(votingTransaction, signingKey)
-      const signDuration = Date.now() - signStartTime
-      logger.info(`[SignRoute] Transaction signing completed in ${signDuration}ms`)
-
+      logger.info(`[SignRoute] SVS signing completed in ${Date.now() - signStartTime}ms`)
       validateEthSignature(svsSignature)
-      logger.info('[SignRoute] Upserting signed transaction to database')
       const upsertStartTime = Date.now()
       const result = await upsertVotingTransactionWithValidation(
         votingTransaction.electionID,
         normalizeEthAddress(votingTransaction.voterAddress),
         votingTransaction.encryptedVoteRSA.hexString,
         votingTransaction.encryptedVoteAES.hexString,
-        normalizeHexString(votingTransaction.unblindedElectionToken.hexString.toLowerCase()),
-        normalizeHexString(votingTransaction.unblindedSignature.hexString.toLowerCase()),
+        normalizedToken,
+        normalizedSig,
         svsSignature.hexString,
       )
-      const upsertDuration = Date.now() - upsertStartTime
       logger.info(
-        `[SignRoute] Database upsert completed in ${upsertDuration}ms - ${
-          result.isUpdate ? 'Updated existing' : 'Created new'
-        } record`,
+        `[SignRoute] Database upsert completed in ${Date.now() - upsertStartTime}ms — ${result.isNew ? 'created' : 'updated'}`,
       )
 
-      const totalDuration = Date.now() - startTime
-      logger.info(`[SignRoute] Request completed successfully in ${totalDuration}ms`)
-
+      logger.info(`[SignRoute] Request completed successfully in ${Date.now() - startTime}ms`)
       return res.status(200).json({
-        data: { blindedSignature: svsSignature },
+        data: { svsSignature },
         error: null,
-      } as ApiResponse<{ blindedSignature: EthSignature }>)
+      })
     } catch (error) {
       logger.error('Error signing token:', error)
       res.status(500).json({

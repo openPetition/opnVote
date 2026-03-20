@@ -27,15 +27,14 @@ jest.mock('../middleware/validateBlindSignature', () => ({
 jest.mock('../middleware/checkVoterHasNotVoted', () => ({
   checkVoterHasNotVoted: (req: any, res: any, next: any) => next(),
 }))
-jest.mock('../workers/gelatoWorker', () => ({
-  startGelatoWorker: jest.fn(),
-}))
+jest.mock('../abi/opnvote-0.2.0.json', () => [], { virtual: true })
 
 jest.mock('../database', () => ({
   dataSource: {
     initialize: jest.fn().mockResolvedValue(null),
     destroy: jest.fn().mockResolvedValue(null),
     getRepository: jest.fn().mockReturnValue({
+      findOne: jest.fn().mockResolvedValue(null),
       save: jest.fn().mockResolvedValue({}),
     }),
     createQueryRunner: jest.fn().mockReturnValue({
@@ -97,6 +96,8 @@ describe('POST /api/votingTransaction/sign', () => {
 
   beforeEach(() => {
     app.set('SVS_SIGN_KEY', '0x0000000000000000000000000000000000000000000000000000000000000001')
+    app.set('PAYMASTER_SIGNER_KEY', '0x0000000000000000000000000000000000000000000000000000000000000002')
+    app.set('PAYMASTER_ADDRESS', '0x0000000000000000000000000000000000000003')
     jest.clearAllMocks()
   })
 
@@ -111,11 +112,11 @@ describe('POST /api/votingTransaction/sign', () => {
     expect(response.status).toBe(200)
     expect(response.body).toEqual({
       data: {
-        blindedSignature: expect.any(Object),
+        svsSignature: expect.any(Object),
       },
       error: null,
     })
-    expect(response.body.data.blindedSignature).toHaveProperty('hexString')
+    expect(response.body.data.svsSignature).toHaveProperty('hexString')
   })
 
   it('should return 401 when voting transaction is missing', async () => {
@@ -265,7 +266,7 @@ describe('POST /api/votingTransaction/sign', () => {
       })
 
     expect(response.status).toBe(200)
-    expect(response.body.data).toHaveProperty('blindedSignature')
+    expect(response.body.data).toHaveProperty('svsSignature')
   })
 
   it('should allow updates to existing unblindedElectionToken + electionID combination', async () => {
@@ -378,5 +379,25 @@ describe('POST /api/votingTransaction/sign', () => {
 
     expect(response.status).toBe(500)
     expect(rollbackMock).toHaveBeenCalled()
+  })
+
+  it('should return existing svsSignature when record already exists', async () => {
+    const wallet = new ethers.Wallet('0x0000000000000000000000000000000000000000000000000000000000000002')
+    const existingSvsSignature = await wallet.signMessage('existing svs signature')
+    ;(dataSource.getRepository as jest.Mock).mockReturnValueOnce({
+      findOne: jest.fn().mockResolvedValue({
+        svsSignature: existingSvsSignature,
+      }),
+    })
+
+    const response = await request(app)
+      .post('/api/votingTransaction/sign')
+      .send({
+        votingTransaction: mockVotingTransaction,
+        voterSignature: { hexString: '0xsignature' },
+      })
+
+    expect(response.status).toBe(200)
+    expect(response.body.data.svsSignature.hexString).toBe(existingSvsSignature)
   })
 })
