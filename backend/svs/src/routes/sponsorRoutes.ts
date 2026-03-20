@@ -109,9 +109,17 @@ async function buildPaymasterData(req: Request, votingTransaction: VotingTransac
     throw new Error('EntryPoint or RPC provider not configured')
   }
 
-  const feeData = await provider.getFeeData()
-  const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? ethers.parseUnits('1', 'gwei')
-  const maxFeePerGas = feeData.maxFeePerGas ?? maxPriorityFeePerGas * 2n
+  const bundlerUrl = req.app.get('BUNDLER_URL') as string
+  if (!bundlerUrl) throw new Error('BUNDLER_URL not configured')
+  const gasPriceRes = await fetch(bundlerUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', method: 'pimlico_getUserOperationGasPrice', params: [], id: 1 }),
+  })
+  const gasPriceJson = (await gasPriceRes.json()) as any
+  if (!gasPriceJson.result?.standard) throw new Error('Failed to fetch gas price from bundler')
+  const maxFeePerGas = BigInt(gasPriceJson.result.standard.maxFeePerGas)
+  const maxPriorityFeePerGas = BigInt(gasPriceJson.result.standard.maxPriorityFeePerGas)
 
   const entryPoint = new ethers.Contract(entryPointAddress, ENTRYPOINT_ABI, provider)
   const nonce: bigint = await entryPoint.getNonce(votingTransaction.voterAddress, 0)

@@ -92,6 +92,10 @@ router.post('/', async (req: Request, res: Response) => {
 
     const bundlerJson = await bundlerRes.json()
 
+    if (bundlerJson.error) {
+      logger.warn(`[Forward] ${method} rejected by bundler (id=${id}): ${JSON.stringify(bundlerJson.error)}`)
+    }
+
     const response: ApiResponse<typeof bundlerJson> = { data: bundlerJson, error: null }
     return res.status(200).json(response)
   } catch (err) {

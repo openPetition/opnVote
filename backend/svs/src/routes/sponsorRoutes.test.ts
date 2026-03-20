@@ -29,6 +29,17 @@ jest.mock('../middleware/checkVoterHasNotVoted', () => ({
 }))
 jest.mock('../abi/opnvote-0.1.0.json', () => [], { virtual: true })
 
+global.fetch = jest.fn().mockResolvedValue({
+  json: jest.fn().mockResolvedValue({
+    result: {
+      standard: {
+        maxFeePerGas: '0x77359400', // 2 gwei
+        maxPriorityFeePerGas: '0x3B9ACA00', // 1 gwei
+      },
+    },
+  }),
+}) as jest.Mock
+
 jest.mock('votingsystem', () => {
   const actual = jest.requireActual('votingsystem')
   return {
@@ -105,10 +116,6 @@ describe('POST /api/userOp/sponsor', () => {
 
   function createMockProvider(getCodeReturn: string = '0x') {
     return {
-      getFeeData: jest.fn().mockResolvedValue({
-        maxFeePerGas: 2000000000n,
-        maxPriorityFeePerGas: 1000000000n,
-      }),
       getCode: jest.fn().mockResolvedValue(getCodeReturn),
       call: jest
         .fn()
@@ -124,7 +131,18 @@ describe('POST /api/userOp/sponsor', () => {
     app.set('ACCOUNT_IMPLEMENTATION_ADDRESS', EXPECTED_IMPLEMENTATION)
     app.set('MAX_SPONSOR_COUNT', 10)
     app.set('OPNVOTE_CONTRACT_ADDRESS', '0x0000000000000000000000000000000000000001')
+    app.set('BUNDLER_URL', 'https://mock-bundler')
     jest.clearAllMocks()
+    ;(global.fetch as jest.Mock).mockResolvedValue({
+      json: jest.fn().mockResolvedValue({
+        result: {
+          standard: {
+            maxFeePerGas: '0x77359400',
+            maxPriorityFeePerGas: '0x3B9ACA00',
+          },
+        },
+      }),
+    })
 
     app.set('rpcProvider', createMockProvider())
   })
