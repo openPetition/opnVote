@@ -113,7 +113,7 @@ function createSvsForwardTransport(svsUrl: string) {
   })
 }
 
-async function run(): Promise<string> {
+async function run(includeRecast = false): Promise<string> {
   const electionIdEnv = process.env.ELECTION_ID
   if (!electionIdEnv) throw new Error('ELECTION_ID required in .env')
   const ELECTION_ID = Number(electionIdEnv)
@@ -359,12 +359,132 @@ async function run(): Promise<string> {
   log('=== DONE ===')
   log('Explorer', `https://gnosisscan.io/tx/${txHash}`)
   log('Gas cost (xDAI)', (Number(receipt.actualGasCost) / 1e18).toFixed(8))
-  return txHash
+
+  if (!includeRecast) return txHash
+
+  log('=== Vote recast ===') // no 7702 setup, no SVS sign needed
+
+  log('--- Step 4 (recast): No SVS sign ---')
+  const recastVotes = [
+    { value: VoteOption.No },
+    { value: VoteOption.No },
+    { value: VoteOption.Yes },
+  ]
+  const recastEncryptedVotesRSA = await encryptVotes(
+    recastVotes,
+    coordinatorKey,
+    EncryptionType.RSA,
+  )
+  const recastEncryptedVotesAES = await encryptVotes(
+    recastVotes,
+    voterCredentials.encryptionKey,
+    EncryptionType.AES,
+  )
+  const recastVotingTransaction = createVotingTransactionWithoutSVSSignature(
+    voterCredentials,
+    recastEncryptedVotesRSA,
+    recastEncryptedVotesAES,
+  )
+
+  log('--- Step 5 (recast): SVS sponsor ---')
+  const recastSponsorMsgHash = hashMessage(JSON.stringify(recastVotingTransaction))
+  const recastSponsorSig = await voterAccount.signMessage({ message: recastSponsorMsgHash })
+
+  const { paymasterData: recastPaymasterData, userOpParams: recastUserOpParams } = await postJson<{
+    paymasterData: Hex
+    userOpParams: {
+      nonce: string
+      callGasLimit: string
+      verificationGasLimit: string
+      preVerificationGas: string
+      paymasterVerificationGasLimit: string
+      paymasterPostOpGasLimit: string
+      maxFeePerGas: string
+      maxPriorityFeePerGas: string
+    }
+  }>(`${svsUrl}/api/userOp/sponsor`, {
+    votingTransaction: recastVotingTransaction,
+    voterSignature: { hexString: recastSponsorSig },
+  })
+
+  log('--- Step 6 (recast): ERC-4337 submit ---')
+  const recastVoteCalldata = createVoteCalldata(recastVotingTransaction, OPNVOTE_ABI) as Hex
+
+  const recastSmartAccountClient = createSmartAccountClient({
+    client: publicClient,
+    chain: CHAIN,
+    account: smartAccount,
+    paymaster: {
+      async getPaymasterStubData() {
+        return {
+          paymaster: PAYMASTER_ADDRESS,
+          paymasterData: recastPaymasterData,
+          isFinal: true as const,
+          callGasLimit: BigInt(recastUserOpParams.callGasLimit),
+          verificationGasLimit: BigInt(recastUserOpParams.verificationGasLimit),
+          preVerificationGas: BigInt(recastUserOpParams.preVerificationGas),
+          paymasterVerificationGasLimit: BigInt(recastUserOpParams.paymasterVerificationGasLimit),
+          paymasterPostOpGasLimit: BigInt(recastUserOpParams.paymasterPostOpGasLimit),
+        }
+      },
+      async getPaymasterData() {
+        throw new Error('getPaymasterData should not be called when isFinal: true')
+      },
+    },
+    bundlerTransport: createSvsForwardTransport(svsUrl),
+    userOperation: {
+      estimateFeesPerGas: async () => ({
+        maxFeePerGas: BigInt(recastUserOpParams.maxFeePerGas),
+        maxPriorityFeePerGas: BigInt(recastUserOpParams.maxPriorityFeePerGas),
+      }),
+    },
+  })
+
+  const recastUserOpHash = await recastSmartAccountClient.sendUserOperation({
+    calls: [{ to: OPNVOTE_ADDRESS, value: 0n, data: recastVoteCalldata }] as const,
+    nonce: BigInt(recastUserOpParams.nonce),
+  })
+
+  log('UserOp hash', recastUserOpHash)
+  const recastReceipt = await recastSmartAccountClient.waitForUserOperationReceipt({
+    hash: recastUserOpHash,
+  })
+  const recastTxHash = recastReceipt.receipt.transactionHash
+  log('Tx hash', recastTxHash)
+
+  if (!recastReceipt.success) {
+    throw new Error(`UserOp reverted: ${recastTxHash}`)
+  }
+
+  log('--- Step 7 (recast): Verify on subgraph ---')
+  for (let attempt = 1; attempt <= 10; attempt++) {
+    const { voteUpdateds } = await querySubgraph<{ voteUpdateds: { transactionHash: string }[] }>(
+      subgraphUrl,
+      `{ voteUpdateds(where: { electionId: "${ELECTION_ID}", voter: "${voterAddress}" }, orderBy: blockNumber, orderDirection: desc, first: 1) { transactionHash } }`,
+    )
+    if (voteUpdateds.length > 0 && voteUpdateds[0].transactionHash === recastTxHash) {
+      log('Recast vote indexed in subgraph ✓', recastTxHash)
+      break
+    }
+    if (attempt === 10) {
+      log('Recast vote not yet indexed after 10 attempts (subgraph may lag — tx succeeded)')
+    } else {
+      log(`Waiting for subgraph... (attempt ${attempt}/10)`)
+      await sleep(6000)
+    }
+  }
+
+  log('=== DONE ===')
+  log('Explorer', `https://gnosisscan.io/tx/${recastTxHash}`)
+  log('Gas cost (xDAI)', (Number(recastReceipt.actualGasCost) / 1e18).toFixed(8))
+  return recastTxHash
 }
 
-export async function runVoteTest(): Promise<{ success: boolean; error?: string; txHash?: string }> {
+export async function runVoteTest(
+  options: { includeRecast?: boolean } = {},
+): Promise<{ success: boolean; error?: string; txHash?: string }> {
   try {
-    const txHash = await run()
+    const txHash = await run(options.includeRecast ?? false)
     return { success: true, txHash }
   } catch (err) {
     return { success: false, error: String(err) }
@@ -372,7 +492,8 @@ export async function runVoteTest(): Promise<{ success: boolean; error?: string;
 }
 
 if (require.main === module) {
-  runVoteTest().then(result => {
+  const includeRecast = process.env.VOTE_RECAST === 'true'
+  runVoteTest({ includeRecast }).then(result => {
     if (!result.success) {
       console.error('Test failed:', result.error)
       process.exit(1)
