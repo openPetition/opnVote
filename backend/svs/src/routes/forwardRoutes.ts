@@ -93,7 +93,11 @@ router.post('/', async (req: Request, res: Response) => {
     const bundlerJson = await bundlerRes.json()
 
     if (bundlerJson.error) {
-      logger.warn(`[Forward] ${method} rejected by bundler (id=${id}): ${JSON.stringify(bundlerJson.error)}`)
+      logger.warn(
+        `[Forward] ${method} rejected by bundler (id=${id}): ${JSON.stringify(bundlerJson.error)}`,
+      )
+    } else if (method === 'eth_sendUserOperation') {
+      logger.info(`[Forward] Successfully forwarded ${method} (id=${id}): ${bundlerJson.result}`)
     }
 
     const response: ApiResponse<typeof bundlerJson> = { data: bundlerJson, error: null }
