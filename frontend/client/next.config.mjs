@@ -8,6 +8,7 @@ const nextConfig = {
         abiConfigUrl: process.env.NEXT_PUBLIC_ABI_CONFIG_URL,
         blindedSignatureUrl: process.env.NEXT_PUBLIC_BLINDED_SIGNATURE_URL,
         signVotingTransactionUrl: process.env.NEXT_PUBLIC_SIGN_VOTING_TRANSACTION_URL,
+        svsFetchSponsorUrl: process.env.NEXT_PUBLIC_SVS_FETCH_SPONSOR_URL,
         graphConnectUrl: process.env.NEXT_PUBLIC_GRAPH_CONNECT_URL,
         gelatoForwardUrl: process.env.NEXT_PUBLIC_GELATO_FORWARD_URL,
         gelatoVerifyUrl: process.env.NEXT_PUBLIC_GELATO_VERIFY_URL,

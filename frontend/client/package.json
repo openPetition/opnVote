@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@apollo/client": "^3.9.11",
-    "@gelatonetwork/relay-sdk": "^5.5.6",
     "axios": "^1.7.4",
     "canvg": "^4.0.1",
     "clsx": "^2.1.1",
@@ -33,12 +32,14 @@
     "next-i18next": "^15.3.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "5.4.54",
+    "permissionless": "^0.3.4",
     "qrcode": "^1.5.4",
     "qrcode.react": "^4.2.0",
     "react": "^18",
     "react-dom": "^18",
     "react-i18next": "^15.0.2",
     "universal-cookie": "^7.1.4",
+    "viem": "^2.47.6",
     "votingsystem": "file:../../votingSystem",
     "zustand": "^4.5.0"
   },
