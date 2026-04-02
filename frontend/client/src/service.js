@@ -155,6 +155,26 @@ export async function gelatoVerify(taskId) {
     }
 }
 
+
+function createSvsForwardTransport(svsUrl) {
+    return custom({
+        async request({ method, params }) {
+            const res = await fetch(`${svsUrl}/api/forward`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jsonrpc: '2.0', method, params, id: 1 }),
+            })
+            const json = (await res.json())
+            if (!res.ok || json.error)
+                throw new Error(`SVS forward [${res.status}]: ${json.error ?? JSON.stringify(json)}`)
+            const bundlerResponse = json.data
+            if (bundlerResponse.error)
+                throw new Error(`Bundler error: ${JSON.stringify(bundlerResponse.error)}`)
+            return bundlerResponse.result
+        },
+    })
+}
+
 /** @returns {{
     paymasterData: Hex
     userOpParams: {

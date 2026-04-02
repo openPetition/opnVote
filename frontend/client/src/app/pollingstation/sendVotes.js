@@ -7,7 +7,7 @@ import { gnosis } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import Config from "../../../next.config.mjs";
 import {
-    createSignatureData, createRelayRequest, encryptVotes, createVotingTransactionWithoutSVSSignature, addSVSSignatureToVotingTransaction, createVoteRecastTransaction, EncryptionType, createVoteCalldata,
+    createSignatureData, createRelayRequest, encryptVotes, createVoteCalldata, createVotingTransactionWithoutSVSSignature, addSVSSignatureToVotingTransaction, createVoteRecastTransaction, EncryptionType,
 } from "votingsystem";
 import { createSmartAccountClient } from 'permissionless';
 import { to7702SimpleSmartAccount } from 'permissionless/accounts';
@@ -18,6 +18,8 @@ const replacer = function (key, value) {
     }
     return value;
 }
+
+
 
 export async function sendVotes(votes, votingCredentials, electionPublicKey, isRecast) {
     // map votes into needed format
@@ -99,7 +101,10 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     })
     console.log('kekse weeeeee are');
 
-    const voteCalldata = createVoteCalldata(signedVotingTransaction, OPNVOTE_ABI);
+    const voteCalldata = createVoteCalldata(votingTransactionFull, OPNVOTE_ABI);
+
+    console.log(voteCalldata);
+    console.log('votecalldata');
 
     const smartAccountClient = createSmartAccountClient({
         client: publicClient,
