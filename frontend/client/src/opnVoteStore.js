@@ -21,11 +21,11 @@ const splitStorage = {
         return localData;
     },
     setItem: function (name, value) {
-        let {state: stateData, ...nonStateValue} = value;
-        let {page: pageData, ...nonPageState} = stateData;
+        let { state: stateData, ...nonStateValue } = value;
+        let { page: pageData, ...nonPageState } = stateData;
 
-        sessionStorage.setItem(name, JSON.stringify({page: pageData}));
-        localStorage.setItem(name, JSON.stringify({state: nonPageState, ...nonStateValue}));
+        sessionStorage.setItem(name, JSON.stringify({ page: pageData }));
+        localStorage.setItem(name, JSON.stringify({ state: nonPageState, ...nonStateValue }));
     },
     removeItem: function (name) {
         localStorage.removeItem(name);
@@ -77,7 +77,6 @@ export const useOpnVoteStore = create(
                     key: key,
                     keySaved: keySaved,
                     initKey: initKey
-                    }
                 })),
             clear: () => set((state) => ({
                 user: emptyUser,

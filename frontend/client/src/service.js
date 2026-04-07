@@ -41,38 +41,23 @@ export async function getBlindedSignature(jwttoken, blindedElectionToken) {
     return { hexString: jsondata.data.blindedSignature, isBlinded: true };
 }
 
-export async function getTransactionState(taskId) {
 
-    const taskStatesSuccess = ["ExecSuccess"];
-    const taskStatesCancelled = ["ExecReverted", "Cancelled"];
 
-    const transactionStateUrl = 'https://api.gelato.digital/tasks/status/' + taskId;
-    const options = {
-        method: "GET",
-        headers: new Headers(
-            {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        ),
-    };
-    const response = await fetch(transactionStateUrl, options);
-    if (response.status !== 200) {
-        throw new ServerError();
+
+export async function querySubgraphTransactionState(election_id, voterAddress) {
+    console.log('this????');
+    const query = `{ voteCasts(where: { electionId: "${election_id}", voter: "${voterAddress}" }, first: 1) { transactionHash } }`;
+    console.log(query);
+    const res = await fetch(Config.env.graphConnectUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+    })
+    const json = (await res.json())
+    if (!res.ok || json.errors) {
+        throw new Error(`Subgraph error: ${JSON.stringify(json.errors ?? json)}`)
     }
-
-    const transactionResult = await response.json();
-    const taskState = transactionResult.task.taskState;
-    if ('lastCheckMessage' in transactionResult.task && transactionResult.task.lastCheckMessage.match(/(Execution error|Task failed after [0-9]+ retries): .*:Already Voted/i)) {
-        throw new AlreadyVotedError();
-    }
-
-    return {
-        status: taskStatesSuccess.includes(taskState) ? 'success' : taskStatesCancelled.includes(taskState) ? 'cancelled' : 'pending',
-        error: null,
-        transactionHash: transactionResult?.task?.transactionHash ? transactionResult.task.transactionHash : '',
-        transactionViewUrl: transactionResult?.task?.transactionHash ? 'https://gnosisscan.io/tx/' + transactionResult.task.transactionHash : '',
-    };
+    return json.data
 }
 
 export async function signTransaction(votingTransaction, voterSignatureObject) {
@@ -166,7 +151,6 @@ export function createSvsForwardTransport() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ jsonrpc: '2.0', method, params, id: 1 }),
             })
-            console.log('regn');
             const json = (await res.json())
             if (!res.ok || json.error)
                 throw new Error(`SVS forward [${res.status}]: ${json.error ?? JSON.stringify(json)}`)
