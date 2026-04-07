@@ -111,7 +111,7 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     console.log(constWhat);
     const smartAccountClient = createSmartAccountClient({
         client: publicClient,
-        chain: CHAIN,
+        chain: gnosis,
         account: smartAccount,
         paymaster: {
             async getPaymasterStubData() {
@@ -145,13 +145,13 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
         calls: [{ to: OPNVOTE_ADDRESS, value: 0n, data: voteCalldata }],
         nonce: BigInt(userOpParams.nonce),
     }
-
+    console.log('please be here');
     let userOpHash;
     if (!isDeployed) {
         const eoaNonce = await publicClient.getTransactionCount({ address: voterAccount.address })
         const authorization = await voterAccount.signAuthorization({
             address: DELEGATION_ADDRESS,
-            chainId: CHAIN.id,
+            chainId: gnosis.id,
             nonce: eoaNonce,
         })
         userOpHash = await smartAccountClient.sendUserOperation({ ...sendParams, authorization })
@@ -159,10 +159,10 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
         userOpHash = await smartAccountClient.sendUserOperation(sendParams)
     }
 
-    log('UserOp hash', userOpHash)
+    console.log('UserOp hash', userOpHash)
     const receipt = await smartAccountClient.waitForUserOperationReceipt({ hash: userOpHash })
     const txHash = receipt.receipt.transactionHash
-    log('Tx hash', txHash)
+    console.log('Tx hash', txHash)
 
     if (!receipt.success) {
         throw new Error(`UserOp reverted: ${txHash}`)
