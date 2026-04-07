@@ -156,10 +156,11 @@ export async function gelatoVerify(taskId) {
 }
 
 
-function createSvsForwardTransport(svsUrl) {
+export function createSvsForwardTransport() {
+    console.log('svsforwardtransport');
     return custom({
         async request({ method, params }) {
-            const res = await fetch(`${svsUrl}/api/forward`, {
+            const res = await fetch(Config.env.svsForwardTransportUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ jsonrpc: '2.0', method, params, id: 1 }),

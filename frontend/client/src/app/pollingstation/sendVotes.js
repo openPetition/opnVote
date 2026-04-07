@@ -1,7 +1,7 @@
 'use client';
 
 import { ethers } from "ethers";
-import { signTransaction, gelatoForward, getAbi, fetchSponsor } from '../../service';
+import { signTransaction, gelatoForward, getAbi, fetchSponsor, createSvsForwardTransport } from '../../service';
 import { hashMessage, createPublicClient, http, custom, Hex } from 'viem';
 import { gnosis } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
