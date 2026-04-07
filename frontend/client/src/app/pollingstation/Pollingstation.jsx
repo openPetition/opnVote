@@ -94,7 +94,7 @@ export default function Pollingstation() {
             });
             return;
         }
-
+        console.log('CAAAAAST');
         let isVoteRecast = false;
         // after we got voteCasts data .. check this
         if (dataVotings && dataVotings?.voteCasts && Object.keys(dataVotings?.voteCasts).length > 0) {

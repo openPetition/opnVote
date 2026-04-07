@@ -77,7 +77,8 @@ export const useOpnVoteStore = create(
                     key: key,
                     keySaved: keySaved,
                     initKey: initKey
-                })),
+                }
+            })),
             clear: () => set((state) => ({
                 user: emptyUser,
                 voting: {

@@ -41,13 +41,8 @@ export async function getBlindedSignature(jwttoken, blindedElectionToken) {
     return { hexString: jsondata.data.blindedSignature, isBlinded: true };
 }
 
-
-
-
 export async function querySubgraphTransactionState(election_id, voterAddress) {
-    console.log('this????');
-    const query = `{ voteCasts(where: { electionId: "${election_id}", voter: "${voterAddress}" }, first: 1) { transactionHash } }`;
-    console.log(query);
+    const query = `{ voteCasts(where: { electionId: "${election_id}", voter: "${voterAddress} " }, first: 1) { transactionHash } }`;
     const res = await fetch(Config.env.graphConnectUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

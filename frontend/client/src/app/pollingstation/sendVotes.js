@@ -56,7 +56,7 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
 
     let votingTransaction, votingTransactionFull;
     if (isRecast) {
-        votingTransactionFull = createVoteRecastTransaction(votingCredentials, encryptedVotesRSA, encryptedVotesAES);
+        votingTransactionFull = createVotingTransactionWithoutSVSSignature(votingCredentials, encryptedVotesRSA, encryptedVotesAES);
     } else {
         votingTransaction = createVotingTransactionWithoutSVSSignature(votingCredentials, encryptedVotesRSA, encryptedVotesAES);
         const msgHash = hashMessage(JSON.stringify(votingTransaction));

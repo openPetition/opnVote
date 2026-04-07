@@ -12,6 +12,9 @@ import { useOpnVoteStore, modes } from "../../opnVoteStore";
 import styles from './styles/votetransaction.module.css';
 import globalConst from "@/constants";
 import { Check } from "lucide-react";
+import { privateKeyToAccount } from 'viem/accounts';
+import { checkBallot } from "@/util";
+
 
 export default function VoteTransaction() {
     const { taskId, voting, updateVoting, updateTaskId, updatePage } = useOpnVoteStore((state) => state);
@@ -41,15 +44,22 @@ export default function VoteTransaction() {
 
     const checkTransaction = async () => {
         try {
-            const check = checkBallot(voting.election, code);
-            votingCredentials = check.credentials;
-            const voterAccount = privateKeyToAccount(votingCredentials.voterWallet.privateKey);
-
+            console.log('checkwhat');
+            console.log(voting);
+            console.log('----');
+            const { credentials } = checkBallot(voting.election, voting.registerCode);
+            console.log(credentials);
+            console.log('vkl');
+            const voterAccount = privateKeyToAccount(credentials.voterWallet.privateKey);
+            console.log('got voter account');
             const voterAddress = voterAccount.address.toLowerCase()
             for (let attempt = 1; attempt <= 10; attempt++) {
+                console.log('gogogo');
                 const { voteCasts } = await querySubgraphTransactionState(voting.electionId, voterAddress)
                 if (voteCasts.length > 0) {
                     console.log('Vote indexed in subgraph ✓', voteCasts[0].transactionHash)
+                    console.log(voteCasts[0].transactionHash);;
+                    console.log(voteCasts);
                     break
                 }
                 if (attempt === 10) {
