@@ -2,6 +2,7 @@
 import { Signature } from "votingsystem"; // eslint-disable-line
 import Config from "../next.config.mjs";
 import globalConst from "@/constants";
+import { custom } from 'viem';
 
 export class AuthorizationError extends Error { }
 export class AlreadyVotedError extends Error { }
@@ -165,6 +166,7 @@ export function createSvsForwardTransport() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ jsonrpc: '2.0', method, params, id: 1 }),
             })
+            console.log('regn');
             const json = (await res.json())
             if (!res.ok || json.error)
                 throw new Error(`SVS forward [${res.status}]: ${json.error ?? JSON.stringify(json)}`)

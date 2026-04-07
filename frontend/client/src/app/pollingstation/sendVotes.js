@@ -104,8 +104,11 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     const voteCalldata = createVoteCalldata(votingTransactionFull, OPNVOTE_ABI);
 
     console.log(voteCalldata);
-    console.log('votecalldata');
+    console.log('---votecalldata');
+    let constWhat = createSvsForwardTransport();
+    console.log('wtf');
 
+    console.log(constWhat);
     const smartAccountClient = createSmartAccountClient({
         client: publicClient,
         chain: CHAIN,
@@ -127,7 +130,7 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
                 throw new Error('getPaymasterData should not be called when isFinal: true')
             },
         },
-        bundlerTransport: createSvsForwardTransport(svsUrl),
+        bundlerTransport: createSvsForwardTransport(),
         userOperation: {
             estimateFeesPerGas: async () => ({
                 maxFeePerGas: BigInt(userOpParams.maxFeePerGas),
