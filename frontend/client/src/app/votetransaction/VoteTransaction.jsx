@@ -47,7 +47,6 @@ export default function VoteTransaction() {
                 const { voteCasts } = await querySubgraphTransactionState(voting.electionId, voterAddress)
                 if (voteCasts.length > 0) {
                     console.log('Vote indexed in subgraph ✓', voteCasts[0].transactionHash)
-
                     setTransactionHash(voteCasts[0].transactionHash);
                     updateVoting({ votesuccess: true });
                     updateTaskId(''); //invalidation to prevent wrong redirects from pollingstation

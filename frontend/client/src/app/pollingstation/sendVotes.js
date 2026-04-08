@@ -1,25 +1,16 @@
 'use client';
 
 import { ethers } from "ethers";
-import { signTransaction, gelatoForward, getAbi, fetchSponsor, createSvsForwardTransport } from '../../service';
-import { hashMessage, createPublicClient, http, custom, Hex } from 'viem';
+import { signTransaction, fetchSponsor, createSvsForwardTransport } from '../../service';
+import { hashMessage, createPublicClient, http } from 'viem';
 import { gnosis } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import Config from "../../../next.config.mjs";
 import {
-    createSignatureData, createRelayRequest, encryptVotes, createVoteCalldata, createVotingTransactionWithoutSVSSignature, addSVSSignatureToVotingTransaction, createVoteRecastTransaction, EncryptionType,
+    encryptVotes, createVoteCalldata, createVotingTransactionWithoutSVSSignature, addSVSSignatureToVotingTransaction, createVoteRecastTransaction, EncryptionType,
 } from "votingsystem";
 import { createSmartAccountClient } from 'permissionless';
 import { to7702SimpleSmartAccount } from 'permissionless/accounts';
-
-const replacer = function (key, value) {
-    if (typeof value === 'bigint') {
-        return value.toString();
-    }
-    return value;
-}
-
-
 
 export async function sendVotes(votes, votingCredentials, electionPublicKey, isRecast) {
     // map votes into needed format
@@ -70,45 +61,29 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
             hexString: voterSig
         };
         const svsSignature = await signTransaction(votingTransaction, voterSignatureObject);
-        console.log('keks 66236');
-        console.log(svsSignature.data.svsSignature.hexString);
-        console.log(votingTransaction);
         votingTransactionFull = addSVSSignatureToVotingTransaction(votingTransaction, svsSignature.data.svsSignature);
-        console.log('keks 0000000');
 
     }
-    console.log('keks 323');
     const sponsorMsgHash = hashMessage(JSON.stringify(votingTransactionFull));
     const sponsorSig = await voterAccount.signMessage({ message: sponsorMsgHash });
-    console.log('keks 444');
-
 
     const { paymasterData, userOpParams } = await fetchSponsor(votingTransactionFull, sponsorSig);
     console.log('SPONSORED');
-    console.log(paymasterData);
-    console.log(userOpParams);
 
     const publicClient = createPublicClient({
         chain: gnosis,
         transport: http(Config.env.rpcnodeUrl),
     })
-    console.log('lolololo');
+
     const smartAccount = await to7702SimpleSmartAccount({
         client: publicClient,
         owner: voterAccount,
         accountLogicAddress: DELEGATION_ADDRESS,
         entryPoint: { address: ENTRY_POINT, version: '0.8' },
     })
-    console.log('kekse weeeeee are');
 
     const voteCalldata = createVoteCalldata(votingTransactionFull, OPNVOTE_ABI);
 
-    console.log(voteCalldata);
-    console.log('---votecalldata');
-    let constWhat = createSvsForwardTransport();
-    console.log('wtf');
-
-    console.log(constWhat);
     const smartAccountClient = createSmartAccountClient({
         client: publicClient,
         chain: gnosis,
@@ -127,7 +102,7 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
                 }
             },
             async getPaymasterData() {
-                throw new Error('getPaymasterData should not be called when isFinal: true')
+                throw new Error('getPaymasterData should not be called when isFinal: true');
             },
         },
         bundlerTransport: createSvsForwardTransport(),
@@ -138,14 +113,12 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
             }),
         },
     })
-    console.log('kekse weee waaaant');
 
     const isDeployed = await smartAccount.isDeployed()
     const sendParams = {
         calls: [{ to: OPNVOTE_ADDRESS, value: 0n, data: voteCalldata }],
         nonce: BigInt(userOpParams.nonce),
     }
-    console.log('please be here');
     let userOpHash;
     if (!isDeployed) {
         const eoaNonce = await publicClient.getTransactionCount({ address: voterAccount.address })
@@ -154,19 +127,16 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
             chainId: gnosis.id,
             nonce: eoaNonce,
         })
-        userOpHash = await smartAccountClient.sendUserOperation({ ...sendParams, authorization })
+        userOpHash = await smartAccountClient.sendUserOperation({ ...sendParams, authorization });
     } else {
-        userOpHash = await smartAccountClient.sendUserOperation(sendParams)
+        userOpHash = await smartAccountClient.sendUserOperation(sendParams);
     }
-
 
     const receipt = await smartAccountClient.waitForUserOperationReceipt({ hash: userOpHash });
     const txHash = receipt.receipt.transactionHash;
 
-
     if (!receipt.success) {
-        throw new Error(`UserOp reverted: ${txHash}`)
+        throw new Error(`UserOp reverted: ${txHash}`);
     }
-    console.log(receipt);
     return txHash;
 }
