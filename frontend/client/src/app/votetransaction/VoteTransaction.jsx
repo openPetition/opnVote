@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from 'next/link';
 import { useTranslation, Trans } from "next-i18next";
 import Button from '@/components/Button';
-import Notification from "@/components/Notification";
 import Loading from '@/components/Loading';
 import Headline from "@/components/Headline";
 import { AlreadyVotedError, ServerError, querySubgraphTransactionState } from '../../service';
@@ -20,7 +19,6 @@ export default function VoteTransaction() {
     const { taskId, voting, updateVoting, updateTaskId, updatePage } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [transactionHash, setTransactionHash] = useState();
-    const [transactionViewUrl, setTransactionViewUrl] = useState();
 
     const TRANSACTION_STATE_CHECKING = 'checking';
     const TRANSACTION_STATE_PENDING = 'pending';
@@ -46,53 +44,28 @@ export default function VoteTransaction() {
             const voterAddress = voterAccount.address.toLowerCase()
 
             for (let attempt = 1; attempt <= 10; attempt++) {
-                console.log('gogogo');
                 const { voteCasts } = await querySubgraphTransactionState(voting.electionId, voterAddress)
                 if (voteCasts.length > 0) {
                     console.log('Vote indexed in subgraph ✓', voteCasts[0].transactionHash)
-                    console.log(voteCasts[0].transactionHash);;
-                    console.log(voteCasts);
 
                     setTransactionHash(voteCasts[0].transactionHash);
-                    setTransactionViewUrl('manuel');
-
-
-                    updateVoting({
-                        votesuccess: true,
-                        transactionViewUrl: 'manuell',
-                    });
+                    updateVoting({ votesuccess: true });
                     updateTaskId(''); //invalidation to prevent wrong redirects from pollingstation
-
-                    setVoteResultState({
-                        ...voteResultState,
-                        transactionStateText: t('votetransactionstate.statustitle.success'),
-                        transactionStateSubText: t('votetransactionstate.statustext.success'),
-                        transactionState: TRANSACTION_STATE_SUCCESS,
-                        notificationText: t('votetransactionstate.info.success'),
-                        notificationType: 'success',
-                    });
-
-                    break
+                    break;
                 }
                 if (attempt === 10) {
-                    console.log('Vote not yet indexed after 10 attempts (subgraph may lag — tx succeeded)')
+                    console.log('Vote not yet indexed after 10 attempts (subgraph may lag — tx succeeded)');
                 } else {
-                    console.log(`Waiting for subgraph... (attempt ${attempt}/10)`)
-                    await sleep(TRANSACTION_PENDING_DELAY)
+                    console.log(`Waiting for subgraph... (attempt ${attempt}/10)`);
+                    await sleep(TRANSACTION_PENDING_DELAY);
                 }
             }
 
-
             setTransactionHash(transactionResult.transactionHash);
-            setTransactionViewUrl(transactionResult.transactionViewUrl);
-
-
-
 
             if (transactionResult.status === 'success') {
                 updateVoting({
-                    votesuccess: true,
-                    transactionViewUrl: transactionResult.transactionViewUrl,
+                    votesuccess: true
                 });
                 updateTaskId(''); //invalidation to prevent wrong redirects from pollingstation
 
@@ -103,17 +76,6 @@ export default function VoteTransaction() {
                     transactionState: TRANSACTION_STATE_SUCCESS,
                     notificationText: t('votetransactionstate.info.success'),
                     notificationType: 'success',
-                });
-            }
-
-            if (transactionResult.status === 'cancelled') {
-                setVoteResultState({
-                    ...voteResultState,
-                    transactionStateText: t('votetransactionstate.statustitle.error'),
-                    transactionStateSubText: '',
-                    transactionState: TRANSACTION_STATE_ERROR_RETRY,
-                    notificationText: t('votetransactionstate.error.transaction'),
-                    notificationType: 'error',
                 });
             }
         } catch (error) {
@@ -144,9 +106,13 @@ export default function VoteTransaction() {
     };
 
     const BlockchainLinkText = (props) => {
-        const { transactionViewUrl } = props;
+        const { transactionHash } = props;
+        shortLink = `https://gnosisscan.io/tx/${transactionHash}`;
         return (
-            <Link target="_blank" href={transactionViewUrl}>
+            <Link
+                target="_blank"
+                href={shortLink}
+            >
                 {props.children}
             </Link>
         );
@@ -192,13 +158,13 @@ export default function VoteTransaction() {
                     <h3 className={styles.itemvalue}>{voteResultState.transactionStateText}</h3>
                     <div className={styles.itemlabel}>{voteResultState.transactionStateSubText}</div>
                     <div className={styles.itemheadline}>
-                        {voting.transactionViewUrl ? (
+                        {transactionHash ? (
                             <>
                                 <p className="op__padding_standard_bottom">
                                     <Trans
                                         i18nKey="votetransactionstate.statusWithLink"
                                         components={{
-                                            CustomLink: <BlockchainLinkText transactionViewUrl={voting.transactionViewUrl} />
+                                            CustomLink: <BlockchainLinkText transactionHash={transactionHash} />
                                         }}
                                     />
                                 </p>

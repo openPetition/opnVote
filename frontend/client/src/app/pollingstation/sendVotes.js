@@ -159,30 +159,14 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
         userOpHash = await smartAccountClient.sendUserOperation(sendParams)
     }
 
-    console.log('UserOp hash', userOpHash)
-    const receipt = await smartAccountClient.waitForUserOperationReceipt({ hash: userOpHash })
-    const txHash = receipt.receipt.transactionHash
-    console.log('Tx hash', txHash)
+
+    const receipt = await smartAccountClient.waitForUserOperationReceipt({ hash: userOpHash });
+    const txHash = receipt.receipt.transactionHash;
+
 
     if (!receipt.success) {
         throw new Error(`UserOp reverted: ${txHash}`)
     }
     console.log(receipt);
     return txHash;
-
-
-    /** 
-    const abiData = await getAbi();
-    const opnVoteInterface = new ethers.Interface(abiData);
-
-    const provider = new ethers.JsonRpcProvider(Config.env.rpcnodeUrl);
-    const relayRequest = await createRelayRequest(votingTransactionFull, votingCredentials, Config.env.opnVoteContractAddress, opnVoteInterface, provider);
-    const relay = new GelatoRelay();
-    const signatureDataInitial = await createSignatureData(relayRequest, votingCredentials, relay, provider);
-
-    const signatureDataInitialSerialized = JSON.stringify(signatureDataInitial, replacer);
-    const gelatoForwardResult = await gelatoForward(signatureDataInitialSerialized);
-
-    return gelatoForwardResult.data.taskId;
-    */
 }
