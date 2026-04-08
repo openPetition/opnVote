@@ -28,8 +28,7 @@ export default function VoteTransaction() {
     const TRANSACTION_STATE_ERROR = 'error';
     const TRANSACTION_STATE_ERROR_RETRY = 'error-retry';
 
-    const TRANSACTION_PENDING_DELAY = 1000; // in milli seconds
-    const TRANSACTION_GELATO_TIMEOUT = 30000;
+    const TRANSACTION_PENDING_DELAY = 6000; // in milli seconds
 
     const [voteResultState, setVoteResultState] = useState({
         transactionStateText: t('votetransactionstate.statustitle.checking'),
@@ -40,19 +39,12 @@ export default function VoteTransaction() {
         notificationType: '',
     });
 
-
-
     const checkTransaction = async () => {
         try {
-            console.log('checkwhat');
-            console.log(voting);
-            console.log('----');
             const { credentials } = checkBallot(voting.election, voting.registerCode);
-            console.log(credentials);
-            console.log('vkl');
             const voterAccount = privateKeyToAccount(credentials.voterWallet.privateKey);
-            console.log('got voter account');
             const voterAddress = voterAccount.address.toLowerCase()
+
             for (let attempt = 1; attempt <= 10; attempt++) {
                 console.log('gogogo');
                 const { voteCasts } = await querySubgraphTransactionState(voting.electionId, voterAddress)
@@ -60,20 +52,40 @@ export default function VoteTransaction() {
                     console.log('Vote indexed in subgraph ✓', voteCasts[0].transactionHash)
                     console.log(voteCasts[0].transactionHash);;
                     console.log(voteCasts);
+
+                    setTransactionHash(voteCasts[0].transactionHash);
+                    setTransactionViewUrl('manuel');
+
+
+                    updateVoting({
+                        votesuccess: true,
+                        transactionViewUrl: 'manuell',
+                    });
+                    updateTaskId(''); //invalidation to prevent wrong redirects from pollingstation
+
+                    setVoteResultState({
+                        ...voteResultState,
+                        transactionStateText: t('votetransactionstate.statustitle.success'),
+                        transactionStateSubText: t('votetransactionstate.statustext.success'),
+                        transactionState: TRANSACTION_STATE_SUCCESS,
+                        notificationText: t('votetransactionstate.info.success'),
+                        notificationType: 'success',
+                    });
+
                     break
                 }
                 if (attempt === 10) {
                     console.log('Vote not yet indexed after 10 attempts (subgraph may lag — tx succeeded)')
                 } else {
                     console.log(`Waiting for subgraph... (attempt ${attempt}/10)`)
-                    await sleep(6000)
+                    await sleep(TRANSACTION_PENDING_DELAY)
                 }
             }
 
-            if (transactionResult.transactionHash.length > 0) {
-                setTransactionHash(transactionResult.transactionHash);
-                setTransactionViewUrl(transactionResult.transactionViewUrl);
-            }
+
+            setTransactionHash(transactionResult.transactionHash);
+            setTransactionViewUrl(transactionResult.transactionViewUrl);
+
 
 
 
@@ -139,14 +151,6 @@ export default function VoteTransaction() {
             </Link>
         );
     };
-
-    useEffect(() => {
-        if (voteResultState.transactionState === TRANSACTION_STATE_PENDING) {
-            setTimeout(() => {
-                checkTransaction();
-            }, TRANSACTION_PENDING_DELAY);
-        }
-    }, [voteResultState]);
 
     useEffect(() => {
         // be sure, that we only call it once at first
