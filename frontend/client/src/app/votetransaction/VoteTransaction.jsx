@@ -105,7 +105,7 @@ export default function VoteTransaction() {
 
     const BlockchainLinkText = (props) => {
         const { transactionHash } = props;
-        shortLink = `https://gnosisscan.io/tx/${transactionHash}`;
+        const shortLink = `https://gnosisscan.io/tx/${transactionHash}`;
         return (
             <Link
                 target="_blank"
