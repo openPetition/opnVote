@@ -73,8 +73,7 @@ export async function signTransaction(votingTransaction, voterSignatureObject) {
     if (response.status !== 200) {
         throw new ServerError();
     }
-    console.log(response);
-    console.log('signTransaction');
+
     const jsondata = await response.json();
     if (jsondata?.data?.blindedSignature) {
         return jsondata.data.blindedSignature;
@@ -134,8 +133,6 @@ export function createSvsForwardTransport() {
     }}
 } */
 export async function fetchSponsor(votingTransactionFull, sponsorSig) {
-    console.log('keks 1');
-    console.log(sponsorSig);
     const fetchOptions = {
         method: "POST",
         headers: new Headers(
@@ -145,7 +142,6 @@ export async function fetchSponsor(votingTransactionFull, sponsorSig) {
         ),
         body: JSON.stringify({ votingTransaction: votingTransactionFull, voterSignature: { hexString: sponsorSig } })
     };
-    console.log('keks 2');
     const response = await fetch(Config.env.svsFetchSponsorUrl, fetchOptions);
     const jsondata = await response.json();
     if (jsondata.error?.length > 0) {
