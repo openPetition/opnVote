@@ -27,9 +27,7 @@ export function checkBallot(election, code) {
         let credentials = qrToElectionCredentials(code);
         if (Object.keys(credentials).length > 0) {
             validateCredentials(credentials);
-
             if (election?.id && (parseInt(credentials?.electionID) === parseInt(election?.id))) {
-                console.log('checkballotreturncredentials');
                 return {
                     result: 'success',
                     credentials: credentials,
