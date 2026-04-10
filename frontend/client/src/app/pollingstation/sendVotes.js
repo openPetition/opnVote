@@ -1,6 +1,5 @@
 'use client';
 
-import { ethers } from "ethers";
 import { signTransaction, fetchSponsor, createSvsForwardTransport } from '../../service';
 import { hashMessage, createPublicClient, http } from 'viem';
 import { gnosis } from 'viem/chains';
@@ -52,11 +51,7 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
         votingTransaction = createVotingTransactionWithoutSVSSignature(votingCredentials, encryptedVotesRSA, encryptedVotesAES);
         const msgHash = hashMessage(JSON.stringify(votingTransaction));
         const voterSig = await voterAccount.signMessage({ message: msgHash });
-        const voterWallet = new ethers.Wallet(votingCredentials.voterWallet.privateKey);
-        //const message = JSON.stringify(votingTransaction);
-        //const messageHash = ethers.hashMessage(message);
 
-        //const voterSignature = await voterWallet.signMessage(messageHash);
         const voterSignatureObject = {
             hexString: voterSig
         };
@@ -68,7 +63,6 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     const sponsorSig = await voterAccount.signMessage({ message: sponsorMsgHash });
 
     const { paymasterData, userOpParams } = await fetchSponsor(votingTransactionFull, sponsorSig);
-    console.log('SPONSORED');
 
     const publicClient = createPublicClient({
         chain: gnosis,
