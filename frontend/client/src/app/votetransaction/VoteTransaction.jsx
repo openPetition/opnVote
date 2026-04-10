@@ -14,7 +14,6 @@ import { Check } from "lucide-react";
 import { privateKeyToAccount } from 'viem/accounts';
 import { checkBallot } from "@/util";
 
-
 export default function VoteTransaction() {
     const { taskId, voting, updateVoting, updateTaskId, updatePage } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
@@ -46,7 +45,7 @@ export default function VoteTransaction() {
             for (let attempt = 1; attempt <= 10; attempt++) {
                 const { voteCasts } = await querySubgraphTransactionState(voting.electionId, voterAddress)
                 if (voteCasts.length > 0) {
-                    console.log('Vote indexed in subgraph ✓', voteCasts[0].transactionHash)
+                    console.log('Vote indexed in subgraph ✓', voteCasts[0].transactionHash); // leave in for now
                     setTransactionHash(voteCasts[0].transactionHash);
                     updateVoting({ votesuccess: true });
                     updateTaskId(''); //invalidation to prevent wrong redirects from pollingstation
