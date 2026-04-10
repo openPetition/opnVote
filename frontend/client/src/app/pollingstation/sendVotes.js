@@ -108,11 +108,11 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
         },
     })
 
-    const isDeployed = await smartAccount.isDeployed()
+    const isDeployed = await smartAccount.isDeployed();
     const sendParams = {
         calls: [{ to: OPNVOTE_ADDRESS, value: 0n, data: voteCalldata }],
         nonce: BigInt(userOpParams.nonce),
-    }
+    };
     let userOpHash;
     if (!isDeployed) {
         const eoaNonce = await publicClient.getTransactionCount({ address: voterAccount.address })

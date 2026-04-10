@@ -85,26 +85,6 @@ export async function signTransaction(votingTransaction, voterSignatureObject) {
     return jsondata;
 };
 
-export async function gelatoForward(signatureDataInitialSerialized) {
-    const gelatoHeader = new Headers();
-    gelatoHeader.append("Content-Type", "application/json");
-    const options = {
-        method: "POST",
-        headers: gelatoHeader,
-        body: signatureDataInitialSerialized,
-    };
-
-    const response = await fetch(Config.env.gelatoForwardUrl, options);
-    if (response.status >= 500) {
-        throw new ServerError();
-    }
-    try {
-        return await response.json();
-    } catch (error) {
-        throw new ServerError();
-    }
-}
-
 export async function getAbi() {
     const getHeader = new Headers();
     getHeader.append("Content-Type", "application/json");
@@ -121,28 +101,7 @@ export async function getAbi() {
     }
 }
 
-export async function gelatoVerify(taskId) {
-    const gelatoHeader = new Headers();
-    gelatoHeader.append("Content-Type", "application/json");
-    const options = {
-        method: "GET",
-        headers: gelatoHeader,
-    };
-    const gelatoVerifyUrl = Config.env.gelatoVerifyUrl + taskId;
-    const response = await fetch(gelatoVerifyUrl, options);
-    if (response.status >= 500) {
-        throw new ServerError();
-    }
-    try {
-        return await response.json();
-    } catch (error) {
-        throw new ServerError();
-    }
-}
-
-
 export function createSvsForwardTransport() {
-    console.log('svsforwardtransport');
     return custom({
         async request({ method, params }) {
             const res = await fetch(Config.env.svsForwardTransportUrl, {
