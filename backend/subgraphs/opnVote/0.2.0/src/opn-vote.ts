@@ -12,8 +12,10 @@ import {
   VoterRegistered as VoterRegisteredEvent,
   VotersAuthorized as VotersAuthorizedEvent,
   VotersRegistered as VotersRegisteredEvent,
+  OpnVote,
 } from '../generated/OpnVote/OpnVote'
 import {
+  AuthorizationProvider,
   Election,
   ElectionCanceled,
   ElectionRegisterPublicKeySet,
@@ -28,9 +30,28 @@ import {
   VotersAuthorized,
   VotersRegistered,
 } from '../generated/schema'
-import { ipfs, log } from '@graphprotocol/graph-ts'
+import { Address, BigInt, ipfs, log } from '@graphprotocol/graph-ts'
 
-import { BigInt } from '@graphprotocol/graph-ts'
+function loadOrCreateAp(apId: i32, contractAddress: Address): AuthorizationProvider | null {
+  let id = apId.toString()
+  let ap = AuthorizationProvider.load(id)
+  if (ap != null) return ap
+
+  let contract = OpnVote.bind(contractAddress)
+  let result = contract.try_aps(apId)
+  if (result.reverted) {
+    log.error('contract.aps({}) reverted', [id])
+    return null
+  }
+
+  ap = new AuthorizationProvider(id)
+  ap.apId = apId
+  ap.owner = result.value.getOwner()
+  ap.apName = result.value.getApName()
+  ap.apUri = result.value.getApUri()
+  ap.save()
+  return ap
+}
 
 export function handleElectionCanceled(event: ElectionCanceledEvent): void {
   let entity = new ElectionCanceled(event.transaction.hash.concatI32(event.logIndex.toI32()))
@@ -70,6 +91,9 @@ export function handleElectionCreated(event: ElectionCreatedEvent): void {
   } else {
     entity.descriptionBlob = ''
   }
+
+  let ap = loadOrCreateAp(event.params.authProviderId, event.address)
+  if (ap != null) entity.ap = ap.id
 
   entity.save()
 }
@@ -177,6 +201,15 @@ export function handleElectionUpdated(event: ElectionUpdatedEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  let electionEntity = Election.load(event.params.electionId.toString())
+  if (electionEntity != null) {
+    let ap = loadOrCreateAp(event.params.authProviderId, event.address)
+    if (ap != null) {
+      electionEntity.ap = ap.id
+      electionEntity.save()
+    }
+  }
 }
 
 export function handleOwnershipTransferred(event: OwnershipTransferredEvent): void {
