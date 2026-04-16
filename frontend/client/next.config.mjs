@@ -5,7 +5,6 @@ const nextConfig = {
     i18n,
     env: {
         basicUrl: process.env.NEXT_PUBLIC_BASIC_URL,
-        abiConfigUrl: process.env.NEXT_PUBLIC_ABI_CONFIG_URL,
         blindedSignatureUrl: process.env.NEXT_PUBLIC_BLINDED_SIGNATURE_URL,
         signVotingTransactionUrl: process.env.NEXT_PUBLIC_SIGN_VOTING_TRANSACTION_URL,
         svsForwardTransportUrl: process.env.NEXT_PUBLIC_SVS_FORWARD_TRANSPORT_URL,

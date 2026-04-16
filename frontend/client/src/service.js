@@ -84,22 +84,6 @@ export async function signTransaction(votingTransaction, voterSignatureObject) {
     return jsondata;
 };
 
-export async function getAbi() {
-    const getHeader = new Headers();
-    getHeader.append("Content-Type", "application/json");
-    const options = {
-        method: "GET",
-        headers: getHeader,
-    };
-    try {
-        const response = await fetch(Config.env.abiConfigUrl, options);
-        const jsondata = await response.json();
-        return jsondata;
-    } catch (error) {
-        throw new ServerError();
-    }
-}
-
 export function createSvsForwardTransport() {
     return custom({
         async request({ method, params }) {
