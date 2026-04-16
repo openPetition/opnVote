@@ -14,9 +14,6 @@ import { to7702SimpleSmartAccount } from 'permissionless/accounts';
 export async function sendVotes(votes, votingCredentials, electionPublicKey, isRecast) {
     // map votes into needed format
     const voterAccount = privateKeyToAccount(votingCredentials.voterWallet.privateKey);
-    const DELEGATION_ADDRESS = '0xe6Cae83BdE06E4c305530e199D7217f42808555B';
-    const ENTRY_POINT = '0x4337084d9e255ff0702461cf8895ce9e3b5ff108';
-    const PAYMASTER_ADDRESS = '0x53f9b337ce2Ea37D87dBAf0D08a9B931ef9D7eae';
     const OPNVOTE_ABI = [
         {
             type: 'function',
@@ -71,8 +68,8 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     const smartAccount = await to7702SimpleSmartAccount({
         client: publicClient,
         owner: voterAccount,
-        accountLogicAddress: DELEGATION_ADDRESS,
-        entryPoint: { address: ENTRY_POINT, version: '0.8' },
+        accountLogicAddress: Config.env.delegationAddress,
+        entryPoint: { address: Config.env.entryPoint, version: '0.8' },
     })
 
     const voteCalldata = createVoteCalldata(votingTransactionFull, OPNVOTE_ABI);
@@ -84,7 +81,7 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
         paymaster: {
             async getPaymasterStubData() {
                 return {
-                    paymaster: PAYMASTER_ADDRESS,
+                    paymaster: Config.env.paymasterAddress,
                     paymasterData,
                     isFinal: true,
                     callGasLimit: BigInt(userOpParams.callGasLimit),
@@ -116,7 +113,7 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     if (!isDeployed) {
         const eoaNonce = await publicClient.getTransactionCount({ address: voterAccount.address })
         const authorization = await voterAccount.signAuthorization({
-            address: DELEGATION_ADDRESS,
+            address: Config.env.delegationAddress,
             chainId: gnosis.id,
             nonce: eoaNonce,
         })

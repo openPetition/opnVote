@@ -13,6 +13,9 @@ const nextConfig = {
         opnVoteContractAddress: process.env.NEXT_PUBLIC_OPN_VOTE_CONTRACT_ADDRESS,
         rpcnodeUrl: process.env.NEXT_PUBLIC_RPC_NODE_URL,
         version: process.env.NEXT_PUBLIC_VERSION,
+        paymasterAddress: process.env.NEXT_PUBLIC_PAYMASTER_ADDRESS,
+        delegationAddress: process.env.NEXT_PUBLIC_DELEGATION_ADDRESS,
+        entryPoint: process.env.NEXT_PUBLIC_ENTRY_POINT,
         maxVoteRecasts: 2,
     },
     images: {
