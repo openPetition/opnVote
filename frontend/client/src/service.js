@@ -2,6 +2,7 @@
 import { Signature } from "votingsystem"; // eslint-disable-line
 import Config from "../next.config.mjs";
 import globalConst from "@/constants";
+import { custom } from 'viem';
 
 export class AuthorizationError extends Error { }
 export class AlreadyVotedError extends Error { }
@@ -40,38 +41,22 @@ export async function getBlindedSignature(jwttoken, blindedElectionToken) {
     return { hexString: jsondata.data.blindedSignature, isBlinded: true };
 }
 
-export async function getTransactionState(taskId) {
+export async function querySubgraphTransactionState(election_id, voterAddress) {
+    const query = `{ voteCasts(where: { electionId: "${election_id}", voter: "${voterAddress}" }, first: 1) { transactionHash } }`;
+    const header = new Headers();
+    header.append("Content-Type", "application/json");
 
-    const taskStatesSuccess = ["ExecSuccess"];
-    const taskStatesCancelled = ["ExecReverted", "Cancelled"];
+    const res = await fetch(Config.env.graphConnectUrl, {
+        method: 'POST',
+        headers: header,
+        body: JSON.stringify({ query }),
+    })
 
-    const transactionStateUrl = 'https://api.gelato.digital/tasks/status/' + taskId;
-    const options = {
-        method: "GET",
-        headers: new Headers(
-            {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        ),
-    };
-    const response = await fetch(transactionStateUrl, options);
-    if (response.status !== 200) {
-        throw new ServerError();
+    const json = (await res.json())
+    if (!res.ok || json.errors) {
+        throw new Error(`Subgraph error: ${JSON.stringify(json.errors ?? json)}`)
     }
-
-    const transactionResult = await response.json();
-    const taskState = transactionResult.task.taskState;
-    if ('lastCheckMessage' in transactionResult.task && transactionResult.task.lastCheckMessage.match(/(Execution error|Task failed after [0-9]+ retries): .*:Already Voted/i)) {
-        throw new AlreadyVotedError();
-    }
-
-    return {
-        status: taskStatesSuccess.includes(taskState) ? 'success' : taskStatesCancelled.includes(taskState) ? 'cancelled' : 'pending',
-        error: null,
-        transactionHash: transactionResult?.task?.transactionHash ? transactionResult.task.transactionHash : '',
-        transactionViewUrl: transactionResult?.task?.transactionHash ? 'https://gnosisscan.io/tx/' + transactionResult.task.transactionHash : '',
-    };
+    return json.data
 }
 
 export async function signTransaction(votingTransaction, voterSignatureObject) {
@@ -88,6 +73,7 @@ export async function signTransaction(votingTransaction, voterSignatureObject) {
     if (response.status !== 200) {
         throw new ServerError();
     }
+
     const jsondata = await response.json();
     if (jsondata?.data?.blindedSignature) {
         return jsondata.data.blindedSignature;
@@ -98,57 +84,63 @@ export async function signTransaction(votingTransaction, voterSignatureObject) {
     return jsondata;
 };
 
-export async function gelatoForward(signatureDataInitialSerialized) {
-    const gelatoHeader = new Headers();
-    gelatoHeader.append("Content-Type", "application/json");
-    const options = {
+export function createSvsForwardTransport() {
+    return custom({
+        async request({ method, params }) {
+            const res = await fetch(Config.env.svsForwardTransportUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jsonrpc: '2.0', method, params, id: 1 }),
+            })
+            const json = (await res.json())
+            if (!res.ok || json.error)
+                throw new Error(`SVS forward [${res.status}]: ${json.error ?? JSON.stringify(json)}`)
+            const bundlerResponse = json.data
+            if (bundlerResponse.error)
+                throw new Error(`Bundler error: ${JSON.stringify(bundlerResponse.error)}`)
+            return bundlerResponse.result
+        },
+    })
+}
+
+/** @returns {{
+    paymasterData: Hex
+    userOpParams: {
+      nonce: string
+      callGasLimit: string
+      verificationGasLimit: string
+      preVerificationGas: string
+      paymasterVerificationGasLimit: string
+      paymasterPostOpGasLimit: string
+      maxFeePerGas: string
+      maxPriorityFeePerGas: string
+    }}
+} */
+export async function fetchSponsor(votingTransactionFull, sponsorSig) {
+    const fetchOptions = {
         method: "POST",
-        headers: gelatoHeader,
-        body: signatureDataInitialSerialized,
+        headers: new Headers(
+            {
+                'content-type': 'application/json'
+            }
+        ),
+        body: JSON.stringify({ votingTransaction: votingTransactionFull, voterSignature: { hexString: sponsorSig } })
     };
+    const response = await fetch(Config.env.svsFetchSponsorUrl, fetchOptions);
+    const jsondata = await response.json();
+    if (jsondata.error?.length > 0) {
+        switch (jsondata.error.toLowerCase()) {
+            case 'already registered':
+                throw new ServerError(globalConst.ERROR.ALREADYREGISTERED);
+                break;
+            case 'failed to authenticate jwt':
+                throw new ServerError(globalConst.ERROR.JWTAUTH);
+                break;
+            default:
+                throw new ServerError(globalConst.ERROR.GENERAL);
+                break;
+        }
+    }
 
-    const response = await fetch(Config.env.gelatoForwardUrl, options);
-    if (response.status >= 500) {
-        throw new ServerError();
-    }
-    try {
-        return await response.json();
-    } catch (error) {
-        throw new ServerError();
-    }
-}
-
-export async function getAbi() {
-    const getHeader = new Headers();
-    getHeader.append("Content-Type", "application/json");
-    const options = {
-        method: "GET",
-        headers: getHeader,
-    };
-    try {
-        const response = await fetch(Config.env.abiConfigUrl, options);
-        const jsondata = await response.json();
-        return jsondata;
-    } catch (error) {
-        throw new ServerError();
-    }
-}
-
-export async function gelatoVerify(taskId) {
-    const gelatoHeader = new Headers();
-    gelatoHeader.append("Content-Type", "application/json");
-    const options = {
-        method: "GET",
-        headers: gelatoHeader,
-    };
-    const gelatoVerifyUrl = Config.env.gelatoVerifyUrl + taskId;
-    const response = await fetch(gelatoVerifyUrl, options);
-    if (response.status >= 500) {
-        throw new ServerError();
-    }
-    try {
-        return await response.json();
-    } catch (error) {
-        throw new ServerError();
-    }
+    return jsondata.data;
 }
