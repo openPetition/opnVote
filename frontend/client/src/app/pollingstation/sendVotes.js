@@ -46,10 +46,10 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     } else {
         votingTransaction = createVotingTransactionWithoutSVSSignature(votingCredentials, encryptedVotesRSA, encryptedVotesAES);
         const msgHash = hashMessage(JSON.stringify(votingTransaction));
-        const voterSig = await voterAccount.signMessage({ message: msgHash });
+        const voterSignature = await voterAccount.signMessage({ message: msgHash });
 
         const voterSignatureObject = {
-            hexString: voterSig
+            hexString: voterSignature
         };
         const svsSignature = await signTransaction(votingTransaction, voterSignatureObject);
         votingTransactionFull = addSVSSignatureToVotingTransaction(votingTransaction, svsSignature.data.svsSignature);
