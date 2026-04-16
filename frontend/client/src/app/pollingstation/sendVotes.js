@@ -17,7 +17,6 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     const DELEGATION_ADDRESS = '0xe6Cae83BdE06E4c305530e199D7217f42808555B';
     const ENTRY_POINT = '0x4337084d9e255ff0702461cf8895ce9e3b5ff108';
     const PAYMASTER_ADDRESS = '0x53f9b337ce2Ea37D87dBAf0D08a9B931ef9D7eae';
-    const OPNVOTE_ADDRESS = '0xa36f6cF07eF1DeD3B8B4283E779A4514E30576a8';
     const OPNVOTE_ABI = [
         {
             type: 'function',
@@ -110,7 +109,7 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
 
     const isDeployed = await smartAccount.isDeployed();
     const sendParams = {
-        calls: [{ to: OPNVOTE_ADDRESS, value: 0n, data: voteCalldata }],
+        calls: [{ to: Config.env.opnVoteContractAddress, value: 0n, data: voteCalldata }],
         nonce: BigInt(userOpParams.nonce),
     };
     let userOpHash;
