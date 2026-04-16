@@ -40,11 +40,12 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     const encryptedVotesAES = await encryptVotes(newVoteArray, votingCredentials.encryptionKey, EncryptionType.AES);
     const encryptedVotesRSA = await encryptVotes(newVoteArray, { hexString: electionPublicKey, encryptionType: EncryptionType.RSA }, EncryptionType.RSA);
 
-    let votingTransaction, votingTransactionFull;
+    const votingTransaction = createVotingTransactionWithoutSVSSignature(votingCredentials, encryptedVotesRSA, encryptedVotesAES);
+    let votingTransactionFull;
     if (isRecast) {
-        votingTransactionFull = createVotingTransactionWithoutSVSSignature(votingCredentials, encryptedVotesRSA, encryptedVotesAES);
+        // on recast transaction must not be signed by svs again
+        votingTransactionFull = votingTransaction;
     } else {
-        votingTransaction = createVotingTransactionWithoutSVSSignature(votingCredentials, encryptedVotesRSA, encryptedVotesAES);
         const msgHash = hashMessage(JSON.stringify(votingTransaction));
         const voterSignature = await voterAccount.signMessage({ message: msgHash });
 
