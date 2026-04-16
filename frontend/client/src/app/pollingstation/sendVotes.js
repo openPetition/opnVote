@@ -54,7 +54,6 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
         };
         const svsSignature = await signTransaction(votingTransaction, voterSignatureObject);
         votingTransactionFull = addSVSSignatureToVotingTransaction(votingTransaction, svsSignature.data.svsSignature);
-
     }
     const sponsorMsgHash = hashMessage(JSON.stringify(votingTransactionFull));
     const sponsorSig = await voterAccount.signMessage({ message: sponsorMsgHash });
@@ -64,14 +63,14 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     const publicClient = createPublicClient({
         chain: gnosis,
         transport: http(Config.env.rpcnodeUrl),
-    })
+    });
 
     const smartAccount = await to7702SimpleSmartAccount({
         client: publicClient,
         owner: voterAccount,
         accountLogicAddress: Config.env.delegationAddress,
         entryPoint: { address: Config.env.entryPoint, version: '0.8' },
-    })
+    });
 
     const voteCalldata = createVoteCalldata(votingTransactionFull, OPNVOTE_ABI);
 
@@ -103,7 +102,7 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
                 maxPriorityFeePerGas: BigInt(userOpParams.maxPriorityFeePerGas),
             }),
         },
-    })
+    });
 
     const isDeployed = await smartAccount.isDeployed();
     const sendParams = {
@@ -112,12 +111,12 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
     };
     let userOpHash;
     if (!isDeployed) {
-        const eoaNonce = await publicClient.getTransactionCount({ address: voterAccount.address })
+        const eoaNonce = await publicClient.getTransactionCount({ address: voterAccount.address });
         const authorization = await voterAccount.signAuthorization({
             address: Config.env.delegationAddress,
             chainId: gnosis.id,
             nonce: eoaNonce,
-        })
+        });
         userOpHash = await smartAccountClient.sendUserOperation({ ...sendParams, authorization });
     } else {
         userOpHash = await smartAccountClient.sendUserOperation(sendParams);
