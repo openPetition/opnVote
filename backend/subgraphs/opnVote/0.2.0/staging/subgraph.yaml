@@ -18,7 +18,6 @@ dataSources:
       apiVersion: 0.0.9
       language: wasm/assemblyscript
       entities:
-        - AuthorizationProvider
         - Election
         - ElectionCanceled
         - ElectionCreated

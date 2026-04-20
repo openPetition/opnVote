@@ -1,11 +1,3 @@
-type AuthorizationProvider @entity(immutable: false) {
-  id: String!
-  apId: Int!
-  owner: Bytes!
-  apName: String!
-  apUri: String!
-}
-
 type Election @entity(immutable: false) {
   id: String!
   votingStartTime: BigInt! # uint256
@@ -29,7 +21,6 @@ type Election @entity(immutable: false) {
   descriptionIpfsCid: String
   descriptionBlob: String
   cancelReasonIpfsCid: String! # string
-  ap: AuthorizationProvider
 }
 
 type ElectionCanceled @entity(immutable: true) {
