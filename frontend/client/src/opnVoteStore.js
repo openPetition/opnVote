@@ -21,11 +21,11 @@ const splitStorage = {
         return localData;
     },
     setItem: function (name, value) {
-        let {state: stateData, ...nonStateValue} = value;
-        let {page: pageData, ...nonPageState} = stateData;
+        let { state: stateData, ...nonStateValue } = value;
+        let { page: pageData, ...nonPageState } = stateData;
 
-        sessionStorage.setItem(name, JSON.stringify({page: pageData}));
-        localStorage.setItem(name, JSON.stringify({state: nonPageState, ...nonStateValue}));
+        sessionStorage.setItem(name, JSON.stringify({ page: pageData }));
+        localStorage.setItem(name, JSON.stringify({ state: nonPageState, ...nonStateValue }));
     },
     removeItem: function (name) {
         localStorage.removeItem(name);
@@ -59,6 +59,18 @@ export const modes = {
     none: "none",
 };
 
+// export const useTestStore = create(
+//     persist(
+//         (set, get) => ({
+//             test: 'keks',
+//             updateTest: () => set(() => ({ test: 'koks' }))
+//         }),
+//     ),
+//     {
+//         name: 'test-storage',
+//     }
+// );
+
 export const useOpnVoteStore = create(
     persist(
         (set, get) => ({
@@ -71,13 +83,19 @@ export const useOpnVoteStore = create(
                 current: null
             },
             clearUser: () => set(() => ({ user: emptyUser })),
-            updateUserKey: (key, keySaved, initKey) => set(() => ({
+            updateUserKey: (key, keySaved) => set(() => ({
                 user: {
                     ...get().user,
                     key: key,
-                    keySaved: keySaved,
-                    initKey: initKey
-                    }
+                    keySaved: keySaved
+                }
+            })),
+            updateUser: (userData) =>
+                set((state) => ({
+                    user: {
+                        ...state.user,
+                        ...userData,
+                    },
                 })),
             clear: () => set((state) => ({
                 user: emptyUser,

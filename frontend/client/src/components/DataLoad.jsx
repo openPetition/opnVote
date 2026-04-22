@@ -23,10 +23,13 @@ export default function DataLoad() {
     useEffect(() => {
         const onHashChange = (event) => {
             const fragment = window.location.hash.substring(1) || '';
-            if (Object.values(globalConst.pages).includes(fragment) ) {
+            console.log('warum???');
+            if (Object.values(globalConst.pages).includes(fragment)) {
                 updatePage({ current: fragment }, modes.none);
             }
+            console.log(change);
         };
+        console.log('nochange????');
         window.addEventListener('hashchange', onHashChange);
         return () => window.removeEventListener('hashchange', onHashChange);
     }, []);
@@ -49,7 +52,7 @@ export default function DataLoad() {
         const electionIdParam = queryParameters.get("id");
         const fragment = window.location.hash.substring(1) || '';
         const jwt = queryParameters.get("jwt") || '';
-
+        console.log('loadnew');
         if (electionIdParam && !isNaN(electionIdParam)) {
             setLocalState({
                 ...localState,
@@ -57,6 +60,7 @@ export default function DataLoad() {
                 jwt: jwt,
                 fragment: fragment,
             });
+            console.log('hier????');
         } else {
             updatePage({ current: globalConst.pages.OVERVIEW, loading: false });
             return;
@@ -83,7 +87,7 @@ export default function DataLoad() {
             let election = dataElection.election;
             if (election.id == 15) {
                 // hard coded end time, since the graphql data is temporarily outdated
-                election = {...dataElection.election, votingEndTime: "1761692399"};
+                election = { ...dataElection.election, votingEndTime: "1761692399" };
             }
             setLocalState({
                 ...localState,
@@ -97,7 +101,9 @@ export default function DataLoad() {
 
     // update everything in one step
     useEffect(() => {
+        console.log('update');
         if (localState.updatePage) {
+            console.log('whatever??');
             let votingUpdate = {
                 electionId: localState.electionId,
                 jwt: localState.jwt,
@@ -122,6 +128,7 @@ export default function DataLoad() {
                 let targetPage = localState.fragment && Object.values(globalConst.pages).includes(localState.fragment)
                     ? localState.fragment
                     : globalConst.pages.OVERVIEW;
+
                 updatePage({ current: targetPage });
             }
 
@@ -147,7 +154,8 @@ export default function DataLoad() {
     }, [localState.updatePage]);
 
     useEffect(() => {
-        window.scroll(0, 0);
+        console.log('why?');
+
     }, [page.current]);
 
     //TODO: add notification in error case
