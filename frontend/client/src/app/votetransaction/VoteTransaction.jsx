@@ -4,20 +4,20 @@ import { useState, useEffect } from "react";
 import Link from 'next/link';
 import { useTranslation, Trans } from "next-i18next";
 import Button from '@/components/Button';
-import Notification from "@/components/Notification";
 import Loading from '@/components/Loading';
 import Headline from "@/components/Headline";
-import { AlreadyVotedError, ServerError, getTransactionState, gelatoVerify } from '../../service';
+import { AlreadyVotedError, ServerError, querySubgraphTransactionState } from '../../service';
 import { useOpnVoteStore, modes } from "../../opnVoteStore";
 import styles from './styles/votetransaction.module.css';
 import globalConst from "@/constants";
 import { Check } from "lucide-react";
+import { privateKeyToAccount } from 'viem/accounts';
+import { checkBallot } from "@/util";
 
 export default function VoteTransaction() {
     const { taskId, voting, updateVoting, updateTaskId, updatePage } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [transactionHash, setTransactionHash] = useState();
-    const [transactionViewUrl, setTransactionViewUrl] = useState();
 
     const TRANSACTION_STATE_CHECKING = 'checking';
     const TRANSACTION_STATE_PENDING = 'pending';
@@ -25,8 +25,7 @@ export default function VoteTransaction() {
     const TRANSACTION_STATE_ERROR = 'error';
     const TRANSACTION_STATE_ERROR_RETRY = 'error-retry';
 
-    const TRANSACTION_PENDING_DELAY = 1000; // in milli seconds
-    const TRANSACTION_GELATO_TIMEOUT = 30000;
+    const TRANSACTION_PENDING_DELAY = 6000; // in milli seconds
 
     const [voteResultState, setVoteResultState] = useState({
         transactionStateText: t('votetransactionstate.statustitle.checking'),
@@ -39,54 +38,32 @@ export default function VoteTransaction() {
 
     const checkTransaction = async () => {
         try {
-            const transactionResult = await getTransactionState(taskId);
+            const { credentials } = checkBallot(voting.election, voting.registerCode);
+            const voterAccount = privateKeyToAccount(credentials.voterWallet.privateKey);
+            const voterAddress = voterAccount.address.toLowerCase()
 
-            if (transactionResult.transactionHash.length > 0) {
-                setTransactionHash(transactionResult.transactionHash);
-                setTransactionViewUrl(transactionResult.transactionViewUrl);
-            }
-
-            if (transactionResult.status === 'pending') {
-                let now = new Date().getTime();
-                let pendingInMilliseconds = now - voteResultState.transactionStart;
-
-                if (pendingInMilliseconds > TRANSACTION_GELATO_TIMEOUT) {
-                    let gelatoState = await gelatoVerify(taskId);
-
-                    if (gelatoState.onChainStatus.confirmed) {
-                        updateTaskId(''); //invalidation to prevent wrong redirects from pollingstation
-
-                        updateVoting({
-                            votesuccess: true,
-                            transactionViewUrl: transactionResult.transactionViewUrl,
-                        });
-
-                        setVoteResultState({
-                            ...voteResultState,
-                            transactionStateText: t('votetransactionstate.statustitle.success'),
-                            transactionStateSubText: t('votetransactionstate.statustext.success'),
-                            transactionState: TRANSACTION_STATE_SUCCESS,
-                            notificationText: t('votetransactionstate.info.success'),
-                            notificationType: 'success',
-                        });
-
-                        return;
-                    }
+            for (let attempt = 1; attempt <= 10; attempt++) {
+                const { voteCasts } = await querySubgraphTransactionState(voting.electionId, voterAddress)
+                if (voteCasts.length > 0) {
+                    console.log('Vote indexed in subgraph ✓', voteCasts[0].transactionHash); // leave in for now
+                    setTransactionHash(voteCasts[0].transactionHash);
+                    updateVoting({ votesuccess: true });
+                    updateTaskId(''); //invalidation to prevent wrong redirects from pollingstation
+                    break;
                 }
-
-                setVoteResultState({
-                    ...voteResultState,
-                    transactionStateText: t('votetransactionstate.statustitle.pending'),
-                    transactionStateSubText: t('votetransactionstate.statustext.pending'),
-                    transactionState: TRANSACTION_STATE_PENDING,
-                });
-                return;
+                if (attempt === 10) {
+                    console.log('Vote not yet indexed after 10 attempts (subgraph may lag — tx succeeded)');
+                } else {
+                    console.log(`Waiting for subgraph... (attempt ${attempt}/10)`);
+                    await sleep(TRANSACTION_PENDING_DELAY);
+                }
             }
+
+            setTransactionHash(transactionResult.transactionHash);
 
             if (transactionResult.status === 'success') {
                 updateVoting({
-                    votesuccess: true,
-                    transactionViewUrl: transactionResult.transactionViewUrl,
+                    votesuccess: true
                 });
                 updateTaskId(''); //invalidation to prevent wrong redirects from pollingstation
 
@@ -97,17 +74,6 @@ export default function VoteTransaction() {
                     transactionState: TRANSACTION_STATE_SUCCESS,
                     notificationText: t('votetransactionstate.info.success'),
                     notificationType: 'success',
-                });
-            }
-
-            if (transactionResult.status === 'cancelled') {
-                setVoteResultState({
-                    ...voteResultState,
-                    transactionStateText: t('votetransactionstate.statustitle.error'),
-                    transactionStateSubText: '',
-                    transactionState: TRANSACTION_STATE_ERROR_RETRY,
-                    notificationText: t('votetransactionstate.error.transaction'),
-                    notificationType: 'error',
                 });
             }
         } catch (error) {
@@ -138,21 +104,17 @@ export default function VoteTransaction() {
     };
 
     const BlockchainLinkText = (props) => {
-        const { transactionViewUrl } = props;
+        const { transactionHash } = props;
+        const shortLink = `https://gnosisscan.io/tx/${transactionHash}`;
         return (
-            <Link target="_blank" href={transactionViewUrl}>
+            <Link
+                target="_blank"
+                href={shortLink}
+            >
                 {props.children}
             </Link>
         );
     };
-
-    useEffect(() => {
-        if (voteResultState.transactionState === TRANSACTION_STATE_PENDING) {
-            setTimeout(() => {
-                checkTransaction();
-            }, TRANSACTION_PENDING_DELAY);
-        }
-    }, [voteResultState]);
 
     useEffect(() => {
         // be sure, that we only call it once at first
@@ -194,19 +156,19 @@ export default function VoteTransaction() {
                     <h3 className={styles.itemvalue}>{voteResultState.transactionStateText}</h3>
                     <div className={styles.itemlabel}>{voteResultState.transactionStateSubText}</div>
                     <div className={styles.itemheadline}>
-                        {voting.transactionViewUrl ? (
+                        {transactionHash ? (
                             <>
                                 <p className="op__padding_standard_bottom">
                                     <Trans
                                         i18nKey="votetransactionstate.statusWithLink"
                                         components={{
-                                            CustomLink: <BlockchainLinkText transactionViewUrl={voting.transactionViewUrl} />
+                                            CustomLink: <BlockchainLinkText transactionHash={transactionHash} />
                                         }}
                                     />
                                 </p>
                                 {voting.electionId == 15 && (<>
-                                    <p className="op__padding_standard_bottom" dangerouslySetInnerHTML={{ __html: t("votetransactionstate.election15.1") }}/>
-                                    <p className="op__padding_standard_bottom" dangerouslySetInnerHTML={{ __html: t("votetransactionstate.election15.2") }}/>
+                                    <p className="op__padding_standard_bottom" dangerouslySetInnerHTML={{ __html: t("votetransactionstate.election15.1") }} />
+                                    <p className="op__padding_standard_bottom" dangerouslySetInnerHTML={{ __html: t("votetransactionstate.election15.2") }} />
                                 </>)}
                             </>
                         ) : (
@@ -216,7 +178,7 @@ export default function VoteTransaction() {
                 </div>
                 {voteResultState.transactionState == TRANSACTION_STATE_ERROR_RETRY && (
                     <div className="op__padding_standard_top">
-                        <Button type="primary" onClick={() => {updateTaskId(''); updatePage({current: globalConst.pages.POLLINGSTATION}, modes.replace);}}>{t("votetransactionstate.errorretry")}</Button>
+                        <Button type="primary" onClick={() => { updateTaskId(''); updatePage({ current: globalConst.pages.POLLINGSTATION }, modes.replace); }}>{t("votetransactionstate.errorretry")}</Button>
                     </div>
                 )}
             </div>
