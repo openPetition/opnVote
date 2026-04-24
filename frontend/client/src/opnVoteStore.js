@@ -40,6 +40,7 @@ export const emptyVoting = {
     jwt: '',
     registerCode: '',
     registerCodeSaved: false,
+    registerCodeSavedAs: [],
     vote: {},
     revote: {},
     userCredential: '',
@@ -89,7 +90,6 @@ export const useOpnVoteStore = create(
                     ...get().user,
                     key: key,
                     keySaved: keySaved,
-
                 }
             })),
             updateUser: (userData) =>

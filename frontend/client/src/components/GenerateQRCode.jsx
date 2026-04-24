@@ -31,7 +31,8 @@ export default function GenerateQRCode(props) {
         createPDF(qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, pdfQRtype, pdfInformation);
         afterSaveFunction(globalConst.saveType.PDF);
     };
-
+    console.log(headline);
+    console.log(savedAs);
     const copiedAsText = () => {
         navigator.clipboard.writeText(qrCodeString);
         setShowQRCodeCopied(true);

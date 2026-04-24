@@ -14,9 +14,10 @@ export default function ShowSecret() {
     const goToRegister = () => {
         updatePage({ current: globalConst.pages.REGISTER });
     };
-
+    console.log(user);
     const afterSaveFunction = (type) => {
         let keySavedAs = user.keySavedAs;
+        console.log('savefunction save as: ' + type);
         keySavedAs = !keySavedAs?.includes(type) ? keySavedAs.push(type) : keySavedAs;
         updateUser(
             {
