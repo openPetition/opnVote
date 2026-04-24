@@ -1,7 +1,7 @@
 'use client';
 import GenerateQRCode from "../../components/GenerateQRCode";
 import { useTranslation } from "next-i18next";
-import { useOpnVoteStore, useTestStore } from "../../opnVoteStore";
+import { useOpnVoteStore } from "../../opnVoteStore";
 import Headline from "@/components/Headline";
 import { ArrowRightIcon } from "lucide-react";
 import globalConst from "@/constants";
@@ -9,13 +9,21 @@ import Button from '@/components/Button';
 
 export default function ShowSecret() {
     const { t } = useTranslation();
-    const { user, voting, updateUserKey, updatePage, updateUser } = useOpnVoteStore((state) => state);
-    // const { test, updateTest } = useTestStore((state) => state);
-
+    const { user, updatePage, updateUser } = useOpnVoteStore((state) => state);
 
     const goToRegister = () => {
         updatePage({ current: globalConst.pages.REGISTER });
     };
+
+    const afterSaveFunction = (type) => {
+        let keySavedAs = user.keySavedAs;
+        keySavedAs = !keySavedAs?.includes(type) ? keySavedAs.push(type) : keySavedAs;
+        updateUser(
+            {
+                keySaved: true,
+                keySavedAs: keySavedAs
+            });
+    }
 
     return (
         <>
@@ -36,15 +44,13 @@ export default function ShowSecret() {
                         headimage="key-no-whitespace"
                         saveButtonText={user.keySaved ? t("secret.generateqrcode.saveagainbuttontext") : t("secret.generateqrcode.savebuttontext")}
                         saved={user.keySaved}
+                        savedAs={user.keySavedAs}
                         qrCodeString={user.key}
                         pdfQRtype={globalConst.pdfType.VOTINGKEY}
-                        afterSaveFunction={(type) => {
-                            updateUser({ keySaved: true });
-                        }}
+                        afterSaveFunction={afterSaveFunction}
+
                     />
-                    {/* <Button
-                        onClick={() => updateTest()}
-                    ></Button> */}
+
                     <Button
                         onClick={() => goToRegister()}
                         disabled={!user.keySaved}

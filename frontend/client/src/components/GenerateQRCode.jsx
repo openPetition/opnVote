@@ -22,7 +22,8 @@ export default function GenerateQRCode(props) {
         pdfQRtype,
         afterSaveFunction,
         saved,
-        pdfInformation
+        savedAs,
+        pdfInformation,
     } = props;
     const { t } = useTranslation();
     const [showQRCodeCopied, setShowQRCodeCopied] = useState(false);
@@ -31,13 +32,12 @@ export default function GenerateQRCode(props) {
         afterSaveFunction(globalConst.saveType.PDF);
     };
 
-
     const copiedAsText = () => {
         navigator.clipboard.writeText(qrCodeString);
         setShowQRCodeCopied(true);
+        afterSaveFunction(globalConst.saveType.CLIPBOARD);
         setTimeout(() => {
-            setShowQRCodeCopied(true);
-            afterSaveFunction(globalConst.saveType.CLIPBOARD);
+            setShowQRCodeCopied(false);
         }, 4000);
     }
 
@@ -157,7 +157,7 @@ export default function GenerateQRCode(props) {
                             style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px', marginBottom: '10px' }}
                         >
                             {
-                                (saved)
+                                (savedAs?.includes(globalConst.saveType.CLIPBOARD))
                                     ?
                                     <CopyCheck stroke={'#29b0cc'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
                                     :
@@ -178,7 +178,7 @@ export default function GenerateQRCode(props) {
                         >
                             <div style={{ alignSelf: 'center' }}>
                                 {
-                                    (saved)
+                                    (savedAs?.includes(globalConst.saveType.PDF))
                                         ?
                                         <FileCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
                                         :

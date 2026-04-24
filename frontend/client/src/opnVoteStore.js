@@ -50,6 +50,7 @@ export const emptyVoting = {
 export const emptyUser = {
     key: '',
     keySaved: false,
+    keySavedAs: [],
     initKey: false,
 };
 
@@ -87,7 +88,8 @@ export const useOpnVoteStore = create(
                 user: {
                     ...get().user,
                     key: key,
-                    keySaved: keySaved
+                    keySaved: keySaved,
+
                 }
             })),
             updateUser: (userData) =>
