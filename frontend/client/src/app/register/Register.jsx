@@ -385,12 +385,14 @@ export default function Register() {
                                     pdfQRtype={globalConst.pdfType.ELECTIONPERMIT}
                                     qrCodeString={voting.registerCode}
                                     saved={voting.registerCodeSaved}
+                                    savedAs={voting.registerCodeSavedAs}
                                     pdfInformation={{
                                         ELECTION_URL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
                                         STARTDATE: startDate,
                                         ENDDATE: endDate
                                     }}
-                                    afterSaveFunction={() => {
+                                    afterSaveFunction={(type) => {
+                                        console.log(type);
                                         updateVoting({ initElectionPermit: false });
                                         setRegisterState({
                                             ...registerState,

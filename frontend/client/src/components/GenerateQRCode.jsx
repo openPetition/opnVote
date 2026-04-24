@@ -1,20 +1,46 @@
 'use client';
+import { useState } from "react";
 import { QRCodeCanvas } from 'qrcode.react';
 import styles from '../styles/GenerateQRCode.module.css';
 import PropTypes from "prop-types";
-import { Download } from "lucide-react";
+import { File, FileCheck, Copy, CopyCheck } from "lucide-react";
 import { useTranslation } from "next-i18next";
 import { createPDF } from "@/save-pdf";
 import Button from './Button';
+import globalConst from "@/constants";
 
 export default function GenerateQRCode(props) {
-    const { headline, subheadline, qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, headimage, saveButtonText, pdfQRtype, afterSaveFunction, saved, pdfInformation } = props;
+    const {
+        headline,
+        subheadline,
+        qrCodeString,
+        downloadHeadline,
+        downloadSubHeadline,
+        downloadFilename,
+        headimage,
+        saveButtonText,
+        pdfQRtype,
+        afterSaveFunction,
+        saved,
+        savedAs,
+        pdfInformation,
+    } = props;
     const { t } = useTranslation();
-
+    const [showQRCodeCopied, setShowQRCodeCopied] = useState(false);
     const givePDF = () => {
         createPDF(qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, pdfQRtype, pdfInformation);
-        afterSaveFunction();
+        afterSaveFunction(globalConst.saveType.PDF);
     };
+    console.log(headline);
+    console.log(savedAs);
+    const copiedAsText = () => {
+        navigator.clipboard.writeText(qrCodeString);
+        setShowQRCodeCopied(true);
+        afterSaveFunction(globalConst.saveType.CLIPBOARD);
+        setTimeout(() => {
+            setShowQRCodeCopied(false);
+        }, 4000);
+    }
 
     const DownloadAsPng = () => {
         const textCanvas = document.getElementById("canvas");
@@ -127,25 +153,47 @@ export default function GenerateQRCode(props) {
                     </div>
                     <div className={styles.buttonbox}>
                         <Button
+                            onClick={() => { copiedAsText() }}
+                            type={saved ? 'secondary' : 'primary'}
+                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px', marginBottom: '10px' }}
+                        >
+                            {
+                                (savedAs?.includes(globalConst.saveType.CLIPBOARD))
+                                    ?
+                                    <CopyCheck stroke={'#29b0cc'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
+                                    :
+                                    <Copy stroke={'white'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
+                            }
+                            <div>
+                                {
+                                    (showQRCodeCopied) ? t("generateqrcode.copycode.successfull") : t("generateqrcode.copycode.text")
+                                }
+                                <br /><p className={styles.hint}>{t("generateqrcode.copycode.additionalhint")}</p>
+                            </div>
+                        </Button>
+
+                        <Button
                             onClick={givePDF}
                             type={saved ? 'secondary' : 'primary'}
                             style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }}
                         >
                             <div style={{ alignSelf: 'center' }}>
                                 {
-                                    (saved)
+                                    (savedAs?.includes(globalConst.saveType.PDF))
                                         ?
-                                        <Download stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
+                                        <FileCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
                                         :
-                                        <Download stroke={'white'} strokeWidth={'3'} width={20} />
+                                        <File stroke={'white'} strokeWidth={'3'} width={20} />
                                 }
                             </div>
                             {saveButtonText}
                         </Button>
+
                     </div>
 
                 </div>
             </div>
+
         </>
     );
 }

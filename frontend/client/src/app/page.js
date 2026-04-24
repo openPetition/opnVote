@@ -22,7 +22,7 @@ import Head from "@/components/Head";
 
 export default function Home() {
     const { t } = useTranslation();
-    const { page } = useOpnVoteStore((state) => state);
+    const page = useOpnVoteStore((state) => state.page);
 
     const ErrorReturn = () => {
         return (
@@ -44,6 +44,7 @@ export default function Home() {
 
         useEffect(() => {
             setIsPageHydrated(true);
+            console.log('hydration')
         }, []);
 
         return <>
@@ -52,6 +53,10 @@ export default function Home() {
             ) || <Loading loadingText={'loading'} />}
         </>;
     };
+
+    useEffect(() => {
+        console.log('page.js root');
+    }, []);
 
     return (
         <>

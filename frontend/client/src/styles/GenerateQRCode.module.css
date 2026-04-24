@@ -66,3 +66,7 @@
 	height: 35px;
 	margin-right: .625rem;
 }
+
+.hint {
+    font-size: small;
+}
