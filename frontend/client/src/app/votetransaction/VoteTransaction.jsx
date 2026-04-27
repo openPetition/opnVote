@@ -38,6 +38,7 @@ export default function VoteTransaction() {
 
     const checkTransaction = async () => {
         try {
+
             const { credentials } = checkBallot(voting.election, voting.registerCode);
             const voterAccount = privateKeyToAccount(credentials.voterWallet.privateKey);
             const voterAddress = voterAccount.address.toLowerCase()
@@ -58,25 +59,17 @@ export default function VoteTransaction() {
                     await sleep(TRANSACTION_PENDING_DELAY);
                 }
             }
+            setVoteResultState({
+                ...voteResultState,
+                transactionStateText: t('votetransactionstate.statustitle.success'),
+                transactionStateSubText: t('votetransactionstate.statustext.success'),
+                transactionState: TRANSACTION_STATE_SUCCESS,
+                notificationText: t('votetransactionstate.info.success'),
+                notificationType: 'success',
+            });
 
-            setTransactionHash(transactionResult.transactionHash);
-
-            if (transactionResult.status === 'success') {
-                updateVoting({
-                    votesuccess: true
-                });
-                updateTaskId(''); //invalidation to prevent wrong redirects from pollingstation
-
-                setVoteResultState({
-                    ...voteResultState,
-                    transactionStateText: t('votetransactionstate.statustitle.success'),
-                    transactionStateSubText: t('votetransactionstate.statustext.success'),
-                    transactionState: TRANSACTION_STATE_SUCCESS,
-                    notificationText: t('votetransactionstate.info.success'),
-                    notificationType: 'success',
-                });
-            }
         } catch (error) {
+            console.log(error);
             let notificationText;
             if (error instanceof ServerError) {
                 notificationText = t('votetransactionstate.error.servererror');
