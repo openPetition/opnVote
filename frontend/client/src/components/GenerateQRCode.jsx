@@ -31,8 +31,7 @@ export default function GenerateQRCode(props) {
         createPDF(qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, pdfQRtype, pdfInformation);
         afterSaveFunction(globalConst.saveType.PDF);
     };
-    console.log(headline);
-    console.log(savedAs);
+
     const copiedAsText = () => {
         navigator.clipboard.writeText(qrCodeString);
         setShowQRCodeCopied(true);
@@ -162,7 +161,7 @@ export default function GenerateQRCode(props) {
                                     ?
                                     <CopyCheck stroke={'#29b0cc'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
                                     :
-                                    <Copy stroke={'white'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
+                                    <Copy stroke={'#29b0cc'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
                             }
                             <div>
                                 {
@@ -183,7 +182,7 @@ export default function GenerateQRCode(props) {
                                         ?
                                         <FileCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
                                         :
-                                        <File stroke={'white'} strokeWidth={'3'} width={20} />
+                                        <File stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
                                 }
                             </div>
                             {saveButtonText}

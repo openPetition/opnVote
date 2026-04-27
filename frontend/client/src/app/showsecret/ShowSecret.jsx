@@ -14,17 +14,7 @@ export default function ShowSecret() {
     const goToRegister = () => {
         updatePage({ current: globalConst.pages.REGISTER });
     };
-    console.log(user);
-    const afterSaveFunction = (type) => {
-        let keySavedAs = user.keySavedAs;
-        console.log('savefunction save as: ' + type);
-        keySavedAs = !keySavedAs?.includes(type) ? keySavedAs.push(type) : keySavedAs;
-        updateUser(
-            {
-                keySaved: true,
-                keySavedAs: keySavedAs
-            });
-    }
+
 
     return (
         <>
@@ -48,7 +38,15 @@ export default function ShowSecret() {
                         savedAs={user.keySavedAs}
                         qrCodeString={user.key}
                         pdfQRtype={globalConst.pdfType.VOTINGKEY}
-                        afterSaveFunction={afterSaveFunction}
+                        afterSaveFunction={(type) => {
+                            let localKeySavedAs = user.keySavedAs;
+                            localKeySavedAs = !(localKeySavedAs?.includes(type)) ? localKeySavedAs.push(type) : localKeySavedAs;
+                            updateUser(
+                                {
+                                    keySaved: true,
+                                    keySavedAs: localKeySavedAs
+                                });
+                        }}
 
                     />
 
