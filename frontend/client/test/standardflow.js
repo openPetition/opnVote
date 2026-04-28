@@ -47,7 +47,7 @@ describe('standard flow', function () {
         await driver.manage().window().setRect({ width: 962, height: 1245 });
         await driver.findElement(By.xpath("//a[contains(text(),'Jetzt an Wahl teilnehmen')]")).click();
         await driver.findElement(By.id("Pfad_167")).click();
-        await driver.findElement(By.xpath("//button[contains(.,\'Wahlschlüssel speichern\')]")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Sicherheits-Schlüssel speichern\')]")).click();
         await driver.findElement(By.xpath("//button[contains(.,\'Wahlschein bestellen\')]")).click();
         await driver.findElement(By.xpath("//button[contains(.,\'Wahlschein speichern\')]")).click();
         await driver.executeScript("window.scrollTo(0,0)");
@@ -72,7 +72,7 @@ describe('standard flow', function () {
         await driver.manage().window().setRect({ width: 962, height: 1245 });
         await driver.findElement(By.xpath("//a[contains(text(),'Jetzt an Wahl teilnehmen')]")).click();
         await driver.findElement(By.id("Pfad_167")).click();
-        await driver.findElement(By.xpath("//button[contains(.,\'Wahlschlüssel speichern\')]")).click();
+        await driver.findElement(By.xpath("//button[contains(.,\'Sicherheits-Schlüssel speichern\')]")).click();
         await driver.findElement(By.xpath("//button[contains(.,\'Wahlschein bestellen\')]")).click();
         await driver.findElement(By.xpath("//button[contains(.,\'Wahlschein speichern\')]")).click();
 
