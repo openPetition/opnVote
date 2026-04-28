@@ -18,6 +18,21 @@
     background-color: var(--op-grey-light);
 }
 
+.primary_dark {
+    color: #fff;
+    background-color: var(--op-blue-dark);
+    padding: .25rem var(--op-padding-standard);
+    font: normal normal 300 var(--op-font-size-standard) 'op__roboto';
+    letter-spacing: 0px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.primary:disabled {
+    color: var(--op-grey);
+    background-color: var(--op-grey-light);
+}
+
 .primary_light {
     color: white;
     background-color: var(--op-blue-main);

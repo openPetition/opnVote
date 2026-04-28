@@ -40,12 +40,13 @@ export default function ShowSecret() {
                         pdfQRtype={globalConst.pdfType.VOTINGKEY}
                         afterSaveFunction={(type) => {
                             let localKeySavedAs = user.keySavedAs;
-                            localKeySavedAs = !(localKeySavedAs?.includes(type)) ? localKeySavedAs.push(type) : localKeySavedAs;
+                            !localKeySavedAs.includes(type) && localKeySavedAs.push(type);
                             updateUser(
                                 {
                                     keySaved: true,
                                     keySavedAs: localKeySavedAs
-                                });
+                                }
+                            );
                         }}
 
                     />
@@ -53,7 +54,7 @@ export default function ShowSecret() {
                     <Button
                         onClick={() => goToRegister()}
                         disabled={!user.keySaved}
-                        type="primary"
+                        type="primary_dark"
                         style={{ display: 'flex', justifyContent: 'center', gap: '10px', alignItems: 'flex-end', margin: '0 auto' }}
                     >
                         {t("secret.navigationbox.gotoregister.aftergenerated.buttonText")}

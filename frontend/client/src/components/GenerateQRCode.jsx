@@ -28,12 +28,13 @@ export default function GenerateQRCode(props) {
     const { t } = useTranslation();
     const [showQRCodeCopied, setShowQRCodeCopied] = useState(false);
     const givePDF = () => {
+
         createPDF(qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, pdfQRtype, pdfInformation);
         afterSaveFunction(globalConst.saveType.PDF);
     };
 
     const copiedAsText = () => {
-        navigator.clipboard.writeText(qrCodeString);
+        navigator.clipboard.writeText(headline + ': ' + qrCodeString);
         setShowQRCodeCopied(true);
         afterSaveFunction(globalConst.saveType.CLIPBOARD);
         setTimeout(() => {
@@ -161,7 +162,7 @@ export default function GenerateQRCode(props) {
                                     ?
                                     <CopyCheck stroke={'#29b0cc'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
                                     :
-                                    <Copy stroke={'#29b0cc'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
+                                    <Copy stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
                             }
                             <div>
                                 {
@@ -182,7 +183,7 @@ export default function GenerateQRCode(props) {
                                         ?
                                         <FileCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
                                         :
-                                        <File stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
+                                        <File stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
                                 }
                             </div>
                             {saveButtonText}

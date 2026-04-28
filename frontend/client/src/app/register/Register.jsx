@@ -393,12 +393,17 @@ export default function Register() {
                                     }}
                                     afterSaveFunction={(type) => {
                                         console.log(type);
+                                        let registerCodeSavedAsLocal = voting.registerCodeSavedAs;
+                                        !registerCodeSavedAsLocal.includes(type) && registerCodeSavedAsLocal.push(type);
                                         updateVoting({ initElectionPermit: false });
                                         setRegisterState({
                                             ...registerState,
                                             showSaveRegisterQRSuccess: true
                                         });
-                                        updateVoting({ registerCodeSaved: true });
+                                        updateVoting({
+                                            registerCodeSaved: true,
+                                            registerCodeSavedAs: registerCodeSavedAsLocal
+                                        });
                                     }}
                                 />
 
