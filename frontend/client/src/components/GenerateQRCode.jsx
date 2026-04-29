@@ -3,7 +3,7 @@ import { useState } from "react";
 import { QRCodeCanvas } from 'qrcode.react';
 import styles from '../styles/GenerateQRCode.module.css';
 import PropTypes from "prop-types";
-import { File, FileCheck, Copy, CopyCheck } from "lucide-react";
+import { File, Copy, CircleCheck } from "lucide-react";
 import { useTranslation } from "next-i18next";
 import { createPDF } from "@/save-pdf";
 import Button from './Button';
@@ -18,7 +18,6 @@ export default function GenerateQRCode(props) {
         downloadSubHeadline,
         downloadFilename,
         headimage,
-        saveButtonText,
         pdfQRtype,
         afterSaveFunction,
         saved,
@@ -160,7 +159,7 @@ export default function GenerateQRCode(props) {
                             {
                                 (savedAs?.includes(globalConst.saveType.CLIPBOARD))
                                     ?
-                                    <CopyCheck stroke={'#29b0cc'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
+                                    <CircleCheck stroke={'#29b0cc'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
                                     :
                                     <Copy stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
                             }
@@ -181,12 +180,14 @@ export default function GenerateQRCode(props) {
                                 {
                                     (savedAs?.includes(globalConst.saveType.PDF))
                                         ?
-                                        <FileCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
+                                        <CircleCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
                                         :
                                         <File stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
                                 }
                             </div>
-                            {saveButtonText}
+                            {
+                                t("generateqrcode.saveas.pdf")
+                            }
                         </Button>
 
                     </div>
@@ -206,5 +207,4 @@ GenerateQRCode.propTypes = {
     downloadHeadline: PropTypes.string.isRequired,
     downloadSubHeadline: PropTypes.string,
     headimage: PropTypes.string.isRequired,
-    saveButtonText: PropTypes.string.isRequired,
 };

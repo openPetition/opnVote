@@ -207,7 +207,6 @@
     "register.generateqrcode.downloadHeadline": "Wahlschein",
     "register.generateqrcode.headline": "Speichern Sie jetzt Ihren Wahlschein",
     "register.generateqrcode.saveagainbuttontext": "Wahlschein (PDF) erneut speichern",
-    "register.generateqrcode.savebuttontext": "Als PDF speichern",
     "register.headline.infoText": "Zur Bestellung des Wahlscheines benötigen Sie eine Internetverbindung. Falls Sie bisher offline waren, müssen Sie jetzt die Internetverbindung wieder aktivieren!",
     "register.headline.orderballot": "Wahlschein bestellen",
     "register.headline.text": "Mit Ihrem Wahlschein können Sie an der Abstimmung teilnehmen.",
