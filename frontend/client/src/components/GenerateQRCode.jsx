@@ -27,10 +27,8 @@ export default function GenerateQRCode(props) {
     } = props;
     const { t } = useTranslation();
     const [showQRCodeCopied, setShowQRCodeCopied] = useState(false);
-    const [showQRImage, setShowQRImage] = useState(false);
 
     const givePDF = () => {
-
         createPDF(qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, pdfQRtype, pdfInformation);
         afterSaveFunction(globalConst.saveType.PDF);
     };
@@ -100,7 +98,6 @@ export default function GenerateQRCode(props) {
             moveQRCodeDownPixel = 150;
             //textCanvasContext.fillText(downloadSubHeadline, 100, 80);
         }
-        setShowQRImage(true);
         const qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
 
         textCanvasContext.drawImage(qrCodeCanvasContext, 40, moveQRCodeDownPixel, 220, 220);
@@ -167,7 +164,7 @@ export default function GenerateQRCode(props) {
                                 fgColor={"#000000"}
                                 level={"Q"}
                                 id="qrCodeCanvas"
-                                style={showQRImage ? { display: "block", margin: '10px auto' } : { display: "none" }}
+                                style={{ display: "none" }}
                                 imageSettings={
                                     {
                                         src: `/images/icon-${headimage}.svg`,
@@ -240,7 +237,6 @@ export default function GenerateQRCode(props) {
                             </div>
                             <div>
                                 Als Bild speichern
-                                <br /><p className={styles.hint}>{showQRImage && <>Sie können den QR Code auch als Screenshot speichern</>}</p>
                             </div>
                         </Button>
 
