@@ -167,7 +167,7 @@ export default function GenerateQRCode(props) {
                                 fgColor={"#000000"}
                                 level={"Q"}
                                 id="qrCodeCanvas"
-                                style={{ margin: "1rem auto", fontweight: "bold", display: "none" }}
+                                style={showQRImage ? { display: "block", margin: '10px auto' } : { display: "none" }}
                                 imageSettings={
                                     {
                                         src: `/images/icon-${headimage}.svg`,
@@ -222,7 +222,7 @@ export default function GenerateQRCode(props) {
                             id="canvas"
                             width="300"
                             height="400"
-                            style={showQRImage ? { display: "block", margin: '10px auto' } : { display: "none" }}
+                            style={{ display: "none" }}
                         />
                         <Button
                             onClick={DownloadAsPng}
