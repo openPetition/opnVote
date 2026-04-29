@@ -391,7 +391,6 @@ export default function Register() {
                                         ENDDATE: endDate
                                     }}
                                     afterSaveFunction={(type) => {
-                                        console.log(type);
                                         let registerCodeSavedAsLocal = voting.registerCodeSavedAs;
                                         !registerCodeSavedAsLocal.includes(type) && registerCodeSavedAsLocal.push(type);
                                         updateVoting({ initElectionPermit: false });

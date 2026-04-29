@@ -44,7 +44,6 @@ export default function Home() {
 
         useEffect(() => {
             setIsPageHydrated(true);
-            console.log('hydration')
         }, []);
 
         return <>
@@ -55,7 +54,7 @@ export default function Home() {
     };
 
     useEffect(() => {
-        console.log('page.js root');
+        window.scroll(0, 0);
     }, []);
 
     return (
