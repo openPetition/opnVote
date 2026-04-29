@@ -27,13 +27,12 @@ export default function GenerateQRCode(props) {
     const { t } = useTranslation();
     const [showQRCodeCopied, setShowQRCodeCopied] = useState(false);
     const givePDF = () => {
-
         createPDF(qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, pdfQRtype, pdfInformation);
         afterSaveFunction(globalConst.saveType.PDF);
     };
 
     const copiedAsText = () => {
-        navigator.clipboard.writeText(headline + ': ' + qrCodeString);
+        navigator.clipboard.writeText(downloadHeadline + ': ' + qrCodeString);
         setShowQRCodeCopied(true);
         afterSaveFunction(globalConst.saveType.CLIPBOARD);
         setTimeout(() => {
@@ -152,7 +151,7 @@ export default function GenerateQRCode(props) {
                     </div>
                     <div className={styles.buttonbox}>
                         <Button
-                            onClick={() => { copiedAsText() }}
+                            onClick={copiedAsText}
                             type={saved ? 'secondary' : 'primary'}
                             style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px', marginBottom: '10px' }}
                         >
@@ -165,7 +164,11 @@ export default function GenerateQRCode(props) {
                             }
                             <div>
                                 {
-                                    (showQRCodeCopied) ? t("generateqrcode.copycode.successfull") : t("generateqrcode.copycode.text")
+                                    (showQRCodeCopied)
+                                        ?
+                                        <span className="op__font-op-grey-dark op__font-op-bold">{t("generateqrcode.copycode.successfull")}</span>
+                                        :
+                                        t("generateqrcode.copycode.text")
                                 }
                                 <br /><p className={styles.hint}>{t("generateqrcode.copycode.additionalhint")}</p>
                             </div>
