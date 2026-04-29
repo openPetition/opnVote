@@ -24,7 +24,7 @@ export default function LoadSecret() {
                 <Headline
                     title={t("secret.headline.createSecret.title")}
                     text={t("secret.headline.createSecret.text")}
-                    progressBarStep={globalConst.progressBarStep.key}
+                    progressBarStep={globalConst.progressBarStep.saveKey}
                 />
             </div>
             <main className="op__contentbox_760">

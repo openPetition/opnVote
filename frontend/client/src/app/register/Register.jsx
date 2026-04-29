@@ -300,7 +300,7 @@ export default function Register() {
                     title={t("register.headline.title")}
                     text={t("register.headline.text")}
                     image="/images/online.svg"
-                    progressBarStep={globalConst.progressBarStep.ballot}
+                    progressBarStep={voting.registerCodeSaved ? globalConst.progressBarStep.readyToVote : globalConst.progressBarStep.saveBallot}
                 />
             </>
 

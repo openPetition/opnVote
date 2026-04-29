@@ -31,7 +31,7 @@ export default function ShowSecret() {
                 <Headline
                     title={t("secret.headline.createSecret.title")}
                     text={t("secret.headline.createSecret.text")}
-                    progressBarStep={globalConst.progressBarStep.key}
+                    progressBarStep={user.keySaved ? globalConst.progressBarStep.savedKey : globalConst.progressBarStep.saveKey}
                 />
             </div>
             <main className="op__contentbox_760">
