@@ -16,13 +16,6 @@ struct AuthorizationProvider {
     string apUri;
 }
 
-struct SignatureValidationServer {
-    uint8 id;
-    address owner;
-    string svsName;
-    string svsUri;
-}
-
 struct Register {
     uint8 id;
     address owner;
@@ -39,7 +32,6 @@ struct Election {
     uint256 totalRegistered;
     uint8 registerId;
     uint8 authProviderId;
-    uint8 svsId;
     ElectionStatus status;
     mapping(address => bool) hasVoted;
     string cancelReasonIpfsCid;

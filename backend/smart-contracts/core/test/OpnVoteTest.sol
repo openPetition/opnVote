@@ -3,10 +3,12 @@ pragma solidity ^0.8.27;
 
 import {Test} from "forge-std/Test.sol";
 import {OpnVote} from "../src/OpnVote.sol";
-import {AuthorizationProvider, Register, SignatureValidationServer} from "../src/Structs.sol";
+import {BLSVerifier} from "../src/BLSVerifier.sol";
+import {AuthorizationProvider, Register} from "../src/Structs.sol";
 
 contract OpnVoteTest is Test {
     OpnVote opnVote;
+    BLSVerifier blsVerifier;
 
     address electionCoordinator = vm.envAddress("DEPLOYER_ADDRESS");
 
@@ -16,22 +18,17 @@ contract OpnVoteTest is Test {
     address registerOwner = vm.envAddress("REGISTER_OWNER_ADDRESS");
     uint8 registerId = uint8(vm.envUint("REGISTER_ID"));
 
-    address svsOwner = vm.envAddress("SVS_OWNER_ADDRESS");
-    uint8 svsId = uint8(vm.envUint("SVS_ID"));
-
     function setUp() public {
         vm.startPrank(electionCoordinator);
-        opnVote = new OpnVote(0);
+        blsVerifier = new BLSVerifier();
+        opnVote = new OpnVote(0, address(blsVerifier));
 
         AuthorizationProvider memory ap =
             AuthorizationProvider(apId, apOwner, "OpenPetition AP", "https://www.openpetition.de/ap/");
         Register memory register = Register(registerId, registerOwner, "OpenVote Register", "https://register.opn.vote");
-        SignatureValidationServer memory svs =
-            SignatureValidationServer(svsId, svsOwner, "OpenVote SVS", "https://svs.opn.vote");
 
         opnVote.addAp(ap);
         opnVote.addRegister(register);
-        opnVote.addSvs(svs);
         vm.stopPrank();
     }
 
@@ -45,7 +42,7 @@ contract OpnVoteTest is Test {
         bytes memory electionPubKey = hex"11"; //todo Set Election Pub Key
 
         uint256 electionId = opnVote.createOrUpdateElection(
-            0, startTime, endTime, 0, 0, registerId, apId, svsId, descriptionIpfsCid, electionPubKey
+            0, startTime, endTime, 0, 0, registerId, apId, descriptionIpfsCid, electionPubKey
         );
 
         vm.stopPrank();
@@ -66,22 +63,11 @@ contract OpnVoteTest is Test {
         opnVote.startElection(0);
         vm.stopPrank();
 
-        //Voting (Dummy Data with correct format & signature)
-
-        //Signed Dummy Data; Signed by 0x847507B935658Bdf58F166E0B54C662Bc3942a6f
-        //In case of invalid Sig, check if svsOwner is 0x847507B935658Bdf58F166E0B54C662Bc3942a6f
+        //Voting (Dummy Data with correct format & mocked BLS verify)
         address voter = address(0xF1554f6997b304F2Bc694Ff0a8D966589C05C149);
-        address voteSignedBy = address(0x847507B935658Bdf58F166E0B54C662Bc3942a6f);
-        uint256 voteElectionId = 0;
-        require(svsOwner == voteSignedBy, "Sig will be invalid. SVS and vote signee different");
-        require(electionId == voteElectionId, "Sig will be invalid. Election ID not signed Election ID different");
 
-        bytes memory svsSignature =
-            hex"72560ad0565a950e02a6ffdd8db109c347b6fd3020729c84c00e9993ef12c9b16294116839509826a5b44d579b3dff05d9eca80a06e893048208976afc5557f81c"; //Valid Signature
-
-        bytes memory unblindedElectionToken = hex"0d8a836ae6c5f460900357b825d3133ab989e52c623a98022a94e31fd53e8d89"; // Dummy data
-        bytes memory unblindedSignature =
-            hex"11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"; // Dummy data
+        // 128-byte placeholder
+        bytes memory unblindedSignature = new bytes(128);
 
         //Dummy RSA encrypted vote
         bytes memory voteEncrypted =
@@ -89,16 +75,14 @@ contract OpnVoteTest is Test {
 
         bytes memory voteEncryptedUser = hex"454a5cd040e6f04fce1cadd5196ed944792471d19bf538a4fa7705a00ae334aefc"; // Dummy Data
 
-        vm.startPrank(voter);
-        opnVote.vote(
-            electionId,
-            voter,
-            svsSignature,
-            voteEncrypted,
-            voteEncryptedUser,
-            unblindedElectionToken,
-            unblindedSignature
+        vm.mockCall(
+            address(blsVerifier),
+            abi.encodeWithSelector(BLSVerifier.verify.selector),
+            abi.encode(true)
         );
+
+        vm.startPrank(voter);
+        opnVote.vote(electionId, voteEncrypted, voteEncryptedUser, unblindedSignature);
         vm.stopPrank();
     }
 }

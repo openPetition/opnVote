@@ -20,7 +20,6 @@ contract CreateElectionScript is Script {
 
         uint8 apId = uint8(vm.envUint("AP_ID"));
         uint8 registerId = uint8(vm.envUint("REGISTER_ID"));
-        uint8 svsId = uint8(vm.envUint("SVS_ID"));
 
         string memory descriptionIpfsCid = vm.envString("ELECTION_CID");
         bytes memory electionPubKey = vm.envBytes("ELECTION_PUBKEY");
@@ -34,7 +33,6 @@ contract CreateElectionScript is Script {
             registrationEndTime,
             registerId,
             apId,
-            svsId,
             descriptionIpfsCid,
             electionPubKey
         );

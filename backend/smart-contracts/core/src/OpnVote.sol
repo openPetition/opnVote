@@ -2,22 +2,17 @@
 pragma solidity ^0.8.27;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {
     Election,
     AuthorizationProvider,
     Register,
-    SignatureValidationServer,
     ElectionStatus,
     RsaPublicKeyRaw
 } from "./Structs.sol";
+import {BLSVerifier} from "./BLSVerifier.sol";
 
 contract OpnVote is Ownable {
-    using ECDSA for bytes32;
-    using MessageHashUtils for bytes32;
-
-    string public constant VERSION = "0.2.0";
+    string public constant VERSION = "0.3.0";
 
     /// @return Current contract version
     function version() external pure returns (string memory) {
@@ -25,13 +20,19 @@ contract OpnVote is Ownable {
     }
 
     uint256 public nextElectionId;
+    BLSVerifier public immutable BLS_VERIFIER;
+    bytes constant REGISTER_BLS_PUBKEY =
+        hex"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        hex"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        hex"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        hex"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 
-    constructor(uint256 startId) Ownable(msg.sender) {
+    constructor(uint256 startId, address blsVerifierAddress) Ownable(msg.sender) {
         nextElectionId = startId;
+        BLS_VERIFIER = BLSVerifier(blsVerifierAddress);
     }
 
     mapping(uint8 => Register) public registers;
-    mapping(uint8 => SignatureValidationServer) public svss;
     mapping(uint8 => AuthorizationProvider) public aps;
     mapping(uint256 => Election) public elections;
 
@@ -67,10 +68,8 @@ contract OpnVote is Ownable {
     event VoteCast(
         uint256 indexed electionId,
         address indexed voter,
-        bytes svsSignature,
         bytes voteEncrypted,
         bytes voteEncryptedUser,
-        bytes unblindedElectionToken,
         bytes unblindedSignature
     );
     event VoteUpdated(uint256 indexed electionId, address indexed voter, bytes voteEncrypted, bytes voteEncryptedUser);
@@ -84,7 +83,6 @@ contract OpnVote is Ownable {
         uint256 registrationEndTime,
         uint8 registerId,
         uint8 authProviderId,
-        uint8 svsId,
         string descriptionIpfsCid,
         bytes publicKey
     );
@@ -97,7 +95,6 @@ contract OpnVote is Ownable {
         uint256 registrationEndTime,
         uint8 registerId,
         uint8 authProviderId,
-        uint8 svsId,
         string descriptionIpfsCid,
         bytes publicKey
     );
@@ -143,7 +140,7 @@ contract OpnVote is Ownable {
         uint8 registerId = elections[electionId].registerId;
         require(msg.sender == registers[registerId].owner, "Only Register Owner");
         require(blindedSignature.length > 0, "Blinded Signature required"); //todo: Specify expected Length
-        require(blindedElectionToken.length > 0, "Blinded Signature required"); //todo: Specify expected Length
+        require(blindedElectionToken.length > 0, "Blinded Election Token required"); //todo: Specify expected Length
         require(elections[electionId].votingStartTime != 0, "Election unknown");
         elections[electionId].totalRegistered += 1;
 
@@ -186,11 +183,8 @@ contract OpnVote is Ownable {
      */
     function vote(
         uint256 electionId,
-        address voter,
-        bytes calldata svsSignature,
         bytes calldata voteEncrypted,
         bytes calldata voteEncryptedUser,
-        bytes calldata unblindedElectionToken,
         bytes calldata unblindedSignature
     ) external {
         Election storage election = elections[electionId];
@@ -202,41 +196,25 @@ contract OpnVote is Ownable {
         require(election.status == ElectionStatus.Active, "Election is not active");
         require(election.votingEndTime >= block.timestamp, "Election ended");
 
-        if (svsSignature.length == 65) {
-            address svsOwner = svss[election.svsId].owner;
-            require(svsOwner != address(0), "SVS not specified");
-            require(unblindedElectionToken.length == 32, "Invalid unblindedElectionToken length");
-            require(
-                unblindedSignature.length == 256 || unblindedSignature.length == 512,
-                "Invalid unblindedSignature length"
-            ); // Allowing RSA 2048 and 4096
+        if (unblindedSignature.length == 128) {
+            require(!election.hasVoted[msg.sender], "Already voted");
+            
+            election.totalVotes += 1;
+            election.hasVoted[msg.sender] = true;
 
-            require(!election.hasVoted[voter], "Already voted");
-
-            bool isValidSig = _verify(
-                keccak256(
-                    abi.encode(
-                        electionId, voter, voteEncrypted, voteEncryptedUser, unblindedElectionToken, unblindedSignature
-                    )
-                ),
-                svsSignature,
-                svsOwner
+            bytes memory unblindedElectionToken = abi.encodePacked(
+                keccak256(abi.encodePacked(electionId, msg.sender))
             );
 
+            bool isValidSig = BLS_VERIFIER.verify(
+                unblindedElectionToken,
+                unblindedSignature,
+                REGISTER_BLS_PUBKEY
+            );
             require(isValidSig, "Sig invalid");
-            election.totalVotes += 1;
-            election.hasVoted[voter] = true;
 
             //First vote
-            emit VoteCast(
-                electionId,
-                voter,
-                svsSignature,
-                voteEncrypted,
-                voteEncryptedUser,
-                unblindedElectionToken,
-                unblindedSignature
-            );
+            emit VoteCast(electionId, msg.sender, voteEncrypted, voteEncryptedUser, unblindedSignature);
         } else {
             //Vote recasting
             require(election.hasVoted[msg.sender], "voter unknown");
@@ -251,12 +229,6 @@ contract OpnVote is Ownable {
         require(registers[newRegister.id].owner == address(0), "Id already used");
         require(newRegister.owner != address(0), "No owner specified");
         registers[newRegister.id] = newRegister;
-    }
-
-    function addSvs(SignatureValidationServer memory newSvs) external onlyOwner {
-        require(svss[newSvs.id].owner == address(0), "Id already used");
-        require(newSvs.owner != address(0), "No owner specified");
-        svss[newSvs.id] = newSvs;
     }
 
     function addAp(AuthorizationProvider memory newAp) external onlyOwner {
@@ -313,7 +285,6 @@ contract OpnVote is Ownable {
         uint256 registrationEndTime,
         uint8 registerId,
         uint8 authProviderId,
-        uint8 svsId,
         string memory descriptionIpfsCid,
         bytes memory publicKey
     ) external onlyOwner returns (uint256 electionId) {
@@ -322,7 +293,6 @@ contract OpnVote is Ownable {
 
         require(registers[registerId].owner != address(0), "Invalid registerId");
         require(aps[authProviderId].owner != address(0), "Invalid authProviderId");
-        require(svss[svsId].owner != address(0), "Invalid svsId");
 
         require(bytes(descriptionIpfsCid).length > 0, "Invalid description cid"); //todo: Specify expected Length
 
@@ -343,7 +313,6 @@ contract OpnVote is Ownable {
         election.votingEndTime = votingEndTime;
         election.registerId = registerId;
         election.authProviderId = authProviderId;
-        election.svsId = svsId;
         election.publicKey = publicKey;
 
         if (isNewElection) {
@@ -355,7 +324,6 @@ contract OpnVote is Ownable {
                 registrationEndTime,
                 registerId,
                 authProviderId,
-                svsId,
                 descriptionIpfsCid,
                 publicKey
             );
@@ -368,7 +336,6 @@ contract OpnVote is Ownable {
                 registrationEndTime,
                 registerId,
                 authProviderId,
-                svsId,
                 descriptionIpfsCid,
                 publicKey
             );
@@ -396,9 +363,5 @@ contract OpnVote is Ownable {
 
         emit ElectionResultsPublished(electionId, yesVotes, noVotes, invalidVotes, privateKey);
         emit ElectionStatusChanged(electionId, ElectionStatus.Ended, ElectionStatus.ResultsPublished);
-    }
-
-    function _verify(bytes32 data, bytes memory signature, address account) internal pure returns (bool) {
-        return data.toEthSignedMessageHash().recover(signature) == account;
     }
 }
