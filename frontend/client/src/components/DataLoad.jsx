@@ -145,6 +145,9 @@ export default function DataLoad() {
             };
         }
     }, [localState.updatePage]);
+    useEffect(() => {
+        window.scroll(0, 0);
+    }, [page.current]);
 
     //TODO: add notification in error case
     return (

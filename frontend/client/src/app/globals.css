@@ -252,8 +252,6 @@ hr:last-child {
 	}
 }
 
-
-
 .op__contentbox_max {
 	max-width: var(--op-max-width-layout);
 	width: 100%;

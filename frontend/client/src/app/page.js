@@ -53,10 +53,6 @@ export default function Home() {
         </>;
     };
 
-    useEffect(() => {
-        window.scroll(0, 0);
-    }, []);
-
     return (
         <>
             <HydrationZustand>
