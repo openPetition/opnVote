@@ -3,7 +3,7 @@ import { useState } from "react";
 import { QRCodeCanvas } from 'qrcode.react';
 import styles from '../styles/GenerateQRCode.module.css';
 import PropTypes from "prop-types";
-import { File, FileCheck, Copy, CopyCheck } from "lucide-react";
+import { File, FileCheck, Copy, CopyCheck, FileImage } from "lucide-react";
 import { useTranslation } from "next-i18next";
 import { createPDF } from "@/save-pdf";
 import Button from './Button';
@@ -27,6 +27,8 @@ export default function GenerateQRCode(props) {
     } = props;
     const { t } = useTranslation();
     const [showQRCodeCopied, setShowQRCodeCopied] = useState(false);
+    const [showQRImage, setShowQRImage] = useState(false);
+
     const givePDF = () => {
 
         createPDF(qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, pdfQRtype, pdfInformation);
@@ -41,6 +43,39 @@ export default function GenerateQRCode(props) {
             setShowQRCodeCopied(false);
         }, 4000);
     }
+
+    const wordwrapAndPositionText = (context, text, x, y, lineHeight, fitWidth) => {
+        let words = text.split(' ');
+        let currentLine = 0;
+        let idx = 1;
+
+        //short: we go through the wordlist and measure how many words would fit into the lines
+        while (words.length > 0 && idx <= words.length) {
+            var str = words.slice(0, idx).join(' ');
+            var wordsPixelWidth = context.measureText(str).width;
+
+            //if this is one word too much
+            if (wordsPixelWidth > fitWidth) {
+                //just in case one word is very long.. otherwise it wont end
+                if (idx == 1) {
+                    idx = 2;
+                }
+
+                context.fillText(words.slice(0, idx - 1).join(' '), x, y + (lineHeight * currentLine));
+                currentLine++;
+                words = words.splice(idx - 1);
+                idx = 1;
+            } else {
+                //means one more word might fit into the line
+                idx++;
+            }
+        }
+
+        //still word(s) left
+        if (words.length > 0) {
+            context.fillText(words.join(' '), x, y + (lineHeight * currentLine));
+        }
+    };
 
     const DownloadAsPng = () => {
         const textCanvas = document.getElementById("canvas");
@@ -65,7 +100,7 @@ export default function GenerateQRCode(props) {
             moveQRCodeDownPixel = 150;
             //textCanvasContext.fillText(downloadSubHeadline, 100, 80);
         }
-
+        setShowQRImage(true);
         const qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
 
         textCanvasContext.drawImage(qrCodeCanvasContext, 40, moveQRCodeDownPixel, 220, 220);
@@ -143,12 +178,7 @@ export default function GenerateQRCode(props) {
                                 }
                             />
 
-                            <canvas
-                                id="canvas"
-                                width="300"
-                                height="400"
-                                style={{ display: "none" }}
-                            />
+
                         </div>
                     </div>
                     <div className={styles.buttonbox}>
@@ -175,7 +205,7 @@ export default function GenerateQRCode(props) {
                         <Button
                             onClick={givePDF}
                             type={saved ? 'secondary' : 'primary'}
-                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }}
+                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px', marginBottom: '10px' }}
                         >
                             <div style={{ alignSelf: 'center' }}>
                                 {
@@ -187,6 +217,31 @@ export default function GenerateQRCode(props) {
                                 }
                             </div>
                             {saveButtonText}
+                        </Button>
+                        <canvas
+                            id="canvas"
+                            width="300"
+                            height="400"
+                            style={showQRImage ? { display: "block", margin: '10px auto' } : { display: "none" }}
+                        />
+                        <Button
+                            onClick={DownloadAsPng}
+                            type={saved ? 'secondary' : 'primary'}
+                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }}
+                        >
+                            <div style={{ alignSelf: 'center' }}>
+                                {
+                                    (savedAs?.includes(globalConst.saveType.IMAGE))
+                                        ?
+                                        <FileImage stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
+                                        :
+                                        <FileImage stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
+                                }
+                            </div>
+                            <div>
+                                Als Bild speichern
+                                <br /><p className={styles.hint}>{showQRImage && <>Sie können den QR Code auch als Screenshot speichern</>}</p>
+                            </div>
                         </Button>
 
                     </div>
