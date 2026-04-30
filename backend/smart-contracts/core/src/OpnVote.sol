@@ -2,13 +2,7 @@
 pragma solidity ^0.8.27;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {
-    Election,
-    AuthorizationProvider,
-    Register,
-    ElectionStatus,
-    RsaPublicKeyRaw
-} from "./Structs.sol";
+import {Election, AuthorizationProvider, Register, ElectionStatus} from "./Structs.sol";
 import {BLSVerifier} from "./BLSVerifier.sol";
 
 contract OpnVote is Ownable {
@@ -21,11 +15,9 @@ contract OpnVote is Ownable {
 
     uint256 public nextElectionId;
     BLSVerifier public immutable BLS_VERIFIER;
-    bytes constant REGISTER_BLS_PUBKEY =
-        hex"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-        hex"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-        hex"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-        hex"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+    uint256 constant BLS_PUBKEY_LENGTH = 256;
+    // keccak256 of 256 zero bytes
+    bytes32 constant ZERO_PUBKEY_HASH = 0xd397b3b043d87fcd6fad1291ff0bfd16401c274896d8c63a923727f077b8e0b5;
 
     constructor(uint256 startId, address blsVerifierAddress) Ownable(msg.sender) {
         nextElectionId = startId;
@@ -62,7 +54,7 @@ contract OpnVote is Ownable {
         bytes[] blindedElectionTokens
     );
 
-    event ElectionRegisterPublicKeySet(uint256 indexed electionId, bytes n, bytes e);
+    event ElectionRegisterPublicKeySet(uint256 indexed electionId, bytes pubKey);
 
     // Voter Events
     event VoteCast(
@@ -165,17 +157,16 @@ contract OpnVote is Ownable {
         emit VotersRegistered(registerId, electionId, voterIds, blindedSignatures, blindedElectionTokens);
     }
 
-    function setElectionRegisterPublicKey(uint256 electionId, bytes memory n, bytes memory e) external {
+    function setElectionRegisterPublicKey(uint256 electionId, bytes memory pubKey) external {
         uint8 registerId = elections[electionId].registerId;
         require(registers[registerId].owner == msg.sender, "Only Register");
-        require(
-            elections[electionId].status == ElectionStatus.Pending
-                || elections[electionId].status == ElectionStatus.Active,
-            "Election not active or pending"
-        );
-        elections[electionId].registerPubKey = RsaPublicKeyRaw({n: n, e: e});
+        require(elections[electionId].status == ElectionStatus.Pending, "Election not pending");
+        require(pubKey.length == BLS_PUBKEY_LENGTH, "Invalid BLS pubkey length");
+        // Revert on G2 identity
+        require(keccak256(pubKey) != ZERO_PUBKEY_HASH, "Pubkey must not be identity");
+        elections[electionId].registerPubKey = pubKey;
 
-        emit ElectionRegisterPublicKeySet(electionId, n, e);
+        emit ElectionRegisterPublicKeySet(electionId, pubKey);
     }
 
     /**
@@ -209,7 +200,7 @@ contract OpnVote is Ownable {
             bool isValidSig = BLS_VERIFIER.verify(
                 unblindedElectionToken,
                 unblindedSignature,
-                REGISTER_BLS_PUBKEY
+                election.registerPubKey
             );
             require(isValidSig, "Sig invalid");
 
@@ -246,7 +237,7 @@ contract OpnVote is Ownable {
         require(election.status == ElectionStatus.Pending, "Not pending");
         require(election.votingStartTime <= block.timestamp, "too early");
         require(election.votingEndTime > block.timestamp, "too late");
-        require(election.registerPubKey.n.length > 0 && election.registerPubKey.e.length > 0, "Register Key required"); //todo: Specify expected Length
+        require(election.registerPubKey.length == BLS_PUBKEY_LENGTH, "Register Key required");
         ElectionStatus oldStatus = election.status;
         election.status = ElectionStatus.Active;
         emit ElectionStatusChanged(electionId, oldStatus, ElectionStatus.Active);

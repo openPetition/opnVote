@@ -38,10 +38,5 @@ struct Election {
     string descriptionIpfsCid;
     bytes publicKey;
     bytes privateKey;
-    RsaPublicKeyRaw registerPubKey;
-}
-
-struct RsaPublicKeyRaw {
-    bytes n; //  RSA modulus
-    bytes e; // RSA public exponent
+    bytes registerPubKey;
 }

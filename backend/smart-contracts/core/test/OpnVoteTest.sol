@@ -47,13 +47,12 @@ contract OpnVoteTest is Test {
 
         vm.stopPrank();
 
-        //Setting Regiser Key
+        //Setting Register Key
         vm.startPrank(registerOwner);
 
-        bytes memory registerElectionPubKeyE = vm.envBytes("REGISTER_ELECTION_0_E");
-        bytes memory registerElectionPubKeyN = vm.envBytes("REGISTER_ELECTION_0_N");
+        bytes memory registerElectionBlsPubKey = vm.envBytes("REGISTER_ELECTION_0_BLS_PUBKEY");
 
-        opnVote.setElectionRegisterPublicKey(electionId, registerElectionPubKeyN, registerElectionPubKeyE);
+        opnVote.setElectionRegisterPublicKey(electionId, registerElectionBlsPubKey);
         vm.stopPrank();
 
         //Starting created Election
@@ -83,6 +82,20 @@ contract OpnVoteTest is Test {
 
         vm.startPrank(voter);
         opnVote.vote(electionId, voteEncrypted, voteEncryptedUser, unblindedSignature);
+        vm.stopPrank();
+    }
+
+    function test_RevertWhen_RegisterPubKeyIsIdentity() public {
+        vm.startPrank(electionCoordinator);
+        uint256 electionId = opnVote.createOrUpdateElection(
+            0, block.timestamp + 1, block.timestamp + 100, 0, 0, registerId, apId, "IPFS", hex"11"
+        );
+        vm.stopPrank();
+
+        vm.startPrank(registerOwner);
+        bytes memory identityPubKey = new bytes(256);
+        vm.expectRevert(bytes("Pubkey must not be identity"));
+        opnVote.setElectionRegisterPublicKey(electionId, identityPubKey);
         vm.stopPrank();
     }
 }
