@@ -7,7 +7,6 @@ contract BLSVerifier {
     address constant PAIRING      = address(0x0f);
     address constant MAP_FP_TO_G1 = address(0x10);
 
-    // DST must include scheme suffix to match noble-curves
     bytes constant DST = "BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_NUL_";
 
     bytes constant BLS_MODULUS =
@@ -39,16 +38,22 @@ contract BLSVerifier {
     }
 
     function hashToG1(bytes calldata message) public view returns (bytes memory) {
+        // hash_to_curve: u = hash_to_field(msg,2); Q_i = map(u_i); R = Q0+Q1; P = clear_cofactor(R)
+
+        // expand_message_xmd -> 128 bytes (count=2, m=1, L=64)
         (bytes32 b1, bytes32 b2, bytes32 b3, bytes32 b4) = _expandMessageXmd(message);
 
+        // hash_to_field: u_i = OS2IP(uniform_bytes[64i .. 64i+64]) mod p
         bytes memory u0 = _modReduceFp(abi.encodePacked(b1, b2));
         bytes memory u1 = _modReduceFp(abi.encodePacked(b3, b4));
 
+        // EIP-2537 MAP_FP_TO_G1 (= SSWU + iso_map + clear_cofactor)
         (bool ok1, bytes memory p1) = MAP_FP_TO_G1.staticcall(u0);
         require(ok1, "map1 failed");
         (bool ok2, bytes memory p2) = MAP_FP_TO_G1.staticcall(u1);
         require(ok2, "map2 failed");
 
+        // R = Q0+Q1
         (bool ok3, bytes memory sum) = G1ADD.staticcall(abi.encodePacked(p1, p2));
         require(ok3, "g1add failed");
         return sum;
@@ -57,21 +62,28 @@ contract BLSVerifier {
     function _expandMessageXmd(
         bytes calldata msg_
     ) internal pure returns (bytes32, bytes32, bytes32, bytes32) {
+        
+        // DST_prime = DST || I2OSP(len(DST),1); len(DST)=43 -> 0x2b
         bytes memory dstPrime = abi.encodePacked(DST, uint8(43));
 
+        // b_0 = H( Z_pad(64) || msg || I2OSP(128,2) || I2OSP(0,1) || DST_prime )
         bytes32 b0 = sha256(abi.encodePacked(
             new bytes(64), msg_, uint16(128), uint8(0), dstPrime
         ));
 
+        // b_1 = H( b_0 || I2OSP(1,1) || DST_prime )
+        // b_i = H( b_0 XOR b_{i-1} || I2OSP(i,1) || DST_prime )
         bytes32 b1 = sha256(abi.encodePacked(b0, uint8(1), dstPrime));
         bytes32 b2 = sha256(abi.encodePacked(b0 ^ b1, uint8(2), dstPrime));
         bytes32 b3 = sha256(abi.encodePacked(b0 ^ b2, uint8(3), dstPrime));
         bytes32 b4 = sha256(abi.encodePacked(b0 ^ b3, uint8(4), dstPrime));
 
+        // uniform_bytes = b_1 || b_2 || b_3 || b_4 (128 bytes)
         return (b1, b2, b3, b4);
     }
 
     function _modReduceFp(bytes memory base) internal view returns (bytes memory) {
+        // e_j = OS2IP(tv) mod p, via MODEXP(base, 1, p)
         (bool ok, bytes memory result) = MODEXP.staticcall(
             abi.encodePacked(
                 uint256(64), uint256(1), uint256(64),
