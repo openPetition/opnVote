@@ -61,17 +61,6 @@ export const modes = {
     none: "none",
 };
 
-// export const useTestStore = create(
-//     persist(
-//         (set, get) => ({
-//             test: 'keks',
-//             updateTest: () => set(() => ({ test: 'koks' }))
-//         }),
-//     ),
-//     {
-//         name: 'test-storage',
-//     }
-// );
 
 export const useOpnVoteStore = create(
     persist(

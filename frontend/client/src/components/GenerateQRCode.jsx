@@ -3,7 +3,7 @@ import { useState } from "react";
 import { QRCodeCanvas } from 'qrcode.react';
 import styles from '../styles/GenerateQRCode.module.css';
 import PropTypes from "prop-types";
-import { File, FileCheck, Copy, CopyCheck, FileImage } from "lucide-react";
+import { File, Copy, FileImage, CircleCheck } from "lucide-react";
 import { useTranslation } from "next-i18next";
 import { createPDF } from "@/save-pdf";
 import Button from './Button';
@@ -18,7 +18,6 @@ export default function GenerateQRCode(props) {
         downloadSubHeadline,
         downloadFilename,
         headimage,
-        saveButtonText,
         pdfQRtype,
         afterSaveFunction,
         saved,
@@ -34,7 +33,7 @@ export default function GenerateQRCode(props) {
     };
 
     const copiedAsText = () => {
-        navigator.clipboard.writeText(headline + ': ' + qrCodeString);
+        navigator.clipboard.writeText(downloadHeadline + ': ' + qrCodeString);
         setShowQRCodeCopied(true);
         afterSaveFunction(globalConst.saveType.CLIPBOARD);
         setTimeout(() => {
@@ -180,20 +179,24 @@ export default function GenerateQRCode(props) {
                     </div>
                     <div className={styles.buttonbox}>
                         <Button
-                            onClick={() => { copiedAsText() }}
+                            onClick={copiedAsText}
                             type={saved ? 'secondary' : 'primary'}
                             style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px', marginBottom: '10px' }}
                         >
                             {
                                 (savedAs?.includes(globalConst.saveType.CLIPBOARD))
                                     ?
-                                    <CopyCheck stroke={'#29b0cc'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
+                                    <CircleCheck stroke={'#29b0cc'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
                                     :
                                     <Copy stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
                             }
                             <div>
                                 {
-                                    (showQRCodeCopied) ? t("generateqrcode.copycode.successfull") : t("generateqrcode.copycode.text")
+                                    (showQRCodeCopied)
+                                        ?
+                                        <span className="op__font-op-grey-dark op__font-op-bold">{t("generateqrcode.copycode.successfull")}</span>
+                                        :
+                                        t("generateqrcode.copycode.text")
                                 }
                                 <br /><p className={styles.hint}>{t("generateqrcode.copycode.additionalhint")}</p>
                             </div>
@@ -208,12 +211,14 @@ export default function GenerateQRCode(props) {
                                 {
                                     (savedAs?.includes(globalConst.saveType.PDF))
                                         ?
-                                        <FileCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
+                                        <CircleCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
                                         :
                                         <File stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
                                 }
                             </div>
-                            {saveButtonText}
+                            {
+                                t("generateqrcode.saveas.pdf")
+                            }
                         </Button>
                         <canvas
                             id="canvas"
@@ -257,5 +262,4 @@ GenerateQRCode.propTypes = {
     downloadHeadline: PropTypes.string.isRequired,
     downloadSubHeadline: PropTypes.string,
     headimage: PropTypes.string.isRequired,
-    saveButtonText: PropTypes.string.isRequired,
 };

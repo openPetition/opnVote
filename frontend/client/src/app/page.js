@@ -44,7 +44,6 @@ export default function Home() {
 
         useEffect(() => {
             setIsPageHydrated(true);
-            console.log('hydration')
         }, []);
 
         return <>
@@ -53,10 +52,6 @@ export default function Home() {
             ) || <Loading loadingText={'loading'} />}
         </>;
     };
-
-    useEffect(() => {
-        console.log('page.js root');
-    }, []);
 
     return (
         <>

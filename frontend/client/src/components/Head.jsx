@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import Image from 'next/image';
 import styles from '../styles/Header.module.css';
-import { useOpnVoteStore, useTestStore } from "../opnVoteStore";
+import { useOpnVoteStore } from "../opnVoteStore";
 import { Trash2, Menu, X, Check, KeyRound, ReceiptText } from 'lucide-react';
 import { useTranslation } from 'next-i18next';
 import globalConst from "@/constants";
@@ -44,7 +44,6 @@ export default function Head() {
 
     const Showkey = ({ showStateIcons }) => {
         const { user } = useOpnVoteStore((state) => state);
-        // const { test } = useTestStore((state) => state);
 
         return (
             <>
@@ -77,7 +76,6 @@ export default function Head() {
                 <span className={`${showStateIcons ? 'op__display_none_small op__display_inline_wide_xl op__margin_standard_left' : 'op__margin_standard_left'}`}>
                     {t('common.electionsecret')}: &nbsp;
                 </span>
-                {/* {test} */}
                 {!user?.key ? (
                     <strong className={`${showStateIcons ? 'op__display_none_small op__display_inline_wide_xl' : ''}`}>{t('common.nothingset')}</strong>
                 ) : (

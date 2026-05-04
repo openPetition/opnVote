@@ -381,7 +381,6 @@ export default function Register() {
                                     downloadSubHeadline={voting.electionInformation.title}
                                     downloadFilename={t("register.generateqrcode.downloadFilename", { ELECTIONTITLE: electionTitle })}
                                     headimage="election-permit-no-whitespace"
-                                    saveButtonText={!voting.registerCodeSaved ? t("register.generateqrcode.savebuttontext") : t("register.generateqrcode.saveagainbuttontext")}
                                     pdfQRtype={globalConst.pdfType.ELECTIONPERMIT}
                                     qrCodeString={voting.registerCode}
                                     saved={voting.registerCodeSaved}
@@ -392,7 +391,6 @@ export default function Register() {
                                         ENDDATE: endDate
                                     }}
                                     afterSaveFunction={(type) => {
-                                        console.log(type);
                                         let registerCodeSavedAsLocal = voting.registerCodeSavedAs;
                                         !registerCodeSavedAsLocal.includes(type) && registerCodeSavedAsLocal.push(type);
                                         updateVoting({ initElectionPermit: false });
