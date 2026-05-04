@@ -204,7 +204,7 @@ export default function ScanUploadQRCode(props) {
                     <div className={styles.qrbg}>
                         <NextImage
                             priority
-                            src="/images/load-picture.svg"
+                            src="/images/load-string.svg"
                             height={60}
                             width={60}
                             alt=""
