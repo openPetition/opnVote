@@ -25,7 +25,7 @@ export default function GenerateQRCode(props) {
         pdfInformation,
     } = props;
     const { t } = useTranslation();
-    const [showQRCodeCopied, setShowQRCodeCopied] = useState(false);
+    const [showCodeStringCopied, setShowCodeStringCopied] = useState(false);
     const givePDF = () => {
         createPDF(qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, pdfQRtype, pdfInformation);
         afterSaveFunction(globalConst.saveType.PDF);
@@ -33,10 +33,10 @@ export default function GenerateQRCode(props) {
 
     const copiedAsText = () => {
         navigator.clipboard.writeText(downloadHeadline + ': ' + qrCodeString);
-        setShowQRCodeCopied(true);
+        setShowCodeStringCopied(true);
         afterSaveFunction(globalConst.saveType.CLIPBOARD);
         setTimeout(() => {
-            setShowQRCodeCopied(false);
+            setShowCodeStringCopied(false);
         }, 4000);
     }
 
@@ -153,18 +153,18 @@ export default function GenerateQRCode(props) {
                         <Button
                             onClick={copiedAsText}
                             type={saved ? 'secondary' : 'primary'}
-                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px', marginBottom: '10px' }}
+                            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', gap: '10px', marginBottom: '10px' }}
                         >
                             {
                                 (savedAs?.includes(globalConst.saveType.CLIPBOARD))
                                     ?
-                                    <CircleCheck stroke={'#29b0cc'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
+                                    <CircleCheck stroke={'#29b0cc'} strokeWidth={'3'} width={30} />
                                     :
-                                    <Copy stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={30} style={{ marginTop: '20px' }} />
+                                    <Copy stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={30} />
                             }
                             <div>
                                 {
-                                    (showQRCodeCopied)
+                                    (showCodeStringCopied)
                                         ?
                                         <span className="op__font-op-grey-dark op__font-op-bold">{t("generateqrcode.copycode.successfull")}</span>
                                         :

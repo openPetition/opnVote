@@ -32,6 +32,7 @@ html {
 
 	--op__roboto: 'op__roboto';
 	--op__roboto--slab: 'op__roboto--slab';
+	--op-font-size-small: 0.875rem;
 	--op-font-size-standard: 1rem/1.4375rem;
 	--op-font-size-bigger: 1.125rem/1.5rem;
 
