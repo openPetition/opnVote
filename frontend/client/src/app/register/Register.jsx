@@ -367,6 +367,7 @@ export default function Register() {
                                     subheadline={t("register.uploadqrcode.subheadline")}
                                     uploadSubHeadline={t("register.uploadqrcode.uploadSubHeadline")}
                                     scanSubHeadline={t("register.uploadqrcode.scanSubHeadline")}
+                                    insertAsTextSubHeadline={t("register.uploadqrcode.insertAsTextSubHeadline")}
                                     onResult={(res) => updateUserKey(res)}
                                 />
                             </>

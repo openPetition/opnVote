@@ -16,7 +16,7 @@ let html5QrCode;
 
 export default function ScanUploadQRCode(props) {
     const { t } = useTranslation();
-    const { headline, subheadline, uploadHeadline, uploadSubHeadline, scanSubHeadline } = props;
+    const { headline, subheadline, uploadHeadline, uploadSubHeadline, scanSubHeadline, insertAsTextSubHeadline } = props;
 
     const fileRef = useRef(null);
     const [showStopScanBtn, setShowStopScanBtn] = useState(false);
@@ -57,14 +57,12 @@ export default function ScanUploadQRCode(props) {
     };
 
     const confirmQRCodeText = () => {
-        console.log(inputQRCodeText);
-        const incomingcode = input.lastIndexOf(':');
-        const code = index === -1 ? input : input.substring(index + 1);
-        if (code.length > 50) {
-            props.onResult()
+        const index = inputQRCodeText.lastIndexOf(':');
+        const code = index === -1 ? inputQRCodeText : inputQRCodeText.substring(index + 1);
+        const cleanCode = code.replace(/\s+/g, '');
+        if (cleanCode.length > 10) {
+            props.onResult(cleanCode)
         }
-        // Entfernt überflüssige Leerzeichen am Anfang und Ende
-        return code.trim();
     }
 
     const extractWithConvert = async (file) => {
@@ -213,8 +211,8 @@ export default function ScanUploadQRCode(props) {
                         />
                     </div>
                     <div>
-                        <h3>{uploadHeadline ? uploadHeadline : t('scanuploadqrcode.image.headline')}</h3>
-                        <p>{uploadSubHeadline}</p>
+                        <h3>{uploadHeadline ? uploadHeadline : t('scanuploadqrcode.text.headline')}</h3>
+                        <p>{insertAsTextSubHeadline}</p>
                     </div>
                 </div>
                 <div className={styles.innerbox}>
@@ -224,7 +222,7 @@ export default function ScanUploadQRCode(props) {
                             type="primary_light"
                             className={isQrTextInputActivated ? 'op__display-none' : 'op__display-block'}
                         >
-                            {t('scanuploadqrcode.image.select')}
+                            {t('scanuploadqrcode.insertText')}
                         </Button>
                     )}
 
@@ -237,13 +235,13 @@ export default function ScanUploadQRCode(props) {
                                 rows="4"
                                 value={inputQRCodeText}
                                 onChange={(e) => setInputQRCodeText(e.target.value)}
-                                placeholder="insert code here"
+                                placeholder={t('scanuploadqrcode.textarea.inputcodehere')}
                             />
                             <Button
                                 onClick={confirmQRCodeText}
                                 type="primary_light"
                                 className={isQrTextInputActivated ? 'op__display-none' : 'op__display-block'}
-                            >bestätigen</Button>
+                            >{t('common.confirm')}</Button>
                         </>
                     )}
                 </div>

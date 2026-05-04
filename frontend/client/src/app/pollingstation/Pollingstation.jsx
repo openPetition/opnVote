@@ -296,6 +296,7 @@ export default function Pollingstation() {
                             subheadline={t("pollingstation.uploadqrcode.subheadline")}
                             uploadSubHeadline={t("pollingstation.uploadqrcode.uploadSubHeadline")}
                             scanSubHeadline={t("pollingstation.uploadqrcode.scanSubHeadline")}
+                            insertAsTexSubHeadline={t("pollingstation.uploadqrcode.InsertAsTextSubHeadline")}
                             onResult={(res) => {
                                 updateVoting({ registerCode: res });
                             }}
