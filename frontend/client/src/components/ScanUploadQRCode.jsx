@@ -22,6 +22,9 @@ export default function ScanUploadQRCode(props) {
     const [showStopScanBtn, setShowStopScanBtn] = useState(false);
     const [showScanNotification, setShowScanNotification] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [inputQRCodeText, setInputQRCodeText] = useState('');
+    const [isQrTextInputActivated, setIsQrTextInputActivated] = useState(false);
+
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -52,6 +55,17 @@ export default function ScanUploadQRCode(props) {
         }
         setIsLoading(true);
     };
+
+    const confirmQRCodeText = () => {
+        console.log(inputQRCodeText);
+        const incomingcode = input.lastIndexOf(':');
+        const code = index === -1 ? input : input.substring(index + 1);
+        if (code.length > 50) {
+            props.onResult()
+        }
+        // Entfernt überflüssige Leerzeichen am Anfang und Ende
+        return code.trim();
+    }
 
     const extractWithConvert = async (file) => {
         try {
@@ -186,6 +200,55 @@ export default function ScanUploadQRCode(props) {
                 <h3>{headline}</h3>
                 {subheadline}
             </div>
+
+            <div className="op__outerbox_grey op__margin_standard_20_top_bottom">
+                <div className={styles.header}>
+                    <div className={styles.qrbg}>
+                        <NextImage
+                            priority
+                            src="/images/load-picture.svg"
+                            height={60}
+                            width={60}
+                            alt=""
+                        />
+                    </div>
+                    <div>
+                        <h3>{uploadHeadline ? uploadHeadline : t('scanuploadqrcode.image.headline')}</h3>
+                        <p>{uploadSubHeadline}</p>
+                    </div>
+                </div>
+                <div className={styles.innerbox}>
+                    {!isQrTextInputActivated && (
+                        <Button
+                            onClick={() => setIsQrTextInputActivated(true)}
+                            type="primary_light"
+                            className={isQrTextInputActivated ? 'op__display-none' : 'op__display-block'}
+                        >
+                            {t('scanuploadqrcode.image.select')}
+                        </Button>
+                    )}
+
+                    {isQrTextInputActivated && (
+                        <>
+                            <textarea
+                                className={styles.qrinput}
+                                type="text"
+                                name="keks"
+                                rows="4"
+                                value={inputQRCodeText}
+                                onChange={(e) => setInputQRCodeText(e.target.value)}
+                                placeholder="insert code here"
+                            />
+                            <Button
+                                onClick={confirmQRCodeText}
+                                type="primary_light"
+                                className={isQrTextInputActivated ? 'op__display-none' : 'op__display-block'}
+                            >bestätigen</Button>
+                        </>
+                    )}
+                </div>
+            </div>
+
             <div className="op__outerbox_grey op__margin_standard_20_top_bottom">
                 <div className={styles.header}>
                     <div className={styles.qrbg}>
