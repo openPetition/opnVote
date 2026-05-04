@@ -69,4 +69,5 @@
 
 .hint {
     font-size: var(--op-font-size-small);
+	text-transform: none;
 }
