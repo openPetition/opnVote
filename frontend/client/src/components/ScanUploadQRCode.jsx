@@ -240,8 +240,14 @@ export default function ScanUploadQRCode(props) {
                             <Button
                                 onClick={confirmQRCodeText}
                                 type="primary_light"
-                                className={isQrTextInputActivated ? 'op__display-none' : 'op__display-block'}
                             >{t('common.confirm')}</Button>
+                            <Button
+                                onClick={() => setIsQrTextInputActivated(false)}
+                                type="secondary"
+                                style={{ marginLeft: '10px', padding: '.25rem' }}
+                            >
+                                {t('common.abort')}
+                            </Button>
                         </>
                     )}
                 </div>
