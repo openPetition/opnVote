@@ -381,22 +381,27 @@ export default function Register() {
                                     downloadSubHeadline={voting.electionInformation.title}
                                     downloadFilename={t("register.generateqrcode.downloadFilename", { ELECTIONTITLE: electionTitle })}
                                     headimage="election-permit-no-whitespace"
-                                    saveButtonText={!voting.registerCodeSaved ? t("register.generateqrcode.savebuttontext") : t("register.generateqrcode.saveagainbuttontext")}
                                     pdfQRtype={globalConst.pdfType.ELECTIONPERMIT}
                                     qrCodeString={voting.registerCode}
                                     saved={voting.registerCodeSaved}
+                                    savedAs={voting.registerCodeSavedAs}
                                     pdfInformation={{
                                         ELECTION_URL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
                                         STARTDATE: startDate,
                                         ENDDATE: endDate
                                     }}
-                                    afterSaveFunction={() => {
+                                    afterSaveFunction={(type) => {
+                                        let registerCodeSavedAsLocal = voting.registerCodeSavedAs;
+                                        !registerCodeSavedAsLocal.includes(type) && registerCodeSavedAsLocal.push(type);
                                         updateVoting({ initElectionPermit: false });
                                         setRegisterState({
                                             ...registerState,
                                             showSaveRegisterQRSuccess: true
                                         });
-                                        updateVoting({ registerCodeSaved: true });
+                                        updateVoting({
+                                            registerCodeSaved: true,
+                                            registerCodeSavedAs: registerCodeSavedAsLocal
+                                        });
                                     }}
                                 />
 

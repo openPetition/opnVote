@@ -22,7 +22,7 @@ import Head from "@/components/Head";
 
 export default function Home() {
     const { t } = useTranslation();
-    const { page } = useOpnVoteStore((state) => state);
+    const page = useOpnVoteStore((state) => state.page);
 
     const ErrorReturn = () => {
         return (

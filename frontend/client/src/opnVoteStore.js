@@ -40,6 +40,7 @@ export const emptyVoting = {
     jwt: '',
     registerCode: '',
     registerCodeSaved: false,
+    registerCodeSavedAs: [],
     vote: {},
     revote: {},
     userCredential: '',
@@ -50,6 +51,7 @@ export const emptyVoting = {
 export const emptyUser = {
     key: '',
     keySaved: false,
+    keySavedAs: [],
     initKey: false,
 };
 
@@ -58,6 +60,7 @@ export const modes = {
     push: "push",
     none: "none",
 };
+
 
 export const useOpnVoteStore = create(
     persist(
@@ -71,14 +74,20 @@ export const useOpnVoteStore = create(
                 current: null
             },
             clearUser: () => set(() => ({ user: emptyUser })),
-            updateUserKey: (key, keySaved, initKey) => set(() => ({
+            updateUserKey: (key, keySaved) => set(() => ({
                 user: {
                     ...get().user,
                     key: key,
                     keySaved: keySaved,
-                    initKey: initKey
                 }
             })),
+            updateUser: (userData) =>
+                set((state) => ({
+                    user: {
+                        ...state.user,
+                        ...userData,
+                    },
+                })),
             clear: () => set((state) => ({
                 user: emptyUser,
                 voting: {
