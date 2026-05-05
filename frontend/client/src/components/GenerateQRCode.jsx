@@ -241,7 +241,7 @@ export default function GenerateQRCode(props) {
                                 }
                             </div>
                             <div>
-                                Als Bild speichern
+                                {t("generateqrcode.saveas.image")}
                             </div>
                         </Button>
 

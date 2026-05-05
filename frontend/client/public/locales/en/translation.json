@@ -54,6 +54,7 @@
     "footer.logo.text": "A service of",
     "footer.loveforopnvote.text": "Democratic online elections. No paper, no postage – vote securely from home.",
     "footer.version": "Version: ",
+    "generateqrcode.saveas.image": "Save as image",
     "generateqrcode.saveas.pdf": "Save as PDF",
     "generateqrcode.copycode.text": "Copy as text",
     "generateqrcode.copycode.successfull": "Successfully copied!",

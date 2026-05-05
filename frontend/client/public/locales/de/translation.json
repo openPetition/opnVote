@@ -54,6 +54,7 @@
     "footer.logo.text": "Ein Service von",
     "footer.loveforopnvote.text": "Demokratische Online-Abstimmungen. Kein Papier, kein Porto - sicher wählen und abstimmen von zu Hause.",
     "footer.version": "Version: ",
+    "generateqrcode.saveas.image": "Als Bild speichern",
     "generateqrcode.saveas.pdf": "Als PDF speichern",
     "generateqrcode.copycode.text": "Als Text kopieren",
     "generateqrcode.copycode.successfull": "Erfolgreich kopiert!",
