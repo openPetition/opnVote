@@ -237,7 +237,7 @@ export default function GenerateQRCode(props) {
                                         ?
                                         <FileImage stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
                                         :
-                                        <FileImage stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
+                                        <CircleCheck stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
                                 }
                             </div>
                             <div>
