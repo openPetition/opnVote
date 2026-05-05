@@ -105,7 +105,7 @@ export default function GenerateQRCode(props) {
         link.download = downloadFilename + ".png";
         link.href = textCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
         link.click();
-        afterSaveFunction();
+        afterSaveFunction(globalConst.saveType.IMAGE);
     };
 
     /**Comment Out: Print not used in the Moment
@@ -235,9 +235,9 @@ export default function GenerateQRCode(props) {
                                 {
                                     (savedAs?.includes(globalConst.saveType.IMAGE))
                                         ?
-                                        <FileImage stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
+                                        <CircleCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
                                         :
-                                        <CircleCheck stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
+                                        <FileImage stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
                                 }
                             </div>
                             <div>
