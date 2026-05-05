@@ -40,9 +40,9 @@ export default function ProgressBar({activeStep}) {
 
     const visiblePhases = phases.filter(p => p.key !== "readyToVote");
 
-     const progress = globalConst.progressMapping[activeStep] ?? 0;
+    const progress = globalConst.progressMapping[activeStep] ?? 0;
 
-     const nothing = (<div></div>);
+    const nothing = (<div></div>);
 
     const getCurrentPhaseKey = (step) => {
         return phases.find((phase) =>
