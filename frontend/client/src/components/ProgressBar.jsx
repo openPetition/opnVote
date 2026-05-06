@@ -1,10 +1,12 @@
-import { useState } from "react";
 import styles from '../styles/ProgressBar.module.css';
 import globalConst from "@/constants";
 import PhaseIcon from "./PhaseIcon";
+import { useTranslation, Trans } from "next-i18next";
 
 
 export default function ProgressBar({activeStep}) {
+    const { t } = useTranslation();
+
     const arrow = (
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="10" viewBox="0 0 22 10">
             <path id="Pfeil" d="M25,3.3l-9.5,9.4a2.052,2.052,0,0,1-2.9,0L3,3.3" transform="translate(-3 -3.3)" fill="#efefef"/>
@@ -88,7 +90,7 @@ export default function ProgressBar({activeStep}) {
                         {index < visiblePhases.length - 1 && (
                             <div className={styles.wrapperFlex}>
                                 <span className={styles.percentage}>
-                                    {progress}% von 100%
+                                    {progress}% {t('progressbar.text')} 100%
                                 </span>
 
                                 <div className={styles.line}>

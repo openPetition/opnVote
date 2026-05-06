@@ -90,6 +90,7 @@
     "navigation.point.electiondocs": "My voting documents",
     "navigation.point.faq": "FAQ",
     "navigation.point.glossary": "glossary",
+    "progressbar.text": "from",
     "overview.box.ballot.active": "You can create your election permit until {{REGISTEREND, date}}.",
     "overview.box.ballot.button.create": "register",
     "overview.box.ballot.button.load": "load",
