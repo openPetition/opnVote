@@ -44,13 +44,8 @@ export default function ProgressBar({activeStep}) {
 
     const nothing = (<div></div>);
 
-    const getCurrentPhaseKey = (step) => {
-        return phases.find((phase) =>
-            phase.steps.includes(step)
-        )?.key;
-    };
+    const currentPhaseKey = phases.find((phase) => phase.steps.includes(activeStep))?.key;
 
-    const currentPhaseKey = getCurrentPhaseKey(activeStep);
     const showArrow = (phaseKey) => {
         if (phaseKey == "key") {
             return currentPhaseKey == "key";
