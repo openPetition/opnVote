@@ -30,7 +30,7 @@ export default function CreateSecret() {
         const createdSecret = await concatTokenAndRForQR(masterTokenAndR.masterToken, masterTokenAndR.masterR);
         await delay(1000); // one second for loading the key
         if (createdSecret) {
-            updateUserKey(createdSecret, false, true);
+            updateUserKey(createdSecret, false);
         }
     }
 

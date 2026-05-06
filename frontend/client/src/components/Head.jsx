@@ -76,7 +76,6 @@ export default function Head() {
                 <span className={`${showStateIcons ? 'op__display_none_small op__display_inline_wide_xl op__margin_standard_left' : 'op__margin_standard_left'}`}>
                     {t('common.electionsecret')}: &nbsp;
                 </span>
-
                 {!user?.key ? (
                     <strong className={`${showStateIcons ? 'op__display_none_small op__display_inline_wide_xl' : ''}`}>{t('common.nothingset')}</strong>
                 ) : (

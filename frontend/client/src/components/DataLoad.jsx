@@ -23,7 +23,7 @@ export default function DataLoad() {
     useEffect(() => {
         const onHashChange = (event) => {
             const fragment = window.location.hash.substring(1) || '';
-            if (Object.values(globalConst.pages).includes(fragment) ) {
+            if (Object.values(globalConst.pages).includes(fragment)) {
                 updatePage({ current: fragment }, modes.none);
             }
         };
@@ -49,7 +49,6 @@ export default function DataLoad() {
         const electionIdParam = queryParameters.get("id");
         const fragment = window.location.hash.substring(1) || '';
         const jwt = queryParameters.get("jwt") || '';
-
         if (electionIdParam && !isNaN(electionIdParam)) {
             setLocalState({
                 ...localState,
@@ -83,7 +82,7 @@ export default function DataLoad() {
             let election = dataElection.election;
             if (election.id == 15) {
                 // hard coded end time, since the graphql data is temporarily outdated
-                election = {...dataElection.election, votingEndTime: "1761692399"};
+                election = { ...dataElection.election, votingEndTime: "1761692399" };
             }
             setLocalState({
                 ...localState,
@@ -122,6 +121,7 @@ export default function DataLoad() {
                 let targetPage = localState.fragment && Object.values(globalConst.pages).includes(localState.fragment)
                     ? localState.fragment
                     : globalConst.pages.OVERVIEW;
+
                 updatePage({ current: targetPage });
             }
 
@@ -145,7 +145,6 @@ export default function DataLoad() {
             };
         }
     }, [localState.updatePage]);
-
     useEffect(() => {
         window.scroll(0, 0);
     }, [page.current]);

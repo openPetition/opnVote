@@ -32,6 +32,7 @@ html {
 
 	--op__roboto: 'op__roboto';
 	--op__roboto--slab: 'op__roboto--slab';
+	--op-font-size-small: 0.875rem;
 	--op-font-size-standard: 1rem/1.4375rem;
 	--op-font-size-bigger: 1.125rem/1.5rem;
 
@@ -113,6 +114,14 @@ h4 {
 
 hr {
 	border-top: 1px solid var(--op-grey-dark);
+}
+
+.op__font-op-grey-dark {
+	color: var(--op-grey-dark);
+}
+
+.op__font-op-bold {
+	font-weight: bold;
 }
 
 hr:last-child {

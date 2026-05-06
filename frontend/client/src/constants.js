@@ -57,6 +57,11 @@ const globalConst = {
         'VOTINGKEY': 'votingkey',
         'ELECTIONPERMIT': 'electionpermit',
     },
+    saveType: {
+        'PDF': 'pdf',
+        'IMAGE': 'image',
+        'CLIPBOARD': 'clipboard',
+    }
 };
 
 export default globalConst;
