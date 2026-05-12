@@ -16,7 +16,7 @@ let html5QrCode;
 
 export default function ScanUploadQRCode(props) {
     const { t } = useTranslation();
-    const { headline, subheadline, uploadHeadline, uploadSubHeadline, scanSubHeadline, insertAsTextSubHeadline, insertAsTextPlaceHolder } = props;
+    const { headline, subheadline, uploadHeadline, uploadSubHeadline, scanSubHeadline, insertAsTextSubHeadline, insertAsTextPlaceholder } = props;
 
     const fileRef = useRef(null);
     const [showStopScanBtn, setShowStopScanBtn] = useState(false);
@@ -235,7 +235,7 @@ export default function ScanUploadQRCode(props) {
                                 rows="4"
                                 value={inputQRCodeText}
                                 onChange={(e) => setInputQRCodeText(e.target.value)}
-                                placeholder={insertAsTextPlaceHolder}
+                                placeholder={insertAsTextPlaceholder}
                             />
                             <Button
                                 onClick={confirmQRCodeText}
