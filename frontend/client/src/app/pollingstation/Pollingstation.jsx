@@ -5,7 +5,6 @@ import styles from "./styles/Pollingstation.module.css";
 import Notification from "@/components/Notification";
 import Button from '@/components/Button';
 import Headline from "@/components/Headline";
-import HtmlQRCodePlugin from "@/components/ScanUploadQRCode";
 import { getVoteCastsData } from '../../service-graphql';
 import { useTranslation } from 'next-i18next';
 import Config from "../../../next.config.mjs";
@@ -16,6 +15,7 @@ import Modal from "@/components/Modal";
 import ElectionTimeInfo from "@/components/ElectionTimeInfo";
 import BallotPaper from "./components/BallotPaper";
 import { checkBallot } from "@/util";
+import ScanUploadQRCode from "@/components/ScanUploadQRCode";
 
 export default function Pollingstation() {
     const { voting, updateVoting, updatePage } = useOpnVoteStore((state) => state);
@@ -291,12 +291,13 @@ export default function Pollingstation() {
             <div className="op__contentbox_760 op__center-align">
                 {pollingStationState.showVotingSlipUpload && (
                     <div className="op__margin_2_top">
-                        <HtmlQRCodePlugin
+                        <ScanUploadQRCode
                             headline={t("pollingstation.uploadqrcode.headline")}
                             subheadline={t("pollingstation.uploadqrcode.subheadline")}
                             uploadSubHeadline={t("pollingstation.uploadqrcode.uploadSubHeadline")}
                             scanSubHeadline={t("pollingstation.uploadqrcode.scanSubHeadline")}
-                            insertAsTexSubHeadline={t("pollingstation.uploadqrcode.InsertAsTextSubHeadline")}
+                            insertAsTexSubHeadline={t("pollingstation.uploadqrcode.insertAsTextSubHeadline")}
+                            insertAsTextPlaceHolder={t("pollingstation.uploadqrcode.insertAsTextPlaceHolder")}
                             onResult={(res) => {
                                 updateVoting({ registerCode: res });
                             }}
