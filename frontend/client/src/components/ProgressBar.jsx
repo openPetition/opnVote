@@ -90,7 +90,7 @@ export default function ProgressBar({activeStep}) {
                         {index < visiblePhases.length - 1 && (
                             <div className={styles.wrapperFlex}>
                                 <span className={styles.percentage}>
-                                    {progress}% {t('progressbar.text')} 100%
+                                    {t('progressbar.text', { PROGRESS: progress})}
                                 </span>
 
                                 <div className={styles.line}>
