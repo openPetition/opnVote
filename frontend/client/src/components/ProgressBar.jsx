@@ -2,7 +2,7 @@ import styles from '../styles/ProgressBar.module.css';
 import globalConst from "@/constants";
 import PhaseIcon from "./PhaseIcon";
 import { useTranslation, Trans } from "next-i18next";
-
+import { Fragment } from 'react';
 
 export default function ProgressBar({activeStep}) {
     const { t } = useTranslation();
@@ -78,7 +78,7 @@ export default function ProgressBar({activeStep}) {
                 const isBlue = isPhaseBlue(phase.key);
 
                 return (
-                    <>
+                    <Fragment key={phase.key}>
                         <div className={styles.icon}>
                             {isActive ? arrow : nothing}
                             <PhaseIcon
@@ -101,10 +101,10 @@ export default function ProgressBar({activeStep}) {
                                 </div>
                             </div>
                         )}
-                    </>
-                )
+                    </Fragment>
+                );
             })}
             <div className={styles.autoSpace} />
         </div>
-    )
+    );
 };
