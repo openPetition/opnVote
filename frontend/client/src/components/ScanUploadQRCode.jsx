@@ -16,7 +16,17 @@ let html5QrCode;
 
 export default function ScanUploadQRCode(props) {
     const { t } = useTranslation();
-    const { headline, subheadline, uploadHeadline, uploadSubHeadline, scanSubHeadline, insertAsTextSubHeadline, insertAsTextPlaceholder } = props;
+    const {
+        headline,
+        subheadline,
+        uploadHeadline,
+        uploadSubHeadline,
+        scanSubHeadline,
+        insertAsTextHeadline,
+        insertAsTextSubHeadline,
+        insertAsTextPlaceholder,
+        insertAsTextButton,
+    } = props;
 
     const fileRef = useRef(null);
     const [showStopScanBtn, setShowStopScanBtn] = useState(false);
@@ -211,7 +221,7 @@ export default function ScanUploadQRCode(props) {
                         />
                     </div>
                     <div>
-                        <h3>{uploadHeadline ? uploadHeadline : t('scanuploadqrcode.text.headline')}</h3>
+                        <h3>{insertAsTextHeadline}</h3>
                         <p>{insertAsTextSubHeadline}</p>
                     </div>
                 </div>
@@ -222,7 +232,7 @@ export default function ScanUploadQRCode(props) {
                             type="primary_light"
                             className={isQrTextInputActivated ? 'op__display-none' : 'op__display-block'}
                         >
-                            {t('scanuploadqrcode.insertText')}
+                            {insertAsTextButton}
                         </Button>
                     )}
 

@@ -67,6 +67,8 @@ export default function LoadBallot() {
                     scanSubHeadline={t("pollingstation.uploadqrcode.scanSubHeadline")}
                     insertAsTextSubHeadline={t("pollingstation.uploadqrcode.insertAsTextSubHeadline")}
                     insertAsTextPlaceholder={t("pollingstation.uploadqrcode.insertAsTextPlaceholder")}
+                    insertAsTextHeadline={t("pollingstation.uploadqrcode.insertAsTextHeadline")}
+                    insertAsTextButton={t("pollingstation.uploadqrcode.insertAsTextButton")}
                     uploadHeadline={t("pollingstation.uploadheadline.ballot")}
                     onResult={(res) => {
                         setUploadedBallotCode(res);
