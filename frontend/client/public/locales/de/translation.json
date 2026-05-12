@@ -264,8 +264,6 @@
     "scanuploadqrcode.image.headline": "QR-Code als PDF laden",
     "scanuploadqrcode.image.instruction": "Bild-Datei mit QR-Code auswählen",
     "scanuploadqrcode.image.select": "PDF auswählen",
-    "scanuploadqrcode.insertText": "Sicherheits-Schlüssel jetzt eingeben",
-    "scanuploadqrcode.text.headline": "Als Text eingeben oder einfügen",
     "secret.generateqrcode.downloadFilename": "opnVote_sicherheitsschluessel_{{CREATIONDATE, date}}",
     "secret.generateqrcode.downloadHeadline": "Sicherheits-Schlüssel",
     "secret.generateqrcode.headline": "Speichern Sie jetzt Ihren Sicherheits-Schlüssel",

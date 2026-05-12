@@ -263,8 +263,6 @@
     "scanuploadqrcode.image.headline": "Load QR code as PDF",
     "scanuploadqrcode.image.instruction": "Select the PDF containing the QR code",
     "scanuploadqrcode.image.select": "Select PDF",
-    "scanuploadqrcode.insertText": "Insert security key now",
-    "scanuploadqrcode.text.headline": "Insert as text",
     "secret.generateqrcode.downloadFilename": "opnVote_securitykey_{{CREATIONDATE, date}}",
     "secret.generateqrcode.downloadHeadline": "Security Key",
     "secret.generateqrcode.headline": "Save security key",
