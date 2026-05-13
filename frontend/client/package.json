@@ -10,7 +10,8 @@
     "deploy-staging": "cp .env.staging .env.production.local && ./make-version-string.sh && next build && scp -r dist/* openpetition@web-01.openpetition.de:/var/www/openpetition/client-test.opn.vote/",
     "start": "next start",
     "lint": "next lint",
-    "test": "./node_modules/mocha/bin/mocha.js"
+    "test": "./node_modules/mocha/bin/mocha.js",
+    "clean": "rm -rf ./node_modules ../../votingSystem/node_modules ./dist ../../votingSystem/dist"
   },
   "dependencies": {
     "@apollo/client": "^3.9.11",

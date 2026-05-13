@@ -55,7 +55,6 @@ export default function LoadBallot() {
             <div className="op__margin_2_bottom">
                 <Headline
                     title={t("loadballot.upload.title")}
-                    progressBarStep={globalConst.progressBarStep.vote}
                 />
             </div>
             <main className="op__contentbox_760">
