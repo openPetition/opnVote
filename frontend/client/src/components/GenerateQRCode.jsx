@@ -3,7 +3,7 @@ import { useState } from "react";
 import { QRCodeCanvas } from 'qrcode.react';
 import styles from '../styles/GenerateQRCode.module.css';
 import PropTypes from "prop-types";
-import { File, Copy, CircleCheck } from "lucide-react";
+import { File, Copy, FileImage, CircleCheck } from "lucide-react";
 import { useTranslation } from "next-i18next";
 import { createPDF } from "@/save-pdf";
 import Button from './Button';
@@ -40,6 +40,39 @@ export default function GenerateQRCode(props) {
         }, 4000);
     }
 
+    const wordwrapAndPositionText = (context, text, x, y, lineHeight, fitWidth) => {
+        let words = text.split(' ');
+        let currentLine = 0;
+        let idx = 1;
+
+        //short: we go through the wordlist and measure how many words would fit into the lines
+        while (words.length > 0 && idx <= words.length) {
+            var str = words.slice(0, idx).join(' ');
+            var wordsPixelWidth = context.measureText(str).width;
+
+            //if this is one word too much
+            if (wordsPixelWidth > fitWidth) {
+                //just in case one word is very long.. otherwise it wont end
+                if (idx == 1) {
+                    idx = 2;
+                }
+
+                context.fillText(words.slice(0, idx - 1).join(' '), x, y + (lineHeight * currentLine));
+                currentLine++;
+                words = words.splice(idx - 1);
+                idx = 1;
+            } else {
+                //means one more word might fit into the line
+                idx++;
+            }
+        }
+
+        //still word(s) left
+        if (words.length > 0) {
+            context.fillText(words.join(' '), x, y + (lineHeight * currentLine));
+        }
+    };
+
     const DownloadAsPng = () => {
         const textCanvas = document.getElementById("canvas");
         const textCanvasContext = textCanvas.getContext("2d");
@@ -63,7 +96,6 @@ export default function GenerateQRCode(props) {
             moveQRCodeDownPixel = 150;
             //textCanvasContext.fillText(downloadSubHeadline, 100, 80);
         }
-
         const qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
 
         textCanvasContext.drawImage(qrCodeCanvasContext, 40, moveQRCodeDownPixel, 220, 220);
@@ -72,7 +104,7 @@ export default function GenerateQRCode(props) {
         link.download = downloadFilename + ".png";
         link.href = textCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
         link.click();
-        afterSaveFunction();
+        afterSaveFunction(globalConst.saveType.IMAGE);
     };
 
     /**Comment Out: Print not used in the Moment
@@ -130,7 +162,7 @@ export default function GenerateQRCode(props) {
                                 fgColor={"#000000"}
                                 level={"Q"}
                                 id="qrCodeCanvas"
-                                style={{ margin: "1rem auto", fontweight: "bold", display: "none" }}
+                                style={{ display: "none" }}
                                 imageSettings={
                                     {
                                         src: `/images/icon-${headimage}.svg`,
@@ -139,13 +171,6 @@ export default function GenerateQRCode(props) {
                                         excavate: true
                                     }
                                 }
-                            />
-
-                            <canvas
-                                id="canvas"
-                                width="300"
-                                height="400"
-                                style={{ display: "none" }}
                             />
                         </div>
                     </div>
@@ -170,14 +195,14 @@ export default function GenerateQRCode(props) {
                                         :
                                         t("generateqrcode.copycode.text")
                                 }
-                                <br /><p className={styles.hint}>{t("generateqrcode.copycode.additionalhint")}</p>
+                                <br /><p className={styles.hint}>{t("generateqrcode.copycode.additionalHint")}</p>
                             </div>
                         </Button>
 
                         <Button
                             onClick={givePDF}
                             type={saved ? 'secondary' : 'primary'}
-                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }}
+                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px', marginBottom: '10px' }}
                         >
                             <div style={{ alignSelf: 'center' }}>
                                 {
@@ -191,6 +216,30 @@ export default function GenerateQRCode(props) {
                             {
                                 t("generateqrcode.saveas.pdf")
                             }
+                        </Button>
+                        <canvas
+                            id="canvas"
+                            width="300"
+                            height="400"
+                            style={{ display: "none" }}
+                        />
+                        <Button
+                            onClick={DownloadAsPng}
+                            type={saved ? 'secondary' : 'primary'}
+                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }}
+                        >
+                            <div style={{ alignSelf: 'center' }}>
+                                {
+                                    (savedAs?.includes(globalConst.saveType.IMAGE))
+                                        ?
+                                        <CircleCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
+                                        :
+                                        <FileImage stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
+                                }
+                            </div>
+                            <div>
+                                {t("generateqrcode.saveas.image")}
+                            </div>
                         </Button>
 
                     </div>
