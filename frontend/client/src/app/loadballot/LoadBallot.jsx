@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import HtmlQRCodePlugin from "@/components/ScanUploadQRCode";
+import ScanUploadQRCode from "@/components/ScanUploadQRCode";
 import Headline from "@/components/Headline";
 import { qrToElectionCredentials, validateCredentials } from "votingsystem";
 import { useTranslation } from 'next-i18next';
@@ -59,11 +59,15 @@ export default function LoadBallot() {
             </div>
             <main className="op__contentbox_760">
 
-                <HtmlQRCodePlugin
+                <ScanUploadQRCode
                     headline={t("pollingstation.uploadqrcode.headline")}
                     subheadline={t("pollingstation.uploadqrcode.subheadline")}
                     uploadSubHeadline={t("pollingstation.uploadqrcode.uploadSubHeadline")}
                     scanSubHeadline={t("pollingstation.uploadqrcode.scanSubHeadline")}
+                    insertAsTextSubHeadline={t("pollingstation.uploadqrcode.insertAsTextSubHeadline")}
+                    insertAsTextPlaceholder={t("pollingstation.uploadqrcode.insertAsTextPlaceholder")}
+                    insertAsTextHeadline={t("pollingstation.uploadqrcode.insertAsTextHeadline")}
+                    insertAsTextButton={t("pollingstation.uploadqrcode.insertAsTextButton")}
                     uploadHeadline={t("pollingstation.uploadheadline.ballot")}
                     onResult={(res) => {
                         setUploadedBallotCode(res);

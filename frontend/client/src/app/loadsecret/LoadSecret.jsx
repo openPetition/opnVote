@@ -34,6 +34,10 @@ export default function LoadSecret() {
                         subheadline={t("register.uploadqrcode.subheadline")}
                         uploadSubHeadline={t("register.uploadqrcode.uploadSubHeadline")}
                         scanSubHeadline={t("register.uploadqrcode.scanSubHeadline")}
+                        insertAsTextSubHeadline={t("register.uploadqrcode.insertAsTextSubHeadline")}
+                        insertAsTextPlaceholder={t("register.uploadqrcode.insertAsTextPlaceholder")}
+                        insertAsTextHeadline={t("register.uploadqrcode.insertAsTextHeadline")}
+                        insertAsTextButton={t("register.uploadqrcode.insertAsTextButton")}
                         onResult={(res) => updateUserKey(res, true)}
                     />
                     <Button

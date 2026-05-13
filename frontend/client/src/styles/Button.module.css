@@ -19,7 +19,7 @@
 }
 
 .primary_dark {
-    color: var(--op-white);
+    color: var(--op-white);;
     background-color: var(--op-blue-dark);
     padding: 1rem;
     font: normal normal 300 var(--op-font-size-standard) 'op__roboto';
