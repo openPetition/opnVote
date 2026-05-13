@@ -95,6 +95,7 @@
     "navigation.point.electiondocs": "Meine Wahlunterlagen",
     "navigation.point.faq": "FAQ",
     "navigation.point.glossary": "Glossar",
+    "progressbar.text": "{{PROGRESS, progress}}% von 100%",
     "overview.box.ballot.active": "Bis zum {{REGISTEREND, date}} können Sie Ihren Wahlschein erstellen.",
     "overview.box.ballot.button.create": "registrieren",
     "overview.box.ballot.button.load": "laden",

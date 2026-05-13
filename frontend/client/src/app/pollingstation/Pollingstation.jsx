@@ -173,7 +173,6 @@ export default function Pollingstation() {
                 (pollingStationState.showElectionInformation && (
                     <Headline
                         title={t("pollingstation.headline.title")}
-                        progressBarStep={globalConst.progressBarStep.vote}
                     />
                 ))
             }
