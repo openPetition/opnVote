@@ -68,5 +68,6 @@
 }
 
 .hint {
-    font-size: small;
+    font-size: var(--op-font-size-small);
+	text-transform: none;
 }

@@ -21,11 +21,11 @@ it mocks the user verification from OP for now and hands over jwt token (with ra
 ## Main Components:
 
 ### Createkey
-* create the user voting key (formerly 'secret', qr code) that confirms the identity of the user and that allows them to register for elections
+* create the user security key (formerly 'secret', qr code) that confirms the identity of the user and that allows them to register for elections
 * check the created key
 
 ### Register
-* check whether the user is allowed to register for election with help of the created voting key from step one and creates an election permit (voting authorization card / qr code or as cookie when user wants to go to election directly)
+* check whether the user is allowed to register for election with help of the created security key from step one and creates an election permit (voting authorization card / qr code or as cookie when user wants to go to election directly)
 (would not work without jwt!!)
 
 ### Pollingstation
