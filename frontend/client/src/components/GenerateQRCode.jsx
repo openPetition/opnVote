@@ -198,7 +198,7 @@ export default function GenerateQRCode(props) {
                                         :
                                         t("generateqrcode.copycode.text")
                                 }
-                                <br /><p className={styles.hint}>{t("generateqrcode.copycode.additionalhint")}</p>
+                                <br /><p className={styles.hint}>{t("generateqrcode.copycode.additionalHint")}</p>
                             </div>
                         </Button>
 
