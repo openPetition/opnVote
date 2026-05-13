@@ -173,8 +173,6 @@ export default function GenerateQRCode(props) {
                                     }
                                 }
                             />
-
-
                         </div>
                     </div>
                     <div className={styles.buttonbox}>
