@@ -1,5 +1,6 @@
 import Hex from 'crypto-js/enc-hex'
 import {
+  BLSParams,
   ElectionCredentials,
   EncryptedVotes,
   EncryptionKey,
@@ -17,7 +18,8 @@ import {
 import Base64 from 'crypto-js/enc-base64'
 import { ethers, verifyTypedData } from 'ethers'
 import * as crypto from 'crypto'
-import { RSA_BIT_LENGTH, PREFIX_BLINDED_TOKEN, PREFIX_UNBLINDED_TOKEN } from './constants'
+import { bls12_381 } from '@noble/curves/bls12-381'
+import { BLS_G2_HEX_LENGTH, RSA_BIT_LENGTH, PREFIX_BLINDED_TOKEN, PREFIX_UNBLINDED_TOKEN } from './constants'
 import { modPow } from 'bigint-crypto-utils'
 
 /**
@@ -156,6 +158,35 @@ export function validateToken(token: Token, validatePrefix: boolean = true): voi
       !token.hexString.toLowerCase().startsWith(PREFIX_UNBLINDED_TOKEN.toLowerCase())
     ) {
       throw new Error(`Unblinded Tokens must be ${PREFIX_UNBLINDED_TOKEN.toLowerCase()} prefixed`)
+    }
+  }
+}
+
+/**
+ * Validates BLS12-381 parameters and rejects invalid or weak pairs
+ * @param blsParams - BLSParams object to be validated.
+ * @throws if pk is off-curve, weak or the identity point; if sk and pk dont match; if pk is out of range
+ */
+export function validateBLSParams(blsParams: BLSParams): void {
+  validateHexString({ hexString: blsParams.pk }, BLS_G2_HEX_LENGTH, true)
+
+  let pkPoint: ReturnType<typeof bls12_381.G2.Point.fromHex>
+  try {
+    pkPoint = bls12_381.G2.Point.fromHex(blsParams.pk.substring(2)) // enforces point is on-curve and rejects small sub-groups
+  } catch {
+    throw new Error('BLS pk is not a valid G2 point')
+  }
+
+  if (pkPoint.is0()) {
+    throw new Error('BLS pk is the identity point')
+  }
+
+  if (blsParams.sk !== undefined) {
+    if (blsParams.sk <= 0n || blsParams.sk >= bls12_381.fields.Fr.ORDER) {
+      throw new Error('BLS sk is out of range')
+    }
+    if (!pkPoint.equals(bls12_381.G2.Point.BASE.multiply(blsParams.sk))) {
+      throw new Error('BLS pk and sk do not match')
     }
   }
 }

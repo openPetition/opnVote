@@ -1,8 +1,9 @@
-import NodeRSA from 'node-rsa';
 import { PrivateKeyDer, PublicKeyDer } from '../types/types';
 import * as crypto from 'crypto'
-import { getSubtleCrypto, validateRSAParams } from '../utils/utils';
-import { RSAParams } from '../types/types';
+import { bls12_381 } from '@noble/curves/bls12-381';
+import { bytesToNumberBE } from '@noble/curves/abstract/utils';
+import { getSubtleCrypto, validateBLSParams } from '../utils/utils';
+import { BLSParams } from '../types/types';
 import { RSA_BIT_LENGTH } from '../utils/constants';
 
 /**
@@ -36,23 +37,20 @@ export async function generateKeyPair(): Promise<{ publicKey: PublicKeyDer, priv
 }
 
 /**
- * Generates a raw RSA public-private key pair for blind signatures.
- * @returns {RSAParams} Object containing the raw components of the RSA keys as hex-strings.
+ * Generates a raw uncompressed BLS12-381 public-private key pair for blind signatures.
+ * @returns {BLSParams} Object containing the BLS BLS12-381 public-private key pair
  */
-export function generateKeyPairRaw(): RSAParams {
-    const key = new NodeRSA({ b: RSA_BIT_LENGTH });
+export function generateKeyPairRaw(): BLSParams {
+    const sk = bytesToNumberBE(bls12_381.utils.randomPrivateKey());
 
-    const publicKeyComponents = key.exportKey('components-public');
-    const privateKeyComponents = key.exportKey('components-private');
-    const N = BigInt('0x' + publicKeyComponents.n.toString('hex'))
-    const rsaParams = {
-        N: N,
-        e: publicKeyComponents.e ? BigInt('0x' + (Buffer.isBuffer(publicKeyComponents.e) ? publicKeyComponents.e.toString('hex') : publicKeyComponents.e.toString(16))) : undefined,
-        D: privateKeyComponents.d ? BigInt('0x' + privateKeyComponents.d.toString('hex')) : undefined,
-        NbitLength: N.toString(2).length
-    }
+    const pkPoint = bls12_381.G2.Point.BASE.multiply(sk);
+    const blsParams: BLSParams = {
+        pk: '0x' + pkPoint.toHex(false), // uncompressed (386 chars)
+        sk: sk,
 
-    validateRSAParams(rsaParams)
-    return rsaParams;
+    };
+
+    validateBLSParams(blsParams);
+    return blsParams;
 }
 

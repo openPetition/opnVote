@@ -102,6 +102,16 @@ export type RSAParams = {
 }
 
 /**
+ * Uncompressed BLS12-381 keys
+ * @property {string} pk - Public key (uncompressed G2 point) 
+ * @property {bigint} sk - Optional, private skalar
+ */
+export type BLSParams = {
+    pk: string;
+    sk?: bigint;
+}
+
+/**
  * Collection of encrypted votes
  * @property {string} hexString - The encrypted votes as a hexadecimal string with '0x' prefix
  * @property {EncryptionType} encryptionType - The type of encryption used

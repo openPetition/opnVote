@@ -1,7 +1,8 @@
 import { generateKeyPair, generateKeyPairRaw } from './generateRSAKeys';
-import { getBitLength, isValidHex, validateRSAParams } from '../utils/utils'
-import { RSAParams } from '../types/types';
-import { RSA_BIT_LENGTH } from '../utils/constants';
+import { isValidHex, validateBLSParams } from '../utils/utils'
+import { BLSParams } from '../types/types';
+import { BLS_G2_HEX_LENGTH } from '../utils/constants';
+import { bls12_381 } from '@noble/curves/bls12-381';
 
 describe('generateKeyPair', () => {
     it('should generate a valid RSA key pair', async () => {
@@ -23,18 +24,42 @@ describe('generateKeyPair', () => {
 });
 
 describe('generateKeyPairRaw', () => {
-    it('should generate valid raw RSA key pair components', () => {
+    it('should generate valid raw BLS key pair', () => {
 
-        const rsaParams: RSAParams = generateKeyPairRaw();
+        const blsParams: BLSParams = generateKeyPairRaw();
 
-        expect(rsaParams.D).toBeDefined();
-        expect(rsaParams.e).toBeDefined();
+        expect(blsParams.sk).toBeDefined();
+        expect(blsParams.pk).toBeDefined();
 
-        expect(rsaParams.e).toBeGreaterThan(3);
+        expect(blsParams.sk!).toBeGreaterThan(0n);
+        expect(blsParams.sk!).toBeLessThan(bls12_381.fields.Fr.ORDER);
 
-        expect(rsaParams.NbitLength).toBeGreaterThanOrEqual(1024);
-        expect(rsaParams.NbitLength).toBe(RSA_BIT_LENGTH)
-        expect(getBitLength(rsaParams.N)).toBe(rsaParams.NbitLength)
-        expect(() => validateRSAParams(rsaParams)).not.toThrow();
+        expect(blsParams.pk.startsWith('0x')).toBe(true);
+        expect(isValidHex(blsParams.pk, true)).toBe(true);
+        expect(blsParams.pk.length).toBe(BLS_G2_HEX_LENGTH);
+
+        const expectedPk = '0x' + bls12_381.G2.Point.BASE.multiply(blsParams.sk!).toHex(false);
+        expect(blsParams.pk).toBe(expectedPk);
+
+        expect(() => validateBLSParams(blsParams)).not.toThrow();
+    });
+});
+
+describe('validateBLSParams', () => {
+    it('should reject identity point as pk', () => {
+        const identityHex = '0x' + bls12_381.G2.Point.BASE.subtract(bls12_381.G2.Point.BASE).toHex(false);
+        expect(() => validateBLSParams({ pk: identityHex })).toThrow("BLS pk is the identity point");
+    });
+
+    it('should reject sk that does not match pk', () => {
+        const valid = generateKeyPairRaw();
+        const mismatched: BLSParams = { sk: valid.sk! + 1n, pk: valid.pk };
+        expect(() => validateBLSParams(mismatched)).toThrow("BLS pk and sk do not match");
+    });
+
+    it('should reject sk outside Fr', () => {
+        const valid = generateKeyPairRaw();
+        expect(() => validateBLSParams({ sk: 0n, pk: valid.pk })).toThrow("BLS sk is out of range");
+        expect(() => validateBLSParams({ sk: bls12_381.fields.Fr.ORDER, pk: valid.pk })).toThrow("BLS sk is out of range");
     });
 });
