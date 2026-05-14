@@ -1,4 +1,4 @@
-import { generateKeyPair, generateKeyPairRaw } from './generateRSAKeys';
+import { generateKeyPair, generateKeyPairRaw } from './generateKeyPair';
 import { isValidHex, validateBLSParams } from '../utils/utils'
 import { BLSParams } from '../types/types';
 import { BLS_G2_HEX_LENGTH } from '../utils/constants';

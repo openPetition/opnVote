@@ -1,4 +1,3 @@
-import { generateKeyPairRaw } from '../admin/generateRSAKeys';
 import { TestRegister } from '../config';
 import { Token, R } from '../types/types';
 import { signToken, validateR, validateSignature, validateToken } from '../utils/utils';

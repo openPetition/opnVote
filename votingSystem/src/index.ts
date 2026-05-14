@@ -5,6 +5,6 @@ export * from './types/types';
 export * from './blind-signature/generateTokens';
 export * from './voter-credentials/voterCredentials';
 export * from './admin/signVotingTransaction';
-export * from './admin/generateRSAKeys';
+export * from './admin/generateKeyPair';
 export * from './voting/voting';
 export * from './utils/constants';

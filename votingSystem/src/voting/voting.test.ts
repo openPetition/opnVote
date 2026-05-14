@@ -53,7 +53,7 @@ describe('RSA: Encryption and Decryption Integration', () => {
     it('should encrypt and then decrypt 2 votes back to the original', async () => {
         const votingModule = await import("./voting");
         const { encryptVotes, decryptVotes } = votingModule;
-        const keyGenerationModule = await import("../admin/generateRSAKeys");
+        const keyGenerationModule = await import("../admin/generateKeyPair");
         const { generateKeyPair } = keyGenerationModule;
 
         const votes: Array<Vote> = [{ value: VoteOption.Yes }, { value: VoteOption.No }];
@@ -71,7 +71,7 @@ describe('RSA: Encryption and Decryption Integration', () => {
     it('should encrypt and then decrypt 95 votes back to original', async () => {
         const votingModule = await import("./voting");
         const { encryptVotes, decryptVotes } = votingModule;
-        const keyGenerationModule = await import("../admin/generateRSAKeys");
+        const keyGenerationModule = await import("../admin/generateKeyPair");
         const { generateKeyPair } = keyGenerationModule;
 
         // Generating 95 votes ('Yes', 'No', and 'Abstain')
@@ -95,7 +95,7 @@ describe('RSA: Edge Cases for Encryption and Decryption', () => {
     let generateKeyPair: () => Promise<{ publicKey: string; privateKey: string; }>;
 
     beforeAll(async () => {
-        const keyGenerationModule = await import("../admin/generateRSAKeys");
+        const keyGenerationModule = await import("../admin/generateKeyPair");
         generateKeyPair = keyGenerationModule.generateKeyPair;
     });
 
