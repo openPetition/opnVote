@@ -1,6 +1,6 @@
 import { generateKeyPair, generateKeyPairRaw } from './generateKeyPair';
-import { isValidHex, validateBLSParams } from '../utils/utils'
-import { BLSParams } from '../types/types';
+import { isValidHex, validateBlsParams } from '../utils/utils'
+import { BlsParams } from '../types/types';
 import { BLS_G2_HEX_LENGTH } from '../utils/constants';
 import { bls12_381 } from '@noble/curves/bls12-381';
 
@@ -26,7 +26,7 @@ describe('generateKeyPair', () => {
 describe('generateKeyPairRaw', () => {
     it('should generate valid raw BLS key pair', () => {
 
-        const blsParams: BLSParams = generateKeyPairRaw();
+        const blsParams: BlsParams = generateKeyPairRaw();
 
         expect(blsParams.sk).toBeDefined();
         expect(blsParams.pk).toBeDefined();
@@ -38,28 +38,28 @@ describe('generateKeyPairRaw', () => {
         expect(isValidHex(blsParams.pk, true)).toBe(true);
         expect(blsParams.pk.length).toBe(BLS_G2_HEX_LENGTH);
 
-        const expectedPk = '0x' + bls12_381.G2.Point.BASE.multiply(blsParams.sk!).toHex(false);
+        const expectedPk = '0x' + bls12_381.shortSignatures.getPublicKey(blsParams.sk!).toHex(false);
         expect(blsParams.pk).toBe(expectedPk);
 
-        expect(() => validateBLSParams(blsParams)).not.toThrow();
+        expect(() => validateBlsParams(blsParams)).not.toThrow();
     });
 });
 
-describe('validateBLSParams', () => {
+describe('validateBlsParams', () => {
     it('should reject identity point as pk', () => {
-        const identityHex = '0x' + bls12_381.G2.Point.BASE.subtract(bls12_381.G2.Point.BASE).toHex(false);
-        expect(() => validateBLSParams({ pk: identityHex })).toThrow("BLS pk is the identity point");
+        const identityHex = '0x' + bls12_381.curves.G2.BASE.subtract(bls12_381.curves.G2.BASE).toHex(false);
+        expect(() => validateBlsParams({ pk: identityHex })).toThrow("BLS pk is the identity point");
     });
 
     it('should reject sk that does not match pk', () => {
         const valid = generateKeyPairRaw();
-        const mismatched: BLSParams = { sk: valid.sk! + 1n, pk: valid.pk };
-        expect(() => validateBLSParams(mismatched)).toThrow("BLS pk and sk do not match");
+        const mismatched: BlsParams = { sk: valid.sk! + 1n, pk: valid.pk };
+        expect(() => validateBlsParams(mismatched)).toThrow("BLS pk and sk do not match");
     });
 
     it('should reject sk outside Fr', () => {
         const valid = generateKeyPairRaw();
-        expect(() => validateBLSParams({ sk: 0n, pk: valid.pk })).toThrow("BLS sk is out of range");
-        expect(() => validateBLSParams({ sk: bls12_381.fields.Fr.ORDER, pk: valid.pk })).toThrow("BLS sk is out of range");
+        expect(() => validateBlsParams({ sk: 0n, pk: valid.pk })).toThrow("BLS sk is out of range");
+        expect(() => validateBlsParams({ sk: bls12_381.fields.Fr.ORDER, pk: valid.pk })).toThrow("BLS sk is out of range");
     });
 });

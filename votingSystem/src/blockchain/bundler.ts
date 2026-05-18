@@ -1,5 +1,6 @@
 import { ethers } from 'ethers'
 import { VotingTransaction } from '../types/types'
+import { nobleG1ToEvm } from '../utils/utils'
 
 function packUint128(high: bigint, low: bigint): string {
   return ethers.zeroPadValue(ethers.toBeHex((high << 128n) | low), 32)
@@ -114,26 +115,20 @@ export function createStubPaymasterData(validUntil: number, validAfter: number):
 
 /**
  * ABI-encodes the `vote()` calldata
- * @param {VotingTransaction} votingTransaction
- * @param {ethers.Interface | ethers.InterfaceAbi} opnVoteABI
- * @returns {string} Hex-encoded calldata for vote()
+ * @param votingTransaction - Voting transaction
+ * @param opnVoteABI - opnvote contract ABI
+ * @returns Hex-encoded calldata
  */
 export function createVoteCalldata(
   votingTransaction: VotingTransaction,
   opnVoteABI: ethers.Interface | ethers.InterfaceAbi,
 ): string {
-  const svsSignatureHex = votingTransaction.svsSignature
-    ? votingTransaction.svsSignature.hexString
-    : '0x'
   const iface =
     opnVoteABI instanceof ethers.Interface ? opnVoteABI : new ethers.Interface(opnVoteABI)
   return iface.encodeFunctionData('vote', [
     votingTransaction.electionID,
-    votingTransaction.voterAddress,
-    svsSignatureHex,
     votingTransaction.encryptedVoteRSA.hexString,
     votingTransaction.encryptedVoteAES.hexString,
-    votingTransaction.unblindedElectionToken.hexString,
-    votingTransaction.unblindedSignature.hexString,
+    nobleG1ToEvm(votingTransaction.unblindedSignature.hexString),
   ])
 }

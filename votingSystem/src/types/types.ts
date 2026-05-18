@@ -13,51 +13,52 @@ export type PrivateKeyDer = string;
 
 /**
  * Voter Credentials for a specific election.
- * @property {Signature} unblindedSignature - The unblinded signature of the voter.
- * @property {Token} unblindedElectionToken - The unblinded election token of the voter.
+ * @property {BlsSignature} unblindedSignature - The unblinded signature of the voter.
  * @property {ethers.Wallet} voterWallet - The Ethereum wallet of the voter.
  * @property {EncryptionKey} encryptionKey - The encryption key for vote encryption.
  * @property {number} electionID - The ID of the specific election.
  */
 export type ElectionCredentials = {
-    unblindedSignature: Signature;
-    unblindedElectionToken: Token;
+    unblindedSignature: BlsSignature;
     voterWallet: ethers.Wallet;
     encryptionKey: EncryptionKey;
     electionID: number;
 };
 
 /**
- * Represents a Token
- * @property {string} hexString - The token value as a hexadecimal string with '0x' prefix.
- * @property {boolean} isMaster - Indicates if the token is a master token. 
- * @property {boolean} isBlinded - Indicates if the token is blinded or unblinded. 
- * 
+ * Election token
+ * @property {string} hexString - Token value as hex string ('0x'-prefixed)
+ * @property {boolean} isBlinded - Defines if token is blinded or unblinded
  */
 export type Token = {
     hexString: string;
-    isMaster: Boolean;
-    isBlinded: Boolean
+    isBlinded: boolean;
 };
 
 /**
- * Represents r in RSA Blind Signature Scheme
- * @property {string} hexString - The value of r as a hexadecimal string with '0x' prefix.
- * @property {boolean} isMaster - Indicates if the r is a master r.  
+ * The blinding factor R used in the BLS blind-signature scheme
+ * @property {string} hexString - The value of r (hexstring, '0x'-prefixed)
  */
 export type R = {
     hexString: string;
-    isMaster: Boolean;
 };
 
 /**
- * Represents a RSA signed Message
- * @property {string} hexString - The signature as a hexadecimal string with '0x' prefix.
- * @property {boolean} isBlinded - Indicates if the signature is blinded or unblinded. 
+ * Represents the master secret from which per-election credentials are derived
+ * @property {string} hexString - Master key as hex string ('0x' prefixed)
  */
-export type Signature = {
+export type MasterKey = {
     hexString: string;
-    isBlinded: Boolean;
+};
+
+/**
+ * BLS blind-signature scheme signature (G1 point as uncompressed hex)
+ * @property {string} hexString - Signature as hex string ('0x' prefixed)
+ * @property {boolean} isBlinded - Whether the signature is still blinded
+ */
+export type BlsSignature = {
+    hexString: string;
+    isBlinded: boolean;
 };
 
 /**
@@ -88,25 +89,11 @@ export type EthSignature = {
 
 
 /**
- * Represents  RSA cryptographic parameters for signing
- * @property {bigint} N - Modulus in RSA
- * @property {bigint} e - Optional. Public exponent in RSA operations
- * @property {bigint} D - Optional.  Private exponent in RSA operations
- * @property {number} NbitLength - Bit length of the modulus
- */
-export type RSAParams = {
-    N: bigint;
-    e?: bigint;
-    D?: bigint;
-    NbitLength: number;
-}
-
-/**
  * Uncompressed BLS12-381 keys
  * @property {string} pk - Public key (uncompressed G2 point) 
  * @property {bigint} sk - Optional, private skalar
  */
-export type BLSParams = {
+export type BlsParams = {
     pk: string;
     sk?: bigint;
 }
@@ -130,20 +117,17 @@ export enum EncryptionType {
 /**
  * Voting transaction to be send to Blockchain
  * @property {number} electionID - ID of the election
- * @property {string} voterAddress -  Ethereum address of voter
- * @property {EncryptedVotes} encryptedVote - Encrypted votes
- * @property {Token} unblindedElectionToken - Unblinded election token of voter
- * @property {Signature} unblindedSignature - Unblinded register signature
- * @property {Signature|null} svsSignature - SVS signature of voting transaction
+ * @property {string} voterAddress - Election-specific wallet address (msg.sender)
+ * @property {EncryptedVotes} encryptedVoteRSA - RSA-encrypted votes
+ * @property {EncryptedVotes} encryptedVoteAES - AES-encrypted votes
+ * @property {BlsSignature} unblindedSignature - Unblinded BLS register signature
  */
 export type VotingTransaction = {
     electionID: number,
     voterAddress: string,
     encryptedVoteRSA: EncryptedVotes,
     encryptedVoteAES: EncryptedVotes,
-    unblindedElectionToken: Token,
-    unblindedSignature: Signature,
-    svsSignature: EthSignature | null
+    unblindedSignature: BlsSignature,
 }
 
 /**

@@ -2,8 +2,8 @@ import { PrivateKeyDer, PublicKeyDer } from '../types/types';
 import * as crypto from 'crypto'
 import { bls12_381 } from '@noble/curves/bls12-381';
 import { bytesToNumberBE } from '@noble/curves/abstract/utils';
-import { getSubtleCrypto, validateBLSParams } from '../utils/utils';
-import { BLSParams } from '../types/types';
+import { getSubtleCrypto, validateBlsParams } from '../utils/utils';
+import { BlsParams } from '../types/types';
 import { RSA_BIT_LENGTH } from '../utils/constants';
 
 /**
@@ -37,20 +37,20 @@ export async function generateKeyPair(): Promise<{ publicKey: PublicKeyDer, priv
 }
 
 /**
- * Generates a raw uncompressed BLS12-381 public-private key pair for blind signatures.
- * @returns {BLSParams} Object containing the BLS BLS12-381 public-private key pair
+ * Generates an uncompressed BLS12-381 key pair for blind signature issuance
+ * @returns {BlsParams} BLS BLS12-381 key pair
  */
-export function generateKeyPairRaw(): BLSParams {
+export function generateKeyPairRaw(): BlsParams {
     const sk = bytesToNumberBE(bls12_381.utils.randomPrivateKey());
 
-    const pkPoint = bls12_381.G2.Point.BASE.multiply(sk);
-    const blsParams: BLSParams = {
+    const pkPoint = bls12_381.shortSignatures.getPublicKey(sk);
+    const blsParams: BlsParams = {
         pk: '0x' + pkPoint.toHex(false), // uncompressed (386 chars)
         sk: sk,
 
     };
 
-    validateBLSParams(blsParams);
+    validateBlsParams(blsParams);
     return blsParams;
 }
 

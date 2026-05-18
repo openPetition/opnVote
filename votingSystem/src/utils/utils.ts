@@ -1,15 +1,15 @@
 import Hex from 'crypto-js/enc-hex'
 import {
-  BLSParams,
+  BlsParams,
   ElectionCredentials,
   EncryptedVotes,
   EncryptionKey,
   EncryptionType,
   EthSignature,
+  MasterKey,
   R,
-  RSAParams,
   RecastingVotingTransaction,
-  Signature,
+  BlsSignature,
   Token,
   Vote,
   VoteOption,
@@ -19,8 +19,7 @@ import Base64 from 'crypto-js/enc-base64'
 import { ethers, verifyTypedData } from 'ethers'
 import * as crypto from 'crypto'
 import { bls12_381 } from '@noble/curves/bls12-381'
-import { BLS_G2_HEX_LENGTH, RSA_BIT_LENGTH, PREFIX_BLINDED_TOKEN, PREFIX_UNBLINDED_TOKEN } from './constants'
-import { modPow } from 'bigint-crypto-utils'
+import { BLS_G1_HEX_LENGTH, BLS_G2_HEX_LENGTH, RSA_BIT_LENGTH } from './constants'
 
 /**
  * Validates a hexadecimal string.
@@ -117,62 +116,52 @@ export function hexStringToBase64(
 }
 
 /**
- * Validates the provided token based on its properties.
- *
- * @param {Token} token - The token to validate.
- * @param {boolean} [validatePrefix=true] - Whether to validate the token's prefix. Default is true.
- * @throws {Error} If the token is invalid or its properties are inconsistent.
+ * Validates a Token (unblinded keccak256 hash or blinded G1 point)
+ * @param token - Token to be validated
+ * @throws if isBlinded is not a boolean; if the token is malformed, or weak
  */
-export function validateToken(token: Token, validatePrefix: boolean = true): void {
-  if (token.isBlinded && token.isMaster) {
-    throw new Error('Master token must not be blinded')
+export function validateToken(token: Token): void {
+  if (typeof token.isBlinded !== 'boolean') {
+    throw new Error('Token: isBlinded must be set (boolean)')
   }
 
-  let expectedLength = 66 // Default length for unblinded tokens (SHA-256 Output)
-  if (token.isBlinded) {
-    expectedLength = RSA_BIT_LENGTH / 4 + 2 // Adjust length for blinded tokens: Convert bit length to hex length and add 2 for '0x' prefix.
-  }
+  const expectedLength = token.isBlinded
+    ? BLS_G1_HEX_LENGTH // blinded: uncompressed BLS12-381 G1 point
+    : 66                // unblinded: 32-byte keccak256 hash
 
   validateHexString(token, expectedLength, true)
 
-  // Check if tokenBig is within range
+  // Sanity check for blinded token
+  if (token.isBlinded) {
+    let g1Point: ReturnType<typeof bls12_381.curves.G1.fromHex>
+    try {
+      g1Point = bls12_381.curves.G1.fromHex(token.hexString.substring(2)) // enforces point is on-curve and rejects small sub-groups
+    } catch {
+      throw new Error('Blinded token is not a valid G1 point')
+    }
+    if (g1Point.is0()) {
+      throw new Error('Blinded token is G1 identity point')
+    }
+  }
+
+  // Sanity check
   const tokenBig = hexStringToBigInt(token.hexString)
   if (tokenBig <= 2n) {
     throw new Error('Token value is too low')
-  }
-
-  const upperBound = (1n << BigInt(RSA_BIT_LENGTH)) - 1n
-  if (tokenBig >= upperBound) {
-    throw new Error('Token value is too high')
-  }
-
-  // Prefix is only for election Token (blinded & unblided) checked
-  if (!token.isMaster && validatePrefix) {
-    if (
-      token.isBlinded &&
-      !token.hexString.toLowerCase().startsWith(PREFIX_BLINDED_TOKEN.toLowerCase())
-    ) {
-      throw new Error(`Blinded Tokens must be ${PREFIX_BLINDED_TOKEN.toLowerCase()} prefixed`)
-    } else if (
-      !token.isBlinded &&
-      !token.hexString.toLowerCase().startsWith(PREFIX_UNBLINDED_TOKEN.toLowerCase())
-    ) {
-      throw new Error(`Unblinded Tokens must be ${PREFIX_UNBLINDED_TOKEN.toLowerCase()} prefixed`)
-    }
   }
 }
 
 /**
  * Validates BLS12-381 parameters and rejects invalid or weak pairs
- * @param blsParams - BLSParams object to be validated.
+ * @param blsParams - BlsParams object to be validated
  * @throws if pk is off-curve, weak or the identity point; if sk and pk dont match; if pk is out of range
  */
-export function validateBLSParams(blsParams: BLSParams): void {
+export function validateBlsParams(blsParams: BlsParams): void {
   validateHexString({ hexString: blsParams.pk }, BLS_G2_HEX_LENGTH, true)
 
-  let pkPoint: ReturnType<typeof bls12_381.G2.Point.fromHex>
+  let pkPoint: ReturnType<typeof bls12_381.curves.G2.fromHex>
   try {
-    pkPoint = bls12_381.G2.Point.fromHex(blsParams.pk.substring(2)) // enforces point is on-curve and rejects small sub-groups
+    pkPoint = bls12_381.curves.G2.fromHex(blsParams.pk.substring(2)) // enforces point is on-curve and rejects small sub-groups
   } catch {
     throw new Error('BLS pk is not a valid G2 point')
   }
@@ -185,78 +174,103 @@ export function validateBLSParams(blsParams: BLSParams): void {
     if (blsParams.sk <= 0n || blsParams.sk >= bls12_381.fields.Fr.ORDER) {
       throw new Error('BLS sk is out of range')
     }
-    if (!pkPoint.equals(bls12_381.G2.Point.BASE.multiply(blsParams.sk))) {
+    if (!pkPoint.equals(bls12_381.shortSignatures.getPublicKey(blsParams.sk))) {
       throw new Error('BLS pk and sk do not match')
     }
   }
 }
 
 /**
- * Validates RSA parameters to ensure they are secure.
- * @param rsaParams - The RSAParams object to be validated.
- * @throws Will throw an error if the RSA parameters are insecure.
+ * Validates a MasterKey
+ * @param masterKey - MasterKey to be validated
+ * @throws if MasterKey is malformed, of incorrect length or near-zero
  */
-export function validateRSAParams(rsaParams: RSAParams): void {
-  // Check if the bit length is less than 2048 bits
-  if (rsaParams.NbitLength < RSA_BIT_LENGTH) {
-    throw new Error('RSA bit length must be at least 2048 bits')
-  }
+export function validateMasterKey(masterKey: MasterKey): void {
+  const expectedLength = 66 // 32-byte with '0x' prefix
+  validateHexString(masterKey, expectedLength, true)
 
-  // Check if 'e' is within the typical range
-  if (rsaParams.e !== undefined && (rsaParams.e < 3n || rsaParams.e % 2n === 0n)) {
-    throw new Error("RSA exponent 'e' must be an odd number greater than 2")
-  }
-
-  // Check if NbitLength matches the real bit length of N
-  const actualBitLength = getBitLength(rsaParams.N)
-  if (rsaParams.NbitLength !== actualBitLength) {
-    throw new Error('NbitLength does not match the actual bit length of N')
-  }
-
-  if (rsaParams.D !== undefined) {
-    // D should be at least half the bit length of N
-    const minDValue = 2n ** BigInt(rsaParams.NbitLength / 2)
-    if (rsaParams.D < minDValue) {
-      throw new Error("RSA private exponent 'D' is too small")
-    }
+  const masterKeyBig = hexStringToBigInt(masterKey.hexString)
+  if (masterKeyBig <= 2n) {
+    throw new Error('Master key value too low')
   }
 }
 
 /**
- * Validates an R object.
- * @param r - The R object to be validated.
- * @throws Will throw an error if the R object is invalid or of incorrect length.
+ * Validates an R blinding scalar (must be in [3, Fr.ORDER))
+ * @param r - R object to be validated
+ * @throws if R is malformed, near-zero, or out of the Fr range
  */
 export function validateR(r: R): void {
-  const expectedLength = 66 // Default length sha 256-output
-  validateHexString(r, expectedLength, true)
+  validateHexString(r, 66, true) // 32-byte Fr scalar with '0x' prefix
 
   const rBig = hexStringToBigInt(r.hexString)
-
-  // Check lower bound
   if (rBig <= 2n) {
     throw new Error('R value is too low')
   }
+  if (rBig >= bls12_381.fields.Fr.ORDER) {
+    throw new Error('R value out of Fr range')
+  }
 }
 
 /**
- * Validates an Signature.
- * @param signature - The Signature object to be validated.
- * @throws Will throw an error if the Signature object is invalid or of incorrect length.
+ * Pads a BLS12-381 G1 point hex (192 chars) to EIP-2537 format (256 chars)
+ * 48-byte coordinates are zero-padded to 64 bytes
+ * @param hex - Uncompressed G1 hex
+ * @returns padded G1 hex ('0x' + 256 hex chars)
  */
-export function validateSignature(signature: Signature): void {
-  const expectedLength = RSA_BIT_LENGTH / 4 + 2 // length for signature: Convert bit length to hex length and add 2 for '0x' prefix.
-  validateHexString(signature, expectedLength, true)
+export function nobleG1ToEvm(hex: string): string {
+  validateHexString({ hexString: hex }, BLS_G1_HEX_LENGTH, true)
+  const raw = hex.slice(2)
+  const x = raw.slice(0, 96)
+  const y = raw.slice(96, 192)
+  return '0x' + x.padStart(128, '0') + y.padStart(128, '0')
+}
 
-  // Check if tokenBig is within range
-  const signatureBig = hexStringToBigInt(signature.hexString)
-  if (signatureBig <= 2n) {
-    throw new Error('Signature value is too low')
+/**
+ * Pads a BLS12-381 G2 point hex (384 chars) to EIP-2537 wire format (512 chars)
+ * Fp2 is emitted as (c1, c0); EVM expects (c0, c1), so coordinate order is swapped per Fp2 component.
+ * @param hex - Uncompressed G2 hex
+ * @returns padded G2 hex ('0x' + 512 hex chars)
+ */
+export function nobleG2ToEvm(hex: string): string {
+  validateHexString({ hexString: hex }, BLS_G2_HEX_LENGTH, true)
+  const raw = hex.slice(2)
+  // noble: c1_x(48) + c0_x(48) + c1_y(48) + c0_y(48)
+  // EVM:   c0_x(64) + c1_x(64) + c0_y(64) + c1_y(64)
+  const c1x = raw.slice(0, 96)
+  const c0x = raw.slice(96, 192)
+  const c1y = raw.slice(192, 288)
+  const c0y = raw.slice(288, 384)
+  return (
+    '0x' +
+    c0x.padStart(128, '0') +
+    c1x.padStart(128, '0') +
+    c0y.padStart(128, '0') +
+    c1y.padStart(128, '0')
+  )
+}
+
+/**
+ * Checks structure of a BLS blind signature (only (format, on-curve, non-identity).
+ * Checks structure only (G1 point in uncompressed hex); Not a signature validity check.
+ * @param signature - Signature object to be validated
+ * @throws if isBlinded is not a boolean; if Signature is malformed, off-curve, or the identity point
+ */
+export function validateBlsSignature(signature: BlsSignature): void {
+  if (typeof signature.isBlinded !== 'boolean') {
+    throw new Error('Signature: isBlinded not set (boolean)')
   }
 
-  const upperBound = (1n << BigInt(RSA_BIT_LENGTH)) - 1n
-  if (signatureBig >= upperBound) {
-    throw new Error('Signature value is too high')
+  validateHexString(signature, BLS_G1_HEX_LENGTH, true)
+
+  let g1Point: ReturnType<typeof bls12_381.curves.G1.fromHex>
+  try {
+    g1Point = bls12_381.curves.G1.fromHex(signature.hexString.substring(2)) // enforces point is on-curve and rejects small sub-groups
+  } catch {
+    throw new Error('Signature is not a valid G1 point')
+  }
+  if (g1Point.is0()) {
+    throw new Error('Signature is G1 identity point')
   }
 }
 
@@ -361,13 +375,12 @@ export function validateVotes(
 }
 
 /**
- * Validates a voting transaction.
- * Ensures that the voting transaction does not include a master token, a blinded token, or a blinded signature.
- * @param {VotingTransaction} votingTransaction - The voting transaction to validate.
- * @throws {Error} Will throw an error if any validation check fails.
+ * Validates a voting transaction
+ * @param votingTransaction - VotingTransaction to validate
+ * @throws if the unblindedSignature is missing or blinded
  */
 export function validateVotingTransaction(votingTransaction: VotingTransaction): void {
-  if (!votingTransaction.unblindedElectionToken || !votingTransaction.unblindedSignature) {
+  if (!votingTransaction.unblindedSignature) {
     throw new Error('Invalid voting transaction: missing required properties')
   }
 
@@ -375,22 +388,10 @@ export function validateVotingTransaction(votingTransaction: VotingTransaction):
   validateEthAddress(votingTransaction.voterAddress)
   validateEncryptedVotes(votingTransaction.encryptedVoteRSA, EncryptionType.RSA)
   validateEncryptedVotes(votingTransaction.encryptedVoteAES, EncryptionType.AES)
-  validateToken(votingTransaction.unblindedElectionToken)
-  validateSignature(votingTransaction.unblindedSignature)
-
-  if (votingTransaction.unblindedElectionToken.isMaster) {
-    throw new Error('Voting transaction must not include a Master Token.')
-  }
-  if (votingTransaction.unblindedElectionToken.isBlinded) {
-    throw new Error('Voting transaction must not include a blinded Token')
-  }
+  validateBlsSignature(votingTransaction.unblindedSignature)
 
   if (votingTransaction.unblindedSignature.isBlinded) {
     throw new Error('Voting transaction must not include a blinded Signature')
-  }
-
-  if (votingTransaction.svsSignature) {
-    validateEthSignature(votingTransaction.svsSignature)
   }
 }
 
@@ -474,6 +475,16 @@ export function hexStringToBigInt(hexString: string): bigint {
 }
 
 /**
+ * Validates that a string is valid Base64.
+ * @throws if the string is not valid Base64
+ */
+export function validateBase64(base64String: string): void {
+  if (Buffer.from(base64String, 'base64').toString('base64') !== base64String) {
+    throw new Error('Invalid base64 string')
+  }
+}
+
+/**
  * Converts a Base64-encoded string to a hexadecimal string with "0x" prefix.
  * This function handles the conversion Token, R and Signature types.
  *
@@ -492,8 +503,7 @@ export function base64ToHexString(base64String: string): string {
  * @throws Will throw an error if the credentials object is invalid.
  */
 export function validateCredentials(credentials: ElectionCredentials): void {
-  validateSignature(credentials.unblindedSignature)
-  validateToken(credentials.unblindedElectionToken)
+  validateBlsSignature(credentials.unblindedSignature)
   validateElectionID(credentials.electionID)
 
   const voterWalletPrivKey = credentials.voterWallet.privateKey
@@ -505,47 +515,30 @@ export function validateCredentials(credentials: ElectionCredentials): void {
   if (credentials.unblindedSignature.isBlinded) {
     throw new Error('Signature must be unblinded.')
   }
-  if (credentials.unblindedElectionToken.isBlinded) {
-    throw new Error('Election token must be unblinded.')
-  }
-  if (credentials.unblindedElectionToken.isMaster) {
-    throw new Error('Election token must not be a master token.')
-  }
 }
 
 /**
- * Signs a blinded token using the provided RSA parameters.
- *
- * @param {Token} token - The blinded token to be signed.
- * @param {RSAParams} rsaParams - The RSA parameters, including the private exponent.
- * @returns {Signature} The signature of the blinded token.
- * @throws {Error} If the token is not blinded, if it is a master token, if the private exponent is missing,
- *                 if the token is invalid, if the RSA parameters are invalid, or if the token is out of the valid range.
+ * Signs a blinded token with the private scalar
+ * @param token - Blinded token (G1 point) to be signed
+ * @param blsParams - BLS parameters with sk
+ * @returns Blinded BLS signature (G1 point)
+ * @throws if the token is not blinded; if sk is missing; if any input is invalid
  */
-export function signToken(token: Token, rsaParams: RSAParams): Signature {
+export function signToken(token: Token, blsParams: BlsParams): BlsSignature {
   if (!token.isBlinded) {
-    throw new Error('Only blinded Tokens shall be signed')
+    throw new Error('Only blinded Tokens can be signed')
   }
-  if (token.isMaster) {
-    throw new Error('Master Tokens shall not be signed')
+  if (blsParams.sk === undefined) {
+    throw new Error('BLS sk is missing')
   }
-  if (!rsaParams.D) {
-    throw new Error('Private exponent is missing')
-  }
-  validateRSAParams(rsaParams)
+  validateBlsParams(blsParams)
   validateToken(token)
 
-  const tokenBig = hexStringToBigInt(token.hexString)
-  if (tokenBig <= 2n || tokenBig >= rsaParams.N - 1n) {
-    throw new Error('Token is out of valid range')
-  }
+  const M_prime = bls12_381.curves.G1.fromHex(token.hexString.substring(2))
+  const S_prime = bls12_381.shortSignatures.sign(M_prime, blsParams.sk)
 
-  const signatureBig = modPow(tokenBig, rsaParams.D, rsaParams.N) // tokenBig ** rsaParams.D % rsaParams.N;
-
-  // Calculate  hex length from N if not provided
-  const signatureHex = '0x' + signatureBig.toString(16).padStart(rsaParams.NbitLength / 4, '0')
-  const blindedSignature = { hexString: signatureHex, isBlinded: true }
-  validateSignature(blindedSignature)
+  const blindedSignature = { hexString: '0x' + S_prime.toHex(false), isBlinded: true }
+  validateBlsSignature(blindedSignature)
 
   return blindedSignature
 }
