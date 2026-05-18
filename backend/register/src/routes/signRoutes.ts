@@ -36,12 +36,8 @@ const router = Router()
  *                 properties:
  *                   hexString:
  *                     type: string
- *                     description: "Hex string of the token, must be 130 characters long and start with 0x1."
- *                     example: "0x1...[130 characters]"
- *                   isMaster:
- *                     type: boolean
- *                     description: "Indicates if the token is a master token, which cannot be signed."
- *                     example: false
+ *                     description: "Blinded token: uncompressed BLS12-381 G1 point, hex-encoded ('0x' prefix + 192 hex chars = 194 chars total)."
+ *                     example: "0x... [194 hex chars]"
  *                   isBlinded:
  *                     type: boolean
  *                     description: "Indicates if the token is blinded, which must be true for signing."
@@ -56,8 +52,8 @@ const router = Router()
  *               properties:
  *                 blindedSignature:
  *                   type: string
- *                   description: "Hex string of the signed blinded token."
- *                   example: "0x2...[signed hex]"
+ *                   description: "Blinded BLS12-381 signature (G1 point) as a hex string ('0x' prefix + 192 hex chars = 194 chars total)."
+ *                   example: "0x...[194 hex chars]"
  *       400:
  *         description: Parameter validation failed or user has already registered a different token.
  *         content:

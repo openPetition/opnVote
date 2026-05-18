@@ -3,7 +3,7 @@ import { RegisterKeyService } from '../services/registerKeyService'
 import { ApiResponse } from '../types/apiResponses'
 import { logger } from '../utils/logger'
 import { ethers } from 'ethers'
-import { isValidHex } from 'votingsystem'
+import { validateBlsParams } from 'votingsystem'
 
 const router = Router()
 
@@ -39,7 +39,7 @@ function verifyAdminSignature(message: string, signature: string): boolean {
  * /api/admin/keys:
  *   post:
  *     summary: Insert register keys for an election
- *     description: Administrative endpoint to insert RSA register keys for a specific election. Authentication will be done via signature verification.
+ *     description: Administrative endpoint to insert BLS12-381 register keys for a specific election. Authentication will be done via signature verification.
  *     tags: [Admin]
  *     requestBody:
  *       required: true
@@ -52,23 +52,16 @@ function verifyAdminSignature(message: string, signature: string): boolean {
  *                 type: number
  *                 description: "The election ID to insert keys for"
  *                 example: 1
- *               N:
+ *               pk:
  *                 type: string
- *                 description: "RSA modulus N as string"
- *               D:
+ *                 description: "BLS12-381 public key (uncompressed G2 point) as hex string, '0x'-prefixed"
+ *               sk:
  *                 type: string
- *                 description: "RSA private exponent D as string"
- *               E:
- *                 type: string
- *                 description: "RSA public exponent E as string"
- *               NbitLength:
- *                 type: number
- *                 description: "Bit length of N"
- *                 example: 2048
+ *                 description: "BLS12-381 private scalar as bigint string"
  *               signature:
  *                 type: string
- *                 description: "Ethereum signature for authentication. Must sign message: 'Insert register key for election {electionId} with N={N}, D={D}, E={E}, NbitLength={NbitLength}'"
- *             required: [electionId, N, D, E, NbitLength, signature]
+ *                 description: "Ethereum signature for authentication. Must sign message: 'Insert register key for election {electionId} with pk={pk}'."
+ *             required: [electionId, pk, sk, signature]
  *     responses:
  *       200:
  *         description: Register keys successfully inserted
@@ -97,9 +90,9 @@ function verifyAdminSignature(message: string, signature: string): boolean {
  */
 router.post('/keys', async (req: Request, res: Response) => {
   try {
-    const { electionId, N, D, E, NbitLength, signature } = req.body
+    const { electionId, pk, sk, signature } = req.body
 
-    const message = `Insert register key for election ${electionId} with N=${N}, D=${D}, E=${E}, NbitLength=${NbitLength}`
+    const message = `Insert register key for election ${electionId} with pk=${pk}`
     if (!verifyAdminSignature(message, signature)) {
       return res.status(401).json({
         data: null,
@@ -108,51 +101,33 @@ router.post('/keys', async (req: Request, res: Response) => {
     }
 
     // Validate required fields
-    if (!electionId || !N || !D || !E || !NbitLength) {
+    if (!electionId || !pk || !sk) {
       return res.status(400).json({
         data: null,
-        error: 'Missing required fields: electionId, N, D, E, NbitLength',
+        error: 'Missing required fields: electionId, pk, sk',
       } as ApiResponse<null>)
     }
 
     // Validate types
-    if (typeof electionId !== 'number' || typeof NbitLength !== 'number') {
+    if (typeof electionId !== 'number') {
       return res.status(400).json({
         data: null,
-        error: 'electionId and NbitLength must be numbers',
+        error: 'electionId must be a number',
       } as ApiResponse<null>)
     }
 
+    let blsParams
     try {
-      if (!isValidHex(N, false, false)) {
-        throw new Error(`Invalid hex format for N: ${N}`)
-      }
-      if (!isValidHex(D, false, false)) {
-        throw new Error(`Invalid hex format for D: ${D}`)
-      }
-      if (isValidHex(E)) {
-        throw new Error(`E must be a decimal number, not hex: ${E}`)
-      }
-
-      // Sanity check: N and D must not be equal
-      if (N.toLowerCase() === D.toLowerCase()) {
-        throw new Error('N and D cannot be equal')
-      }
+      blsParams = { pk, sk: BigInt(sk) }
+      validateBlsParams(blsParams)
     } catch (error: any) {
       return res.status(400).json({
         data: null,
-        error: error.message,
+        error: `Invalid BLS parameters: ${error.message}`,
       } as ApiResponse<null>)
     }
 
-    const rsaParams = {
-      N: BigInt(N),
-      D: BigInt(D),
-      e: BigInt(E),
-      NbitLength: NbitLength,
-    }
-
-    await RegisterKeyService.storeKeys(electionId, rsaParams)
+    await RegisterKeyService.storeKeys(electionId, blsParams)
 
     logger.info(`Register keys successfully inserted for election ${electionId}`)
 
