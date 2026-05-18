@@ -41,9 +41,7 @@ export default function VoteTransaction() {
 
     const checkTransaction = async () => {
         try {
-            console.log(smartAccountClient);
             const txHash = await waitForReceipt(smartAccountClient, userOpHash);
-            console.log('txHash', txHash);
             /*
             const { credentials } = checkBallot(voting.election, voting.registerCode);
             const voterAccount = privateKeyToAccount(credentials.voterWallet.privateKey);

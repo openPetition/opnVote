@@ -128,10 +128,8 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
 }
 
 export async function waitForReceipt(smartAccountClient, userOpHash) {
-    console.log('waitForReceipt');
     const receipt = await smartAccountClient.waitForUserOperationReceipt({ hash: userOpHash });
     const txHash = receipt.receipt.transactionHash;
-    console.log('receipt', receipt);
     if (!receipt.success) {
         throw new Error(`UserOp reverted: ${txHash}`);
     }
