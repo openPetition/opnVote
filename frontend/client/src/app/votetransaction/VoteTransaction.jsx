@@ -42,7 +42,7 @@ export default function VoteTransaction() {
     const checkTransaction = async () => {
         try {
             const txHash = await waitForReceipt(smartAccountClient, userOpHash);
-            /*
+
             const { credentials } = checkBallot(voting.election, voting.registerCode);
             const voterAccount = privateKeyToAccount(credentials.voterWallet.privateKey);
             const voterAddress = voterAccount.address.toLowerCase()
@@ -63,7 +63,7 @@ export default function VoteTransaction() {
                     await sleep(TRANSACTION_PENDING_DELAY);
                 }
             }
-            */
+
             if (txHash && txHash.length > 0) {
                 setVoteResultState({
                     ...voteResultState,
