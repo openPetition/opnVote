@@ -54,7 +54,7 @@ export default function CreateSecret() {
                     title={t("secret.headline.createSecret.title")}
                     text={t("secret.headline.createSecret.text")}
 
-                    progressBarStep={globalConst.progressBarStep.key}
+                    progressBarStep={globalConst.progressBarStep.createKey}
                 />
             </div>
             <main className="op__contentbox_760">

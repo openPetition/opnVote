@@ -26,6 +26,17 @@
     cursor: pointer;
 }
 
+.qrinput {
+    width: 96%;
+    min-height: 2rem;
+    margin: auto;
+    padding: var(--op-padding-standard);
+    border: 1px solid var(--op-grey-dark);
+    border-radius: 8px;
+    line-height: 1.2;
+
+}
+
 @media only screen and (min-width: 600px) {
 
 .header {

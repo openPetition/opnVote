@@ -300,7 +300,7 @@ export default function Register() {
                     title={t("register.headline.title")}
                     text={t("register.headline.text")}
                     image="/images/online.svg"
-                    progressBarStep={globalConst.progressBarStep.ballot}
+                    progressBarStep={voting.registerCodeSaved ? globalConst.progressBarStep.readyToVote : globalConst.progressBarStep.saveBallot}
                 />
             </>
 
@@ -367,6 +367,10 @@ export default function Register() {
                                     subheadline={t("register.uploadqrcode.subheadline")}
                                     uploadSubHeadline={t("register.uploadqrcode.uploadSubHeadline")}
                                     scanSubHeadline={t("register.uploadqrcode.scanSubHeadline")}
+                                    insertAsTextSubHeadline={t("register.uploadqrcode.insertAsTextSubHeadline")}
+                                    insertAsTextPlaceholder={t("register.uploadqrcode.insertAsTextPlaceholder")}
+                                    insertAsTextHeadline={t("register.uploadqrcode.insertAsTextHeadline")}
+                                    insertAsTextButton={t("register.uploadqrcode.insertAsTextButton")}
                                     onResult={(res) => updateUserKey(res)}
                                 />
                             </>
@@ -392,7 +396,9 @@ export default function Register() {
                                     }}
                                     afterSaveFunction={(type) => {
                                         let registerCodeSavedAsLocal = voting.registerCodeSavedAs;
-                                        !registerCodeSavedAsLocal.includes(type) && registerCodeSavedAsLocal.push(type);
+                                        if (!registerCodeSavedAsLocal.includes(type)) {
+                                            registerCodeSavedAsLocal.push(type);
+                                        }
                                         updateVoting({ initElectionPermit: false });
                                         setRegisterState({
                                             ...registerState,

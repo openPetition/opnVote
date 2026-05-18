@@ -24,7 +24,7 @@ export default function LoadSecret() {
                 <Headline
                     title={t("secret.headline.createSecret.title")}
                     text={t("secret.headline.createSecret.text")}
-                    progressBarStep={globalConst.progressBarStep.key}
+                    progressBarStep={globalConst.progressBarStep.saveKey}
                 />
             </div>
             <main className="op__contentbox_760">
@@ -34,6 +34,10 @@ export default function LoadSecret() {
                         subheadline={t("register.uploadqrcode.subheadline")}
                         uploadSubHeadline={t("register.uploadqrcode.uploadSubHeadline")}
                         scanSubHeadline={t("register.uploadqrcode.scanSubHeadline")}
+                        insertAsTextSubHeadline={t("register.uploadqrcode.insertAsTextSubHeadline")}
+                        insertAsTextPlaceholder={t("register.uploadqrcode.insertAsTextPlaceholder")}
+                        insertAsTextHeadline={t("register.uploadqrcode.insertAsTextHeadline")}
+                        insertAsTextButton={t("register.uploadqrcode.insertAsTextButton")}
                         onResult={(res) => updateUserKey(res, true)}
                     />
                     <Button

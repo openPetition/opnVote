@@ -16,12 +16,25 @@ let html5QrCode;
 
 export default function ScanUploadQRCode(props) {
     const { t } = useTranslation();
-    const { headline, subheadline, uploadHeadline, uploadSubHeadline, scanSubHeadline } = props;
+    const {
+        headline,
+        subheadline,
+        uploadHeadline,
+        uploadSubHeadline,
+        scanSubHeadline,
+        insertAsTextHeadline,
+        insertAsTextSubHeadline,
+        insertAsTextPlaceholder,
+        insertAsTextButton,
+    } = props;
 
     const fileRef = useRef(null);
     const [showStopScanBtn, setShowStopScanBtn] = useState(false);
     const [showScanNotification, setShowScanNotification] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [inputQRCodeText, setInputQRCodeText] = useState('');
+    const [isQrTextInputActivated, setIsQrTextInputActivated] = useState(false);
+
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -52,6 +65,15 @@ export default function ScanUploadQRCode(props) {
         }
         setIsLoading(true);
     };
+
+    const confirmQRCodeText = () => {
+        const index = inputQRCodeText.lastIndexOf(':');
+        const code = index === -1 ? inputQRCodeText : inputQRCodeText.substring(index + 1);
+        const cleanCode = code.replace(/\s+/g, '');
+        if (cleanCode.length > 10) {
+            props.onResult(cleanCode)
+        }
+    }
 
     const extractWithConvert = async (file) => {
         try {
@@ -186,6 +208,61 @@ export default function ScanUploadQRCode(props) {
                 <h3>{headline}</h3>
                 {subheadline}
             </div>
+
+            <div className="op__outerbox_grey op__margin_standard_20_top_bottom">
+                <div className={styles.header}>
+                    <div className={styles.qrbg}>
+                        <NextImage
+                            priority
+                            src="/images/load-string.svg"
+                            height={60}
+                            width={60}
+                            alt=""
+                        />
+                    </div>
+                    <div>
+                        <h3>{insertAsTextHeadline}</h3>
+                        <p>{insertAsTextSubHeadline}</p>
+                    </div>
+                </div>
+                <div className={styles.innerbox}>
+                    {!isQrTextInputActivated && (
+                        <Button
+                            onClick={() => setIsQrTextInputActivated(true)}
+                            type="primary_light"
+                            className={isQrTextInputActivated ? 'op__display-none' : 'op__display-block'}
+                        >
+                            {insertAsTextButton}
+                        </Button>
+                    )}
+
+                    {isQrTextInputActivated && (
+                        <>
+                            <textarea
+                                className={styles.qrinput}
+                                type="text"
+                                name="qrTextInput"
+                                rows="4"
+                                value={inputQRCodeText}
+                                onChange={(e) => setInputQRCodeText(e.target.value)}
+                                placeholder={insertAsTextPlaceholder}
+                            />
+                            <Button
+                                onClick={confirmQRCodeText}
+                                type="primary_light"
+                            >{t('common.confirm')}</Button>
+                            <Button
+                                onClick={() => setIsQrTextInputActivated(false)}
+                                type="secondary"
+                                style={{ marginLeft: '10px', padding: '.25rem' }}
+                            >
+                                {t('common.abort')}
+                            </Button>
+                        </>
+                    )}
+                </div>
+            </div>
+
             <div className="op__outerbox_grey op__margin_standard_20_top_bottom">
                 <div className={styles.header}>
                     <div className={styles.qrbg}>

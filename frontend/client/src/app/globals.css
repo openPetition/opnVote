@@ -116,6 +116,14 @@ hr {
 	border-top: 1px solid var(--op-grey-dark);
 }
 
+.op__display-none {
+	display: none;
+}
+
+.op__display-block {
+	display: block;
+}
+
 .op__font-op-grey-dark {
 	color: var(--op-grey-dark);
 }
