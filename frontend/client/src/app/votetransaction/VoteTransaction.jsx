@@ -13,11 +13,14 @@ import globalConst from "@/constants";
 import { Check } from "lucide-react";
 import { privateKeyToAccount } from 'viem/accounts';
 import { checkBallot } from "@/util";
+import { useVoting } from '../VotingContext';
+import { waitForReceipt } from "../pollingstation/sendVotes";
 
 export default function VoteTransaction() {
-    const { taskId, voting, updateVoting, updateTaskId, updatePage } = useOpnVoteStore((state) => state);
+    const { userOpHash, voting, updateVoting, updateUserOpHash, updatePage } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [transactionHash, setTransactionHash] = useState();
+    const { smartAccountClient } = useVoting(); // Holt den fertigen Client aus Seite 1
 
     const TRANSACTION_STATE_CHECKING = 'checking';
     const TRANSACTION_STATE_PENDING = 'pending';
@@ -38,7 +41,10 @@ export default function VoteTransaction() {
 
     const checkTransaction = async () => {
         try {
-
+            console.log(smartAccountClient);
+            const txHash = await waitForReceipt(smartAccountClient, userOpHash);
+            console.log('txHash', txHash);
+            /*
             const { credentials } = checkBallot(voting.election, voting.registerCode);
             const voterAccount = privateKeyToAccount(credentials.voterWallet.privateKey);
             const voterAddress = voterAccount.address.toLowerCase()
@@ -49,7 +55,7 @@ export default function VoteTransaction() {
                     console.log('Vote indexed in subgraph ✓', voteCasts[0].transactionHash); // leave in for now
                     setTransactionHash(voteCasts[0].transactionHash);
                     updateVoting({ votesuccess: true });
-                    updateTaskId(''); //invalidation to prevent wrong redirects from pollingstation
+                    updateUserOpHash(''); //invalidation to prevent wrong redirects from pollingstation
                     break;
                 }
                 if (attempt === 10) {
@@ -59,14 +65,17 @@ export default function VoteTransaction() {
                     await sleep(TRANSACTION_PENDING_DELAY);
                 }
             }
-            setVoteResultState({
-                ...voteResultState,
-                transactionStateText: t('votetransactionstate.statustitle.success'),
-                transactionStateSubText: t('votetransactionstate.statustext.success'),
-                transactionState: TRANSACTION_STATE_SUCCESS,
-                notificationText: t('votetransactionstate.info.success'),
-                notificationType: 'success',
-            });
+            */
+            if (txHash && txHash.length > 0) {
+                setVoteResultState({
+                    ...voteResultState,
+                    transactionStateText: t('votetransactionstate.statustitle.success'),
+                    transactionStateSubText: t('votetransactionstate.statustext.success'),
+                    transactionState: TRANSACTION_STATE_SUCCESS,
+                    notificationText: t('votetransactionstate.info.success'),
+                    notificationType: 'success',
+                });
+            }
 
         } catch (error) {
             console.log(error);
@@ -111,7 +120,7 @@ export default function VoteTransaction() {
 
     useEffect(() => {
         // be sure, that we only call it once at first
-        if (taskId?.length > 0 && voteResultState.transactionState === TRANSACTION_STATE_CHECKING) {
+        if (smartAccountClient && userOpHash?.length > 0 && voteResultState.transactionState === TRANSACTION_STATE_CHECKING) {
             checkTransaction();
             return;
         }
@@ -125,7 +134,7 @@ export default function VoteTransaction() {
                 notificationType: 'success',
             });
         }
-    }, [taskId]);
+    }, [userOpHash, smartAccountClient]);
 
     return (
         <>
@@ -171,7 +180,7 @@ export default function VoteTransaction() {
                 </div>
                 {voteResultState.transactionState == TRANSACTION_STATE_ERROR_RETRY && (
                     <div className="op__padding_standard_top">
-                        <Button type="primary" onClick={() => { updateTaskId(''); updatePage({ current: globalConst.pages.POLLINGSTATION }, modes.replace); }}>{t("votetransactionstate.errorretry")}</Button>
+                        <Button type="primary" onClick={() => { updateUserOpHash(''); updatePage({ current: globalConst.pages.POLLINGSTATION }, modes.replace); }}>{t("votetransactionstate.errorretry")}</Button>
                     </div>
                 )}
             </div>

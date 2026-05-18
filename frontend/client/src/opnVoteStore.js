@@ -67,7 +67,7 @@ export const useOpnVoteStore = create(
         (set, get) => ({
             user: emptyUser,
             voting: emptyVoting,
-            taskId: '',
+            userOpHash: '',
             page: {
                 loading: true,
                 previous: null,
@@ -96,7 +96,7 @@ export const useOpnVoteStore = create(
                     election: state.voting.election,
                     electionInformation: state.voting.electionInformation,
                 },
-                taskId: '',
+                userOpHash: '',
             })),
             updateVoting: (votingData) =>
                 set((state) => ({
@@ -117,8 +117,8 @@ export const useOpnVoteStore = create(
                     }
                 }
             },
-            updateTaskId: (update) => set(() => ({
-                taskId: update
+            updateUserOpHash: (update) => set(() => ({
+                userOpHash: update
             })),
         }),
         {

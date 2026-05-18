@@ -11,7 +11,7 @@ import {
 import { createSmartAccountClient } from 'permissionless';
 import { to7702SimpleSmartAccount } from 'permissionless/accounts';
 
-export async function sendVotes(votes, votingCredentials, electionPublicKey, isRecast) {
+export async function sendVotes(votes, votingCredentials, electionPublicKey, isRecast, setSmartAccountClient) {
     // map votes into needed format
     const voterAccount = privateKeyToAccount(votingCredentials.voterWallet.privateKey);
     const OPNVOTE_ABI = [
@@ -103,6 +103,7 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
             }),
         },
     });
+    setSmartAccountClient(smartAccountClient);
 
     const isDeployed = await smartAccount.isDeployed();
     const sendParams = {
@@ -122,9 +123,15 @@ export async function sendVotes(votes, votingCredentials, electionPublicKey, isR
         userOpHash = await smartAccountClient.sendUserOperation(sendParams);
     }
 
+
+    return userOpHash;
+}
+
+export async function waitForReceipt(smartAccountClient, userOpHash) {
+    console.log('waitForReceipt');
     const receipt = await smartAccountClient.waitForUserOperationReceipt({ hash: userOpHash });
     const txHash = receipt.receipt.transactionHash;
-
+    console.log('receipt', receipt);
     if (!receipt.success) {
         throw new Error(`UserOp reverted: ${txHash}`);
     }
