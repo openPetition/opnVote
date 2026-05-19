@@ -57,7 +57,7 @@ function verifyAdminSignature(message: string, signature: string): boolean {
  *                 description: "BLS12-381 public key (uncompressed G2 point) as hex string, '0x'-prefixed"
  *               sk:
  *                 type: string
- *                 description: "BLS12-381 private scalar as bigint string"
+ *                 description: "BLS12-381 private scalar as decimal string or 0x-prefixed hex string"
  *               signature:
  *                 type: string
  *                 description: "Ethereum signature for authentication. Must sign message: 'Insert register key for election {electionId} with pk={pk}'."
