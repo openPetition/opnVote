@@ -10,18 +10,6 @@ export const blindedTokenValidationRules = () => [
     .isObject()
     .withMessage('Token must be an object'),
 
-  body('token.isMaster')
-    .exists({ checkNull: true, checkFalsy: false })
-    .withMessage('Master token status is required')
-    .isBoolean()
-    .withMessage('Master token status must be boolean')
-    .custom(value => {
-      if (value) {
-        throw new Error('Cannot sign Master Tokens')
-      }
-      return true
-    }),
-
   body('token.isBlinded')
     .exists({ checkNull: true, checkFalsy: false })
     .withMessage('Blinded status is required')
@@ -36,7 +24,7 @@ export const blindedTokenValidationRules = () => [
 
   body('token').custom((token: Token) => {
     try {
-      validateToken(token, true)
+      validateToken(token)
       return true
     } catch (error) {
       throw new Error((error as Error).message)

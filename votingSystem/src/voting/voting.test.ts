@@ -1,7 +1,8 @@
-import { ElectionCredentials, EncryptedVotes, EncryptionKey, EncryptionType, EthSignature, Signature, Token, Vote, VoteOption, VotingTransaction } from "../types/types";
+import { ElectionCredentials, EncryptedVotes, EncryptionKey, EncryptionType, EthSignature, BlsSignature, Vote, VoteOption, VotingTransaction } from "../types/types";
 import { ethers } from "ethers";
-import { addSVSSignatureToVotingTransaction, createVotingTransactionWithoutSVSSignature } from "./voting";
+import { createVotingTransaction } from "./voting";
 import { RSA_BIT_LENGTH } from "../utils/constants";
+import { bls12_381 } from "@noble/curves/bls12-381";
 
 describe('AES: Encryption and Decryption Integration', () => {
     beforeEach(() => {
@@ -53,7 +54,7 @@ describe('RSA: Encryption and Decryption Integration', () => {
     it('should encrypt and then decrypt 2 votes back to the original', async () => {
         const votingModule = await import("./voting");
         const { encryptVotes, decryptVotes } = votingModule;
-        const keyGenerationModule = await import("../admin/generateRSAKeys");
+        const keyGenerationModule = await import("../admin/generateKeyPair");
         const { generateKeyPair } = keyGenerationModule;
 
         const votes: Array<Vote> = [{ value: VoteOption.Yes }, { value: VoteOption.No }];
@@ -71,7 +72,7 @@ describe('RSA: Encryption and Decryption Integration', () => {
     it('should encrypt and then decrypt 95 votes back to original', async () => {
         const votingModule = await import("./voting");
         const { encryptVotes, decryptVotes } = votingModule;
-        const keyGenerationModule = await import("../admin/generateRSAKeys");
+        const keyGenerationModule = await import("../admin/generateKeyPair");
         const { generateKeyPair } = keyGenerationModule;
 
         // Generating 95 votes ('Yes', 'No', and 'Abstain')
@@ -95,7 +96,7 @@ describe('RSA: Edge Cases for Encryption and Decryption', () => {
     let generateKeyPair: () => Promise<{ publicKey: string; privateKey: string; }>;
 
     beforeAll(async () => {
-        const keyGenerationModule = await import("../admin/generateRSAKeys");
+        const keyGenerationModule = await import("../admin/generateKeyPair");
         generateKeyPair = keyGenerationModule.generateKeyPair;
     });
 
@@ -198,77 +199,28 @@ describe('AES: Edge Cases for Encryption and Decryption', () => {
     });
 });
 
-describe('createVotingTransactionWithoutSVSSignature', () => {
+describe('createVotingTransaction', () => {
     it('should create a transaction with the correct properties', () => {
-        const voterWallet: ethers.Wallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey)
-        const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
-        const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
+        const voterWallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey)
+        const g1BaseHex: BlsSignature = { hexString: '0x' + bls12_381.curves.G1.BASE.toHex(false), isBlinded: false }
         const dummyEncryptionKey: EncryptionKey = { hexString: '0x' + '1'.repeat(64), encryptionType: EncryptionType.AES }
 
         const voterCredentials: ElectionCredentials = {
             electionID: 1,
-            voterWallet: voterWallet,
-            unblindedElectionToken: dummyToken,
-            unblindedSignature: dummySignature,
+            voterWallet,
+            unblindedSignature: g1BaseHex,
             encryptionKey: dummyEncryptionKey
         };
         const dummyEncryptedVotesRSA: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), encryptionType: EncryptionType.RSA };
         const dummyEncryptedVotesAES: EncryptedVotes = { hexString: '0x' + '1'.repeat(80), encryptionType: EncryptionType.AES };
 
-        const transaction: VotingTransaction = createVotingTransactionWithoutSVSSignature(voterCredentials, dummyEncryptedVotesRSA, dummyEncryptedVotesAES);
+        const transaction: VotingTransaction = createVotingTransaction(voterCredentials, dummyEncryptedVotesRSA, dummyEncryptedVotesAES);
 
         expect(transaction.electionID).toBe(voterCredentials.electionID);
         expect(transaction.voterAddress).toBe(voterCredentials.voterWallet.address);
         expect(transaction.encryptedVoteRSA).toBe(dummyEncryptedVotesRSA);
         expect(transaction.encryptedVoteAES).toBe(dummyEncryptedVotesAES);
-        expect(transaction.unblindedElectionToken).toBe(voterCredentials.unblindedElectionToken);
         expect(transaction.unblindedSignature).toBe(voterCredentials.unblindedSignature);
-        expect(transaction.svsSignature).toBeNull();
     });
-});
-
-
-describe('addSVSSignatureToVotingTransaction', () => {
-    it('should add an SVS signature correctly', () => {
-        const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
-        const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
-        const dummyEncryptedVotesRSA: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), encryptionType: EncryptionType.RSA };
-        const dummyEncryptedVotesAES: EncryptedVotes = { hexString: '0x' + '1'.repeat(80), encryptionType: EncryptionType.AES };
-
-        const transaction: VotingTransaction = {
-            electionID: 1,
-            voterAddress: '0x0000000000000000000000000000000000000000',
-            encryptedVoteRSA: dummyEncryptedVotesRSA,
-            encryptedVoteAES: dummyEncryptedVotesAES,
-            unblindedElectionToken: dummyToken,
-            unblindedSignature: dummySignature,
-            svsSignature: null
-        };
-
-        const svsSignature: EthSignature = { hexString: '0xa106c04b7ac65cabdaaa73a7ac6a7c506218495345706e2a7aa10eb5ff391ccc2cb7ceabfdc3256ed7565cc88717bf4b581acdba44f38134696b700cda41358f1c' }; //dummy signature
-        const updatedTransaction: VotingTransaction = addSVSSignatureToVotingTransaction(transaction, svsSignature);
-
-        expect(updatedTransaction.svsSignature).toBe(svsSignature);
-    });
-
-    it('should throw if SVS signature is already present', () => {
-        const dummyToken: Token = { hexString: "0x" + BigInt(3).toString(16).padStart(64, '0'), isMaster: false, isBlinded: false }
-        const dummySignature: Signature = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), isBlinded: false }
-        const dummyEncryptedVotesRSA: EncryptedVotes = { hexString: '0x' + '1'.repeat((RSA_BIT_LENGTH / 4)), encryptionType: EncryptionType.RSA };
-        const dummyEncryptedVotesAES: EncryptedVotes = { hexString: '0x' + '1'.repeat(80), encryptionType: EncryptionType.AES };
-        const svsSignature: EthSignature = { hexString: '0x' + '1'.repeat(130) };
-
-        const transaction: VotingTransaction = {
-            electionID: 1,
-            voterAddress: '0x0000000000000000000000000000000000000000',
-            encryptedVoteRSA: dummyEncryptedVotesRSA,
-            encryptedVoteAES: dummyEncryptedVotesAES,
-            unblindedElectionToken: dummyToken,
-            unblindedSignature: dummySignature,
-            svsSignature: dummySignature
-        };
-        expect(() => addSVSSignatureToVotingTransaction(transaction, svsSignature)).toThrow('Voting Transaction already contains SVS Signature');
-    });
-
 });
 

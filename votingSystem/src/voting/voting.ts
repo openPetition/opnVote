@@ -4,7 +4,6 @@ import {
   EncryptedVotes,
   EncryptionKey,
   EncryptionType,
-  EthSignature,
   RecastingVotingTransaction,
   Vote,
   VotingTransaction,
@@ -18,10 +17,8 @@ import {
   validateEncryptedVotes,
   validateEncryptionKey,
   validateEthAddress,
-  validateEthSignature,
   validateRecastingVotingTransaction,
-  validateSignature,
-  validateToken,
+  validateBlsSignature,
   validateVotes,
   validateVotingTransaction,
   votesToString,
@@ -29,14 +26,14 @@ import {
 import * as crypto from 'crypto'
 
 /**
- * Creates a voting transaction without SVS signature.
- * @param {ElectionCredentials} voterCredentials - Credentials of the voter
- * @param {EncryptedVotes} encryptedVotesRSA - Encrypted vote to be included in voting transaction
- * @param {EncryptedVotes} encryptedVotesAES - Encrypted vote to be included in voting transaction
- * @returns {VotingTransaction} Voting transaction without SVS signature
- * @throws {Error} If any validation (Signature, EncryptedVotes, Token, Signature, ...) fails
+ * Creates a voting transaction
+ * @param voterCredentials - Credentials of the voter
+ * @param encryptedVotesRSA - RSA-encrypted votes
+ * @param encryptedVotesAES - AES-encrypted votes
+ * @returns VotingTransaction
+ * @throws if any validation fails
  */
-export function createVotingTransactionWithoutSVSSignature(
+export function createVotingTransaction(
   voterCredentials: ElectionCredentials,
   encryptedVotesRSA: EncryptedVotes,
   encryptedVotesAES: EncryptedVotes,
@@ -44,17 +41,8 @@ export function createVotingTransactionWithoutSVSSignature(
   validateEncryptedVotes(encryptedVotesRSA, EncryptionType.RSA)
   validateEncryptedVotes(encryptedVotesAES, EncryptionType.AES)
 
-  validateToken(voterCredentials.unblindedElectionToken)
-  validateSignature(voterCredentials.unblindedSignature)
+  validateBlsSignature(voterCredentials.unblindedSignature)
   validateEthAddress(voterCredentials.voterWallet.address)
-
-  if (voterCredentials.unblindedElectionToken.isMaster) {
-    throw new Error('Voting transaction must not include a Master Token')
-  }
-
-  if (voterCredentials.unblindedElectionToken.isBlinded) {
-    throw new Error('Voting transaction must not include a blinded Token')
-  }
 
   if (voterCredentials.unblindedSignature.isBlinded) {
     throw new Error('Voting transaction must not include a blinded Signature')
@@ -65,38 +53,12 @@ export function createVotingTransactionWithoutSVSSignature(
     voterAddress: voterCredentials.voterWallet.address,
     encryptedVoteRSA: encryptedVotesRSA,
     encryptedVoteAES: encryptedVotesAES,
-    unblindedElectionToken: voterCredentials.unblindedElectionToken,
     unblindedSignature: voterCredentials.unblindedSignature,
-    svsSignature: null,
   }
 
   validateVotingTransaction(votingTransaction)
 
   return votingTransaction
-}
-
-/**
- * Adds an SVS signature to an existing voting transaction.
- * @param {VotingTransaction} votingTransaction - Voting transaction to which the signature will be added
- * @param {EthSignature} svsSignature -  EIP-191 compliant SVS signature to be added to the voting transaction
- * @returns {VotingTransaction} Updated voting transaction with SVS signature
- * @throws {Error} If any validation (Signature, EncryptedVotes, Token, Signature, ...) fails
- */
-export function addSVSSignatureToVotingTransaction(
-  votingTransaction: VotingTransaction,
-  svsSignature: EthSignature,
-): VotingTransaction {
-  if (votingTransaction.svsSignature) {
-    throw new Error('Voting Transaction already contains SVS Signature')
-  }
-
-  validateVotingTransaction(votingTransaction)
-  validateEthSignature(svsSignature)
-
-  return {
-    ...votingTransaction,
-    svsSignature: svsSignature,
-  }
 }
 
 /**

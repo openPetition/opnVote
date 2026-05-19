@@ -1,295 +1,220 @@
-import { generateKeyPairRaw } from '../admin/generateRSAKeys';
+import { ethers } from 'ethers';
 import { TestRegister } from '../config';
-import { Token, R } from '../types/types';
-import { signToken, validateR, validateSignature, validateToken } from '../utils/utils';
-import { generateMasterTokenAndMasterR, concatTokenAndRForQR, qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, unblindSignature, blindToken, verifyUnblindedSignature } from './generateTokens';
+import { MasterKey } from '../types/types';
+import { signToken, validateBase64, validateBlsSignature, validateMasterKey, validateR, validateToken } from '../utils/utils';
+import { generateMasterKey, masterKeyToQR, qrToMasterKey, deriveElectionWallet, deriveElectionUnblindedToken, generateBlindingR, unblindSignature, blindToken, verifyUnblindedSignature } from './generateTokens';
 
 
 
 
+// Generate Master Key
 
-//Generate Master Token and Master R
+describe('generateMasterKey', () => {
+    it('should generate a master key', () => {
+        const masterKey = generateMasterKey();
 
-describe('generateMasterTokenAndMasterR', () => {
-    it('should generate master token and master R', () => {
-        const { masterToken, masterR } = generateMasterTokenAndMasterR();
-
-        // Use validateHexString to check the hex string format and length
-        expect(() => validateToken(masterToken)).not.toThrow();
-        expect(() => validateR(masterR)).not.toThrow();
-
-        // Check if they have the correct properties
-        expect(masterToken.isMaster).toBe(true);
-        expect(masterToken.isBlinded).toBe(false);
-        expect(masterR.isMaster).toBe(true);
-
+        expect(() => validateMasterKey(masterKey)).not.toThrow();
+        expect(masterKey.hexString.startsWith('0x')).toBe(true);
     });
 });
 
 
-// Concat Token and R for QR Code
+// MasterKey QR Code Generation and Parsing
 
-describe('QR Code Generation and Parsing', () => {
-    let masterTokens: Token[] = [];
-    let masterRs: R[] = [];
+describe('MasterKey QR Code Generation and Parsing', () => {
+    let masterKeys: MasterKey[] = [];
 
     beforeAll(() => {
-        // Generating 100 pairs of masterToken and masterR
         for (let i = 0; i < 100; i++) {
-            const { masterToken, masterR } = generateMasterTokenAndMasterR();
-            masterTokens.push(masterToken);
-            masterRs.push(masterR);
+            masterKeys.push(generateMasterKey());
         }
     });
 
-    it('should correctly concatenate token and r into a Base64 string with a delimiter', () => {
-        masterTokens.forEach((masterToken, index) => {
-            const masterR = masterRs[index];
-            const qrString = concatTokenAndRForQR(masterToken, masterR);
-
-            const parts = qrString.split('|');
-            expect(parts.length).toBe(2);
-            expect(isValidBase64(parts[0])).toBe(true);
-            expect(isValidBase64(parts[1])).toBe(true);
+    it('should correctly encode a master key into a Base64 string', () => {
+        masterKeys.forEach((masterKey) => {
+            const qrString = masterKeyToQR(masterKey);
+            expect(() => validateBase64(qrString)).not.toThrow();
         });
     });
 
-    it('should correctly decode a QR code string back into token and r', () => {
-        masterTokens.forEach((masterToken, index) => {
-            const masterR = masterRs[index];
-            const qrString = concatTokenAndRForQR(masterToken, masterR);
-            const { token: decodedToken, r: decodedR } = qrToTokenAndR(qrString, masterToken.isMaster);
+    it('should correctly decode a QR code string back into a master key', () => {
+        masterKeys.forEach((masterKey) => {
+            const qrString = masterKeyToQR(masterKey);
+            const decoded = qrToMasterKey(qrString);
 
-            expect(decodedToken.hexString).toBe(masterToken.hexString);
-            expect(() => validateToken(decodedToken)).not.toThrow();
-            expect(decodedToken.isBlinded).toBe(false);
-            expect(decodedR.hexString).toBe(masterR.hexString);
-            expect(() => validateR(decodedR)).not.toThrow();
+            expect(decoded.hexString).toBe(masterKey.hexString);
+            expect(() => validateMasterKey(decoded)).not.toThrow();
         });
     });
 });
 
-// Derive Unblinded Election Token from Master Token
+
+// Derive Election-specific Voter Wallet from Master Key
+describe('deriveElectionWallet', () => {
+    let masterKey: MasterKey;
+
+    beforeAll(() => {
+        masterKey = generateMasterKey();
+    });
+
+    it('should derive same wallet for same master key and election ID', () => {
+        const electionID = 42;
+        const w1 = deriveElectionWallet(masterKey, electionID);
+        const w2 = deriveElectionWallet(masterKey, electionID);
+
+        expect(w1.address).toBe(w2.address);
+        expect(w1.privateKey).toBe(w2.privateKey);
+    });
+
+    it('should derive different wallets for different election IDs', () => {
+        const w1 = deriveElectionWallet(masterKey, 1);
+        const w2 = deriveElectionWallet(masterKey, 2);
+
+        expect(w1.address).not.toBe(w2.address);
+    });
+
+    it('should derive different wallets for different master keys', () => {
+        const otherMasterKey = generateMasterKey();
+        const w1 = deriveElectionWallet(masterKey, 1);
+        const w2 = deriveElectionWallet(otherMasterKey, 1);
+
+        expect(w1.address).not.toBe(w2.address);
+    });
+});
+
+
+// Derive Unblinded Election Token from electionID and voter address
+
 describe('deriveElectionUnblindedToken', () => {
 
-    let masterToken: Token;
+    let voterAddress: string;
 
     beforeAll(() => {
-        const generatedTokens = generateMasterTokenAndMasterR();
-        masterToken = generatedTokens.masterToken;
+        voterAddress = ethers.Wallet.createRandom().address;
     });
 
-    it('should generate the same unblinded token for the same election ID and master token', () => {
-
+    it('should derive the same token for same election ID and voter address', () => {
         const numberOfTests = 100;
         for (let i = 0; i < numberOfTests; i++) {
-            const electionID = Math.floor(Math.random() * 1000); // Random election ID
+            const electionID = Math.floor(Math.random() * 1000);
 
-            const token1 = deriveElectionUnblindedToken(electionID, masterToken);
-            const token2 = deriveElectionUnblindedToken(electionID, masterToken);
+            const token1 = deriveElectionUnblindedToken(electionID, voterAddress);
+            const token2 = deriveElectionUnblindedToken(electionID, voterAddress);
 
             expect(() => validateToken(token1)).not.toThrow();
-            expect(() => validateToken(token2)).not.toThrow();
-
+            expect(token1.hexString).toBe(token2.hexString);
             expect(token1.isBlinded).toBe(false);
-            expect(token1.isMaster).toBe(false);
-
-            expect(token2.isBlinded).toBe(false);
-            expect(token2.isMaster).toBe(false);
         }
-
     });
 
-
-
-    it('should generate different unblinded tokens for different election IDs with the same master token', () => {
-
+    it('should derive different tokens for different election IDs with same voter address', () => {
         const numberOfTests = 20;
         for (let i = 0; i < numberOfTests; i++) {
-            const electionID = Math.floor(Math.random() * 1000); // Random election ID
+            const electionID = Math.floor(Math.random() * 1000);
 
-            const token1 = deriveElectionUnblindedToken(electionID, masterToken);
-            const token2 = deriveElectionUnblindedToken(electionID + 1, masterToken);
-            expect(() => validateToken(token1)).not.toThrow();
-            expect(() => validateToken(token2)).not.toThrow();
+            const token1 = deriveElectionUnblindedToken(electionID, voterAddress);
+            const token2 = deriveElectionUnblindedToken(electionID + 1, voterAddress);
+
             expect(token1.hexString).not.toBe(token2.hexString);
         }
     });
 
-    it('should always start with 0x0, be a valid hex string, and have correct properties', () => {
-        const numberOfTests = 200;
+    it('should derive different tokens for different voter addresses with the same election ID', () => {
+        const otherAddress = ethers.Wallet.createRandom().address;
+        const token1 = deriveElectionUnblindedToken(1, voterAddress);
+        const token2 = deriveElectionUnblindedToken(1, otherAddress);
 
-        for (let i = 0; i < numberOfTests; i++) {
-
-            const token = deriveElectionUnblindedToken(i, masterToken);
-            expect(token.hexString.startsWith('0x0')).toBe(true);
-            expect(() => validateToken(token)).not.toThrow();
-            expect(token.isMaster).toBe(false);
-            expect(token.isBlinded).toBe(false);
-        }
+        expect(token1.hexString).not.toBe(token2.hexString);
     });
 
+    it('should match the on-chain unblinded token (keccak256(electionId, voterAddress))', () => {
+        const electionID = 7;
+        const token = deriveElectionUnblindedToken(electionID, voterAddress);
+        const expected = ethers.solidityPackedKeccak256(['uint256', 'address'], [BigInt(electionID), voterAddress]);
+
+        expect(token.hexString).toBe(expected);
+    });
 });
 
 
+// Generate blinding factor R
 
-describe('deriveElectionR', () => {
-    let masterToken: Token, masterR: R;
-
-    beforeAll(() => {
-        const generatedTokens = generateMasterTokenAndMasterR();
-        masterToken = generatedTokens.masterToken;
-        masterR = generatedTokens.masterR;
-    });
-
-    it('should return a valid R', () => {
-        const electionID = 1;
-        const unblindedToken:Token = deriveElectionUnblindedToken(electionID, masterToken);
-        const r = deriveElectionR(electionID, masterR, unblindedToken, TestRegister);
-
-        expect(r.hexString.startsWith('0x')).toBe(true);
-        expect(() => validateR(r)).not.toThrow();
-        expect(r.isMaster).toBe(false);
-
-    });
-
-
-
-    it('should produce same R for same inputs', () => {
-
-        const numberOfTests = 5;
-        for (let i = 0; i < numberOfTests; i++) {
-            const electionID = Math.floor(Math.random() * 1000); // Random election ID
-            const unblindedToken = deriveElectionUnblindedToken(electionID, masterToken);
-
-            const r1 = deriveElectionR(electionID, masterR, unblindedToken, TestRegister);
-            const r2 = deriveElectionR(electionID, masterR, unblindedToken, TestRegister);
-
-            expect(r1.hexString).toBe(r2.hexString);
-            expect(() => validateR(r1)).not.toThrow();
-            expect(r1.isMaster).toBe(false);
+describe('generateBlindingR', () => {
+    it('should produce a valid Fr sk', () => {
+        for (let i = 0; i < 20; i++) {
+            const r = generateBlindingR();
+            expect(() => validateR(r)).not.toThrow();
         }
-
     });
 
-    it('should produce different Rs for different unblinded Token', () => {
-        const electionID1 = 1;
-        const electionID2 = 2;
-        const unblindedToken1 = deriveElectionUnblindedToken(electionID1, masterToken);
-        const unblindedToken2 = deriveElectionUnblindedToken(electionID2, masterToken);
-        expect(() => validateToken(unblindedToken1)).not.toThrow();
-        expect(() => validateToken(unblindedToken2)).not.toThrow();
-        expect(unblindedToken1.hexString).not.toBe(unblindedToken2.hexString);
-
-        const r1 = deriveElectionR(electionID1, masterR, unblindedToken1, TestRegister);
-        const r2 = deriveElectionR(electionID2, masterR, unblindedToken2, TestRegister);
-
+    it('should produce different values across calls', () => {
+        const r1 = generateBlindingR();
+        const r2 = generateBlindingR();
         expect(r1.hexString).not.toBe(r2.hexString);
-        expect(() => validateR(r1)).not.toThrow();
-        expect(() => validateR(r2)).not.toThrow();
-        expect(r1.isMaster).toBe(false);
-        expect(r2.isMaster).toBe(false);
-
     });
-
-
 });
 
 
-describe('verifyUnblindedSignature Tests', () => {
-    let masterToken: Token, masterR: R;
+// Full BLS Blind-Signature Flow (blind → sign → unblind → verify)
+
+describe('BLS blind-signature flow', () => {
+    let masterKey: MasterKey;
 
     beforeAll(() => {
-        const generatedTokens = generateMasterTokenAndMasterR();
-        masterToken = generatedTokens.masterToken;
-        masterR = generatedTokens.masterR;
+        masterKey = generateMasterKey();
     });
 
-    it('should return true for a valid unblinded signature-token pair', () => {
+    it('should produce valid signature that verifies against unblinded token and register pk', () => {
         const numberOfTests = 5;
 
         for (let i = 0; i < numberOfTests; i++) {
-
-            const electionID = Math.floor(Math.random() * 1000); // Random election ID
-            const unblindedElectionToken = deriveElectionUnblindedToken(electionID, masterToken);
-            const unblindedElectionR = deriveElectionR(electionID, masterR, unblindedElectionToken, TestRegister)
+            const electionID = Math.floor(Math.random() * 1000);
+            const voterWallet = deriveElectionWallet(masterKey, electionID);
+            const unblindedElectionToken = deriveElectionUnblindedToken(electionID, voterWallet.address);
+            const r = generateBlindingR();
 
             expect(() => validateToken(unblindedElectionToken)).not.toThrow();
-            expect(() => validateR(unblindedElectionR)).not.toThrow();
+            expect(() => validateR(r)).not.toThrow();
 
-            // Blind Election Token
-            const blindedElectionToken = blindToken(unblindedElectionToken, unblindedElectionR, TestRegister)
-            validateToken(blindedElectionToken)
+            const blindedElectionToken = blindToken(unblindedElectionToken, r);
             expect(() => validateToken(blindedElectionToken)).not.toThrow();
+            expect(blindedElectionToken.isBlinded).toBe(true);
 
-            // Sign blinded Election Token and obtain blinded Signature
-            const blindedSignature = signToken(blindedElectionToken, TestRegister)
-            expect(() => validateSignature(blindedSignature)).not.toThrow();
+            const blindedSignature = signToken(blindedElectionToken, TestRegister);
+            expect(() => validateBlsSignature(blindedSignature)).not.toThrow();
+            expect(blindedSignature.isBlinded).toBe(true);
 
-            // Unblind blinded Signature
-            const unblindedSignature = unblindSignature(blindedSignature, unblindedElectionR, TestRegister)
-            expect(() => validateSignature(unblindedSignature)).not.toThrow();
+            const unblinded = unblindSignature(blindedSignature, r);
+            expect(() => validateBlsSignature(unblinded)).not.toThrow();
+            expect(unblinded.isBlinded).toBe(false);
 
-            // Verify unblinded Signature
-            const isUnblindedSignatureValid = verifyUnblindedSignature(unblindedSignature, unblindedElectionToken, TestRegister)
-            expect(isUnblindedSignatureValid).toBe(true);
+            const isValid = verifyUnblindedSignature(unblinded, unblindedElectionToken, TestRegister);
+            expect(isValid).toBe(true);
         }
-
     });
 
-    it('should return false for a invalid unblinded signature-token pair', () => {
+    it('should fail verification when unblinded token is replaced by a token derived from a different voter address', () => {
         const numberOfTests = 2;
 
         for (let i = 0; i < numberOfTests; i++) {
+            const electionID = Math.floor(Math.random() * 1000);
+            const voterWallet = deriveElectionWallet(masterKey, electionID);
+            const unblindedElectionToken = deriveElectionUnblindedToken(electionID, voterWallet.address);
+            const r = generateBlindingR();
 
-            const electionID = Math.floor(Math.random() * 1000); // Random election ID
-            const unblindedElectionToken = deriveElectionUnblindedToken(electionID, masterToken);
-            const unblindedElectionR = deriveElectionR(electionID, masterR, unblindedElectionToken, TestRegister)
+            const blindedElectionToken = blindToken(unblindedElectionToken, r);
+            const blindedSignature = signToken(blindedElectionToken, TestRegister);
+            const unblinded = unblindSignature(blindedSignature, r);
 
-            expect(() => validateToken(unblindedElectionToken)).not.toThrow();
-            expect(() => validateR(unblindedElectionR)).not.toThrow();
+            const otherAddress = ethers.Wallet.createRandom().address;
+            const invalidUnblindedElectionToken = deriveElectionUnblindedToken(electionID, otherAddress);
 
-            // Blind Election Token
-            const blindedElectionToken = blindToken(unblindedElectionToken, unblindedElectionR, TestRegister)
-            validateToken(blindedElectionToken)
-            expect(() => validateToken(blindedElectionToken)).not.toThrow();
-
-            // Sign blinded Election Token and obtain blinded Signature
-            const blindedSignature = signToken(blindedElectionToken, TestRegister)
-            expect(() => validateSignature(blindedSignature)).not.toThrow();
-
-            // Unblind blinded Signature
-            const unblindedSignature = unblindSignature(blindedSignature, unblindedElectionR, TestRegister)
-            expect(() => validateSignature(unblindedSignature)).not.toThrow();
-
-            // Generate invalid Unblinded Election Token
-            const invalidMasterTokenRPair = generateMasterTokenAndMasterR()
-            const invalidUnblindedElectionToken = deriveElectionUnblindedToken(electionID, invalidMasterTokenRPair.masterToken)
-
-
-            // Verify unblinded Signature
-            const isUnblindedSignatureValid = verifyUnblindedSignature(unblindedSignature, invalidUnblindedElectionToken, TestRegister)
-            expect(isUnblindedSignatureValid).not.toBe(true);
+            const isValid = verifyUnblindedSignature(unblinded, invalidUnblindedElectionToken, TestRegister);
+            expect(isValid).toBe(false);
         }
-
     });
-
 });
 
 
-
-
-
-
-/*** Helper functions ***/
-
-// Helper function to check if a string is valid Base64
-function isValidBase64(str: string) {
-    try {
-        return btoa(atob(str)) === str;
-    } catch (err) {
-        return false;
-    }
-}
 
 

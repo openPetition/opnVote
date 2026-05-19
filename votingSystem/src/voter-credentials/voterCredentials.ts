@@ -1,44 +1,31 @@
 import { ethers } from "ethers";
-import { ElectionCredentials, EncryptionKey, EncryptionType, Signature, Token, WalletPrivateKey, } from "../types/types";
-import { base64ToHexString, hexStringToBase64, validateCredentials, validateHexString, validateSignature, validateToken } from "../utils/utils";
-import { RSA_BIT_LENGTH } from "../utils/constants";
+import { ElectionCredentials, EncryptionKey, EncryptionType, MasterKey, BlsSignature, Token, WalletPrivateKey } from "../types/types";
+import { base64ToHexString, hexStringToBase64, validateBlsSignature, validateCredentials, validateHexString, validateMasterKey, validateToken } from "../utils/utils";
+import { BLS_G1_HEX_LENGTH } from "../utils/constants";
+import { deriveElectionWallet } from "../blind-signature/generateTokens";
 
 
 /**
- * Creates voter credentials for a specific election.
- * @param unblindedSignature - The unblinded signature of the voter.
- * @param unblindedElectionToken - The unblinded election token.
- * @param masterToken - The master token of the voter, which must be unblinded and a master token.
- * @param electionID - The ID of the election.
- * @returns {ElectionCredentials} ElectionCredentials object containing the voter's credentials.
- * @throws {Error} If the provided tokens or signature do not meet the required criteria.
+ * Creates voter credentials for a specific election
+ * @param unblindedSignature - Unblinded signature of the voter
+ * @param masterKey - Master key of the voter
+ * @param electionID - ID of the election
+ * @returns ElectionCredentials for the voter
+ * @throws if any provided input is invalid
  */
-export function createVoterCredentials(unblindedSignature: Signature, unblindedElectionToken: Token, masterToken: Token, electionID: number): ElectionCredentials {
-    if (masterToken.isBlinded) {
-        throw new Error("Master token must be unblinded.");
-    }
-    if (!masterToken.isMaster) {
-        throw new Error("Provided token must be a master token.");
-    }
+export function createVoterCredentials(unblindedSignature: BlsSignature, masterKey: MasterKey, electionID: number): ElectionCredentials {
+    validateBlsSignature(unblindedSignature);
+    validateMasterKey(masterKey);
 
-    validateSignature(unblindedSignature);
-    validateToken(unblindedElectionToken);
-    validateToken(masterToken);
-
-    // Convert the election ID to hex and validate
     const electionIDHex = { hexString: ethers.toBeHex(electionID, 32) };
     validateHexString(electionIDHex, 66, false, true);
 
-    // Combine master token and election ID to hex strings to derive the election-specific voter wallet private key and encryption key (user encrypted vote)
+    const voterWallet = deriveElectionWallet(masterKey, electionID);
 
-    const walletPrivKeyInput = '0x' + masterToken.hexString.substring(2) + "|" + "Ethereum-Wallet" + "|" + electionIDHex.hexString.substring(2);
-    const walletPrivKey: WalletPrivateKey = { hexString: ethers.sha256(ethers.toUtf8Bytes(walletPrivKeyInput)) };
-
-    const encryptionKeyInput = '0x' + masterToken.hexString.substring(2) + "|" + "Encryption-Key" + "|" + electionIDHex.hexString.substring(2);
+    const encryptionKeyInput = '0x' + masterKey.hexString.substring(2) + "|" + "Encryption-Key" + "|" + electionIDHex.hexString.substring(2);
     const encryptionKey: EncryptionKey = { hexString: ethers.sha256(ethers.toUtf8Bytes(encryptionKeyInput)), encryptionType: EncryptionType.AES };
 
-    const voterWallet: ethers.Wallet = new ethers.Wallet(walletPrivKey.hexString);
-    const voterCredentials: ElectionCredentials = { unblindedSignature, unblindedElectionToken, voterWallet, encryptionKey, electionID };
+    const voterCredentials: ElectionCredentials = { unblindedSignature, voterWallet, encryptionKey, electionID };
     validateCredentials(voterCredentials);
 
     return voterCredentials;
@@ -53,15 +40,13 @@ export function createVoterCredentials(unblindedSignature: Signature, unblindedE
  */
 export function concatElectionCredentialsForQR(voterCredentials: ElectionCredentials): string {
     validateCredentials(voterCredentials)
-    const unblindedSignatureLength = (RSA_BIT_LENGTH / 4) + 2
 
     const voterWalletPrivKey: WalletPrivateKey = { hexString: voterCredentials.voterWallet.privateKey }
-    const unblindedSignatureBase64 = hexStringToBase64(voterCredentials.unblindedSignature, unblindedSignatureLength)
-    const unblindedElectionTokenBase64 = hexStringToBase64(voterCredentials.unblindedElectionToken, 66)
+    const unblindedSignatureBase64 = hexStringToBase64(voterCredentials.unblindedSignature, BLS_G1_HEX_LENGTH)
     const voterWalletPrivKeyBase64 = hexStringToBase64(voterWalletPrivKey, 66)
     const encryptionKeyBase64 = hexStringToBase64(voterCredentials.encryptionKey, 66)
 
-    return `${unblindedSignatureBase64}|${unblindedElectionTokenBase64}|${voterWalletPrivKeyBase64}|${encryptionKeyBase64}|${voterCredentials.electionID}`;
+    return `${unblindedSignatureBase64}|${voterWalletPrivKeyBase64}|${encryptionKeyBase64}|${voterCredentials.electionID}`;
 
 
 }
@@ -74,17 +59,15 @@ export function concatElectionCredentialsForQR(voterCredentials: ElectionCredent
 export function qrToElectionCredentials(concatenatedBase64: string): ElectionCredentials {
 
     // Split the string using the '|' delimiter
-    const [unblindedSignatureBase64, unblindedElectionTokenBase64, voterWalletPrivKeyBase64, encryptionKeyBase64, electionID] = concatenatedBase64.split('|');
+    const [unblindedSignatureBase64, voterWalletPrivKeyBase64, encryptionKeyBase64, electionID] = concatenatedBase64.split('|');
 
-    // Decode the Base64 strings into signate, token and privKey objects
-    const unblindedSignature: Signature = { hexString: base64ToHexString(unblindedSignatureBase64), isBlinded: false }; // Credential QR codes must store blinded Signatures
-    const unblindedElectionToken: Token = { hexString: base64ToHexString(unblindedElectionTokenBase64), isBlinded: false, isMaster: false }; // Credential QR Code must not store blinded Tokens or master tokens
+    const unblindedSignature: BlsSignature = { hexString: base64ToHexString(unblindedSignatureBase64), isBlinded: false };
     const voterWalletPrivKey: WalletPrivateKey = { hexString: base64ToHexString(voterWalletPrivKeyBase64) }
     const encryptionKey: EncryptionKey = { hexString: base64ToHexString(encryptionKeyBase64), encryptionType: EncryptionType.AES }
 
     const voterWallet = new ethers.Wallet(voterWalletPrivKey.hexString)
 
-    const voterCredentials: ElectionCredentials = { unblindedSignature: unblindedSignature, unblindedElectionToken: unblindedElectionToken, voterWallet: voterWallet, encryptionKey: encryptionKey, electionID: parseInt(electionID) }
+    const voterCredentials: ElectionCredentials = { unblindedSignature, voterWallet, encryptionKey, electionID: parseInt(electionID) }
     validateCredentials(voterCredentials)
     return voterCredentials;
 }
