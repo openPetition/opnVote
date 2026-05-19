@@ -6,9 +6,27 @@
         "name": "startId",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "blsVerifierAddress",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "BLS_VERIFIER",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract BLSVerifier"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -84,41 +102,6 @@
           },
           {
             "name": "registerUri",
-            "type": "string",
-            "internalType": "string"
-          }
-        ]
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "addSvs",
-    "inputs": [
-      {
-        "name": "newSvs",
-        "type": "tuple",
-        "internalType": "struct SignatureValidationServer",
-        "components": [
-          {
-            "name": "id",
-            "type": "uint8",
-            "internalType": "uint8"
-          },
-          {
-            "name": "owner",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "svsName",
-            "type": "string",
-            "internalType": "string"
-          },
-          {
-            "name": "svsUri",
             "type": "string",
             "internalType": "string"
           }
@@ -256,11 +239,6 @@
         "internalType": "uint8"
       },
       {
-        "name": "svsId",
-        "type": "uint8",
-        "internalType": "uint8"
-      },
-      {
         "name": "descriptionIpfsCid",
         "type": "string",
         "internalType": "string"
@@ -332,11 +310,6 @@
         "internalType": "uint8"
       },
       {
-        "name": "svsId",
-        "type": "uint8",
-        "internalType": "uint8"
-      },
-      {
         "name": "status",
         "type": "uint8",
         "internalType": "enum ElectionStatus"
@@ -363,20 +336,8 @@
       },
       {
         "name": "registerPubKey",
-        "type": "tuple",
-        "internalType": "struct RsaPublicKeyRaw",
-        "components": [
-          {
-            "name": "n",
-            "type": "bytes",
-            "internalType": "bytes"
-          },
-          {
-            "name": "e",
-            "type": "bytes",
-            "internalType": "bytes"
-          }
-        ]
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "stateMutability": "view"
@@ -560,12 +521,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "n",
-        "type": "bytes",
-        "internalType": "bytes"
-      },
-      {
-        "name": "e",
+        "name": "pubKey",
         "type": "bytes",
         "internalType": "bytes"
       }
@@ -585,40 +541,6 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "svss",
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint8",
-        "internalType": "uint8"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "id",
-        "type": "uint8",
-        "internalType": "uint8"
-      },
-      {
-        "name": "owner",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "svsName",
-        "type": "string",
-        "internalType": "string"
-      },
-      {
-        "name": "svsUri",
-        "type": "string",
-        "internalType": "string"
-      }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -656,27 +578,12 @@
         "internalType": "uint256"
       },
       {
-        "name": "voter",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "svsSignature",
-        "type": "bytes",
-        "internalType": "bytes"
-      },
-      {
         "name": "voteEncrypted",
         "type": "bytes",
         "internalType": "bytes"
       },
       {
         "name": "voteEncryptedUser",
-        "type": "bytes",
-        "internalType": "bytes"
-      },
-      {
-        "name": "unblindedElectionToken",
         "type": "bytes",
         "internalType": "bytes"
       },
@@ -755,12 +662,6 @@
         "internalType": "uint8"
       },
       {
-        "name": "svsId",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "uint8"
-      },
-      {
         "name": "descriptionIpfsCid",
         "type": "string",
         "indexed": false,
@@ -786,13 +687,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "n",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
-      },
-      {
-        "name": "e",
+        "name": "pubKey",
         "type": "bytes",
         "indexed": false,
         "internalType": "bytes"
@@ -909,12 +804,6 @@
         "internalType": "uint8"
       },
       {
-        "name": "svsId",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "uint8"
-      },
-      {
         "name": "descriptionIpfsCid",
         "type": "string",
         "indexed": false,
@@ -965,12 +854,6 @@
         "internalType": "address"
       },
       {
-        "name": "svsSignature",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
-      },
-      {
         "name": "voteEncrypted",
         "type": "bytes",
         "indexed": false,
@@ -978,12 +861,6 @@
       },
       {
         "name": "voteEncryptedUser",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
-      },
-      {
-        "name": "unblindedElectionToken",
         "type": "bytes",
         "indexed": false,
         "internalType": "bytes"
@@ -1151,33 +1028,6 @@
       }
     ],
     "anonymous": false
-  },
-  {
-    "type": "error",
-    "name": "ECDSAInvalidSignature",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "ECDSAInvalidSignatureLength",
-    "inputs": [
-      {
-        "name": "length",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "ECDSAInvalidSignatureS",
-    "inputs": [
-      {
-        "name": "s",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ]
   },
   {
     "type": "error",

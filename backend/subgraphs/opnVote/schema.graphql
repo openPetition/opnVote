@@ -6,12 +6,10 @@ type Election @entity(immutable: false) {
   registrationEndTime: BigInt! # uint256
   registerId: Int! # uint8
   authProviderId: Int! # uint8
-  svsId: Int! # uint8
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
-  registerPublicKeyN: Bytes
-  registerPublicKeyE: Bytes
+  registerPublicKey: Bytes
   publicKey: Bytes
   privateKey: Bytes
   totalVotes: BigInt
@@ -41,7 +39,6 @@ type ElectionCreated @entity(immutable: true) {
   registrationEndTime: BigInt! # uint256
   registerId: Int! # uint8
   authProviderId: Int! # uint8
-  svsId: Int! # uint8
   descriptionIpfsCid: String! # string
   publicKey: Bytes! # bytes
   blockNumber: BigInt!
@@ -52,8 +49,7 @@ type ElectionCreated @entity(immutable: true) {
 type ElectionRegisterPublicKeySet @entity(immutable: true) {
   id: Bytes!
   electionId: BigInt! # uint256
-  n: Bytes! # bytes
-  e: Bytes! # bytes
+  pubKey: Bytes! # bytes
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
@@ -90,7 +86,6 @@ type ElectionUpdated @entity(immutable: true) {
   registrationEndTime: BigInt! # uint256
   registerId: Int! # uint8
   authProviderId: Int! # uint8
-  svsId: Int! # uint8
   descriptionIpfsCid: String! # string
   publicKey: Bytes! # bytes
   blockNumber: BigInt!
@@ -111,10 +106,8 @@ type VoteCast @entity(immutable: true) {
   id: Bytes!
   electionId: BigInt! # uint256
   voter: Bytes! # address
-  svsSignature: Bytes! # bytes
   voteEncrypted: Bytes! # bytes
   voteEncryptedUser: Bytes! # bytes
-  unblindedElectionToken: Bytes! # bytes
   unblindedSignature: Bytes! # bytes
   blockNumber: BigInt!
   blockTimestamp: BigInt!
