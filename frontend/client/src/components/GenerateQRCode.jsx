@@ -40,71 +40,91 @@ export default function GenerateQRCode(props) {
         }, 4000);
     }
 
-    const wordwrapAndPositionText = (context, text, x, y, lineHeight, fitWidth) => {
-        let words = text.split(' ');
-        let currentLine = 0;
-        let idx = 1;
+    const getWordwrappedLines = (context, text, fitWidth) => {
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = '';
 
-        //short: we go through the wordlist and measure how many words would fit into the lines
-        while (words.length > 0 && idx <= words.length) {
-            var str = words.slice(0, idx).join(' ');
-            var wordsPixelWidth = context.measureText(str).width;
+        for (let wordIndex = 0; wordIndex < words.length; wordIndex++) {
+            let testLine = currentLine + ' ' + words[wordIndex];
+            let width = context.measureText(testLine).width;
 
-            //if this is one word too much
-            if (wordsPixelWidth > fitWidth) {
-                //just in case one word is very long.. otherwise it wont end
-                if (idx == 1) {
-                    idx = 2;
-                }
-
-                context.fillText(words.slice(0, idx - 1).join(' '), x, y + (lineHeight * currentLine));
-                currentLine++;
-                words = words.splice(idx - 1);
-                idx = 1;
+            if (width > fitWidth) {
+                lines.push(currentLine);
+                currentLine = words[wordIndex];
             } else {
-                //means one more word might fit into the line
-                idx++;
+                currentLine = testLine;
             }
         }
 
-        //still word(s) left
-        if (words.length > 0) {
-            context.fillText(words.join(' '), x, y + (lineHeight * currentLine));
+        if (currentLine) {
+            lines.push(currentLine);
         }
+
+        return lines;
     };
 
     const DownloadAsPng = () => {
         const textCanvas = document.getElementById("canvas");
         const textCanvasContext = textCanvas.getContext("2d");
-        let moveQRCodeDownPixel = 80;
-        textCanvasContext.fillStyle = "white";
-        textCanvasContext.fillRect(0, 0, textCanvas.width, textCanvas.height);
-        textCanvasContext.fillStyle = "#000";
-        textCanvasContext.lineStyle = "#000";
-        textCanvasContext.font = "18px sans-serif";
-        textCanvasContext.lineWidth = 2;
-        textCanvasContext.textAlign = "center";
-        textCanvasContext.fillText(downloadHeadline, 150, 50);
 
-        if (downloadSubHeadline?.length > 0) {
+        const logoImg = new Image();
+        logoImg.crossOrigin = "anonymous";
+        logoImg.src = '/images/opnvote-logo.svg';
+
+        logoImg.onload = function () {
+            const baseHeight = 400;
+            const lineHeightSubheadline = 20;
+            const subheadlineStartY = 120;
+            const textFitWidth = 240;
+
+            let subheadlineLines = [];
+
+            if (downloadSubHeadline?.length > 0) {
+                textCanvasContext.font = "14px sans-serif";
+                subheadlineLines = getWordwrappedLines(textCanvasContext, downloadSubHeadline, textFitWidth);
+            }
+
+            textCanvas.height = baseHeight + (subheadlineLines.length * lineHeightSubheadline);
+
+            textCanvasContext.fillStyle = "white";
+            textCanvasContext.fillRect(0, 0, textCanvas.width, textCanvas.height);
+
+            const logoWidth = 116;
+            const logoHeight = 24;
+            const logoX = 150 - (logoWidth / 2);
+            const logoY = 20;
+            textCanvasContext.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
+
             textCanvasContext.fillStyle = "#000";
-            textCanvasContext.lineStyle = "#000";
-            textCanvasContext.font = "14px sans-serif";
-            textCanvasContext.lineWidth = 1;
+            textCanvasContext.font = "18px sans-serif";
             textCanvasContext.textAlign = "center";
-            wordwrapAndPositionText(textCanvasContext, downloadSubHeadline, 150, 80, 20, 300);
-            moveQRCodeDownPixel = 150;
-            //textCanvasContext.fillText(downloadSubHeadline, 100, 80);
-        }
-        const qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
+            textCanvasContext.fillText(downloadHeadline, 150, 90);
 
-        textCanvasContext.drawImage(qrCodeCanvasContext, 40, moveQRCodeDownPixel, 220, 220);
+            let moveQRCodeDownPixel = 120;
 
-        const link = document.createElement('a');
-        link.download = downloadFilename + ".png";
-        link.href = textCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-        link.click();
-        afterSaveFunction(globalConst.saveType.IMAGE);
+            if (subheadlineLines.length > 0) {
+                textCanvasContext.fillStyle = "#000";
+                textCanvasContext.font = "14px sans-serif";
+                textCanvasContext.textAlign = "center";
+
+                subheadlineLines.forEach((line, index) => {
+                    textCanvasContext.fillText(line, 150, subheadlineStartY + (lineHeightSubheadline * index));
+                });
+
+                moveQRCodeDownPixel = subheadlineStartY + (subheadlineLines.length * lineHeightSubheadline) + 20;
+            }
+
+            const qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
+            textCanvasContext.drawImage(qrCodeCanvasContext, 40, moveQRCodeDownPixel, 220, 220);
+
+            const link = document.createElement('a');
+            link.download = downloadFilename + ".png";
+            link.href = textCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+            link.click();
+
+            afterSaveFunction(globalConst.saveType.IMAGE);
+        };
     };
 
     /**Comment Out: Print not used in the Moment
