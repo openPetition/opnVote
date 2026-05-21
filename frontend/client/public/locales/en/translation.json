@@ -210,7 +210,7 @@
     "register.error.general": "Processing Error",
     "register.error.jwtauth": "Your current voting session has expired. To continue, click the following button",
     "register.error.jwtauthbuttontext": "Refresh session",
-    "register.generateqrcode.downloadFilename": "opnVote_electionpermit_{{ELECTIONTITLE}}",
+    "register.generateqrcode.downloadFilename": "opnVote_electionpermit_{{ELECTIONTITLE}}_{{CREATIONDATE, date}}",
     "register.generateqrcode.downloadHeadline": "Election permit",
     "register.generateqrcode.headline": "Save election permit",
     "register.headline.infoText": "You need an internet connection to order your election permit. If you were offline previously, you must now reactivate your internet connection!",

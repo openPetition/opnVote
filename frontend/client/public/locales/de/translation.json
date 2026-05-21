@@ -210,7 +210,7 @@
     "register.error.general": "Fehler bei der Verarbeitung",
     "register.error.jwtauth": "Wegen Zeitüberschreitung ist es zu einem Fehler gekommen. Klicken Sie auf den folgenden Button um weiterzumachen.",
     "register.error.jwtauthbuttontext": "Sitzung erneuern",
-    "register.generateqrcode.downloadFilename": "opnVote_wahlschein_{{ELECTIONTITLE}}",
+    "register.generateqrcode.downloadFilename": "opnVote_wahlschein_{{ELECTIONTITLE}}_{{CREATIONDATE, date}}",
     "register.generateqrcode.downloadHeadline": "Wahlschein",
     "register.generateqrcode.headline": "Speichern Sie jetzt Ihren Wahlschein",
     "register.generateqrcode.saveagainbuttontext": "Wahlschein (PDF) erneut speichern",
