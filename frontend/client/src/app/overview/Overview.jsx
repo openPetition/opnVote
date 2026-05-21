@@ -16,7 +16,7 @@ const BOX_STATE_ACTIVATABLE = 'Activatable';
 const BOX_STATE_PASSIVE = 'Passive';
 
 export default function Overview() {
-    const { user, voting, updateVoting, updatePage, updateUserKey, updateTaskId } = useOpnVoteStore((state) => state);
+    const { user, voting, updateVoting, updatePage, updateUserKey } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [boxes, setBoxes] = useState({
         id: { state: BOX_STATE_ACTIVATABLE, type: 'id' },
