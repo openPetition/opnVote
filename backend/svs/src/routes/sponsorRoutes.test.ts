@@ -6,7 +6,7 @@ import {
   EncryptionType,
   RSA_BIT_LENGTH,
   BlsSignature,
-  Token,
+  RecastingVotingTransaction,
   VotingTransaction,
 } from 'votingsystem'
 import { ethers } from 'ethers'
@@ -71,10 +71,6 @@ jest.mock('../database', () => ({
 const EXPECTED_IMPLEMENTATION = '0x0000000000000000000000000000000000000007'
 
 describe('POST /api/userOp/sponsor', () => {
-  const dummyToken: Token = {
-    hexString: '0x' + BigInt(3).toString(16).padStart(64, '0'),
-    isBlinded: false,
-  }
   const dummySignature: BlsSignature = {
     hexString: '0x' + bls12_381.curves.G1.BASE.toHex(false),
     isBlinded: false,
@@ -145,6 +141,18 @@ describe('POST /api/userOp/sponsor', () => {
     }
   }
 
+  function makeRecastTransaction(
+    overrides?: Partial<RecastingVotingTransaction>,
+  ): RecastingVotingTransaction {
+    return {
+      electionID: 1,
+      encryptedVoteRSA: dummyEncryptedVotesRSA,
+      encryptedVoteAES: dummyEncryptedVotesAES,
+      voterAddress: '0x1234567890123456789012345678901234567890',
+      ...overrides,
+    }
+  }
+
   it('should return paymaster data and gas params for a valid transaction (fresh EOA)', async () => {
     const response = await request(app)
       .post('/api/userOp/sponsor')
@@ -183,9 +191,16 @@ describe('POST /api/userOp/sponsor', () => {
     expect(response.body.error).toBeNull()
   })
 
-  it.skip('should return paymaster data for a recast', async () => {
-    // TODO: Re-enable after votingsystem createVoteCalldata supports RecastingVotingTransaction
+  it('should return paymaster data for a recast', async () => {
+    const response = await request(app)
+      .post('/api/userOp/sponsor')
+      .send({
+        votingTransaction: makeRecastTransaction(),
+      })
 
+    expect(response.status).toBe(200)
+    expect(response.body.data).toHaveProperty('paymasterData')
+    expect(response.body.error).toBeNull()
   })
 
   it('should return 403 when voter has wrong 7702 delegation', async () => {

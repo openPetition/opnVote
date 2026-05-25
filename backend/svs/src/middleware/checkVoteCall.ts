@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express'
 import { ApiResponse } from '../types/apiResponses'
-import { VotingTransaction, createVoteCalldata } from 'votingsystem'
+import { createVoteCalldata } from 'votingsystem'
 import { ethers } from 'ethers'
 import { logger } from '../utils/logger'
 import opnvoteAbi from '../abi/opnvote-0.3.0.json'
+import { SponsorVotingTransaction } from '../types/sponsorTransaction'
 
 /**
  * Middleware simulating the vote() call on-chai
@@ -11,7 +12,7 @@ import opnvoteAbi from '../abi/opnvote-0.3.0.json'
 export async function checkVoteCall(req: Request, res: Response, next: NextFunction) {
   const startTime = Date.now()
   try {
-    const votingTransaction = req.body.votingTransaction as VotingTransaction
+    const votingTransaction = req.body.votingTransaction as SponsorVotingTransaction
 
     if (!votingTransaction) {
       return res.status(400).json({

@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express'
 import { ApiResponse } from '../types/apiResponses'
-import { VotingTransaction, signPaymasterData, createVoteCalldata } from 'votingsystem'
+import { signPaymasterData, createVoteCalldata } from 'votingsystem'
 import { checkElectionStatus } from '../middleware/checkElectionStatus'
 import { checkSponsorEligibility } from '../middleware/checkSponsorEligibility'
 import { checkVoterSignature } from '../middleware/checkVoterSignature'
@@ -9,6 +9,7 @@ import { checkVoteCall } from '../middleware/checkVoteCall'
 import { logger } from '../utils/logger'
 import { ethers } from 'ethers'
 import opnvoteAbi from '../abi/opnvote-0.3.0.json'
+import { SponsorVotingTransaction } from '../types/sponsorTransaction'
 
 const GAS_DEFAULTS = {
   callGasLimit: 150_000n, // vote()
@@ -68,7 +69,7 @@ router.post(
     logger.info(`[SponsorRoute] Starting sponsor request at ${new Date().toISOString()}`)
 
     try {
-      const votingTransaction = req.body.votingTransaction as VotingTransaction
+      const votingTransaction = req.body.votingTransaction as SponsorVotingTransaction
 
       logger.info(
         `[SponsorRoute] Processing sponsor for election ${votingTransaction.electionID} and voter ${votingTransaction.voterAddress}`,
@@ -94,7 +95,7 @@ router.post(
 /**
  * Builds paymaster data with gas params.
  */
-async function buildPaymasterData(req: Request, votingTransaction: VotingTransaction) {
+async function buildPaymasterData(req: Request, votingTransaction: SponsorVotingTransaction) {
   const paymasterSignerKey = req.app.get('PAYMASTER_SIGNER_KEY')
   const paymasterAddress = req.app.get('PAYMASTER_ADDRESS')
   const chainId = req.app.get('CHAIN_ID') as number
