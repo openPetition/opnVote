@@ -10,14 +10,7 @@ import { logger } from '../utils/logger'
 import { ethers } from 'ethers'
 import opnvoteAbi from '../abi/opnvote-0.3.0.json'
 import { SponsorVotingTransaction } from '../types/sponsorTransaction'
-
-const GAS_DEFAULTS = {
-  callGasLimit: 150_000n, // vote()
-  verificationGasLimit: 110_000n, // smart account validateUserOp
-  paymasterVerificationGasLimit: 80_000n, // paymaster validatePaymasterUserOp
-  paymasterPostOpGasLimit: 1n, // no postOp logic
-  preVerificationGas: 200_000n, // bundler overhead
-}
+import { GAS_DEFAULTS } from '../config/gasDefaults'
 
 const ENTRYPOINT_ABI = ['function getNonce(address sender, uint192 key) view returns (uint256)']
 

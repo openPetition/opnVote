@@ -5,6 +5,7 @@ import { ethers } from 'ethers'
 import { logger } from '../utils/logger'
 import opnvoteAbi from '../abi/opnvote-0.3.0.json'
 import { SponsorVotingTransaction } from '../types/sponsorTransaction'
+import { GAS_DEFAULTS } from '../config/gasDefaults'
 
 /**
  * Middleware simulating the vote() call on-chain
@@ -47,6 +48,7 @@ export async function checkVoteCall(req: Request, res: Response, next: NextFunct
           to: opnvoteAddress,
           data: callData,
           from: votingTransaction.voterAddress,
+          gasLimit: GAS_DEFAULTS.callGasLimit,
         })
 
         const rpcDuration = Date.now() - startTime
