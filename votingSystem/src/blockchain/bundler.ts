@@ -1,6 +1,10 @@
 import { ethers } from 'ethers'
-import { VotingTransaction } from '../types/types'
-import { nobleG1ToEvm } from '../utils/utils'
+import { RecastingVotingTransaction, VotingTransaction } from '../types/types'
+import {
+  nobleG1ToEvm,
+  validateRecastingVotingTransaction,
+  validateVotingTransaction,
+} from '../utils/utils'
 
 function packUint128(high: bigint, low: bigint): string {
   return ethers.zeroPadValue(ethers.toBeHex((high << 128n) | low), 32)
@@ -114,21 +118,33 @@ export function createStubPaymasterData(validUntil: number, validAfter: number):
 }
 
 /**
- * ABI-encodes the `vote()` calldata
- * @param votingTransaction - Voting transaction
+ * ABI-encodes the `vote()` calldata for first vote or a vote recast
+ * @param votingTransaction - VotingTransaction (first vote) or RecastingVotingTransaction
  * @param opnVoteABI - opnvote contract ABI
  * @returns Hex-encoded calldata
  */
 export function createVoteCalldata(
-  votingTransaction: VotingTransaction,
+  votingTransaction: VotingTransaction | RecastingVotingTransaction,
   opnVoteABI: ethers.Interface | ethers.InterfaceAbi,
 ): string {
+  const isRecast = !('unblindedSignature' in votingTransaction)
+
+  if (isRecast) {
+    validateRecastingVotingTransaction(votingTransaction)
+  } else {
+    validateVotingTransaction(votingTransaction)
+  }
+
+  const unblindedSignatureBytes = isRecast
+    ? '0x'
+    : nobleG1ToEvm(votingTransaction.unblindedSignature.hexString)
+
   const iface =
     opnVoteABI instanceof ethers.Interface ? opnVoteABI : new ethers.Interface(opnVoteABI)
   return iface.encodeFunctionData('vote', [
     votingTransaction.electionID,
     votingTransaction.encryptedVoteRSA.hexString,
     votingTransaction.encryptedVoteAES.hexString,
-    nobleG1ToEvm(votingTransaction.unblindedSignature.hexString),
+    unblindedSignatureBytes,
   ])
 }
