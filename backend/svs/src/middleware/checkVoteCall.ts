@@ -7,7 +7,7 @@ import opnvoteAbi from '../abi/opnvote-0.3.0.json'
 import { SponsorVotingTransaction } from '../types/sponsorTransaction'
 
 /**
- * Middleware simulating the vote() call on-chai
+ * Middleware simulating the vote() call on-chain
  */
 export async function checkVoteCall(req: Request, res: Response, next: NextFunction) {
   const startTime = Date.now()

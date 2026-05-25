@@ -27,6 +27,78 @@ const router = Router()
 
 /**
  * @openapi
+ * components:
+ *   schemas:
+ *     EncryptedVotes:
+ *       type: object
+ *       required: [hexString, encryptionType]
+ *       properties:
+ *         hexString:
+ *           type: string
+ *           description: Hex-encoded encrypted vote payload.
+ *         encryptionType:
+ *           type: string
+ *           enum: [RSA, AES]
+ *     BlsSignature:
+ *       type: object
+ *       required: [hexString, isBlinded]
+ *       properties:
+ *         hexString:
+ *           type: string
+ *           description: Hex-encoded BLS12-381 G1 signature point.
+ *         isBlinded:
+ *           type: boolean
+ *     EthSignature:
+ *       type: object
+ *       required: [hexString]
+ *       properties:
+ *         hexString:
+ *           type: string
+ *           description: Hex-encoded ECDSA signature (65 bytes).
+ *     VotingTransaction:
+ *       type: object
+ *       required:
+ *         - electionID
+ *         - encryptedVoteRSA
+ *         - encryptedVoteAES
+ *         - unblindedSignature
+ *         - voterAddress
+ *       properties:
+ *         electionID:
+ *           type: integer
+ *         encryptedVoteRSA:
+ *           $ref: '#/components/schemas/EncryptedVotes'
+ *         encryptedVoteAES:
+ *           $ref: '#/components/schemas/EncryptedVotes'
+ *         unblindedSignature:
+ *           $ref: '#/components/schemas/BlsSignature'
+ *         voterAddress:
+ *           type: string
+ *     RecastingVotingTransaction:
+ *       type: object
+ *       required:
+ *         - electionID
+ *         - encryptedVoteRSA
+ *         - encryptedVoteAES
+ *         - voterAddress
+ *       properties:
+ *         electionID:
+ *           type: integer
+ *         encryptedVoteRSA:
+ *           $ref: '#/components/schemas/EncryptedVotes'
+ *         encryptedVoteAES:
+ *           $ref: '#/components/schemas/EncryptedVotes'
+ *         voterAddress:
+ *           type: string
+ *     ApiResponse:
+ *       type: object
+ *       properties:
+ *         data:
+ *           nullable: true
+ *         error:
+ *           type: string
+ *           nullable: true
+ *
  * /api/userOp/sponsor:
  *   post:
  *     summary: Sponsor a voting UserOperation
@@ -38,9 +110,12 @@ const router = Router()
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [votingTransaction, voterSignature]
  *             properties:
  *               votingTransaction:
- *                 $ref: '#/components/schemas/VotingTransaction'
+ *                 oneOf:
+ *                   - $ref: '#/components/schemas/VotingTransaction'
+ *                   - $ref: '#/components/schemas/RecastingVotingTransaction'
  *               voterSignature:
  *                 $ref: '#/components/schemas/EthSignature'
  *     responses:

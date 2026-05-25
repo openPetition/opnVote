@@ -5,7 +5,6 @@ import { ElectionStatusResponse } from '../types/graphql'
 import { logger } from '../utils/logger'
 
 export class ElectionService {
-
   /**
    * Fetches the election status and end time for a given election ID using GraphQL.
    *

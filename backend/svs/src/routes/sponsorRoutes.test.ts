@@ -9,7 +9,6 @@ import {
   RecastingVotingTransaction,
   VotingTransaction,
 } from 'votingsystem'
-import { ethers } from 'ethers'
 import { bls12_381 } from '@noble/curves/bls12-381'
 
 jest.mock('../middleware/checkElectionStatus', () => ({
@@ -87,9 +86,6 @@ describe('POST /api/userOp/sponsor', () => {
 
   beforeAll(async () => {
     await dataSource.initialize()
-    // Generate a real ECDSA signature so validateVotingTransaction accepts it
-    const wallet = ethers.Wallet.createRandom()
-    const sig = await wallet.signMessage('test')
   })
 
   afterAll(async () => {
