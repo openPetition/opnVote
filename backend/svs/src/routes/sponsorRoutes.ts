@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express'
 import { ApiResponse } from '../types/apiResponses'
-import { VotingTransaction, signPaymasterData, createVoteCalldata } from 'votingsystem'
+import { signPaymasterData, createVoteCalldata } from 'votingsystem'
 import { checkElectionStatus } from '../middleware/checkElectionStatus'
 import { checkSponsorEligibility } from '../middleware/checkSponsorEligibility'
 import { checkVoterSignature } from '../middleware/checkVoterSignature'
@@ -8,7 +8,8 @@ import { checkSponsorLimit } from '../middleware/checkSponsorLimit'
 import { checkVoteCall } from '../middleware/checkVoteCall'
 import { logger } from '../utils/logger'
 import { ethers } from 'ethers'
-import opnvoteAbi from '../abi/opnvote-0.2.0.json'
+import opnvoteAbi from '../abi/opnvote-0.3.0.json'
+import { SponsorVotingTransaction } from '../types/sponsorTransaction'
 
 const GAS_DEFAULTS = {
   callGasLimit: 150_000n, // vote()
@@ -26,6 +27,78 @@ const router = Router()
 
 /**
  * @openapi
+ * components:
+ *   schemas:
+ *     EncryptedVotes:
+ *       type: object
+ *       required: [hexString, encryptionType]
+ *       properties:
+ *         hexString:
+ *           type: string
+ *           description: Hex-encoded encrypted vote payload.
+ *         encryptionType:
+ *           type: string
+ *           enum: [RSA, AES]
+ *     BlsSignature:
+ *       type: object
+ *       required: [hexString, isBlinded]
+ *       properties:
+ *         hexString:
+ *           type: string
+ *           description: Hex-encoded BLS12-381 G1 signature point.
+ *         isBlinded:
+ *           type: boolean
+ *     EthSignature:
+ *       type: object
+ *       required: [hexString]
+ *       properties:
+ *         hexString:
+ *           type: string
+ *           description: Hex-encoded ECDSA signature (65 bytes).
+ *     VotingTransaction:
+ *       type: object
+ *       required:
+ *         - electionID
+ *         - encryptedVoteRSA
+ *         - encryptedVoteAES
+ *         - unblindedSignature
+ *         - voterAddress
+ *       properties:
+ *         electionID:
+ *           type: integer
+ *         encryptedVoteRSA:
+ *           $ref: '#/components/schemas/EncryptedVotes'
+ *         encryptedVoteAES:
+ *           $ref: '#/components/schemas/EncryptedVotes'
+ *         unblindedSignature:
+ *           $ref: '#/components/schemas/BlsSignature'
+ *         voterAddress:
+ *           type: string
+ *     RecastingVotingTransaction:
+ *       type: object
+ *       required:
+ *         - electionID
+ *         - encryptedVoteRSA
+ *         - encryptedVoteAES
+ *         - voterAddress
+ *       properties:
+ *         electionID:
+ *           type: integer
+ *         encryptedVoteRSA:
+ *           $ref: '#/components/schemas/EncryptedVotes'
+ *         encryptedVoteAES:
+ *           $ref: '#/components/schemas/EncryptedVotes'
+ *         voterAddress:
+ *           type: string
+ *     ApiResponse:
+ *       type: object
+ *       properties:
+ *         data:
+ *           nullable: true
+ *         error:
+ *           type: string
+ *           nullable: true
+ *
  * /api/userOp/sponsor:
  *   post:
  *     summary: Sponsor a voting UserOperation
@@ -37,9 +110,12 @@ const router = Router()
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [votingTransaction, voterSignature]
  *             properties:
  *               votingTransaction:
- *                 $ref: '#/components/schemas/VotingTransaction'
+ *                 oneOf:
+ *                   - $ref: '#/components/schemas/VotingTransaction'
+ *                   - $ref: '#/components/schemas/RecastingVotingTransaction'
  *               voterSignature:
  *                 $ref: '#/components/schemas/EthSignature'
  *     responses:
@@ -50,7 +126,7 @@ const router = Router()
  *             schema:
  *               $ref: '#/components/schemas/ApiResponse'
  *       400:
- *         description: Bad request (e.g., missing voting transaction or SVS signature)
+ *         description: Bad request (e.g., missing voting transaction)
  *       403:
  *         description: Forbidden (e.g., election is closed)
  *       500:
@@ -68,7 +144,7 @@ router.post(
     logger.info(`[SponsorRoute] Starting sponsor request at ${new Date().toISOString()}`)
 
     try {
-      const votingTransaction = req.body.votingTransaction as VotingTransaction
+      const votingTransaction = req.body.votingTransaction as SponsorVotingTransaction
 
       logger.info(
         `[SponsorRoute] Processing sponsor for election ${votingTransaction.electionID} and voter ${votingTransaction.voterAddress}`,
@@ -94,7 +170,7 @@ router.post(
 /**
  * Builds paymaster data with gas params.
  */
-async function buildPaymasterData(req: Request, votingTransaction: VotingTransaction) {
+async function buildPaymasterData(req: Request, votingTransaction: SponsorVotingTransaction) {
   const paymasterSignerKey = req.app.get('PAYMASTER_SIGNER_KEY')
   const paymasterAddress = req.app.get('PAYMASTER_ADDRESS')
   const chainId = req.app.get('CHAIN_ID') as number

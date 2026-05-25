@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 import { ApiResponse } from '../types/apiResponses'
-import { VotingTransaction, validateElectionID } from 'votingsystem'
+import { validateElectionID } from 'votingsystem'
 import { ElectionService } from '../services/electionService'
 import { ElectionStatusResponse } from '../types/graphql'
+import { SponsorVotingTransaction } from '../types/sponsorTransaction'
 
 /**
  * Middleware to check the status of an election before allowing a vote to be cast.
@@ -21,7 +22,7 @@ export async function checkElectionStatus(
   next: NextFunction,
 ): Promise<void | Response> {
   // Parameters should be already validated in previous middleware
-  const votingTransaction = req.body.votingTransaction as VotingTransaction
+  const votingTransaction = req.body.votingTransaction as SponsorVotingTransaction
 
   try {
     const electionId = votingTransaction.electionID

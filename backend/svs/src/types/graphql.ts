@@ -7,13 +7,3 @@ export interface ElectionStatusResponse {
   status: number
   voteEndTime: string
 }
-
-/**
- * Represents Register Public Key components
- * @property {string} registerPublicKeyE - The public exponent (E)
- * @property {string} registerPublicKeyN - The public modulus (N)
- */
-export interface ElectionRegisterPublicKeyResponse {
-  registerPublicKeyE: string
-  registerPublicKeyN: string
-}

@@ -5,12 +5,11 @@ import {
   EncryptedVotes,
   EncryptionType,
   RSA_BIT_LENGTH,
-  Signature,
-  Token,
+  BlsSignature,
+  RecastingVotingTransaction,
   VotingTransaction,
-  EthSignature,
 } from 'votingsystem'
-import { ethers } from 'ethers'
+import { bls12_381 } from '@noble/curves/bls12-381'
 
 jest.mock('../middleware/checkElectionStatus', () => ({
   checkElectionStatus: (req: any, res: any, next: any) => next(),
@@ -18,16 +17,7 @@ jest.mock('../middleware/checkElectionStatus', () => ({
 jest.mock('../middleware/checkVoterSignature', () => ({
   checkVoterSignature: (req: any, res: any, next: any) => next(),
 }))
-jest.mock('../middleware/validateParameters', () => ({
-  validateParameters: (req: any, res: any, next: any) => next(),
-}))
-jest.mock('../middleware/validateBlindSignature', () => ({
-  validateBlindSignature: (req: any, res: any, next: any) => next(),
-}))
-jest.mock('../middleware/checkVoterHasNotVoted', () => ({
-  checkVoterHasNotVoted: (req: any, res: any, next: any) => next(),
-}))
-jest.mock('../abi/opnvote-0.2.0.json', () => [], { virtual: true })
+jest.mock('../abi/opnvote-0.3.0.json', () => [], { virtual: true })
 
 global.fetch = jest.fn().mockResolvedValue({
   json: jest.fn().mockResolvedValue({
@@ -80,13 +70,8 @@ jest.mock('../database', () => ({
 const EXPECTED_IMPLEMENTATION = '0x0000000000000000000000000000000000000007'
 
 describe('POST /api/userOp/sponsor', () => {
-  const dummyToken: Token = {
-    hexString: '0x' + BigInt(3).toString(16).padStart(64, '0'),
-    isMaster: false,
-    isBlinded: false,
-  }
-  const dummySignature: Signature = {
-    hexString: '0x' + '1'.repeat(RSA_BIT_LENGTH / 4),
+  const dummySignature: BlsSignature = {
+    hexString: '0x' + bls12_381.curves.G1.BASE.toHex(false),
     isBlinded: false,
   }
   const dummyEncryptedVotesRSA: EncryptedVotes = {
@@ -98,14 +83,9 @@ describe('POST /api/userOp/sponsor', () => {
     encryptionType: EncryptionType.AES,
   }
 
-  let validSvsSignature: EthSignature
 
   beforeAll(async () => {
     await dataSource.initialize()
-    // Generate a real ECDSA signature so validateVotingTransaction accepts it
-    const wallet = ethers.Wallet.createRandom()
-    const sig = await wallet.signMessage('test')
-    validSvsSignature = { hexString: sig }
   })
 
   afterAll(async () => {
@@ -125,7 +105,6 @@ describe('POST /api/userOp/sponsor', () => {
   }
 
   beforeEach(() => {
-    app.set('SVS_SIGN_KEY', '0x0000000000000000000000000000000000000000000000000000000000000001')
     app.set('PAYMASTER_SIGNER_KEY', '0x0000000000000000000000000000000000000000000000000000000000000002')
     app.set('PAYMASTER_ADDRESS', '0x0000000000000000000000000000000000000003')
     app.set('ACCOUNT_IMPLEMENTATION_ADDRESS', EXPECTED_IMPLEMENTATION)
@@ -152,10 +131,20 @@ describe('POST /api/userOp/sponsor', () => {
       electionID: 1,
       encryptedVoteRSA: dummyEncryptedVotesRSA,
       encryptedVoteAES: dummyEncryptedVotesAES,
-      unblindedElectionToken: dummyToken,
       unblindedSignature: dummySignature,
       voterAddress: '0x1234567890123456789012345678901234567890',
-      svsSignature: validSvsSignature,
+      ...overrides,
+    }
+  }
+
+  function makeRecastTransaction(
+    overrides?: Partial<RecastingVotingTransaction>,
+  ): RecastingVotingTransaction {
+    return {
+      electionID: 1,
+      encryptedVoteRSA: dummyEncryptedVotesRSA,
+      encryptedVoteAES: dummyEncryptedVotesAES,
+      voterAddress: '0x1234567890123456789012345678901234567890',
       ...overrides,
     }
   }
@@ -198,11 +187,11 @@ describe('POST /api/userOp/sponsor', () => {
     expect(response.body.error).toBeNull()
   })
 
-  it('should return paymaster data for a recast (no SVS signature)', async () => {
+  it('should return paymaster data for a recast', async () => {
     const response = await request(app)
       .post('/api/userOp/sponsor')
       .send({
-        votingTransaction: makeTransaction({ svsSignature: null }),
+        votingTransaction: makeRecastTransaction(),
       })
 
     expect(response.status).toBe(200)
