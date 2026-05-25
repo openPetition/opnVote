@@ -1,6 +1,6 @@
+/// <reference types="node" />
 process.env.GRAPHQL_ENDPOINT = 'http://test.example.com/graphql'
 process.env.SERVER_URL = 'http://test.example.com'
-process.env.SVS_SIGN_KEY = '0x0000000000000000000000000000000000000000000000000000000000000001'
 process.env.DB_HOST = '127.0.0.1'
 process.env.DB_PORT = '5432'
 process.env.DB_USERNAME = 'test'

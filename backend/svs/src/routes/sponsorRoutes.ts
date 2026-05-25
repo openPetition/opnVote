@@ -8,7 +8,7 @@ import { checkSponsorLimit } from '../middleware/checkSponsorLimit'
 import { checkVoteCall } from '../middleware/checkVoteCall'
 import { logger } from '../utils/logger'
 import { ethers } from 'ethers'
-import opnvoteAbi from '../abi/opnvote-0.2.0.json'
+import opnvoteAbi from '../abi/opnvote-0.3.0.json'
 
 const GAS_DEFAULTS = {
   callGasLimit: 150_000n, // vote()
@@ -50,7 +50,7 @@ const router = Router()
  *             schema:
  *               $ref: '#/components/schemas/ApiResponse'
  *       400:
- *         description: Bad request (e.g., missing voting transaction or SVS signature)
+ *         description: Bad request (e.g., missing voting transaction)
  *       403:
  *         description: Forbidden (e.g., election is closed)
  *       500:

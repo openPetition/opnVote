@@ -1,5 +1,5 @@
 import { GraphQLClient, gql } from 'graphql-request'
-import { ElectionRegisterPublicKeyResponse, ElectionStatusResponse } from '../types/graphql'
+import { ElectionStatusResponse } from '../types/graphql'
 import { getEnvVar } from '../utils/utils'
 import { logger } from '../utils/logger'
 
@@ -45,48 +45,6 @@ export async function fetchElectionEndTimeStatus(
     const duration = Date.now() - startTime
     logger.error(
       `[GraphQL] Error fetching election status after ${duration}ms for election ${electionId}: ${error}`,
-    )
-    throw error
-  }
-}
-
-/**
- * Fetches the Register Public Key for a given election ID.
- *
- * @param {number} electionId - Identifier of election.
- * @return {Promise<ElectionRegisterPublicKeyResponse | null>} Resolves to RSA Public Key components (E, N) or null if election not found.
- */
-export async function fetchElectionRegisterPublicKey(
-  electionId: number,
-): Promise<ElectionRegisterPublicKeyResponse | null> {
-  const startTime = Date.now()
-  logger.info(`[GraphQL] Starting register public key fetch for election ${electionId}`)
-
-  const query = gql`
-    query GetElectionRegisterPublicKey($id: ID!) {
-      election(id: $id) {
-        registerPublicKeyE
-        registerPublicKeyN
-      }
-    }
-  `
-
-  const variables = { id: electionId }
-
-  try {
-    const response: { election: ElectionRegisterPublicKeyResponse | null } = await client.request(
-      query,
-      variables,
-    )
-    const duration = Date.now() - startTime
-    logger.info(
-      `[GraphQL] Register public key fetch completed in ${duration}ms for election ${electionId}`,
-    )
-    return response.election
-  } catch (error) {
-    const duration = Date.now() - startTime
-    logger.error(
-      `[GraphQL] Error fetching register public key after ${duration}ms for election ${electionId}: ${error}`,
     )
     throw error
   }
