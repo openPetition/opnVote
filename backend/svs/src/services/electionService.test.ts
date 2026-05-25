@@ -28,9 +28,9 @@ describe('ElectionStatusService', () => {
     })
 
     it('should return true if election status is Ended, ResultsPublished, or Canceled', () => {
-      const endedElectionData = { status: 2, voteEndTime: '1750236800' }
-      const resultsPublishedElectionData = { status: 3, voteEndTime: '1750236800' }
-      const canceledElectionData = { status: 4, voteEndTime: '1750236800' }
+      const endedElectionData = { status: 2, votingEndTime: '1750236800' }
+      const resultsPublishedElectionData = { status: 3, votingEndTime: '1750236800' }
+      const canceledElectionData = { status: 4, votingEndTime: '1750236800' }
 
       expect(ElectionService.isElectionClosed(endedElectionData)).toBe(true)
       expect(ElectionService.isElectionClosed(resultsPublishedElectionData)).toBe(true)
@@ -38,13 +38,13 @@ describe('ElectionStatusService', () => {
     })
 
     it('should return true if election status is Active and closing time is past', () => {
-      const activeElectionData = { status: 1, voteEndTime: String(Date.now() / 1000 - 3600) } // Ended one hour ago
+      const activeElectionData = { status: 1, votingEndTime: String(Date.now() / 1000 - 3600) } // Ended one hour ago
 
       expect(ElectionService.isElectionClosed(activeElectionData)).toBe(true)
     })
 
     it('should return false if election status is Active and closing time is in the future', () => {
-      const activeElectionData = { status: 1, voteEndTime: String(Date.now() / 1000 + 3600) } // Ending in 1 hour
+      const activeElectionData = { status: 1, votingEndTime: String(Date.now() / 1000 + 3600) } // Ending in 1 hour
 
       expect(ElectionService.isElectionClosed(activeElectionData)).toBe(false)
     })

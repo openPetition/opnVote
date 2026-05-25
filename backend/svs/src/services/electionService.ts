@@ -49,8 +49,8 @@ export class ElectionService {
       return true
     }
 
-    // If the status is Active and but the closing time is past, the election is closed
-    if (electionData.status === 1 && now >= parseInt(electionData.voteEndTime)) {
+    // If the status is Active and the closing time is past, the election is closed
+    if (electionData.status === 1 && now >= parseInt(electionData.votingEndTime)) {
       return true
     }
 
