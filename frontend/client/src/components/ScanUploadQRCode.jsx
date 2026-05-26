@@ -10,11 +10,21 @@ import NextImage from 'next/image';
 import { PDFDocument } from 'pdf-lib';
 import Modal from "@/components/Modal";
 import BallotInvalidError from '@/errors/BallotInvalidError';
+import KeyInvalidError from '@/errors/KeyInvalidError';
+import GeneralQRCodeOnputError from '@/errors/GeneralQRCodeInputError';
+import globalConst from '@/constants';
+import { qrToTokenAndR } from 'votingsystem';
+import { checkBallot } from '@/util';
+import { useOpnVoteStore } from '@/opnVoteStore';
+
 
 const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
 let html5QrCode;
 
 export default function ScanUploadQRCode(props) {
+
+    const { voting } = useOpnVoteStore((state) => state);
+
     const { t } = useTranslation();
     const {
         headline,
@@ -26,6 +36,7 @@ export default function ScanUploadQRCode(props) {
         insertAsTextSubHeadline,
         insertAsTextPlaceholder,
         insertAsTextButton,
+        qrType,
     } = props;
 
     const fileRef = useRef(null);
@@ -36,12 +47,36 @@ export default function ScanUploadQRCode(props) {
     const [isQrTextInputActivated, setIsQrTextInputActivated] = useState(false);
 
     const [error, setError] = useState(null);
+    const [codeText, setCodeText] = useState('');
+
+
+
 
     useEffect(() => {
         html5QrCode = new Html5Qrcode("reader");
         const oldRegion = document.getElementById("qr-shaded-region");
         oldRegion && oldRegion.remove();
     }, []);
+
+    const checkCodeAndReturn = async (code) => {
+        if (qrType == globalConst.qrType.KEY) {
+            try {
+                let masterTokens = await qrToTokenAndR(code, true);
+                props.onResult(code);
+            } catch (error) {
+                setError(new KeyInvalidError());
+                console.debug(`Error: QR Key Input Invalid: ${error}`);
+            }
+        } else {
+            try {
+                const result = checkBallot(voting.election, code);
+                props.onResult(code);
+            } catch (error) {
+                setError(new BallotInvalidError());
+                console.debug(`Error: QR Ballot Input Invalid: ${error}`);
+            }
+        }
+    }
 
     const extractData = async (file) => {
         if (!(file && file.type === "application/pdf")) {
@@ -54,7 +89,7 @@ export default function ScanUploadQRCode(props) {
             const pdfDoc = await PDFDocument.load(fileBuffer, { ignoreEncryption: true });
             const extractCode = pdfDoc.getSubject()?.split('QRCODE:')[1];
             if (extractCode && extractCode != 'undefined') {
-                props.onResult(extractCode);
+                checkCodeAndReturn(extractCode);
             } else {
                 extractWithConvert(file);
                 return;
@@ -70,9 +105,7 @@ export default function ScanUploadQRCode(props) {
         const index = inputQRCodeText.lastIndexOf(':');
         const code = index === -1 ? inputQRCodeText : inputQRCodeText.substring(index + 1);
         const cleanCode = code.replace(/\s+/g, '');
-        if (cleanCode.length > 10) {
-            props.onResult(cleanCode)
-        }
+        checkCodeAndReturn(cleanCode)
     }
 
     const extractWithConvert = async (file) => {
@@ -101,20 +134,20 @@ export default function ScanUploadQRCode(props) {
                     .scanFile(newImageFile, false)
                     .then((qrCodeMessage) => {
                         // handover -> do sth with result
-                        props.onResult(qrCodeMessage);
+                        checkCodeAndReturn(qrCodeMessage)
                         html5QrCode.clear();
                     })
                     .catch((err) => {
                         console.debug(`Error scanning file. Reason: ${err}`);
-                        setError(new BallotInvalidError());
+                        setError(new GeneralQRCodeOnputError());
                     });
             } catch (qrError) {
                 console.log(`No QR code found`);
-                setError(new BallotInvalidError());
+                setError(new GeneralQRCodeOnputError());
             }
         } catch (err) {
             console.log("Error processing PDF: " + err.message);
-            setError(new BallotInvalidError());
+            setError(new GeneralQRCodeOnputError());
         }
     };
 

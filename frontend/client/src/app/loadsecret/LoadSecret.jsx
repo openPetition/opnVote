@@ -39,6 +39,7 @@ export default function LoadSecret() {
                         insertAsTextHeadline={t("register.uploadqrcode.insertAsTextHeadline")}
                         insertAsTextButton={t("register.uploadqrcode.insertAsTextButton")}
                         onResult={(res) => updateUserKey(res, true)}
+                        qrType={globalConst.qrType.KEY}
                     />
                     <Button
                         onClick={() => { updatePage({ current: globalConst.pages.CREATEKEY }); }}

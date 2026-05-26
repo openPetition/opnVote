@@ -302,6 +302,7 @@ export default function Pollingstation() {
                             onResult={(res) => {
                                 updateVoting({ registerCode: res });
                             }}
+                            qrType={globalConst.qrType.BALLOT}
                         />
 
                         <div className="op__center_align">
