@@ -1,13 +1,14 @@
+import 'dotenv/config'
 import axios from 'axios'
 import jwt from 'jsonwebtoken'
 import fs from 'fs'
 import {
   blindToken,
-  deriveElectionR,
+  deriveElectionWallet,
   deriveElectionUnblindedToken,
-  generateMasterTokenAndMasterR,
+  generateBlindingR,
+  generateMasterKey,
 } from 'votingsystem'
-import { Register } from './config'
 const TEST_RUN_ID = 1
 
 const timestampSec = Math.floor(Date.now() / 1000)
@@ -44,13 +45,20 @@ interface TestConfig {
   batchDelayMs?: number // Optional delay between batches
 }
 
+const electionIdEnv = process.env.ELECTION_ID
+if (!electionIdEnv) throw new Error('ELECTION_ID required in .env')
+const registerUrl = process.env.REGISTER_URL
+if (!registerUrl) throw new Error('REGISTER_URL required in .env')
+const subgraphUrl = process.env.SUBGRAPH_URL
+if (!subgraphUrl) throw new Error('SUBGRAPH_URL required in .env')
+
 const config: TestConfig = {
   count: 200,
-  url: 'https://register.opn.vote/api/sign',
-  subgraphUrl: 'https://graphql.opn.vote/subgraphs/name/opnvote-003/',
+  url: `${registerUrl.replace(/\/$/, '')}/api/sign`,
+  subgraphUrl,
   concurrency: 100,
   apPrivateKeyPath: './keys/AP-privateKey.pem',
-  electionID: 0,
+  electionID: Number(electionIdEnv),
   baseUserId: baseUserId,
   onChainCheckIntervalMs: 30 * 1000, // 30 seconds
   onChainCheckTimeoutMs: 8 * 60 * 1000, // 8 minutes
@@ -58,11 +66,12 @@ const config: TestConfig = {
 }
 
 async function createRegistrationPayload() {
-  const { masterToken, masterR } = generateMasterTokenAndMasterR()
+  const masterKey = generateMasterKey()
   const electionID = config.electionID
-  const unblindedElectionToken = deriveElectionUnblindedToken(electionID, masterToken)
-  const electionR = deriveElectionR(electionID, masterR, unblindedElectionToken, Register)
-  const blindedElectionToken = blindToken(unblindedElectionToken, electionR, Register)
+  const voterWallet = deriveElectionWallet(masterKey, electionID)
+  const unblindedElectionToken = deriveElectionUnblindedToken(electionID, voterWallet.address)
+  const electionR = generateBlindingR()
+  const blindedElectionToken = blindToken(unblindedElectionToken, electionR)
 
   return {
     token: blindedElectionToken,
@@ -84,8 +93,8 @@ async function createAuthToken(electionID: number, userID: number): Promise<stri
     }
 
     const payload = {
-      userID: userID,
-      electionID: electionID,
+      voterId: userID,
+      electionId: electionID,
     }
 
     return jwt.sign(payload, apPrivateKey, { algorithm: 'RS256' })
@@ -163,12 +172,12 @@ async function fetchOnChainVoterIDs(electionID: number): Promise<number[]> {
   const query = `
     query CheckRecentVoterIDs($electionID: String!) {
       votersRegistereds(
-        where: { electionID: $electionID }
+        where: { electionId: $electionID }
         orderBy: blockTimestamp
         orderDirection: desc
-        first: 1000 # Fetch a reasonable large number, adjust if needed
+        first: 1000
       ) {
-        voterIDs
+        voterIds
       }
     }
   `
@@ -193,7 +202,7 @@ async function fetchOnChainVoterIDs(electionID: number): Promise<number[]> {
     }
 
     const voterIDs: number[] = votersRegisteredEvents
-      .flatMap((event: { voterIDs?: string[] }) => event.voterIDs || [])
+      .flatMap((event: { voterIds?: string[] }) => event.voterIds || [])
       .map((id: string) => parseInt(id, 10))
       .filter((id: number) => !isNaN(id))
 
