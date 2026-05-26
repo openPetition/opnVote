@@ -251,6 +251,24 @@ export function nobleG2ToEvm(hex: string): string {
 }
 
 /**
+ * Unpads a BLS12-381 G2 point hex from EIP-2537 format (512 chars) to noble uncompressed format (384 chars)
+ * EVM expects (c0, c1); Fp2 is emitted as (c1, c0), so coordinate order is swapped per Fp2 component.
+ * @param hex - EIP-2537 format G2 hex
+ * @returns uncompressed G2 hex ('0x' + 384 hex chars)
+ */
+export function evmG2ToNoble(hex: string): string {
+  validateHexString({ hexString: hex }, 514, true)
+  const raw = hex.slice(2)
+  // EVM:   c0_x(64) + c1_x(64) + c0_y(64) + c1_y(64)
+  // noble: c1_x(48) + c0_x(48) + c1_y(48) + c0_y(48)
+  const c0x = raw.slice(0, 128).slice(32)
+  const c1x = raw.slice(128, 256).slice(32)
+  const c0y = raw.slice(256, 384).slice(32)
+  const c1y = raw.slice(384, 512).slice(32)
+  return '0x' + c1x + c0x + c1y + c0y
+}
+
+/**
  * Checks structure of a BLS blind signature (only (format, on-curve, non-identity).
  * Checks structure only (G1 point in uncompressed hex); Not a signature validity check.
  * @param signature - Signature object to be validated
@@ -645,4 +663,3 @@ export function hexToBuffer(hexString: string): Buffer {
   }
   return Buffer.from(hexString, 'hex')
 }
-
