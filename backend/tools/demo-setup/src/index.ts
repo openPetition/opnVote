@@ -14,14 +14,12 @@ const REQUIRED_ENV_VARS = [
   'DEPLOYER_ACCOUNT',
   'REGISTER_ACCOUNT',
   'ELECTION_PUBKEY',
-  'REGISTER_KEY_N',
-  'REGISTER_KEY_E',
+  'REGISTER_ELECTION_BLS_PUBKEY',
   'ELECTION_PRIVKEY',
   'IPFS_SERVER_URL',
   'IPFS_SIGNER_PRIVATE_KEY',
   'AP_ID',
   'REGISTER_ID',
-  'SVS_ID',
   'DEMO_ELECTION_BASE_ID',
 ]
 
@@ -107,7 +105,6 @@ function printElectionCommands(
         `REGISTRATION_END_TIME=${ts.registrationEndTime}`,
         `AP_ID=${process.env.AP_ID}`,
         `REGISTER_ID=${process.env.REGISTER_ID}`,
-        `SVS_ID=${process.env.SVS_ID}`,
         `ELECTION_CID=${cid}`,
         `ELECTION_PUBKEY=${election.publicKey}`,
       ],
@@ -118,7 +115,7 @@ function printElectionCommands(
   if (election.targetState === 'RegistrationPending' || election.targetState === 'VotingPending')
     return
 
-  const { n, e } = election.registerKey!
+  const { blsPublicKey } = election.registerKey!
 
   print(
     'SetRegisterElectionKey',
@@ -127,8 +124,7 @@ function printElectionCommands(
       [
         `DEPLOYED_CONTRACT_ADDRESS=${addr}`,
         `ELECTION_ID=${id}`,
-        `REGISTER_ELECTION_N=${n}`,
-        `REGISTER_ELECTION_E=${e}`,
+        `REGISTER_ELECTION_BLS_PUBKEY=${blsPublicKey}`,
       ],
       register,
     ),
