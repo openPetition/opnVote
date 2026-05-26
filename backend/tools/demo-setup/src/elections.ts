@@ -10,8 +10,7 @@ export interface IpfsPayload {
 }
 
 export interface RegisterKey {
-  n: string
-  e: string
+  blsPublicKey: string
 }
 
 export interface DemoElection {
@@ -50,8 +49,7 @@ const BASE_IPFS = {
 export function getDemoElections(): Array<DemoElection> {
   const electionPubkey = process.env.ELECTION_PUBKEY!
   const registerKey: RegisterKey = {
-    n: process.env.REGISTER_KEY_N!,
-    e: process.env.REGISTER_KEY_E!,
+    blsPublicKey: process.env.REGISTER_ELECTION_BLS_PUBKEY!,
   }
   const privateKey = process.env.ELECTION_PRIVKEY!
 
