@@ -40,7 +40,7 @@ export default function GenerateQRCode(props) {
         }, 4000);
     }
 
-    const getWordwrappedLines = (context, text, fitWidth) => {
+    const getWordWrappedLines = (context, text, fitWidth) => {
         const words = text.split(' ');
         const lines = [];
         let currentLine = '';
@@ -82,7 +82,7 @@ export default function GenerateQRCode(props) {
 
             if (downloadSubHeadline?.length > 0) {
                 textCanvasContext.font = "14px sans-serif";
-                subheadlineLines = getWordwrappedLines(textCanvasContext, downloadSubHeadline, textFitWidth);
+                subheadlineLines = getWordWrappedLines(textCanvasContext, downloadSubHeadline, textFitWidth);
             }
 
             textCanvas.height = baseHeight + (subheadlineLines.length * lineHeightSubheadline);
