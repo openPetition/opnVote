@@ -9,7 +9,7 @@ const globalConst = {
         'readyToVote': 7,
         'vote': 8,
     },
-    qrType: {
+    qrContentType: {
         'KEY': 'key',
         'BALLOT': 'ballot',
     },

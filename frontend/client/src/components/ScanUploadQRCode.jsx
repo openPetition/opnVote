@@ -9,8 +9,10 @@ import Notification from './Notification';
 import NextImage from 'next/image';
 import { PDFDocument } from 'pdf-lib';
 import Modal from "@/components/Modal";
-import BallotInvalidError from '@/errors/BallotInvalidError';
-import KeyInvalidError from '@/errors/KeyInvalidError';
+import BallotTextInvalidError from '@/errors/BallotTextInvalidError';
+import BallotFileInvalidError from '@/errors/BallotFileInvalidError';
+import KeyTextInvalidError from '@/errors/KeyTextInvalidError';
+import KeyFileInvalidError from '@/errors/KeyFileInvalidError';
 import GeneralQRCodeOnputError from '@/errors/GeneralQRCodeInputError';
 import globalConst from '@/constants';
 import { qrToTokenAndR } from 'votingsystem';
@@ -36,7 +38,7 @@ export default function ScanUploadQRCode(props) {
         insertAsTextSubHeadline,
         insertAsTextPlaceholder,
         insertAsTextButton,
-        qrType,
+        qrContentType,
     } = props;
 
     const fileRef = useRef(null);
@@ -58,13 +60,18 @@ export default function ScanUploadQRCode(props) {
         oldRegion && oldRegion.remove();
     }, []);
 
-    const checkCodeAndReturn = async (code) => {
-        if (qrType == globalConst.qrType.KEY) {
+    /**
+     * checks the inserted code
+     * @param {string} code 
+     * @param {string} inputOutputType 
+     */
+    const checkCodeAndReturn = async (code, inputOutputType) => {
+        if (qrContentType == globalConst.qrContentType.KEY) {
             try {
                 let masterTokens = await qrToTokenAndR(code, true);
                 props.onResult(code);
             } catch (error) {
-                setError(new KeyInvalidError());
+                setError(inputOutputType === globalConst.saveType.CLIPBOARD ? new KeyTextInvalidError() : new KeyFileInvalidError());
                 console.debug(`Error: QR Key Input Invalid: ${error}`);
             }
         } else {
@@ -72,7 +79,7 @@ export default function ScanUploadQRCode(props) {
                 const result = checkBallot(voting.election, code);
                 props.onResult(code);
             } catch (error) {
-                setError(new BallotInvalidError());
+                setError(inputOutputType === globalConst.saveType.CLIPBOARD ? new BallotTextInvalidError() : new BallotFileInvalidError());
                 console.debug(`Error: QR Ballot Input Invalid: ${error}`);
             }
         }
@@ -89,7 +96,7 @@ export default function ScanUploadQRCode(props) {
             const pdfDoc = await PDFDocument.load(fileBuffer, { ignoreEncryption: true });
             const extractCode = pdfDoc.getSubject()?.split('QRCODE:')[1];
             if (extractCode && extractCode != 'undefined') {
-                checkCodeAndReturn(extractCode);
+                checkCodeAndReturn(extractCode, globalConst.saveType.PDF);
             } else {
                 extractWithConvert(file);
                 return;
@@ -105,7 +112,7 @@ export default function ScanUploadQRCode(props) {
         const index = inputQRCodeText.lastIndexOf(':');
         const code = index === -1 ? inputQRCodeText : inputQRCodeText.substring(index + 1);
         const cleanCode = code.replace(/\s+/g, '');
-        checkCodeAndReturn(cleanCode)
+        checkCodeAndReturn(cleanCode, globalConst.saveType.CLIPBOARD);
     }
 
     const extractWithConvert = async (file) => {
@@ -134,7 +141,7 @@ export default function ScanUploadQRCode(props) {
                     .scanFile(newImageFile, false)
                     .then((qrCodeMessage) => {
                         // handover -> do sth with result
-                        checkCodeAndReturn(qrCodeMessage)
+                        checkCodeAndReturn(qrCodeMessage, globalConst.saveType.PDF)
                         html5QrCode.clear();
                     })
                     .catch((err) => {
