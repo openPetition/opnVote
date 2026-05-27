@@ -40,7 +40,7 @@ export default function GenerateQRCode(props) {
         }, 4000);
     }
 
-    const getWordWrappedLines = (context, text, fitWidth) => {
+    const getWordWrappedLines = (context, text, maxWidth) => {
         const words = text.split(' ');
         const lines = [];
         let currentLine = '';
@@ -49,7 +49,7 @@ export default function GenerateQRCode(props) {
             const testLine = currentLine ? `${currentLine} ${word}` : word;
             const width = context.measureText(testLine).width;
 
-            if (width > fitWidth && currentLine) {
+            if (width > maxWidth && currentLine) {
                 lines.push(currentLine);
                 currentLine = word;
             } else {
@@ -76,13 +76,13 @@ export default function GenerateQRCode(props) {
             const baseHeight = 400;
             const lineHeightSubheadline = 20;
             const subheadlineStartY = 120;
-            const textFitWidth = 240;
+            const textMaxWidth = 240;
 
             let subheadlineLines = [];
 
             if (downloadSubHeadline?.length > 0) {
                 textCanvasContext.font = "14px sans-serif";
-                subheadlineLines = getWordWrappedLines(textCanvasContext, downloadSubHeadline, textFitWidth);
+                subheadlineLines = getWordWrappedLines(textCanvasContext, downloadSubHeadline, textMaxWidth);
             }
 
             textCanvas.height = baseHeight + (subheadlineLines.length * lineHeightSubheadline);
