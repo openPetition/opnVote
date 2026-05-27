@@ -38,6 +38,7 @@ export default function Register() {
     const [showMod, setShowMod] = useState(false);
     const election = voting.election;
     const electionTitle = voting.electionInformation.title
+    const electionTitleSanitized = electionTitle
         .toLowerCase()
         .replace(/ä/g, "ae")
         .replace(/ö/g, "oe")
@@ -264,7 +265,7 @@ export default function Register() {
                         voting.registerCode,
                         (t("register.generateqrcode.downloadHeadline")).toUpperCase(),
                         voting.electionInformation.title,
-                        t("register.generateqrcode.downloadFilename", { ELECTIONTITLE: electionTitle }),
+                        t("register.generateqrcode.downloadFilename", { ELECTIONTITLE: electionTitleSanitized }),
                         globalConst.pdfType.ELECTIONPERMIT,
                         {
                             ELECTION_URL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
@@ -384,7 +385,7 @@ export default function Register() {
                                     text={voting.registerCode}
                                     downloadHeadline={(t("register.generateqrcode.downloadHeadline")).toUpperCase()}
                                     downloadSubHeadline={voting.electionInformation.title}
-                                    downloadFilename={t("register.generateqrcode.downloadFilename", { ELECTIONTITLE: electionTitle })}
+                                    downloadFilename={t("register.generateqrcode.downloadFilename", { ELECTIONTITLE: electionTitleSanitized })}
                                     headimage="election-permit-no-whitespace"
                                     pdfQRtype={globalConst.pdfType.ELECTIONPERMIT}
                                     qrCodeString={voting.registerCode}
@@ -467,8 +468,11 @@ export default function Register() {
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                         <Notification
                                             type="success"
-                                            text={t("register.popup.aftersave.text", { STARTDATE: startDate, ENDDATE: endDate })}
+                                            text={t('register.popup.aftersave.notification')}
                                         />
+                                        <p>
+                                            {t('register.popup.aftersave.text', { STARTDATE: startDate, ENDDATE: endDate, ELECTIONTITLE: electionTitle })}
+                                        </p>
                                     </div>
                                     {electionState === globalConst.electionState.ONGOING && (
                                         <AddToCalendar
