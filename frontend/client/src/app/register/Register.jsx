@@ -21,6 +21,7 @@ import Headline from "@/components/Headline";
 import Modal from "@/components/Modal";
 import ElectionTimeInfo from "@/components/ElectionTimeInfo";
 import { createPDF } from "@/save-pdf";
+import AddToCalendar from '@/components/AddToCalendar'
 
 export default function Register() {
     const { t } = useTranslation();
@@ -421,14 +422,29 @@ export default function Register() {
                                         type="primary"
                                     >{t("register.button.votelater.text")}</Button>
                                 </div>
-
+                                {electionState === globalConst.electionState.PLANNED && (
+                                    <>
+                                        <div style={{ margin: 'auto', maxWidth: '340px' }}>
+                                            <AddToCalendar
+                                                electionURL={Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation'}
+                                                eventDate={startDate}
+                                                eventTitle={t('register.popup.aftersave.addToCalendar.title')}
+                                                eventDescription={t('register.popup.aftersave.addToCalendar.description', {
+                                                    STARTDATE: startDate,
+                                                    ENDDATE: endDate,
+                                                    ELECTIONURL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
+                                                })}
+                                            />
+                                        </div>
+                                    </>
+                                )}
                                 {electionState === globalConst.electionState.ONGOING && (
                                     <>
                                         <div className="op__center-align op__margin_standard_20_top_bottom">
                                             <Button
                                                 onClick={goToElection}
                                                 type="secondary"
-                                            >{t("register.button.gotoelection.text")}</Button>
+                                            >{t('register.button.gotoelection.text')}</Button>
                                         </div>
                                     </>
                                 )}
@@ -436,25 +452,32 @@ export default function Register() {
                                 <Modal
                                     showModal={registerState.showSaveRegisterQRSuccess}
                                     headerText={t("register.popup.aftersave.headline")}
-                                    ctaButtonText={electionState === globalConst.electionState.ONGOING ? t("common.back") : t("common.gotooverview")}
+                                    ctaButtonText={electionState !== globalConst.electionState.ONGOING ? t("common.gotooverview") : '' }
                                     ctaButtonFunction={() => {
                                         setRegisterState({
                                             ...registerState,
                                             showSaveRegisterQRSuccess: false
                                         });
-                                        if (electionState === globalConst.electionState.ONGOING) {
-                                            window.scrollTo(0, 0);
-                                        } else {
+                                        if (electionState !== globalConst.electionState.ONGOING) {
                                             updatePage({ current: globalConst.pages.OVERVIEW });
                                         }
                                     }}
                                 >
+
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                         <Notification
                                             type="success"
                                             text={t("register.popup.aftersave.text", { STARTDATE: startDate, ENDDATE: endDate })}
                                         />
                                     </div>
+                                    {electionState === globalConst.electionState.ONGOING && (
+                                        <AddToCalendar
+                                            electionURL={Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation'}
+                                            eventDate={startDate}
+                                            eventTitle={t("register.popup.aftersave.addToCalendar.title")}
+                                            eventDescription={t("register.popup.aftersave.addToCalendar.description", { STARTDATE: startDate, ENDDATE: endDate, ELECTIONURL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation' })}
+                                        />
+                                    )}
                                 </Modal>
 
                                 <ConfirmPopup
