@@ -45,13 +45,13 @@ export default function GenerateQRCode(props) {
         const lines = [];
         let currentLine = '';
 
-        for (let wordIndex = 0; wordIndex < words.length; wordIndex++) {
-            let testLine = currentLine + ' ' + words[wordIndex];
-            let width = context.measureText(testLine).width;
+        for (const word of words) {
+            const testLine = currentLine ? `${currentLine} ${word}` : word;
+            const width = context.measureText(testLine).width;
 
-            if (width > fitWidth) {
+            if (width > fitWidth && currentLine) {
                 lines.push(currentLine);
-                currentLine = words[wordIndex];
+                currentLine = word;
             } else {
                 currentLine = testLine;
             }
