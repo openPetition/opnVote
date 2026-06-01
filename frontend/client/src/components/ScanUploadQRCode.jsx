@@ -13,7 +13,7 @@ import BallotTextInvalidError from '@/errors/BallotTextInvalidError';
 import BallotFileInvalidError from '@/errors/BallotFileInvalidError';
 import KeyTextInvalidError from '@/errors/KeyTextInvalidError';
 import KeyFileInvalidError from '@/errors/KeyFileInvalidError';
-import GeneralQRCodeOnputError from '@/errors/GeneralQRCodeInputError';
+import GeneralQRCodeInputError from '@/errors/GeneralQRCodeInputError';
 import globalConst from '@/constants';
 import { qrToTokenAndR } from 'votingsystem';
 import { checkBallot } from '@/util';
@@ -102,7 +102,7 @@ export default function ScanUploadQRCode(props) {
                 return;
             }
         } catch (err) {
-            setError(new BallotInvalidError());
+            setError(new BallotFileInvalidError());
             console.debug(err);
         }
         setIsLoading(true);
@@ -146,15 +146,15 @@ export default function ScanUploadQRCode(props) {
                     })
                     .catch((err) => {
                         console.debug(`Error scanning file. Reason: ${err}`);
-                        setError(new GeneralQRCodeOnputError());
+                        setError(new GeneralQRCodeInputError());
                     });
             } catch (qrError) {
                 console.log(`No QR code found`);
-                setError(new GeneralQRCodeOnputError());
+                setError(new GeneralQRCodeInputError());
             }
         } catch (err) {
             console.log("Error processing PDF: " + err.message);
-            setError(new GeneralQRCodeOnputError());
+            setError(new GeneralQRCodeInputError());
         }
     };
 
