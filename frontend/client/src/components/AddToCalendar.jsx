@@ -6,13 +6,37 @@ import { CalendarDays } from 'lucide-react'
 
 
 export default function AddToCalendar(props) {
-    const { electionURL, eventTitle, eventDescription } = props;
+    const { eventDate, electionURL, eventTitle, eventDescription } = props;
     const { t } = useTranslation();
 
+
+    const formatToIcsDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}${month}${day}`;
+
+    }
+
+    const formatToIcsDateTime = (datetime) => {
+        const date = formatToIcsDate(datetime);
+        const hours = String(datetime.getUTCHours()).padStart(2, '0');
+        const minutes = String(datetime.getUTCMinutes()).padStart(2, '0');
+        const seconds = String(datetime.getUTCSeconds()).padStart(2, '0');
+
+        const utc = 'Z';
+        return `${date}T${hours}${minutes}${seconds}${utc}`;
+    }
+    function addDays(date, days) {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    }
+
     const downloadIcsFile = () => {
-        const begin = 'VALUE=DATE:20260527';
-        const end =  'VALUE=DATE:20260528';
-        const dtstamp = '20260521T105500Z';
+        const begin = `VALUE=DATE:${formatToIcsDate(eventDate)}`;
+        const end =  `VALUE=DATE:${formatToIcsDate(addDays(eventDate, 1))}`;
+        const dtstamp = `${formatToIcsDateTime(new Date())}`;
         const uid = 'abstimmmung21-2026';
 
         const icsContent = [

@@ -429,10 +429,13 @@ export default function Register() {
                                             <AddToCalendar
                                                 electionURL={Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation'}
                                                 eventDate={startDate}
-                                                eventTitle={t('register.popup.aftersave.addToCalendar.title')}
+                                                eventTitle={t('register.popup.aftersave.addToCalendar.title', {
+                                                    ELECTIONTITLE: electionTitle,
+                                                })}
                                                 eventDescription={t('register.popup.aftersave.addToCalendar.description', {
                                                     STARTDATE: startDate,
                                                     ENDDATE: endDate,
+                                                    ELECTIONTITLE: electionTitle,
                                                     ELECTIONURL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
                                                 })}
                                             />
@@ -470,16 +473,25 @@ export default function Register() {
                                             type="success"
                                             text={t('register.popup.aftersave.notification')}
                                         />
-                                        <p>
-                                            {t('register.popup.aftersave.text', { STARTDATE: startDate, ENDDATE: endDate, ELECTIONTITLE: electionTitle })}
-                                        </p>
+                                        <p dangerouslySetInnerHTML={{ __html: t('register.popup.aftersave.text', {
+                                            STARTDATE: startDate,
+                                            ENDDATE: endDate,
+                                            ELECTIONTITLE: electionTitle
+                                        })}}></p>
                                     </div>
                                     {electionState === globalConst.electionState.ONGOING && (
                                         <AddToCalendar
                                             electionURL={Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation'}
                                             eventDate={startDate}
-                                            eventTitle={t("register.popup.aftersave.addToCalendar.title")}
-                                            eventDescription={t("register.popup.aftersave.addToCalendar.description", { STARTDATE: startDate, ENDDATE: endDate, ELECTIONURL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation' })}
+                                            eventTitle={t('register.popup.aftersave.addToCalendar.title', {
+                                                ELECTIONTITLE: electionTitle,
+                                            })}
+                                            eventDescription={t('register.popup.aftersave.addToCalendar.description', {
+                                                STARTDATE: startDate,
+                                                ENDDATE: endDate,
+                                                ELECTIONTITLE: electionTitle,
+                                                ELECTIONURL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
+                                            })}
                                         />
                                     )}
                                 </Modal>
