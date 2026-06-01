@@ -3,7 +3,7 @@ import { useState } from "react";
 import { QRCodeCanvas } from 'qrcode.react';
 import styles from '../styles/GenerateQRCode.module.css';
 import PropTypes from "prop-types";
-import { File, Copy, CircleCheck } from "lucide-react";
+import { File, Copy, FileImage, CircleCheck } from "lucide-react";
 import { useTranslation } from "next-i18next";
 import { createPDF } from "@/save-pdf";
 import Button from './Button';
@@ -40,39 +40,91 @@ export default function GenerateQRCode(props) {
         }, 4000);
     }
 
+    const getWordWrappedLines = (context, text, maxWidth) => {
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = '';
+
+        for (const word of words) {
+            const testLine = currentLine ? `${currentLine} ${word}` : word;
+            const width = context.measureText(testLine).width;
+
+            if (width > maxWidth && currentLine) {
+                lines.push(currentLine);
+                currentLine = word;
+            } else {
+                currentLine = testLine;
+            }
+        }
+
+        if (currentLine) {
+            lines.push(currentLine);
+        }
+
+        return lines;
+    };
+
     const DownloadAsPng = () => {
         const textCanvas = document.getElementById("canvas");
         const textCanvasContext = textCanvas.getContext("2d");
-        let moveQRCodeDownPixel = 80;
-        textCanvasContext.fillStyle = "white";
-        textCanvasContext.fillRect(0, 0, textCanvas.width, textCanvas.height);
-        textCanvasContext.fillStyle = "#000";
-        textCanvasContext.lineStyle = "#000";
-        textCanvasContext.font = "18px sans-serif";
-        textCanvasContext.lineWidth = 2;
-        textCanvasContext.textAlign = "center";
-        textCanvasContext.fillText(downloadHeadline, 150, 50);
 
-        if (downloadSubHeadline?.length > 0) {
+        const logoImg = new Image();
+        logoImg.crossOrigin = "anonymous";
+        logoImg.src = '/images/opnvote-logo.svg';
+
+        logoImg.onload = function () {
+            const baseHeight = 400;
+            const lineHeightSubheadline = 20;
+            const subheadlineStartY = 120;
+            const textMaxWidth = 240;
+
+            let subheadlineLines = [];
+
+            if (downloadSubHeadline?.length > 0) {
+                textCanvasContext.font = "14px sans-serif";
+                subheadlineLines = getWordWrappedLines(textCanvasContext, downloadSubHeadline, textMaxWidth);
+            }
+
+            textCanvas.height = baseHeight + (subheadlineLines.length * lineHeightSubheadline);
+
+            textCanvasContext.fillStyle = "white";
+            textCanvasContext.fillRect(0, 0, textCanvas.width, textCanvas.height);
+
+            const logoWidth = 116;
+            const logoHeight = 24;
+            const logoX = 150 - (logoWidth / 2);
+            const logoY = 20;
+            textCanvasContext.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
+
             textCanvasContext.fillStyle = "#000";
-            textCanvasContext.lineStyle = "#000";
-            textCanvasContext.font = "14px sans-serif";
-            textCanvasContext.lineWidth = 1;
+            textCanvasContext.font = "18px sans-serif";
             textCanvasContext.textAlign = "center";
-            wordwrapAndPositionText(textCanvasContext, downloadSubHeadline, 150, 80, 20, 300);
-            moveQRCodeDownPixel = 150;
-            //textCanvasContext.fillText(downloadSubHeadline, 100, 80);
-        }
+            textCanvasContext.fillText(downloadHeadline, 150, 90);
 
-        const qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
+            let moveQRCodeDownPixel = 120;
 
-        textCanvasContext.drawImage(qrCodeCanvasContext, 40, moveQRCodeDownPixel, 220, 220);
+            if (subheadlineLines.length > 0) {
+                textCanvasContext.fillStyle = "#000";
+                textCanvasContext.font = "14px sans-serif";
+                textCanvasContext.textAlign = "center";
 
-        const link = document.createElement('a');
-        link.download = downloadFilename + ".png";
-        link.href = textCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-        link.click();
-        afterSaveFunction();
+                subheadlineLines.forEach((line, index) => {
+                    textCanvasContext.fillText(line, 150, subheadlineStartY + (lineHeightSubheadline * index));
+                });
+
+                moveQRCodeDownPixel = subheadlineStartY + (subheadlineLines.length * lineHeightSubheadline) + 20;
+            }
+
+            const qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
+            textCanvasContext.drawImage(qrCodeCanvasContext, 40, moveQRCodeDownPixel, 220, 220);
+
+            const link = document.createElement('a');
+            link.download = downloadFilename + ".png";
+            link.href = textCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+            link.click();
+
+            afterSaveFunction(globalConst.saveType.IMAGE);
+        };
     };
 
     /**Comment Out: Print not used in the Moment
@@ -130,7 +182,7 @@ export default function GenerateQRCode(props) {
                                 fgColor={"#000000"}
                                 level={"Q"}
                                 id="qrCodeCanvas"
-                                style={{ margin: "1rem auto", fontweight: "bold", display: "none" }}
+                                style={{ display: "none" }}
                                 imageSettings={
                                     {
                                         src: `/images/icon-${headimage}.svg`,
@@ -139,13 +191,6 @@ export default function GenerateQRCode(props) {
                                         excavate: true
                                     }
                                 }
-                            />
-
-                            <canvas
-                                id="canvas"
-                                width="300"
-                                height="400"
-                                style={{ display: "none" }}
                             />
                         </div>
                     </div>
@@ -170,14 +215,14 @@ export default function GenerateQRCode(props) {
                                         :
                                         t("generateqrcode.copycode.text")
                                 }
-                                <br /><p className={styles.hint}>{t("generateqrcode.copycode.additionalhint")}</p>
+                                <br /><p className={styles.hint}>{t("generateqrcode.copycode.additionalHint")}</p>
                             </div>
                         </Button>
 
                         <Button
                             onClick={givePDF}
                             type={saved ? 'secondary' : 'primary'}
-                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }}
+                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px', marginBottom: '10px' }}
                         >
                             <div style={{ alignSelf: 'center' }}>
                                 {
@@ -191,6 +236,30 @@ export default function GenerateQRCode(props) {
                             {
                                 t("generateqrcode.saveas.pdf")
                             }
+                        </Button>
+                        <canvas
+                            id="canvas"
+                            width="300"
+                            height="400"
+                            style={{ display: "none" }}
+                        />
+                        <Button
+                            onClick={DownloadAsPng}
+                            type={saved ? 'secondary' : 'primary'}
+                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }}
+                        >
+                            <div style={{ alignSelf: 'center' }}>
+                                {
+                                    (savedAs?.includes(globalConst.saveType.IMAGE))
+                                        ?
+                                        <CircleCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
+                                        :
+                                        <FileImage stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
+                                }
+                            </div>
+                            <div>
+                                {t("generateqrcode.saveas.image")}
+                            </div>
                         </Button>
 
                     </div>
