@@ -1,8 +1,8 @@
 'use client';
 
-import Button from '@/components/Button'
-import { useTranslation } from 'next-i18next'
-import { CalendarDays } from 'lucide-react'
+import Button from '@/components/Button';
+import { useTranslation } from 'next-i18next';
+import { CalendarDays } from 'lucide-react';
 
 
 export default function AddToCalendar(props) {
@@ -15,8 +15,7 @@ export default function AddToCalendar(props) {
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}${month}${day}`;
-
-    }
+    };
 
     const formatToIcsDateTime = (datetime) => {
         const date = formatToIcsDate(datetime);
@@ -26,7 +25,8 @@ export default function AddToCalendar(props) {
 
         const utc = 'Z';
         return `${date}T${hours}${minutes}${seconds}${utc}`;
-    }
+    };
+
     function addDays(date, days) {
         const result = new Date(date);
         result.setDate(result.getDate() + days);
@@ -37,7 +37,11 @@ export default function AddToCalendar(props) {
         const begin = `VALUE=DATE:${formatToIcsDate(eventDate)}`;
         const end =  `VALUE=DATE:${formatToIcsDate(addDays(eventDate, 1))}`;
         const dtstamp = `${formatToIcsDateTime(new Date())}`;
-        const uid = 'abstimmmung21-2026';
+        const uid = dtstamp;
+        // output isn't text/html, it's text/calendar, i.e. &-escaped stuff is useless.
+        // but escaping was applied by the translation or use-as-prop function
+        // since we only have slashes to worry about for now, restore those.
+        const eventDescriptionUnescaped = eventDescription.replaceAll(/&#x2f;/gi, '/');
 
         const icsContent = [
             'BEGIN:VCALENDAR',
@@ -50,7 +54,7 @@ export default function AddToCalendar(props) {
             `DTEND;${end}`,
             `UID:${uid}`,
             `SUMMARY:${eventTitle}`,
-            `DESCRIPTION:${eventDescription}`,
+            `DESCRIPTION:${eventDescriptionUnescaped}`,
             `LOCATION:${electionURL}`,
             'BEGIN:VALARM',
             'TRIGGER:-PT12H',
