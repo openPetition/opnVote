@@ -51,9 +51,6 @@ export default function ScanUploadQRCode(props) {
     const [error, setError] = useState(null);
     const [codeText, setCodeText] = useState('');
 
-
-
-
     useEffect(() => {
         html5QrCode = new Html5Qrcode("reader");
         const oldRegion = document.getElementById("qr-shaded-region");
