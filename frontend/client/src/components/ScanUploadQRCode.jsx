@@ -149,11 +149,11 @@ export default function ScanUploadQRCode(props) {
                         setError(new GeneralQRCodeInputError());
                     });
             } catch (qrError) {
-                console.log(`No QR code found`);
+                console.debug(`No QR code found`);
                 setError(new GeneralQRCodeInputError());
             }
         } catch (err) {
-            console.log("Error processing PDF: " + err.message);
+            console.debug("Error processing PDF: " + err.message);
             setError(new GeneralQRCodeInputError());
         }
     };
