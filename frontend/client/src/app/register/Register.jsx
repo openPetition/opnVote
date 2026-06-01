@@ -428,6 +428,7 @@ export default function Register() {
                                         <div style={{ margin: 'auto', maxWidth: '340px' }}>
                                             <AddToCalendar
                                                 electionURL={Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation'}
+                                                electionId={voting.electionId}
                                                 eventDate={startDate}
                                                 eventTitle={t('register.popup.aftersave.addToCalendar.title', {
                                                     ELECTIONTITLE: electionTitle,
@@ -482,6 +483,7 @@ export default function Register() {
                                     {electionState === globalConst.electionState.ONGOING && (
                                         <AddToCalendar
                                             electionURL={Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation'}
+                                            electionId={voting.electionId}
                                             eventDate={startDate}
                                             eventTitle={t('register.popup.aftersave.addToCalendar.title', {
                                                 ELECTIONTITLE: electionTitle,

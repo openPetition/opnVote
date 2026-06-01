@@ -6,7 +6,7 @@ import { CalendarDays } from 'lucide-react';
 
 
 export default function AddToCalendar(props) {
-    const { eventDate, electionURL, eventTitle, eventDescription } = props;
+    const { eventDate, electionURL, eventTitle, eventDescription, electionId } = props;
     const { t } = useTranslation();
 
 
@@ -37,7 +37,7 @@ export default function AddToCalendar(props) {
         const begin = `VALUE=DATE:${formatToIcsDate(eventDate)}`;
         const end =  `VALUE=DATE:${formatToIcsDate(addDays(eventDate, 1))}`;
         const dtstamp = `${formatToIcsDateTime(new Date())}`;
-        const uid = dtstamp;
+        const uid = 'voting-' + electionId + '@opn.vote';
         // output isn't text/html, it's text/calendar, i.e. &-escaped stuff is useless.
         // but escaping was applied by the translation or use-as-prop function
         // since we only have slashes to worry about for now, restore those.
