@@ -97,17 +97,7 @@ export default function ScanUploadQRCode(props) {
                 // Convert canvas to blob
                 const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
                 const newImageFile = new File([blob], `qrcode.png`, { type: "image/png" });
-                html5QrCode
-                    .scanFile(newImageFile, false)
-                    .then((qrCodeMessage) => {
-                        // handover -> do sth with result
-                        props.onResult(qrCodeMessage);
-                        html5QrCode.clear();
-                    })
-                    .catch((err) => {
-                        console.debug(`Error scanning file. Reason: ${err}`);
-                        setError(new BallotInvalidError());
-                    });
+                imageScan(newImageFile);
             } catch (qrError) {
                 console.log(`No QR code found`);
                 setError(new BallotInvalidError());
@@ -118,6 +108,19 @@ export default function ScanUploadQRCode(props) {
         }
     };
 
+    const imageScan = (newImageFile) => {
+        html5QrCode
+            .scanFile(newImageFile, false)
+            .then((qrCodeMessage) => {
+                // handover -> do sth with result
+                props.onResult(qrCodeMessage);
+                html5QrCode.clear();
+            })
+            .catch((err) => {
+                console.debug(`Error scanning file. Reason: ${err}`);
+                setError(new BallotInvalidError());
+            });
+    }
 
     const startScanClick = () => {
         setShowScanNotification(false);
@@ -171,21 +174,10 @@ export default function ScanUploadQRCode(props) {
         if (selectedFile && selectedFile.type === "application/pdf") {
             extractData(selectedFile);
         };
+        if (selectedFile && selectedFile.type === "image/png") {
+            imageScan(selectedFile);
+        };
         e.target.value = null;
-
-        /** OLD IMAGE upload stuff . we dont want to loose it for now.
-        const imageFile = e.target.files[0];
-        html5QrCode
-            .scanFile(imageFile, true)
-            .then((qrCodeMessage) => {
-                // handover -> do sth with result
-                props.onResult(qrCodeMessage);
-                html5QrCode.clear();
-            })
-            .catch((err) => {
-                console.debug(`Error scanning file. Reason: ${err}`);
-            });
-        **/
     };
 
     return (
@@ -288,7 +280,7 @@ export default function ScanUploadQRCode(props) {
                         type="file"
                         hidden
                         ref={fileRef}
-                        accept="application/pdf"
+                        accept="application/pdf, image/png"
                         onChange={scanFile}
                     />
                 </div>
