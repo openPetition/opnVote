@@ -21,6 +21,7 @@ import Headline from "@/components/Headline";
 import Modal from "@/components/Modal";
 import ElectionTimeInfo from "@/components/ElectionTimeInfo";
 import { createPDF } from "@/save-pdf";
+import AddToCalendar from '@/components/AddToCalendar'
 
 export default function Register() {
     const { t } = useTranslation();
@@ -37,6 +38,7 @@ export default function Register() {
     const [showMod, setShowMod] = useState(false);
     const election = voting.election;
     const electionTitle = voting.electionInformation.title
+    const electionTitleSanitized = electionTitle
         .toLowerCase()
         .replace(/ä/g, "ae")
         .replace(/ö/g, "oe")
@@ -264,7 +266,7 @@ export default function Register() {
                         (t("register.generateqrcode.downloadHeadline")).toUpperCase(),
                         voting.electionInformation.title,
                         t("register.generateqrcode.downloadFilename", {
-                            ELECTIONTITLE: electionTitle,
+                            ELECTIONTITLE: electionTitleSanitized,
                             CREATIONDATE: new Date().toISOString().split('T')[0]
                         }),
                         globalConst.pdfType.ELECTIONPERMIT,
@@ -387,7 +389,7 @@ export default function Register() {
                                     downloadHeadline={(t("register.generateqrcode.downloadHeadline")).toUpperCase()}
                                     downloadSubHeadline={voting.electionInformation.title}
                                     downloadFilename={t("register.generateqrcode.downloadFilename", {
-                                        ELECTIONTITLE: electionTitle,
+                                        ELECTIONTITLE: electionTitleSanitized,
                                         CREATIONDATE: new Date().toISOString().split('T')[0]
                                     })}
                                     headimage="election-permit-no-whitespace"
@@ -427,14 +429,34 @@ export default function Register() {
                                         type="primary"
                                     >{t("register.button.votelater.text")}</Button>
                                 </div>
-
+                                {electionState === globalConst.electionState.PLANNED && (
+                                    <>
+                                        <div style={{ margin: 'auto', maxWidth: '340px' }}>
+                                            <AddToCalendar
+                                                electionURL={Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation'}
+                                                electionId={voting.electionId}
+                                                eventDate={startDate}
+                                                eventTitle={t('register.popup.aftersave.addToCalendar.title', {
+                                                    ELECTIONTITLE: electionTitle,
+                                                })}
+                                                electionTitleSanitized={electionTitleSanitized}
+                                                eventDescription={t('register.popup.aftersave.addToCalendar.description', {
+                                                    STARTDATE: startDate,
+                                                    ENDDATE: endDate,
+                                                    ELECTIONTITLE: electionTitle,
+                                                    ELECTIONURL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
+                                                })}
+                                            />
+                                        </div>
+                                    </>
+                                )}
                                 {electionState === globalConst.electionState.ONGOING && (
                                     <>
                                         <div className="op__center-align op__margin_standard_20_top_bottom">
                                             <Button
                                                 onClick={goToElection}
                                                 type="secondary"
-                                            >{t("register.button.gotoelection.text")}</Button>
+                                            >{t('register.button.gotoelection.text')}</Button>
                                         </div>
                                     </>
                                 )}
@@ -442,25 +464,46 @@ export default function Register() {
                                 <Modal
                                     showModal={registerState.showSaveRegisterQRSuccess}
                                     headerText={t("register.popup.aftersave.headline")}
-                                    ctaButtonText={electionState === globalConst.electionState.ONGOING ? t("common.back") : t("common.gotooverview")}
+                                    ctaButtonText={electionState !== globalConst.electionState.ONGOING ? t("common.gotooverview") : '' }
                                     ctaButtonFunction={() => {
                                         setRegisterState({
                                             ...registerState,
                                             showSaveRegisterQRSuccess: false
                                         });
-                                        if (electionState === globalConst.electionState.ONGOING) {
-                                            window.scrollTo(0, 0);
-                                        } else {
+                                        if (electionState !== globalConst.electionState.ONGOING) {
                                             updatePage({ current: globalConst.pages.OVERVIEW });
                                         }
                                     }}
                                 >
+
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                         <Notification
                                             type="success"
-                                            text={t("register.popup.aftersave.text", { STARTDATE: startDate, ENDDATE: endDate })}
+                                            text={t('register.popup.aftersave.notification')}
                                         />
+                                        <p dangerouslySetInnerHTML={{ __html: t('register.popup.aftersave.text', {
+                                            STARTDATE: startDate,
+                                            ENDDATE: endDate,
+                                            ELECTIONTITLE: electionTitle
+                                        })}}></p>
                                     </div>
+                                    {electionState === globalConst.electionState.ONGOING && (
+                                        <AddToCalendar
+                                            electionURL={Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation'}
+                                            electionId={voting.electionId}
+                                            eventDate={startDate}
+                                            eventTitle={t('register.popup.aftersave.addToCalendar.title', {
+                                                ELECTIONTITLE: electionTitle,
+                                            })}
+                                            electionTitleSanitized={electionTitleSanitized}
+                                            eventDescription={t('register.popup.aftersave.addToCalendar.description', {
+                                                STARTDATE: startDate,
+                                                ENDDATE: endDate,
+                                                ELECTIONTITLE: electionTitle,
+                                                ELECTIONURL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
+                                            })}
+                                        />
+                                    )}
                                 </Modal>
 
                                 <ConfirmPopup
