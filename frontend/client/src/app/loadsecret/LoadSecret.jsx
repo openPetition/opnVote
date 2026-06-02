@@ -10,7 +10,7 @@ import Button from "@/components/Button";
 export default function LoadSecret() {
     const { t } = useTranslation();
 
-    const { user, updateUserKey, updatePage } = useOpnVoteStore((state) => state);
+    const { user, updateUser, updatePage } = useOpnVoteStore((state) => state);
 
     useEffect(() => {
         if (user?.key?.length > 0) {
@@ -38,8 +38,18 @@ export default function LoadSecret() {
                         insertAsTextPlaceholder={t("register.uploadqrcode.insertAsTextPlaceholder")}
                         insertAsTextHeadline={t("register.uploadqrcode.insertAsTextHeadline")}
                         insertAsTextButton={t("register.uploadqrcode.insertAsTextButton")}
-                        onResult={(res) => updateUserKey(res, true)}
                         qrContentType={globalConst.qrContentType.KEY}
+                        onResult={(code, savedAs) => {
+                            console.log(code);
+                            console.log(savedAs);
+                            let localKeySavedAs = user.keySavedAs;
+                            !localKeySavedAs.includes(savedAs) && localKeySavedAs.push(savedAs);
+                            updateUser({
+                                key: code,
+                                keySaved: true,
+                                keySavedAs: savedAs
+                            })
+                        }}
                     />
                     <Button
                         onClick={() => { updatePage({ current: globalConst.pages.CREATEKEY }); }}

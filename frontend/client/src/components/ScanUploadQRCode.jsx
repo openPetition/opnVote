@@ -19,14 +19,11 @@ import { qrToTokenAndR } from 'votingsystem';
 import { checkBallot } from '@/util';
 import { useOpnVoteStore } from '@/opnVoteStore';
 
-
 const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
 let html5QrCode;
 
 export default function ScanUploadQRCode(props) {
-
     const { voting } = useOpnVoteStore((state) => state);
-
     const { t } = useTranslation();
     const {
         headline,
@@ -66,7 +63,8 @@ export default function ScanUploadQRCode(props) {
         if (qrContentType == globalConst.qrContentType.KEY) {
             try {
                 let masterTokens = await qrToTokenAndR(code, true);
-                props.onResult(code);
+                props.onResult(code, inputOutputType);
+
             } catch (error) {
                 setError(inputOutputType === globalConst.saveType.CLIPBOARD ? new KeyTextInvalidError() : new KeyFileInvalidError());
                 console.debug(`Error: QR Key Input Invalid: ${error}`);
@@ -74,12 +72,15 @@ export default function ScanUploadQRCode(props) {
         } else {
             try {
                 const result = checkBallot(voting.election, code);
-                props.onResult(code);
+                props.onResult(code, inputOutputType);
+
             } catch (error) {
                 setError(inputOutputType === globalConst.saveType.CLIPBOARD ? new BallotTextInvalidError() : new BallotFileInvalidError());
                 console.debug(`Error: QR Ballot Input Invalid: ${error}`);
             }
         }
+
+
     }
 
     const extractData = async (file) => {
@@ -161,7 +162,7 @@ export default function ScanUploadQRCode(props) {
         setShowStopScanBtn(true);
         const qrCodeSuccessCallback = (decodedText, decodedResult) => {
             console.info(decodedResult, decodedText);
-            props.onResult(decodedText);
+            checkCodeAndReturn(decodedText, globalConst.saveType.IMAGE);
             handleStop();
         };
 
