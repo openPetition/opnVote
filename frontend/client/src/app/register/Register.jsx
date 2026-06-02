@@ -265,7 +265,10 @@ export default function Register() {
                         voting.registerCode,
                         (t("register.generateqrcode.downloadHeadline")).toUpperCase(),
                         voting.electionInformation.title,
-                        t("register.generateqrcode.downloadFilename", { ELECTIONTITLE: electionTitleSanitized }),
+                        t("register.generateqrcode.downloadFilename", {
+                            ELECTIONTITLE: electionTitleSanitized,
+                            CREATIONDATE: new Date().toISOString().split('T')[0]
+                        }),
                         globalConst.pdfType.ELECTIONPERMIT,
                         {
                             ELECTION_URL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
@@ -385,7 +388,10 @@ export default function Register() {
                                     text={voting.registerCode}
                                     downloadHeadline={(t("register.generateqrcode.downloadHeadline")).toUpperCase()}
                                     downloadSubHeadline={voting.electionInformation.title}
-                                    downloadFilename={t("register.generateqrcode.downloadFilename", { ELECTIONTITLE: electionTitleSanitized })}
+                                    downloadFilename={t("register.generateqrcode.downloadFilename", {
+                                        ELECTIONTITLE: electionTitleSanitized,
+                                        CREATIONDATE: new Date().toISOString().split('T')[0]
+                                    })}
                                     headimage="election-permit-no-whitespace"
                                     pdfQRtype={globalConst.pdfType.ELECTIONPERMIT}
                                     qrCodeString={voting.registerCode}

@@ -18,7 +18,7 @@ export default function DataLoad() {
     });
 
     const [getElection, { data: dataElection, loading: loadingElection }] = getElectionData(localState.electionId);
-    const { voting, updateVoting, page, updatePage, user, clearUser, updateTaskId } = useOpnVoteStore((state) => state);
+    const { voting, updateVoting, page, updatePage, user, clearUser, updateUserOpHash } = useOpnVoteStore((state) => state);
 
     useEffect(() => {
         const onHashChange = (event) => {
@@ -116,7 +116,7 @@ export default function DataLoad() {
                     ...votingUpdate,
                 };
                 // remove any possibly stored task id, @todo: why isn't this part of voting?
-                updateTaskId('');
+                updateUserOpHash('');
                 // if a fragment is given, we switch to that page, regardless of user/election changes, overview otherwise
                 let targetPage = localState.fragment && Object.values(globalConst.pages).includes(localState.fragment)
                     ? localState.fragment

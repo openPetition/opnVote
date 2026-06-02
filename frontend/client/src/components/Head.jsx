@@ -11,7 +11,7 @@ import LanguageSwitchSelect from "@/components/LanguageSwitchSelect";
 
 export default function Head() {
     const { t } = useTranslation();
-    const { updatePage, updateUserKey, updateVoting, updateTaskId, page } = useOpnVoteStore((state) => state);
+    const { updatePage, updateUserKey, updateVoting, page } = useOpnVoteStore((state) => state);
 
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
