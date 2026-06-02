@@ -6,7 +6,7 @@ import { CalendarDays } from 'lucide-react';
 
 
 export default function AddToCalendar(props) {
-    const { eventDate, electionURL, eventTitle, eventDescription, electionId } = props;
+    const { eventDate, electionURL, eventTitle, eventDescription, electionId, electionTitleSanitized } = props;
     const { t } = useTranslation();
 
 
@@ -69,7 +69,7 @@ export default function AddToCalendar(props) {
 
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'opnVote.ics';
+        link.download = electionTitleSanitized + '.ics';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

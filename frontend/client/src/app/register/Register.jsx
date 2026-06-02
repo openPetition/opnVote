@@ -433,6 +433,7 @@ export default function Register() {
                                                 eventTitle={t('register.popup.aftersave.addToCalendar.title', {
                                                     ELECTIONTITLE: electionTitle,
                                                 })}
+                                                electionTitleSanitized={electionTitleSanitized}
                                                 eventDescription={t('register.popup.aftersave.addToCalendar.description', {
                                                     STARTDATE: startDate,
                                                     ENDDATE: endDate,
@@ -488,6 +489,7 @@ export default function Register() {
                                             eventTitle={t('register.popup.aftersave.addToCalendar.title', {
                                                 ELECTIONTITLE: electionTitle,
                                             })}
+                                            electionTitleSanitized={electionTitleSanitized}
                                             eventDescription={t('register.popup.aftersave.addToCalendar.description', {
                                                 STARTDATE: startDate,
                                                 ENDDATE: endDate,
