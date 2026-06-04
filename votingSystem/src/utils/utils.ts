@@ -1,4 +1,3 @@
-import Hex from 'crypto-js/enc-hex'
 import {
   BlsParams,
   ElectionCredentials,
@@ -15,7 +14,6 @@ import {
   VoteOption,
   VotingTransaction,
 } from '../types/types'
-import Base64 from 'crypto-js/enc-base64'
 import { ethers, verifyTypedData } from 'ethers'
 import { bls12_381 } from '@noble/curves/bls12-381'
 import { BLS_G1_HEX_LENGTH, BLS_G2_HEX_LENGTH, RSA_BIT_LENGTH } from './constants'
@@ -110,8 +108,7 @@ export function hexStringToBase64(
   expectedHexLength: number,
 ): string {
   validateHexString(hexStringObject, expectedHexLength)
-  const wordArray = Hex.parse(hexStringObject.hexString.substring(2))
-  return Base64.stringify(wordArray)
+  return ethers.encodeBase64(ethers.getBytes(hexStringObject.hexString))
 }
 
 /**
@@ -515,9 +512,7 @@ export function validateBase64(base64String: string): void {
  * @returns A '0x' prefixed hexadecimal string representation of the Base64 input.
  */
 export function base64ToHexString(base64String: string): string {
-  const wordArray = Base64.parse(base64String)
-  const hexStringWithPrefix = '0x' + Hex.stringify(wordArray)
-  return hexStringWithPrefix
+  return ethers.hexlify(ethers.decodeBase64(base64String))
 }
 
 /**
