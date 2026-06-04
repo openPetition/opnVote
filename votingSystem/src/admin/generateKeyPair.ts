@@ -1,5 +1,5 @@
 import { PrivateKeyDer, PublicKeyDer } from '../types/types';
-import * as crypto from 'crypto'
+import { ethers } from 'ethers'
 import { bls12_381 } from '@noble/curves/bls12-381';
 import { bytesToNumberBE } from '@noble/curves/abstract/utils';
 import { getSubtleCrypto, validateBlsParams } from '../utils/utils';
@@ -11,7 +11,7 @@ import { RSA_BIT_LENGTH } from '../utils/constants';
  * @returns Object containing the der-formatted publicKey and privateKey as hex-strings
  */
 export async function generateKeyPair(): Promise<{ publicKey: PublicKeyDer, privateKey: PrivateKeyDer }> {
-    const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
+    const subtle = getSubtleCrypto()
 
     const keyPair = await subtle.generateKey(
         {
@@ -27,8 +27,8 @@ export async function generateKeyPair(): Promise<{ publicKey: PublicKeyDer, priv
     const publicKey = await subtle.exportKey('spki', keyPair.publicKey);
     const privateKey = await subtle.exportKey('pkcs8', keyPair.privateKey);
 
-    const publicKeyHex = '0x' + Buffer.from(publicKey).toString('hex');
-    const privateKeyHex = '0x' + Buffer.from(privateKey).toString('hex');
+    const publicKeyHex = ethers.hexlify(new Uint8Array(publicKey));
+    const privateKeyHex = ethers.hexlify(new Uint8Array(privateKey));
 
     return {
         publicKey: publicKeyHex,
