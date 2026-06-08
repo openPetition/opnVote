@@ -110,8 +110,8 @@ export type VoteResult = {
 };
 
 /**
- * Subgraph-derived status of a (recast) vote
- * @property {boolean} indexed - Whether the vote is indexed
+ * Subgraph-derived status of a vote
+ * @property {boolean} indexed - Without txHash: any vote of this voter is indexed. With txHash: the exact vote transaction is indexed
  * @property {string} txHash - Transaction hash, if indexed
  */
 export type VoteStatus = {
@@ -142,11 +142,11 @@ export type VoteParams = {
 /**
  * Parameters for checkVote
  * @property {ElectionCredentials} credentials - Voter credentials
- * @property {string} kind - "vote" or "recast"
+ * @property {string} txHash - Optional tx hash
  */
 export type CheckVoteParams = {
     credentials: ElectionCredentials;
-    kind?: "vote" | "recast";
+    txHash?: string;
 };
 
 /**

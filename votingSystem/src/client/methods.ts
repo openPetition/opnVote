@@ -209,10 +209,11 @@ export async function recastVote(
 }
 
 /**
- * Looks up if the (recast) vote is indexed in subgraph
+ * Looks up vote status in subgraph. Without txHash: validates if this voter has cast
+ * an initial vote. With txHash: validates if the specific vote transaction is indexed.
  * @param config - Client config
  * @param election - Election context
- * @param params - Credentials and optional kind ("vote" or "recast")
+ * @param params - Credentials and optional tx hash
  * @returns the vote status
  */
 export async function checkVote(
@@ -221,12 +222,10 @@ export async function checkVote(
     params: CheckVoteParams,
 ): Promise<Result<VoteStatus>> {
     const voter = params.credentials.voterWallet.address.toLowerCase();
-    const kind = params.kind ?? "vote";
 
-    const query =
-        kind === "recast"
-            ? `{ voteUpdateds(where: { electionId: "${election.electionID}", voter: "${voter}" }, orderBy: blockNumber, orderDirection: desc, first: 1) { transactionHash } }`
-            : `{ voteCasts(where: { electionId: "${election.electionID}", voter: "${voter}" }, first: 1) { transactionHash } }`;
+    const query = params.txHash
+        ? `{ voteCasts(where: { voter: "${voter}", transactionHash: "${params.txHash}" }, first: 1) { transactionHash } voteUpdateds(where: { voter: "${voter}", transactionHash: "${params.txHash}" }, first: 1) { transactionHash } }`
+        : `{ voteCasts(where: { electionId: "${election.electionID}", voter: "${voter}" }, first: 1) { transactionHash } }`;
 
     const res = await postJson<{
         voteCasts?: { transactionHash: string }[];
@@ -236,7 +235,6 @@ export async function checkVote(
         return res;
     }
 
-    const rows = kind === "recast" ? res.value.voteUpdateds : res.value.voteCasts;
-    const hit = rows && rows.length > 0 ? rows[0] : undefined;
+    const hit = res.value.voteCasts?.[0] ?? res.value.voteUpdateds?.[0];
     return { ok: true, value: { indexed: Boolean(hit), txHash: hit?.transactionHash } };
 }

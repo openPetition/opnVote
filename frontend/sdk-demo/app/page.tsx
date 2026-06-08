@@ -42,6 +42,7 @@ export default function Home() {
     const [client, setClient] = useState<VotingClient | null>(null);
     const [masterKey, setMasterKey] = useState<MasterKey | null>(null);
     const [credentials, setCredentials] = useState<ElectionCredentials | null>(null);
+    const [lastTxHash, setLastTxHash] = useState<string | null>(null);
     const [qr, setQr] = useState("");
     const [log, setLog] = useState<string[]>([]);
     const [busy, setBusy] = useState(false);
@@ -120,6 +121,7 @@ export default function Home() {
         withBusy(async () => {
             add("vote([Yes, No, No])…");
             const r = await client!.vote({ credentials: credentials!, votes: SAMPLE_VOTES });
+            if (r.ok) setLastTxHash(r.value.txHash);
             add(r.ok ? "  ✓ tx " + r.value.txHash : "  ✗ " + r.error);
         });
 
@@ -127,13 +129,21 @@ export default function Home() {
         withBusy(async () => {
             add("recastVote([No, No, Yes])…");
             const r = await client!.recastVote({ credentials: credentials!, votes: RECAST_VOTES });
+            if (r.ok) setLastTxHash(r.value.txHash);
             add(r.ok ? "  ✓ tx " + r.value.txHash : "  ✗ " + r.error);
         });
 
-    const checkOp = () =>
+    const checkVotedOp = () =>
         withBusy(async () => {
-            add("checkVote…");
+            add("checkVote (voted?)…");
             const r = await client!.checkVote({ credentials: credentials! });
+            add(r.ok ? `  ✓ indexed=${r.value.indexed} tx=${r.value.txHash ?? "-"}` : "  ✗ " + r.error);
+        });
+
+    const checkTxOp = () =>
+        withBusy(async () => {
+            add("checkVote (confirm tx)…");
+            const r = await client!.checkVote({ credentials: credentials!, txHash: lastTxHash! });
             add(r.ok ? `  ✓ indexed=${r.value.indexed} tx=${r.value.txHash ?? "-"}` : "  ✗ " + r.error);
         });
 
@@ -168,7 +178,8 @@ export default function Home() {
                 <button style={btn} disabled={busy || !qr} onClick={importOp}>importCredentials</button>
                 <button style={btn} disabled={busy || !hasCreds} onClick={voteOp}>vote</button>
                 <button style={btn} disabled={busy || !hasCreds} onClick={recastOp}>recastVote</button>
-                <button style={btn} disabled={busy || !hasCreds} onClick={checkOp}>checkVote</button>
+                <button style={btn} disabled={busy || !hasCreds} onClick={checkVotedOp}>checkVote (voted?)</button>
+                <button style={btn} disabled={busy || !hasCreds || !lastTxHash} onClick={checkTxOp}>checkVote (confirm vote tx)</button>
             </div>
 
             <div style={{ fontSize: 13, color: "#555", marginBottom: "0.5rem" }}>
