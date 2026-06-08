@@ -23,7 +23,6 @@ import {
   validateVotingTransaction,
   votesToString,
 } from '../utils/utils'
-import * as crypto from 'crypto'
 
 /**
  * Creates a voting transaction
@@ -176,9 +175,9 @@ async function encryptVotesAES(
     validateEncryptionKey(encryptionKey, EncryptionType.AES)
     validateVotes(votes, EncryptionType.AES, version)
 
-    const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
+    const subtle = getSubtleCrypto()
 
-    const keyBuffer = Buffer.from(encryptionKey.hexString.substring(2), 'hex')
+    const keyBuffer = ethers.getBytes(encryptionKey.hexString)
     const iv = ethers.randomBytes(12) // 12 bytes (96 bits)
     const encoder = new TextEncoder()
     const voteBytes = encoder.encode(votesToString(votes))
@@ -191,7 +190,7 @@ async function encryptVotesAES(
       ['encrypt'],
     )
     const encrypted = await subtle.encrypt({ name: 'AES-GCM', iv }, cryptoKey, voteBytes)
-    const encryptedHex = ethers.hexlify(Buffer.concat([iv, new Uint8Array(encrypted)]))
+    const encryptedHex = ethers.concat([iv, new Uint8Array(encrypted)])
 
     return { hexString: encryptedHex, encryptionType: EncryptionType.AES }
   } catch (error) {
@@ -220,10 +219,10 @@ async function decryptVotesAES(
   try {
     validateEncryptionKey(encryptionKey, EncryptionType.AES)
     validateEncryptedVotes(encryptedVotes, EncryptionType.AES)
-    const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
+    const subtle = getSubtleCrypto()
 
-    const keyBuffer = Buffer.from(encryptionKey.hexString.substring(2), 'hex')
-    const encryptedBuffer = Buffer.from(encryptedVotes.hexString.substring(2), 'hex')
+    const keyBuffer = ethers.getBytes(encryptionKey.hexString)
+    const encryptedBuffer = ethers.getBytes(encryptedVotes.hexString)
 
     const iv = encryptedBuffer.subarray(0, 12)
     const ciphertext = encryptedBuffer.subarray(12)
@@ -279,7 +278,7 @@ async function encryptVotesRSA(
 
   try {
     validateVotes(votes, EncryptionType.RSA, version)
-    const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
+    const subtle = getSubtleCrypto()
     const publicKeyBuffer = hexToBuffer(encryptionKey.hexString)
     const publicKey = await subtle.importKey(
       'spki',
@@ -318,7 +317,7 @@ async function encryptVotesRSA(
       buffer,
     )
     const encryptedVotes: EncryptedVotes = {
-      hexString: '0x' + Buffer.from(encrypted).toString('hex'),
+      hexString: ethers.hexlify(new Uint8Array(encrypted)),
       encryptionType: EncryptionType.RSA,
     }
     validateEncryptedVotes(encryptedVotes, EncryptionType.RSA)
@@ -367,7 +366,7 @@ async function decryptVotesRSA(
   validateEncryptedVotes(encryptedVotes, EncryptionType.RSA)
 
   try {
-    const subtle: SubtleCrypto | crypto.webcrypto.SubtleCrypto = getSubtleCrypto()
+    const subtle = getSubtleCrypto()
     const privateKeyBuffer = hexToBuffer(encryptionKey.hexString)
     const privateKey = await subtle.importKey(
       'pkcs8',

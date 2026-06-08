@@ -1,4 +1,3 @@
-import Hex from 'crypto-js/enc-hex'
 import {
   BlsParams,
   ElectionCredentials,
@@ -15,9 +14,7 @@ import {
   VoteOption,
   VotingTransaction,
 } from '../types/types'
-import Base64 from 'crypto-js/enc-base64'
 import { ethers, verifyTypedData } from 'ethers'
-import * as crypto from 'crypto'
 import { bls12_381 } from '@noble/curves/bls12-381'
 import { BLS_G1_HEX_LENGTH, BLS_G2_HEX_LENGTH, RSA_BIT_LENGTH } from './constants'
 
@@ -111,8 +108,7 @@ export function hexStringToBase64(
   expectedHexLength: number,
 ): string {
   validateHexString(hexStringObject, expectedHexLength)
-  const wordArray = Hex.parse(hexStringObject.hexString.substring(2))
-  return Base64.stringify(wordArray)
+  return ethers.encodeBase64(ethers.getBytes(hexStringObject.hexString))
 }
 
 /**
@@ -497,7 +493,13 @@ export function hexStringToBigInt(hexString: string): bigint {
  * @throws if the string is not valid Base64
  */
 export function validateBase64(base64String: string): void {
-  if (Buffer.from(base64String, 'base64').toString('base64') !== base64String) {
+  let dummy: string
+  try {
+    dummy = ethers.encodeBase64(ethers.decodeBase64(base64String))
+  } catch {
+    throw new Error('Invalid base64 string')
+  }
+  if (dummy !== base64String) {
     throw new Error('Invalid base64 string')
   }
 }
@@ -510,9 +512,7 @@ export function validateBase64(base64String: string): void {
  * @returns A '0x' prefixed hexadecimal string representation of the Base64 input.
  */
 export function base64ToHexString(base64String: string): string {
-  const wordArray = Base64.parse(base64String)
-  const hexStringWithPrefix = '0x' + Hex.stringify(wordArray)
-  return hexStringWithPrefix
+  return ethers.hexlify(ethers.decodeBase64(base64String))
 }
 
 /**
@@ -574,12 +574,11 @@ export function getBitLength(bigIntValue: BigInt) {
  * Returns the appropriate SubtleCrypto instance based on the environment (browser or Node.js).
  * @returns A SubtleCrypto instance.
  */
-export function getSubtleCrypto(): SubtleCrypto | crypto.webcrypto.SubtleCrypto {
-  if (typeof window !== 'undefined' && typeof window.crypto !== 'undefined') {
-    return window.crypto.subtle
-  } else {
-    return crypto.webcrypto.subtle
+export function getSubtleCrypto(): SubtleCrypto {
+  if (!globalThis.crypto?.subtle) {
+    throw new Error('Web Crypto API is not available')
   }
+  return globalThis.crypto.subtle
 }
 
 /**
@@ -653,13 +652,13 @@ export function stringToVotes(
 }
 
 /**
- * Converts a hex string into a Buffer. Removes '0x'-prefix is present
+ * Converts a hex string into a Uint8Array. Adds '0x'-prefix if missing.
  * @param {string} hexString -  hex string to convert
- * @returns {Buffer} Buffer representing binary data
+ * @returns {Uint8Array} byte array representing binary data
  */
-export function hexToBuffer(hexString: string): Buffer {
-  if (hexString.startsWith('0x')) {
-    hexString = hexString.substring(2)
+export function hexToBuffer(hexString: string): Uint8Array {
+  if (!hexString.startsWith('0x')) {
+    hexString = '0x' + hexString
   }
-  return Buffer.from(hexString, 'hex')
+  return ethers.getBytes(hexString)
 }
