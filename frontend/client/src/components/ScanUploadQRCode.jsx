@@ -55,8 +55,8 @@ export default function ScanUploadQRCode(props) {
 
     /**
      * checks the inserted code
-     * @param {string} code 
-     * @param {string} inputOutputType 
+     * @param {string} code
+     * @param {string} inputOutputType
      */
     const checkCodeAndReturn = async (code, inputOutputType) => {
         if (qrContentType == globalConst.qrContentType.KEY) {
@@ -277,7 +277,6 @@ export default function ScanUploadQRCode(props) {
                         <>
                             <textarea
                                 className={styles.qrinput}
-                                type="text"
                                 name="qrTextInput"
                                 rows="4"
                                 value={inputQRCodeText}
