@@ -245,7 +245,7 @@
     "register.uploadqrcode.headline": "Sicherheits-Schlüssel hochladen",
     "register.uploadqrcode.scanSubHeadline": "Laden Sie hier Ihren Sicherheits-Schlüssel als PDF Datei",
     "register.uploadqrcode.subheadline": "Um den Wahlschein zu bestellen, laden Sie bitte jetzt Ihren gespeicherten Sicherheits-Schlüssel hoch. Sie haben dafür zwei verschiedene Möglichkeiten zur Verfügung.",
-    "register.uploadqrcode.insertAsTextButton": "Sicherheits-Schlüssel jetzt eingeben",
+    "register.uploadqrcode.insertAsTextButton": "Sicherheits-Schlüssel eingeben",
     "register.uploadqrcode.insertAsTextHeadline": "Sicherheitsschlüssel als Text",
     "register.uploadqrcode.insertAsTextPlaceholder": "Sicherheitsschlüssel hier eingeben..",
     "register.uploadqrcode.insertAsTextSubHeadline": "Geben Sie hier den gespeicherten Sicherheits-Schlüssel als Text ein",
