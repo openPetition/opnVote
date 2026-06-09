@@ -40,8 +40,6 @@ export default function LoadSecret() {
                         insertAsTextButton={t("register.uploadqrcode.insertAsTextButton")}
                         qrContentType={globalConst.qrContentType.KEY}
                         onResult={(code, savedAs) => {
-                            console.log(code);
-                            console.log(savedAs);
                             let localKeySavedAs = user.keySavedAs;
                             !localKeySavedAs.includes(savedAs) && localKeySavedAs.push(savedAs);
                             updateUser({
