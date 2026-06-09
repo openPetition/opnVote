@@ -24,13 +24,13 @@ const standardHeaderPDFContent = (page, font, boldFont, downloadHeadline) => {
             type: pdfContentType.TEXT,
             text: downloadHeadline, //e.g. Wahlschein
             fontSize: 26,
-            yPos: page.getHeight() - 100,
+            yPos: page.getHeight() - 130,
             font: boldFont
         },
         {
             type: pdfContentType.TEXT,
             text: t("pdf.keepsecrethint"),
-            yPos: page.getHeight() - 120,
+            yPos: page.getHeight() - 150,
             font: font,
             fontSize: 10
         },
@@ -38,7 +38,7 @@ const standardHeaderPDFContent = (page, font, boldFont, downloadHeadline) => {
             type: pdfContentType.LINE,
             path: 'M 0,0 L520,0',
             moveX: 40,
-            yPos: 670
+            yPos: 640
         },
         {
             type: pdfContentType.TEXT,
@@ -55,7 +55,7 @@ const electionKeyPDFcontent = (font, boldFont, qrImage) => {
         {
             type: pdfContentType.IMAGE,
             image: qrImage,
-            start: 650,
+            start: 620,
             options: {
                 x: 200,
                 //yPos: 450,
@@ -116,7 +116,7 @@ const electionPermitPDFcontent = (font, boldFont, qrImage, pdfInformation, downl
             type: pdfContentType.TEXT,
             text: t("pdf.register.entitles"),
             fontSize: 10,
-            start: 650,
+            start: 620,
             font: font
         },
         {
