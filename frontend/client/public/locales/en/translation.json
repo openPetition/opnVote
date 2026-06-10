@@ -89,6 +89,7 @@
     "languageswitch.switchlanguage": "Change language",
     "loadballot.upload.title": "polling station",
     "loadsecret.backToSecretCreation": "Back to creating a security key",
+    "loadsecret.upload.success": "Security key successfully added",
     "navigation.changelanguage": "change language",
     "navigation.label.mainmenu": "toggle menu",
     "navigation.point.blog": "blog",

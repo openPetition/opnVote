@@ -10,7 +10,7 @@ import Button from "@/components/Button";
 export default function LoadSecret() {
     const { t } = useTranslation();
 
-    const { user, updateUser, updatePage } = useOpnVoteStore((state) => state);
+    const { user, updateUser, updatePage, updateNotification } = useOpnVoteStore((state) => state);
 
     useEffect(() => {
         if (user?.key?.length > 0) {
@@ -42,6 +42,11 @@ export default function LoadSecret() {
                         onResult={(code, savedAs) => {
                             let localKeySavedAs = user.keySavedAs;
                             !localKeySavedAs.includes(savedAs) && localKeySavedAs.push(savedAs);
+                            updateNotification({
+                                targetPage: globalConst.pages.SHOWKEY,
+                                type: 'success',
+                                text: t("loadsecret.upload.success")
+                            })
                             updateUser({
                                 key: code,
                                 keySaved: true,
