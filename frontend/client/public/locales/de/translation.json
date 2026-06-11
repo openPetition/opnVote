@@ -274,7 +274,7 @@
     "scanuploadqrcode.notification.error.ballot.text.popup.buttontext": "Zurück zur Wahlschein Eingabe",
     "scanuploadqrcode.notification.error.general.popup.text": "Die Datei wurde nicht als gültiges opnVote Dokument erkannt. Haben Sie die richtige Datei ausgewählt? Der Dateiname von opnVpte Dokumenten startet mit \"opnVote_\"",
     "scanuploadqrcode.notification.error.general.popup.headline": "Verarbeitung fehlgeschlagen",
-    "scanuploadqrcode.notification.error.general.popup.buttontext": "Zurück zum Datei - Upload",
+    "scanuploadqrcode.notification.error.general.popup.buttontext": "Zurück zum Datei-Upload",
     "scanuploadqrcode.notification.error.key.file.popup.text": "Die Datei wurde nicht als Sicherheits-Schlüssel erkannt. Haben Sie die richtige Datei ausgewählt? Der Dateiname des Sicherheits-Schlüssels startet mit \"opnVote_sicherheitsschluessel\"",
     "scanuploadqrcode.notification.error.key.file.popup.headline": "Sicherheits-Schlüssel nicht erkannt",
     "scanuploadqrcode.notification.error.key.file.popup.buttontext": "Zurück zu Sicherheits-Schlüssel laden",
