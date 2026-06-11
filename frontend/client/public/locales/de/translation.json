@@ -89,7 +89,7 @@
     "languageswitch.switchlanguage": "Sprache wechseln",
     "loadballot.upload.title": "Wahllokal",
     "loadsecret.backToSecretCreation": "Zurück zur Erstellung des Sicherheits-Schlüssels",
-    "loadsecret.upload.success": "Sicherheitsschlüssel wurde erfolgreich hinzugefügt",
+    "loadsecret.upload.success": "Der Sicherheits-Schlüssel wurde erfolgreich hinzugefügt",
     "navigation.changelanguage": "Sprache ändern",
     "navigation.label.mainmenu": "Menü Anzeige ändern",
     "navigation.point.blog": "Blog",
