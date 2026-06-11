@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useState } from "react";
 import GenerateQRCode from "../../components/GenerateQRCode";
 import { useTranslation } from "next-i18next";
 import { useOpnVoteStore } from "../../opnVoteStore";
@@ -6,15 +7,27 @@ import Headline from "@/components/Headline";
 import { ArrowRightIcon } from "lucide-react";
 import globalConst from "@/constants";
 import Button from '@/components/Button';
+import Notification from "@/components/Notification";
 
 export default function ShowSecret() {
     const { t } = useTranslation();
-    const { user, updatePage, updateUser } = useOpnVoteStore((state) => state);
+    const { user, updatePage, updateUser, notification, updateNotification } = useOpnVoteStore((state) => state);
+    const [pageNotification, setPageNotification] = useState(notification)
 
     const goToRegister = () => {
         updatePage({ current: globalConst.pages.REGISTER });
     };
 
+    useEffect(() => {
+        // 2. Wenn der globale State true war, setzen wir ihn im Hintergrund sofort zurück
+        if (notification && notification.targetPage === globalConst.pages.SHOWKEY) {
+            updateNotification({
+                targetPage: '',
+                type: '',
+                text: ''
+            })
+        }
+    }, [notification]);
 
     return (
         <>
@@ -27,6 +40,12 @@ export default function ShowSecret() {
             </div>
             <main className="op__contentbox_760">
                 <>
+                    {pageNotification.targetPage === globalConst.pages.SHOWKEY && (
+                        <Notification
+                            type={pageNotification.type}
+                            text={pageNotification.text}
+                        />
+                    )}
                     <GenerateQRCode
                         headline={t("secret.generateqrcode.headline")}
                         text={user.key}

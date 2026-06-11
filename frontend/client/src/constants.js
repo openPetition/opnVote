@@ -9,6 +9,10 @@ const globalConst = {
         'readyToVote': 7,
         'vote': 8,
     },
+    qrContentType: {
+        'KEY': 'key',
+        'BALLOT': 'ballot',
+    },
     progressMapping: {
         2: 0, //createKey,
         3: 25, //saveKey

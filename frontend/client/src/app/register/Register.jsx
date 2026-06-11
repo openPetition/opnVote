@@ -377,6 +377,7 @@ export default function Register() {
                                     insertAsTextHeadline={t("register.uploadqrcode.insertAsTextHeadline")}
                                     insertAsTextButton={t("register.uploadqrcode.insertAsTextButton")}
                                     onResult={(res) => updateUserKey(res)}
+                                    qrContentType={globalConst.qrContentType.BALLOT}
                                 />
                             </>
                         )}
