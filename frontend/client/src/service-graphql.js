@@ -15,12 +15,11 @@ query election($id: ID!) {
         registeredVoterCount,
         authorizedVoterCount,
         status,
-        registerPublicKeyE,
-        registerPublicKeyN,
         privateKey,
         descriptionIpfsCid, # ist nun dynamisch
         descriptionBlob, # ist nun dynamisch
         publicKey, # hinzugefuegt
+        registerPublicKey
     }
 }`;
 
