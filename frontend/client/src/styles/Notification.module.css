@@ -30,7 +30,6 @@
 .success {
     background-color: var(--op-blue-light);
     box-shadow: 0 0 10px #3E3D401A;
-    max-width: 560px;
 }
 
 .info {

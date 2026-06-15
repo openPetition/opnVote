@@ -72,6 +72,7 @@ export default function LoadBallot() {
                     onResult={(res) => {
                         setUploadedBallotCode(res);
                     }}
+                    qrContentType={globalConst.qrContentType.BALLOT}
                 />
             </main>
         </>
