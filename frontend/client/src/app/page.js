@@ -19,6 +19,7 @@ import globalConst from "@/constants";
 import Faq from "@/app/faq/Faq";
 import Glossary from "@/app/glossary/Glossary";
 import Head from "@/components/Head";
+import { VotingProvider } from './VotingContext';
 
 export default function Home() {
     const { t } = useTranslation();
@@ -55,38 +56,42 @@ export default function Home() {
 
     return (
         <>
-            <HydrationZustand>
-                <>
-                    <Head />
-                    <div className="main">
-                        {page.current == globalConst.pages.LOADING && (
-                            <Loading loadingText={t("common.apploading")} />
-                        ) || page.current == globalConst.pages.OVERVIEW && (
-                            <Overview />
-                        ) || page.current == globalConst.pages.REGISTER && (
-                            <Register />
-                        ) || page.current == globalConst.pages.POLLINGSTATION && (
-                            <Pollingstation />
-                        ) || page.current == globalConst.pages.CREATEKEY && (
-                            <CreateSecret />
-                        ) || page.current == globalConst.pages.LOADKEY && (
-                            <LoadSecret />
-                        ) || page.current == globalConst.pages.LOADBALLOT && (
-                            <LoadBallot />
-                        ) || page.current == globalConst.pages.SHOWKEY && (
-                            <ShowSecret />
-                        ) || page.current == globalConst.pages.VOTETRANSACTION && (
-                            <VoteTransaction />
-                        ) || page.current == globalConst.pages.FAQ && (
-                            <Faq />
-                        ) || page.current == globalConst.pages.GLOSSARY && (
-                            <Glossary />
-                        ) || page.current == globalConst.pages.ERROR && (
-                            <ErrorReturn />
-                        )}
-                    </div>
-                </>
-            </HydrationZustand >
+            <VotingProvider>
+
+                <HydrationZustand>
+                    <>
+                        <Head />
+                        <div className="main">
+                            {page.current == globalConst.pages.LOADING && (
+                                <Loading loadingText={t("common.apploading")} />
+                            ) || page.current == globalConst.pages.OVERVIEW && (
+                                <Overview />
+                            ) || page.current == globalConst.pages.REGISTER && (
+                                <Register />
+                            ) || page.current == globalConst.pages.POLLINGSTATION && (
+                                <Pollingstation />
+                            ) || page.current == globalConst.pages.CREATEKEY && (
+                                <CreateSecret />
+                            ) || page.current == globalConst.pages.LOADKEY && (
+                                <LoadSecret />
+                            ) || page.current == globalConst.pages.LOADBALLOT && (
+                                <LoadBallot />
+                            ) || page.current == globalConst.pages.SHOWKEY && (
+                                <ShowSecret />
+                            ) || page.current == globalConst.pages.VOTETRANSACTION && (
+                                <VoteTransaction />
+                            ) || page.current == globalConst.pages.FAQ && (
+                                <Faq />
+                            ) || page.current == globalConst.pages.GLOSSARY && (
+                                <Glossary />
+                            ) || page.current == globalConst.pages.ERROR && (
+                                <ErrorReturn />
+                            )}
+                        </div>
+
+                    </>
+                </HydrationZustand >
+            </VotingProvider>
         </>
     );
 }

@@ -7,11 +7,15 @@ import { useTranslation } from 'next-i18next';
 import { useOpnVoteStore } from "@/opnVoteStore";
 import globalConst from "@/constants";
 import Button from "@/components/Button";
+import { useVoting } from "@/app/VotingContext"
 import Notification from "@/components/Notification";
 
+
 export default function BallotPaper(props) {
+    const { setSmartAccountClient } = useVoting(); // Holt den Setter aus dem Context
+
     const { allowedToVote, votingCredentials, isVoteRecast, showElection } = props;
-    const { updatePage, voting, updateVoting, updateTaskId, taskId } = useOpnVoteStore((state) => state);
+    const { updatePage, voting, updateVoting, updateUserOpHash, userOpHash } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [votes, setVotes] = useState({});
     const [electionState, setElectionState] = useState(globalConst.electionState.ONGOING);
@@ -21,7 +25,6 @@ export default function BallotPaper(props) {
 
     // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
     const [ballotStationState, setBallotStationState] = useState({
-        taskId: '',
         showSendError: false,
         pending: false,
     });
@@ -30,9 +33,11 @@ export default function BallotPaper(props) {
         setBallotStationState({ ...ballotStationState, pending: true });
         //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
         try {
-            const taskId = await sendVotes(votes, votingCredentials, voting.election.publicKey, isVoteRecast);
-            if (taskId) {
-                updateTaskId(taskId);
+            const userOpHash = await sendVotes(votes, votingCredentials, voting.election.publicKey, isVoteRecast, setSmartAccountClient);
+            if (userOpHash) {
+                updateUserOpHash(userOpHash);
+                updateVoting({ votesuccess: false, transactionViewUrl: '' }); //invalidate
+                updatePage({ current: globalConst.pages.VOTETRANSACTION });
             }
         } catch (e) {
             setBallotStationState({
@@ -54,10 +59,6 @@ export default function BallotPaper(props) {
         const tempEndTime = new Date(Number(voting.election.votingEndTime) * 1000);
         setStartDate(tempStartTime);
         setEndDate(tempEndTime);
-        if (taskId && taskId.length > 0) {
-            updateVoting({ votesuccess: false, transactionViewUrl: '' }); //invalidate
-            updatePage({ current: globalConst.pages.VOTETRANSACTION });
-        };
     }, []);
 
     return (

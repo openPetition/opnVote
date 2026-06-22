@@ -63,13 +63,20 @@ export const modes = {
     none: "none",
 };
 
+export const emptyNotification = {
+    targetPage: '',
+    type: '',
+    text: '',
+}
+
 
 export const useOpnVoteStore = create(
     persist(
         (set, get) => ({
             user: emptyUser,
             voting: emptyVoting,
-            taskId: '',
+            notification: emptyNotification,
+            userOpHash: '',
             page: {
                 loading: true,
                 previous: null,
@@ -91,6 +98,13 @@ export const useOpnVoteStore = create(
                         ...userData,
                     },
                 })),
+            updateNotification: (notificationData) =>
+                set((state) => ({
+                    notification: {
+                        ...state.notification,
+                        ...notificationData,
+                    },
+                })),
             clear: () => set((state) => ({
                 user: emptyUser,
                 voting: {
@@ -99,7 +113,7 @@ export const useOpnVoteStore = create(
                     election: state.voting.election,
                     electionInformation: state.voting.electionInformation,
                 },
-                taskId: '',
+                userOpHash: '',
             })),
             updateVoting: (votingData) =>
                 set((state) => ({
@@ -120,8 +134,8 @@ export const useOpnVoteStore = create(
                     }
                 }
             },
-            updateTaskId: (update) => set(() => ({
-                taskId: update
+            updateUserOpHash: (update) => set(() => ({
+                userOpHash: update
             })),
             setVoteClient: (update) => set(() => ({
                 voteClient: [update]

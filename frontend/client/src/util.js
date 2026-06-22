@@ -34,17 +34,11 @@ export function checkBallot(election, code) {
                     registerCode: code,
                 };
             } else {
-                return {
-                    result: 'error',
-                    error: new BallotNotFittingError(),
-                };
+                throw new Error();
             }
         }
     } catch (e) {
-        return {
-            result: 'error',
-            error: new BallotInvalidError(),
-        };
+        throw new Error();
     }
 
 };
