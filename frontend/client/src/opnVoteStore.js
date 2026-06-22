@@ -33,6 +33,8 @@ const splitStorage = {
     },
 };
 
+export const emptyVoteClient = {};
+
 export const emptyVoting = {
     electionId: null,
     election: {},
@@ -73,6 +75,7 @@ export const useOpnVoteStore = create(
                 previous: null,
                 current: null
             },
+            voteClient: [],
             clearUser: () => set(() => ({ user: emptyUser })),
             updateUserKey: (key, keySaved) => set(() => ({
                 user: {
@@ -120,10 +123,19 @@ export const useOpnVoteStore = create(
             updateTaskId: (update) => set(() => ({
                 taskId: update
             })),
+            setVoteClient: (update) => set(() => ({
+                voteClient: [update]
+            })),
         }),
         {
             name: 'opnvote-storage',
             storage: splitStorage,
+            partialize: (state) => ({
+                user: state.user,
+                voting: state.voting,
+                taskId: state.taskId,
+                page: state.page,
+            }),
         }
     )
 );

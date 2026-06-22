@@ -5,6 +5,9 @@ import globalConst from "@/constants";
 import { getElectionData } from '@/service-graphql';
 import { useOpnVoteStore, emptyVoting, modes } from '@/opnVoteStore';
 import { parseJwt } from '@/util';
+import { createClient } from "votingsystem/client";
+import Config from "../../next.config.mjs"
+import { gnosis } from "viem/chains";
 
 export default function DataLoad() {
     const [localState, setLocalState] = useState({
@@ -18,7 +21,7 @@ export default function DataLoad() {
     });
 
     const [getElection, { data: dataElection, loading: loadingElection }] = getElectionData(localState.electionId);
-    const { voting, updateVoting, page, updatePage, user, clearUser, updateTaskId } = useOpnVoteStore((state) => state);
+    const { voting, updateVoting, page, updatePage, user, clearUser, updateTaskId, setVoteClient } = useOpnVoteStore((state) => state);
 
     useEffect(() => {
         const onHashChange = (event) => {
@@ -27,6 +30,7 @@ export default function DataLoad() {
                 updatePage({ current: fragment }, modes.none);
             }
         };
+
         window.addEventListener('hashchange', onHashChange);
         return () => window.removeEventListener('hashchange', onHashChange);
     }, []);
@@ -124,8 +128,29 @@ export default function DataLoad() {
 
                 updatePage({ current: targetPage });
             }
+            console.log(votingUpdate);
+            let publicKey = votingUpdate.election.publicKey;
+            let registerPublicKey = votingUpdate.election.registerPublicKey;
 
+            console.log(Config.env);
+            let client = createClient(
+                {
+                    endpoints: { registerUrl: Config.env.registerUrl, svsUrl: Config.env.svsUrl, subgraphUrl: Config.env.graphConnectUrl },
+                    contracts: {
+                        opnvote: Config.env.opnVoteContractAddress,
+                        paymaster: Config.env.paymasterAddress,
+                        delegation: Config.env.delegationAddress,
+                        entryPoint: Config.env.entryPoint,
+                    },
+                    rpcUrl: Config.env.rpcnodeUrl,
+                    chain: gnosis,
+                },
+                { electionID: localState.electionId, publicKey, registerPublicKey }
+            );
+            console.log(client);
             updateVoting(votingUpdate);
+            console.log('gohere?')
+            setVoteClient(client);
 
             if (Object.values(globalConst.pages).includes(localState.fragment)) {
                 updatePage({ current: localState.fragment, loading: false });
@@ -145,6 +170,7 @@ export default function DataLoad() {
             };
         }
     }, [localState.updatePage]);
+
     useEffect(() => {
         window.scroll(0, 0);
     }, [page.current]);
