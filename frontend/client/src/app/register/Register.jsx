@@ -26,7 +26,7 @@ export default function Register() {
     const { t } = useTranslation();
     const user = useOpnVoteStore((state) => state.user);
 
-    const { voting, updateUserKey, updatePage, updateVoting } = useOpnVoteStore(
+    const { voting, updateUserKey, updatePage, updateVoting, voteClient } = useOpnVoteStore(
         (state) => state, shallow
     );
     const [decodedValue, setDecodedValue] = useState("");
@@ -73,6 +73,25 @@ export default function Register() {
         });
 
         try {
+
+            let client = voteClient && voteClient[0];
+
+            let registeredVoter = null;
+            console.log(voting.jwt);
+            console.log(user.key)
+            if (client && typeof client.registerVoter === 'function') {
+                try {
+                    let voterJwt = voting.jwt;
+                    let key = { hexString: user.key };
+                    registeredVoter = await client?.registerVoter({ voterJwt, masterKey: key ?? undefined });
+                    console.log(registeredVoter);
+                } catch (error) {
+                    console.error("Failed to generate master key via client:", error);
+                }
+            }
+
+            console.log('afterbeer');
+            /**
             let registerRSA = {
                 N: BigInt(voting.election.registerPublicKeyN),
                 e: BigInt(voting.election.registerPublicKeyE),
@@ -87,7 +106,9 @@ export default function Register() {
             let unblindedSignature = await unblindSignature(blindedSignature, electionR, registerRSA);
             let voterCredentials = await createVoterCredentials(unblindedSignature, unblindedElectionToken, masterTokens.token, voting.electionId);
             let qrVoterCredentials = await concatElectionCredentialsForQR(voterCredentials);
-            updateVoting({ registerCode: qrVoterCredentials, initElectionPermit: true });
+            */
+
+            updateVoting({ registerCode: registeredVoter.blindedSignature, initElectionPermit: true });
             loadingQRchange();
 
         } catch (error) {
