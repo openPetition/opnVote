@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from "react";
-import { generateMasterTokenAndMasterR, concatTokenAndRForQR } from "votingsystem";
 import LoadKey from "./components/LoadKey";
 import { useTranslation } from "next-i18next";
 import { useOpnVoteStore, modes } from "../../opnVoteStore";
@@ -16,7 +15,7 @@ export default function CreateSecret() {
         showSecret: false,
     });
 
-    const { user, voting, updateUserKey, updatePage } = useOpnVoteStore((state) => state);
+    const { user, voting, updateUserKey, updatePage, voteClient } = useOpnVoteStore((state) => state);
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
@@ -26,11 +25,26 @@ export default function CreateSecret() {
             loadingAnimation: true,
         });
 
-        const masterTokenAndR = await generateMasterTokenAndMasterR();
-        const createdSecret = await concatTokenAndRForQR(masterTokenAndR.masterToken, masterTokenAndR.masterR);
+        let client = voteClient && voteClient[0];
+
+        let createdSecret = null;
+
+        if (client && typeof client.generateMasterKey === 'function') {
+            try {
+                createdSecret = await client.generateMasterKey();
+            } catch (error) {
+                console.error("Failed to generate master key via client:", error);
+            }
+        }
+
         await delay(1000); // one second for loading the key
+
         if (createdSecret) {
-            updateUserKey(createdSecret, false);
+            setTimeout(() => {
+                updateUserKey(createdSecret.hexString, false);
+            }, 0);
+        } else {
+            setCreateSecretState(prev => ({ ...prev, loadingAnimation: false }));
         }
     }
 
@@ -43,9 +57,11 @@ export default function CreateSecret() {
         }
 
         if (user?.key?.length > 0) {
-            updatePage({ current: globalConst.pages.SHOWKEY }, modes.replace);
+            setTimeout(() => {
+                updatePage({ current: globalConst.pages.SHOWKEY }, modes.replace);
+            }, 0);
         }
-    }, [user]);
+    }, [user?.key, updatePage]);
 
     return (
         <>
@@ -53,24 +69,20 @@ export default function CreateSecret() {
                 <Headline
                     title={t("secret.headline.createSecret.title")}
                     text={t("secret.headline.createSecret.text")}
-
                     progressBarStep={globalConst.progressBarStep.createKey}
                 />
             </div>
             <main className="op__contentbox_760">
-
                 <LoadKey
                     onClick={generateAndCreate}
                     animationDuration={1}
                     showLoadingAnimation={createSecretState.loadingAnimation}
                 />
-
                 <a className={styles.link} onClick={() => {
                     updatePage({ current: globalConst.pages.LOADKEY });
                 }}>
                     <p>{t('secret.key.existingKey')}</p>
                 </a>
-
             </main>
         </>
     );
