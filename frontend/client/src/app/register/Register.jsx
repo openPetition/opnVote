@@ -78,15 +78,22 @@ export default function Register() {
 
             let client = voteClient && voteClient[0];
 
-            let registeredVoter = null;
+            let credentials = null;
+            let stringCredits = "";
             console.log(voting.jwt);
-            console.log(user.key)
+            console.log(user.key);
+            let response = "";
             if (client && typeof client.registerVoter === 'function') {
                 try {
                     let voterJwt = voting.jwt;
                     let key = { hexString: user.key };
-                    registeredVoter = await client?.registerVoter({ voterJwt, masterKey: key ?? undefined });
-                    console.log(registeredVoter);
+                    response = await client?.registerVoter({ voterJwt, masterKey: key ?? undefined });
+                    stringCredits = await client?.exportCredentials(response.value);
+                    updateVoting({ registerCode: stringCredits, initElectionPermit: true });
+                    loadingQRchange();
+
+
+                    console.log(stringCredits);
                 } catch (error) {
                     console.error("Failed to generate master key via client:", error);
                 }
@@ -110,8 +117,6 @@ export default function Register() {
             let qrVoterCredentials = await concatElectionCredentialsForQR(voterCredentials);
             */
 
-            updateVoting({ registerCode: registeredVoter.blindedSignature, initElectionPermit: true });
-            loadingQRchange();
 
         } catch (error) {
             let buttonFunction;
@@ -486,7 +491,7 @@ export default function Register() {
                                 <Modal
                                     showModal={registerState.showSaveRegisterQRSuccess}
                                     headerText={t("register.popup.aftersave.headline")}
-                                    ctaButtonText={electionState !== globalConst.electionState.ONGOING ? t("common.gotooverview") : '' }
+                                    ctaButtonText={electionState !== globalConst.electionState.ONGOING ? t("common.gotooverview") : ''}
                                     ctaButtonFunction={() => {
                                         setRegisterState({
                                             ...registerState,
@@ -503,11 +508,13 @@ export default function Register() {
                                             type="success"
                                             text={t('register.popup.aftersave.notification')}
                                         />
-                                        <p dangerouslySetInnerHTML={{ __html: t('register.popup.aftersave.text', {
-                                            STARTDATE: startDate,
-                                            ENDDATE: endDate,
-                                            ELECTIONTITLE: electionTitle
-                                        })}}></p>
+                                        <p dangerouslySetInnerHTML={{
+                                            __html: t('register.popup.aftersave.text', {
+                                                STARTDATE: startDate,
+                                                ENDDATE: endDate,
+                                                ELECTIONTITLE: electionTitle
+                                            })
+                                        }}></p>
                                     </div>
                                     {electionState === globalConst.electionState.ONGOING && (
                                         <AddToCalendar

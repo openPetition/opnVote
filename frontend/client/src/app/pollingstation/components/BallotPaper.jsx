@@ -15,7 +15,7 @@ export default function BallotPaper(props) {
     const { setSmartAccountClient } = useVoting(); // Holt den Setter aus dem Context
 
     const { allowedToVote, votingCredentials, isVoteRecast, showElection } = props;
-    const { updatePage, voting, updateVoting, updateUserOpHash, userOpHash } = useOpnVoteStore((state) => state);
+    const { updatePage, voting, updateVoting, updateUserOpHash, voteClient, userOpHash } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [votes, setVotes] = useState({});
     const [electionState, setElectionState] = useState(globalConst.electionState.ONGOING);
@@ -30,11 +30,29 @@ export default function BallotPaper(props) {
     });
 
     const saveVotes = async () => {
+        let client = voteClient && voteClient[0];
+        let credentials = null;
+        let response = "";
+        let userOpHash = '';
+
         setBallotStationState({ ...ballotStationState, pending: true });
         //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
         try {
-            const userOpHash = await sendVotes(votes, votingCredentials, voting.election.publicKey, isVoteRecast, setSmartAccountClient);
-            if (userOpHash) {
+            console.log('nana');
+            if (client && typeof client.vote === 'function') {
+
+                console.log(votes);
+
+                let voteMap = Object.values(votes).map(val => ({ value: val }));
+                credentials = client.importCredentials(voting.registerCode);
+                console.log(voteMap);
+                response = await client.vote({ credentials: credentials, votes: voteMap });
+                console.log(response);
+                if (response.ok) userOpHash = (r.value.txHash);
+                console.log(userOpHash);
+            }
+
+            if (userOpHash && userOpHash.length > 0) {
                 updateUserOpHash(userOpHash);
                 updateVoting({ votesuccess: false, transactionViewUrl: '' }); //invalidate
                 updatePage({ current: globalConst.pages.VOTETRANSACTION });

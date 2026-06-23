@@ -23,7 +23,7 @@ const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
 let html5QrCode;
 
 export default function ScanUploadQRCode(props) {
-    const { voting } = useOpnVoteStore((state) => state);
+    const { voting, voteClient } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const {
         headline,
@@ -59,6 +59,15 @@ export default function ScanUploadQRCode(props) {
      * @param {string} inputOutputType
      */
     const checkCodeAndReturn = async (code, inputOutputType) => {
+
+
+        let client = voteClient && voteClient[0];
+
+
+        if (!client || !typeof client.importCredentials === 'function') {
+            return;
+        }
+
         if (qrContentType == globalConst.qrContentType.KEY) {
             try {
                 let masterTokens = await qrToTokenAndR(code, true);
@@ -70,7 +79,7 @@ export default function ScanUploadQRCode(props) {
             }
         } else {
             try {
-                const result = checkBallot(voting.election, code);
+                const result = client.importCredentials(code);
                 props.onResult(code, inputOutputType);
 
             } catch (error) {
