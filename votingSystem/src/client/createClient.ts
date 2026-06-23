@@ -1,4 +1,4 @@
-import { generateMasterKey } from "../blind-signature/generateTokens";
+import { generateMasterKey, masterKeyToQR, qrToMasterKey } from "../blind-signature/generateTokens";
 import { evmG2ToNoble, validateBlsParams, validateElectionID } from "../utils/utils";
 import {
     concatElectionCredentialsForQR,
@@ -38,6 +38,8 @@ export function createClient(config: Configuration, election: Election): VotingC
     return {
         electionID: election.electionID,
         generateMasterKey,
+        exportMasterKey: masterKeyToQR,
+        importMasterKey: qrToMasterKey,
         exportCredentials: concatElectionCredentialsForQR,
         importCredentials: qrToElectionCredentials,
         registerVoter: (params) => registerVoter(config, election, params),
