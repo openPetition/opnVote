@@ -155,6 +155,8 @@ export type CheckVoteParams = {
 export type VotingClient = {
     electionID: number;
     generateMasterKey(): MasterKey;
+    exportMasterKey(masterKey: MasterKey): string;
+    importMasterKey(serialized: string): MasterKey;
     registerVoter(params: RegisterVoterParams): Promise<Result<ElectionCredentials>>;
     exportCredentials(credentials: ElectionCredentials): string;
     importCredentials(serialized: string): ElectionCredentials;
