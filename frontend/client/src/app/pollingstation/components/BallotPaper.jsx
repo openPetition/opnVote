@@ -2,7 +2,6 @@
 import styles from '../styles/BallotPaper.module.css';
 import { useState, useEffect } from "react";
 import Question from "./Question.jsx";
-import { sendVotes } from "@/app/pollingstation/sendVotes";
 import { useTranslation } from 'next-i18next';
 import { useOpnVoteStore } from "@/opnVoteStore";
 import globalConst from "@/constants";
