@@ -44,6 +44,7 @@ export default function Home() {
     const [credentials, setCredentials] = useState<ElectionCredentials | null>(null);
     const [lastTxHash, setLastTxHash] = useState<string | null>(null);
     const [qr, setQr] = useState("");
+    const [qrKind, setQrKind] = useState("");
     const [log, setLog] = useState<string[]>([]);
     const [busy, setBusy] = useState(false);
 
@@ -95,6 +96,20 @@ export default function Home() {
             add("generateMasterKey → " + mk.hexString.slice(0, 18) + "…");
         });
 
+    const exportMasterKeyOp = () =>
+        withBusy(() => {
+            const s = client!.exportMasterKey(masterKey!);
+            setQr(s);
+            setQrKind("masterKey");
+            add(`exportMasterKey → ${s.length} chars (${s.slice(0, 24)}…)`);
+        });
+
+    const importMasterKeyOp = () =>
+        withBusy(() => {
+            setMasterKey(client!.importMasterKey(qr));
+            add("masterKey imported ✓");
+        });
+
     const registerVoterOp = () =>
         withBusy(async () => {
             add("registerVoter…");
@@ -108,6 +123,7 @@ export default function Home() {
         withBusy(() => {
             const s = client!.exportCredentials(credentials!);
             setQr(s);
+            setQrKind("credentials");
             add(`exportCredentials → ${s.length} chars (${s.slice(0, 24)}…)`);
         });
 
@@ -173,6 +189,8 @@ export default function Home() {
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1rem" }}>
                 <button style={btn} disabled={busy || !electionId} onClick={createClientOp}>createClient</button>
                 <button style={btn} disabled={busy || !hasClient} onClick={generateMasterKeyOp}>generateMasterKey</button>
+                <button style={btn} disabled={busy || !masterKey} onClick={exportMasterKeyOp}>exportMasterKey</button>
+                <button style={btn} disabled={busy || !qr} onClick={importMasterKeyOp}>importMasterKey</button>
                 <button style={btn} disabled={busy || !hasClient || !voterJwt} onClick={registerVoterOp}>registerVoter</button>
                 <button style={btn} disabled={busy || !hasCreds} onClick={exportOp}>exportCredentials</button>
                 <button style={btn} disabled={busy || !qr} onClick={importOp}>importCredentials</button>
@@ -188,6 +206,7 @@ export default function Home() {
 
             {qr && (
                 <div style={{ marginBottom: "1rem" }}>
+                    <div style={{ fontSize: 13, color: "#555", marginBottom: "0.25rem" }}>{qrKind} QR</div>
                     <QRCodeSVG value={qr} size={180} />
                 </div>
             )}
