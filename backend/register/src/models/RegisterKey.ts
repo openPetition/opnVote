@@ -6,16 +6,10 @@ export class RegisterKey extends BaseEntity {
   electionId!: number
 
   @Column('text')
-  N!: string
+  pk!: string // uncompressed BLS12-381 G2 point hex ('0x' + 384)
 
   @Column('text')
-  D!: string
-
-  @Column('text')
-  E!: string
-
-  @Column()
-  NbitLength!: number
+  sk!: string // BLS scalar as decimal bigint string
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt!: Date

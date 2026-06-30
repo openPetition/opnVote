@@ -7,6 +7,10 @@
     "deploy:staging": "cd staging && graph deploy --node https://api.studio.thegraph.com/deploy/ opnvote-staging-0xa36f6cf07ef1ded3b8b4283e779a4514e30576a8",
     "create-local:staging": "cd staging && graph create --node http://127.0.0.1:8020/ opnvote-staging-0xa36f6cf07ef1ded3b8b4283e779a4514e30576a8",
     "deploy-local:staging": "cd staging && graph deploy --node http://127.0.0.1:8020/ --ipfs http://127.0.0.1:5001 opnvote-staging-0xa36f6cf07ef1ded3b8b4283e779a4514e30576a8",
+    "codegen:test": "graph codegen test/subgraph.yaml --output-dir ./generated",
+    "build:test": "cd test && graph build",
+    "create-local:test": "cd test && graph create --node http://127.0.0.1:8020/ opnvote-test-0x4c0904fc134f92033cbcf3e6aacca8817e7e6819",
+    "deploy-local:test": "cd test && graph deploy --node http://127.0.0.1:8020/ --ipfs http://127.0.0.1:5001 opnvote-test-0x4c0904fc134f92033cbcf3e6aacca8817e7e6819",
     "test": "graph test"
   },
   "dependencies": {

@@ -48,7 +48,6 @@ export function createElectionCreatedEvent(
   registrationEndTime: BigInt,
   registerId: i32,
   authProviderId: i32,
-  svsId: i32,
   descriptionIpfsCid: string,
   publicKey: Bytes
 ): ElectionCreated {
@@ -100,12 +99,6 @@ export function createElectionCreatedEvent(
   )
   electionCreatedEvent.parameters.push(
     new ethereum.EventParam(
-      "svsId",
-      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(svsId))
-    )
-  )
-  electionCreatedEvent.parameters.push(
-    new ethereum.EventParam(
       "descriptionIpfsCid",
       ethereum.Value.fromString(descriptionIpfsCid)
     )
@@ -119,8 +112,7 @@ export function createElectionCreatedEvent(
 
 export function createElectionRegisterPublicKeySetEvent(
   electionId: BigInt,
-  n: Bytes,
-  e: Bytes
+  pubKey: Bytes
 ): ElectionRegisterPublicKeySet {
   let electionRegisterPublicKeySetEvent =
     changetype<ElectionRegisterPublicKeySet>(newMockEvent())
@@ -134,10 +126,7 @@ export function createElectionRegisterPublicKeySetEvent(
     )
   )
   electionRegisterPublicKeySetEvent.parameters.push(
-    new ethereum.EventParam("n", ethereum.Value.fromBytes(n))
-  )
-  electionRegisterPublicKeySetEvent.parameters.push(
-    new ethereum.EventParam("e", ethereum.Value.fromBytes(e))
+    new ethereum.EventParam("pubKey", ethereum.Value.fromBytes(pubKey))
   )
 
   return electionRegisterPublicKeySetEvent
@@ -226,7 +215,6 @@ export function createElectionUpdatedEvent(
   registrationEndTime: BigInt,
   registerId: i32,
   authProviderId: i32,
-  svsId: i32,
   descriptionIpfsCid: string,
   publicKey: Bytes
 ): ElectionUpdated {
@@ -278,12 +266,6 @@ export function createElectionUpdatedEvent(
   )
   electionUpdatedEvent.parameters.push(
     new ethereum.EventParam(
-      "svsId",
-      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(svsId))
-    )
-  )
-  electionUpdatedEvent.parameters.push(
-    new ethereum.EventParam(
       "descriptionIpfsCid",
       ethereum.Value.fromString(descriptionIpfsCid)
     )
@@ -320,10 +302,8 @@ export function createOwnershipTransferredEvent(
 export function createVoteCastEvent(
   electionId: BigInt,
   voter: Address,
-  svsSignature: Bytes,
   voteEncrypted: Bytes,
   voteEncryptedUser: Bytes,
-  unblindedElectionToken: Bytes,
   unblindedSignature: Bytes
 ): VoteCast {
   let voteCastEvent = changetype<VoteCast>(newMockEvent())
@@ -341,12 +321,6 @@ export function createVoteCastEvent(
   )
   voteCastEvent.parameters.push(
     new ethereum.EventParam(
-      "svsSignature",
-      ethereum.Value.fromBytes(svsSignature)
-    )
-  )
-  voteCastEvent.parameters.push(
-    new ethereum.EventParam(
       "voteEncrypted",
       ethereum.Value.fromBytes(voteEncrypted)
     )
@@ -355,12 +329,6 @@ export function createVoteCastEvent(
     new ethereum.EventParam(
       "voteEncryptedUser",
       ethereum.Value.fromBytes(voteEncryptedUser)
-    )
-  )
-  voteCastEvent.parameters.push(
-    new ethereum.EventParam(
-      "unblindedElectionToken",
-      ethereum.Value.fromBytes(unblindedElectionToken)
     )
   )
   voteCastEvent.parameters.push(

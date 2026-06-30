@@ -8,6 +8,7 @@ import {
 } from './bundler'
 import { VotingTransaction, EncryptionType } from '../types/types'
 import { RSA_BIT_LENGTH } from '../utils/constants'
+import { bls12_381 } from '@noble/curves/bls12-381'
 
 const CHAIN_ID = 10200 // Chiado
 
@@ -33,7 +34,7 @@ function makeUserOpParams(overrides: Partial<PaymasterHashParams> = {}): Paymast
   }
 }
 
-function makeVotingTransaction(svsSignature: string | null = null): VotingTransaction {
+function makeVotingTransaction(): VotingTransaction {
   const wallet = ethers.Wallet.createRandom()
   return {
     electionID: 1,
@@ -43,13 +44,7 @@ function makeVotingTransaction(svsSignature: string | null = null): VotingTransa
       encryptionType: EncryptionType.RSA,
     },
     encryptedVoteAES: { hexString: '0x' + '1'.repeat(80), encryptionType: EncryptionType.AES },
-    unblindedElectionToken: {
-      hexString: '0x' + BigInt(3).toString(16).padStart(64, '0'),
-      isMaster: false,
-      isBlinded: false,
-    },
-    unblindedSignature: { hexString: '0x' + '1'.repeat(RSA_BIT_LENGTH / 4), isBlinded: false },
-    svsSignature: svsSignature ? { hexString: svsSignature } : null,
+    unblindedSignature: { hexString: '0x' + bls12_381.curves.G1.BASE.toHex(false), isBlinded: false },
   }
 }
 
@@ -127,31 +122,30 @@ describe('createStubPaymasterData', () => {
 
 describe('createVoteCalldata', () => {
   const VOTE_ABI = [
-    'function vote(uint256 electionId, address voter, bytes svsSignature, bytes voteEncrypted, bytes voteEncryptedUser, bytes unblindedElectionToken, bytes unblindedSignature)',
+    'function vote(uint256 electionId, bytes voteEncrypted, bytes voteEncryptedUser, bytes unblindedSignature)',
   ]
 
-  it('returns valid calldata with empty svsSignature for recasts', () => {
-    const tx = makeVotingTransaction(null)
+  it('returns valid hex calldata starting with vote() selector', () => {
+    const tx = makeVotingTransaction()
     const calldata = createVoteCalldata(tx, VOTE_ABI)
     const iface = new ethers.Interface(VOTE_ABI)
-    const decoded = iface.decodeFunctionData('vote', calldata)
-    expect(ethers.hexlify(decoded[2])).toBe('0x')
-  })
-
-  it('returns valid hex calldata starting with vote() selector', () => {
-    const tx = makeVotingTransaction('0x' + '1'.repeat(130))
-    const calldata = createVoteCalldata(tx, VOTE_ABI)
-    const iface = new ethers.Interface([
-      'function vote(uint256,address,bytes,bytes,bytes,bytes,bytes)',
-    ])
     const selector = iface.getFunction('vote')!.selector
     expect(calldata.startsWith(selector)).toBe(true)
   })
 
   it('calldata includes the election ID', () => {
-    const tx = makeVotingTransaction('0x' + '1'.repeat(130))
+    const tx = makeVotingTransaction()
     const calldata = createVoteCalldata(tx, VOTE_ABI)
     // electionID=1 should appear as 0x01 padded to 32 bytes
     expect(calldata).toContain('0000000000000000000000000000000000000000000000000000000000000001')
+  })
+
+  it('pads BLS signature to EIP-2537 before encoding', () => {
+    const tx = makeVotingTransaction()
+    const calldata = createVoteCalldata(tx, VOTE_ABI)
+    const iface = new ethers.Interface(VOTE_ABI)
+    const decoded = iface.decodeFunctionData('vote', calldata)
+    // decoded[3] is  unblindedSignature
+    expect(ethers.getBytes(decoded[3]).length).toBe(128)
   })
 })

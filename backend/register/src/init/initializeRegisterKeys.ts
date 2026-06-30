@@ -1,15 +1,13 @@
 import { RegisterKeyService } from '../services/registerKeyService'
-import { isValidHex } from 'votingsystem'
+import { validateBlsParams } from 'votingsystem'
 
-// Create register key array from .env variables REGISTER_ELECTION_[0-99]_*
+// Create register key array from .env variables REGISTER_ELECTION_[0-99]_PK and REGISTER_ELECTION_[0-99]_SK
 const registerKeys = Array.from({ length: 100 }, (_, i) => i)
-  .filter(id => process.env[`REGISTER_ELECTION_${id}_N`])
+  .filter(id => process.env[`REGISTER_ELECTION_${id}_PK`])
   .map(id => ({
     electionId: id,
-    N: process.env[`REGISTER_ELECTION_${id}_N`]!,
-    D: process.env[`REGISTER_ELECTION_${id}_D`]!,
-    E: process.env[`REGISTER_ELECTION_${id}_E`]!,
-    NbitLength: parseInt(process.env[`REGISTER_ELECTION_${id}_N_LENGTH`]!, 10),
+    pk: process.env[`REGISTER_ELECTION_${id}_PK`]!,
+    sk: process.env[`REGISTER_ELECTION_${id}_SK`]!,
   }))
 
 function maskKey(key: string): string {
@@ -36,35 +34,17 @@ export async function initializeRegisterKeys() {
         continue
       }
 
-      if (!isValidHex(key.N, false, false)) {
-        throw new Error(`Invalid hex format for N: ${key.N}`)
-      }
-      if (!isValidHex(key.D, false, false)) {
-        throw new Error(`Invalid hex format for D: ${key.D}`)
-      }
-      if (isValidHex(key.E)) {
-        throw new Error(`E must be a decimal number, not hex: ${key.E}`)
+      if (!key.sk) {
+        throw new Error(`Missing REGISTER_ELECTION_${key.electionId}_SK`)
       }
 
-      // Sanity check: N and D must not be equal
-      if (key.N.toLowerCase() === key.D.toLowerCase()) {
-        throw new Error(`N and D cannot be equal for election ${key.electionId}`)
-      }
+      const blsParams = { pk: key.pk, sk: BigInt(key.sk) }
+      validateBlsParams(blsParams)
 
-      const rsaParams = {
-        N: BigInt(key.N),
-        D: BigInt(key.D),
-        e: BigInt(key.E),
-        NbitLength: key.NbitLength,
-      }
-
-      await RegisterKeyService.storeKeys(key.electionId, rsaParams)
+      await RegisterKeyService.storeKeys(key.electionId, blsParams)
 
       console.log(`Successfully initialized key for election id ${key.electionId}:
-                N: ${maskKey(key.N)}
-                D: ${maskKey(key.D)}
-                E: ${maskKey(key.E)}
-                Length: ${key.NbitLength} bits`)
+                pk: ${maskKey(key.pk)}`)
     }
   } catch (error) {
     console.error('Error initializing register key:', error)

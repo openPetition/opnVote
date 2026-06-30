@@ -6,7 +6,6 @@ import express, { Express } from 'express'
 import helmet from 'helmet'
 import cors from 'cors'
 import { dataSource } from './database'
-import signRoutes from './routes/signRoutes'
 import sponsorRoutes from './routes/sponsorRoutes'
 import forwardRoutes from './routes/forwardRoutes'
 import swaggerUi from 'swagger-ui-express'
@@ -24,7 +23,6 @@ const SSL_KEY_PATH = process.env.SSL_KEY_PATH
 const SSL_CERT_PATH = process.env.SSL_CERT_PATH
 
 const SERVER_URL = getEnvVar<string>('SERVER_URL', 'string')
-const SVS_SIGN_KEY = getEnvVar<string>('SVS_SIGN_KEY', 'string')
 const PAYMASTER_SIGNER_KEY = getEnvVar<string>('PAYMASTER_SIGNER_KEY', 'string')
 const PAYMASTER_ADDRESS = getEnvVar<string>('PAYMASTER_ADDRESS', 'string')
 const OPNVOTE_CONTRACT_ADDRESS = getEnvVar<string>('OPNVOTE_CONTRACT_ADDRESS', 'string')
@@ -53,7 +51,6 @@ app.use(
   }),
 )
 
-app.set('SVS_SIGN_KEY', SVS_SIGN_KEY)
 app.set('PAYMASTER_SIGNER_KEY', PAYMASTER_SIGNER_KEY)
 app.set('PAYMASTER_ADDRESS', PAYMASTER_ADDRESS)
 app.set('OPNVOTE_CONTRACT_ADDRESS', OPNVOTE_CONTRACT_ADDRESS)
@@ -93,7 +90,6 @@ dataSource
 
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
-    app.use('/api/votingTransaction', signRoutes)
     app.use('/api/userOp', sponsorRoutes)
     app.use('/api/forward', forwardRoutes)
 

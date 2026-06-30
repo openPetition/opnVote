@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express'
 import { ApiResponse } from '../types/apiResponses'
-import { EthSignature, VotingTransaction } from 'votingsystem'
+import { EthSignature } from 'votingsystem'
 import { ethers } from 'ethers'
+import { SponsorVotingTransaction } from '../types/sponsorTransaction'
 
 /**
  * Middleware to verify the voter's signature on the voting transaction.
@@ -19,7 +20,7 @@ export async function checkVoterSignature(
   next: NextFunction,
 ): Promise<void | Response> {
   // Parameters should be already validated in previous middleware
-  const votingTransaction = req.body.votingTransaction as VotingTransaction
+  const votingTransaction = req.body.votingTransaction as SponsorVotingTransaction
   const voterSignature = req.body.voterSignature as EthSignature
 
   try {

@@ -1,37 +1,10 @@
-import { RSAParams, getBitLength, validateRSAParams } from 'votingsystem'
 import {
   fetchElectionEndTimeStatus,
-  fetchElectionRegisterPublicKey,
 } from '../graphql/graphqlClient'
 import { ElectionStatusResponse } from '../types/graphql'
 import { logger } from '../utils/logger'
 
 export class ElectionService {
-  /**
-   * Fetches the election Public Key using GraphQL.
-   *
-   * @param {number} electionId - Identifier for the election.
-   * @returns {Promise<ElectionStatusResponse | null>} // Resolves to current on-chain election status and end time, or null if election not found.
-   */
-  static async getElectionRegisterPublicKey(electionId: number): Promise<RSAParams | null> {
-    try {
-      const electionData = await fetchElectionRegisterPublicKey(electionId)
-      if (!electionData) {
-        return null
-      }
-
-      const N = BigInt(electionData.registerPublicKeyN)
-      const e = BigInt(electionData.registerPublicKeyE)
-      const NBitLength = getBitLength(N)
-      const rsaParams = { N: N, e: e, NbitLength: NBitLength }
-      validateRSAParams(rsaParams)
-      return rsaParams
-    } catch (error) {
-      logger.error('Error fetching election status:', error)
-      return null
-    }
-  }
-
   /**
    * Fetches the election status and end time for a given election ID using GraphQL.
    *
@@ -76,8 +49,8 @@ export class ElectionService {
       return true
     }
 
-    // If the status is Active and but the closing time is past, the election is closed
-    if (electionData.status === 1 && now >= parseInt(electionData.voteEndTime)) {
+    // If the status is Active and the closing time is past, the election is closed
+    if (electionData.status === 1 && now >= parseInt(electionData.votingEndTime)) {
       return true
     }
 

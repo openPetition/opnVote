@@ -10,9 +10,9 @@ dataSources:
     name: OpnVote
     network: gnosis
     source:
-      address: '0xa36f6cF07eF1DeD3B8B4283E779A4514E30576a8'
+      address: '0x4c0904fC134F92033CBcF3e6AaCCa8817E7e6819'
       abi: OpnVote
-      startBlock: 45238000
+      startBlock: 46247811
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
@@ -38,19 +38,19 @@ dataSources:
       eventHandlers:
         - event: ElectionCanceled(indexed uint256,string)
           handler: handleElectionCanceled
-        - event: ElectionCreated(indexed uint256,uint256,uint256,uint256,uint256,uint8,uint8,uint8,string,bytes)
+        - event: ElectionCreated(indexed uint256,uint256,uint256,uint256,uint256,uint8,uint8,string,bytes)
           handler: handleElectionCreated
-        - event: ElectionRegisterPublicKeySet(indexed uint256,bytes,bytes)
+        - event: ElectionRegisterPublicKeySet(indexed uint256,bytes)
           handler: handleElectionRegisterPublicKeySet
         - event: ElectionResultsPublished(indexed uint256,uint256[],uint256[],uint256[],bytes)
           handler: handleElectionResultsPublished
         - event: ElectionStatusChanged(indexed uint256,uint8,uint8)
           handler: handleElectionStatusChanged
-        - event: ElectionUpdated(indexed uint256,uint256,uint256,uint256,uint256,uint8,uint8,uint8,string,bytes)
+        - event: ElectionUpdated(indexed uint256,uint256,uint256,uint256,uint256,uint8,uint8,string,bytes)
           handler: handleElectionUpdated
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
-        - event: VoteCast(indexed uint256,indexed address,bytes,bytes,bytes,bytes,bytes)
+        - event: VoteCast(indexed uint256,indexed address,bytes,bytes,bytes)
           handler: handleVoteCast
         - event: VoteUpdated(indexed uint256,indexed address,bytes,bytes)
           handler: handleVoteUpdated

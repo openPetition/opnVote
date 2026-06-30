@@ -23,9 +23,7 @@ describe('checkElectionStatus Middleware', () => {
           voterAddress: '0x123',
           encryptedVoteRSA: {} as any,
           encryptedVoteAES: {} as any,
-          unblindedElectionToken: {} as any,
           unblindedSignature: {} as any,
-          svsSignature: null,
         } as VotingTransaction,
         voterSignature: {
           hexString: '0x456',
@@ -46,7 +44,7 @@ describe('checkElectionStatus Middleware', () => {
   it('should call next if isElectionClosed returns false', async () => {
     ;(ElectionService.getElectionStatus as jest.Mock).mockResolvedValue({
       status: 1,
-      endTime: String(Date.now() / 1000 + 3600), // Future end time
+      votingEndTime: String(Date.now() / 1000 + 3600), // Future end time
     })
     ;(ElectionService.isElectionClosed as jest.Mock).mockReturnValue(false)
 
@@ -59,7 +57,7 @@ describe('checkElectionStatus Middleware', () => {
   it('should return 403 if isElectionClosed returns true', async () => {
     ;(ElectionService.getElectionStatus as jest.Mock).mockResolvedValue({
       status: 2,
-      endTime: String(Date.now() / 1000 - 3600), // Past end time
+      votingEndTime: String(Date.now() / 1000 - 3600), // Past end time
     })
     ;(ElectionService.isElectionClosed as jest.Mock).mockReturnValue(true)
 

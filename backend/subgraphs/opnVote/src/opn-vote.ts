@@ -52,7 +52,6 @@ export function handleElectionCreated(event: ElectionCreatedEvent): void {
   entity.votingEndTime = event.params.votingEndTime
   entity.registerId = event.params.registerId
   entity.authProviderId = event.params.authProviderId
-  entity.svsId = event.params.svsId
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
   entity.transactionHash = event.transaction.hash
@@ -79,8 +78,7 @@ export function handleElectionRegisterPublicKeySet(event: ElectionRegisterPublic
     event.transaction.hash.concatI32(event.logIndex.toI32()),
   )
   entity.electionId = event.params.electionId
-  entity.n = event.params.n
-  entity.e = event.params.e
+  entity.pubKey = event.params.pubKey
 
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
@@ -96,8 +94,7 @@ export function handleElectionRegisterPublicKeySet(event: ElectionRegisterPublic
 
     return
   }
-  electionEntity.registerPublicKeyE = event.params.e
-  electionEntity.registerPublicKeyN = event.params.n
+  electionEntity.registerPublicKey = event.params.pubKey
 
   electionEntity.save()
 }
@@ -168,7 +165,6 @@ export function handleElectionUpdated(event: ElectionUpdatedEvent): void {
   entity.registrationEndTime = event.params.registrationEndTime
   entity.registerId = event.params.registerId
   entity.authProviderId = event.params.authProviderId
-  entity.svsId = event.params.svsId
   entity.descriptionIpfsCid = event.params.descriptionIpfsCid
   entity.publicKey = event.params.publicKey
 
@@ -195,10 +191,8 @@ export function handleVoteCast(event: VoteCastEvent): void {
   let entity = new VoteCast(event.transaction.hash.concatI32(event.logIndex.toI32()))
   entity.electionId = event.params.electionId
   entity.voter = event.params.voter
-  entity.svsSignature = event.params.svsSignature
   entity.voteEncrypted = event.params.voteEncrypted
   entity.voteEncryptedUser = event.params.voteEncryptedUser
-  entity.unblindedElectionToken = event.params.unblindedElectionToken
   entity.unblindedSignature = event.params.unblindedSignature
 
   entity.blockNumber = event.block.number
