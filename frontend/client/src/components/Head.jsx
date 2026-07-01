@@ -164,7 +164,7 @@ export default function Head() {
                     <div>
                         <Image
                             alt="open.vote logo"
-                            src="/images/opnvote-logo.svg"
+                            src="/images/opnVote-logo.svg"
                             width="0"
                             height="0"
                             sizes="100vw"

@@ -10,29 +10,32 @@ const pdfContentType = {
     'IMAGE': 'image'
 };
 
+const marginPage = 50;
+const fontSizeStandard = 10;
+
 // header can have fixed positions
 const standardHeaderPDFContent = (page, font, boldFont, downloadHeadline) => {
     return [
         {
             type: pdfContentType.TEXT,
             text: t("pdf.created", { CREATIONDATE: new Date(), interpolation: { escapeValue: false } }),
-            yPos: page.getHeight() - 50,
+            yPos: page.getHeight() - marginPage - fontSizeStandard,
             font: font,
-            fontSize: 10,
+            fontSize: fontSizeStandard,
         },
         {
             type: pdfContentType.TEXT,
             text: downloadHeadline, //e.g. Wahlschein
-            fontSize: 26,
             yPos: page.getHeight() - 130,
-            font: boldFont
+            font: boldFont,
+            fontSize: 26,
         },
         {
             type: pdfContentType.TEXT,
             text: t("pdf.keepsecrethint"),
             yPos: page.getHeight() - 150,
             font: font,
-            fontSize: 10
+            fontSize: fontSizeStandard
         },
         {
             type: pdfContentType.LINE,
@@ -73,7 +76,7 @@ const electionKeyPDFcontent = (font, boldFont, qrImage) => {
             type: pdfContentType.TEXT,
             text: t("pdf.votingkey.additionalinfo.votingkeyexplained.1"),
             marginTop: 20,
-            fontSize: 10,
+            fontSize: fontSizeStandard,
             lineHeight: 12,
             maxWidth: 500,
             wordBreaks: [" "],
@@ -83,7 +86,7 @@ const electionKeyPDFcontent = (font, boldFont, qrImage) => {
             type: pdfContentType.TEXT,
             marginTop: 10,
             text: t("pdf.votingkey.additionalinfo.votingkeyexplained.2"),
-            fontSize: 10,
+            fontSize: fontSizeStandard,
             lineHeight: 12,
             maxWidth: 500,
             wordBreaks: [" "],
@@ -93,7 +96,7 @@ const electionKeyPDFcontent = (font, boldFont, qrImage) => {
             type: pdfContentType.TEXT,
             marginTop: 10,
             text: t("pdf.votingkey.additionalinfo.electionoverviewlink"),
-            fontSize: 10,
+            fontSize: fontSizeStandard,
             lineHeight: 12,
             font: font
         },
@@ -103,7 +106,7 @@ const electionKeyPDFcontent = (font, boldFont, qrImage) => {
             text: "www.openpetition.de/opn-vote",
             xPos: 200,
             color: rgb(0, 0, 1),
-            fontSize: 10,
+            fontSize: fontSizeStandard,
             font: font,
             link: "https://www.openpetition.de/opn-vote",
         },
@@ -115,7 +118,7 @@ const electionPermitPDFcontent = (font, boldFont, qrImage, pdfInformation, downl
         {
             type: pdfContentType.TEXT,
             text: t("pdf.register.entitles"),
-            fontSize: 10,
+            fontSize: fontSizeStandard,
             start: 620,
             font: font
         },
@@ -137,7 +140,7 @@ const electionPermitPDFcontent = (font, boldFont, qrImage, pdfInformation, downl
         },
         {
             type: pdfContentType.TEXT,
-            fontSize: 10,
+            fontSize: fontSizeStandard,
             text: t("pdf.electionduration"),
             marginTop: 20,
             noPush: true,
@@ -147,21 +150,21 @@ const electionPermitPDFcontent = (font, boldFont, qrImage, pdfInformation, downl
             text: t("pdf.electionfromto", { STARTDATE: pdfInformation.STARTDATE, ENDDATE: pdfInformation.ENDDATE, interpolation: { escapeValue: false } }),
             xPos: 200,
             type: pdfContentType.TEXT,
-            fontSize: 10,
+            fontSize: fontSizeStandard,
             marginTop: 1,
             font: font
         },
         {
             type: pdfContentType.TEXT,
             text: t("pdf.electionlink"),
-            fontSize: 10,
+            fontSize: fontSizeStandard,
             marginTop: 10,
             noPush: true,
             font: font
         },
         {
             type: pdfContentType.TEXT,
-            fontSize: 10,
+            fontSize: fontSizeStandard,
             text: pdfInformation.ELECTION_URL,
             xPos: 200,
             color: rgb(0, 0, 1),
@@ -171,7 +174,7 @@ const electionPermitPDFcontent = (font, boldFont, qrImage, pdfInformation, downl
         {
             type: pdfContentType.TEXT,
             text: t("pdf.register.electionpermit.digital"),
-            fontSize: 10,
+            fontSize: fontSizeStandard,
             marginTop: 10,
             noPush: true,
             font: font
@@ -196,7 +199,7 @@ const electionPermitPDFcontent = (font, boldFont, qrImage, pdfInformation, downl
             type: pdfContentType.TEXT,
             text: t("pdf.register.registerexplained.1"),
             wordBreaks: [" "],
-            fontSize: 10,
+            fontSize: fontSizeStandard,
             marginTop: 20,
             maxWidth: 500,
             lineHeight: 12,
@@ -206,7 +209,7 @@ const electionPermitPDFcontent = (font, boldFont, qrImage, pdfInformation, downl
             type: pdfContentType.TEXT,
             text: t("pdf.register.registerexplained.2"),
             wordBreaks: [" "],
-            fontSize: 10,
+            fontSize: fontSizeStandard,
             marginTop: 20,
             maxWidth: 500,
             lineHeight: 12,
@@ -234,7 +237,7 @@ export async function createPDF(qrCodeString, downloadHeadline, downloadSubHeadl
     try {
         const qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
         const qrDataUrl = qrCodeCanvasContext.toDataURL("image/png").replace("image/png", "image/octet-stream");
-        const logoUrl = 'images/opnvote-logo-big.png';
+        const logoUrl = 'images/opnVote-logo.png';
         const pngImageBytes = await fetch(logoUrl).then((res) => res.arrayBuffer());
         const pdfDoc = await PDFDocument.create();
         const pngImage = await pdfDoc.embedPng(pngImageBytes);
@@ -373,11 +376,14 @@ export async function createPDF(qrCodeString, downloadHeadline, downloadSubHeadl
         const keywordsWithData = ["QR Code", "Metadata", downloadHeadline];
         pdfDoc.setKeywords(keywordsWithData);
 
+        const width = 200;
+        const height = (pngDims.height / pngDims.width) * width;
+
         page.drawImage(pngImage, {
-            x: page.getWidth() - 50 - (pngDims.width / 2),
-            y: page.getHeight() - 50 - (pngDims.height / 2),
-            width: (pngDims.width / 2),
-            height: (pngDims.height / 2),
+            x: page.getWidth() - marginPage - width,
+            y: page.getHeight() - marginPage - height,
+            width: width,
+            height: height,
         });
 
         const pdfBytes = await pdfDoc.save();
