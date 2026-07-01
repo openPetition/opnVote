@@ -70,7 +70,7 @@ export default function GenerateQRCode(props) {
 
         const logoImg = new Image();
         logoImg.crossOrigin = "anonymous";
-        logoImg.src = '/images/opnvote-logo.svg';
+        logoImg.src = '/images/opnVote-logo.svg';
 
         logoImg.onload = function () {
             const baseHeight = 400;
