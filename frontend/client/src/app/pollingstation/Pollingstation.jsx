@@ -18,13 +18,15 @@ import { checkBallot } from "@/util";
 import ScanUploadQRCode from "@/components/ScanUploadQRCode";
 
 export default function Pollingstation() {
-    const { voting, updateVoting, updatePage } = useOpnVoteStore((state) => state);
+    const { voting, updateVoting, updatePage, voteClient } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [votingCredentials, setVotingCredentials] = useState({});
+    const [localClient, setLocalClient] = useState({});
     const [getVoteCasts, { data: dataVotings, loading: loadingVotings }] = getVoteCastsData(votingCredentials?.voterWallet?.address, voting.election.id);
     const [electionState, setElectionState] = useState(globalConst.electionState.ONGOING);
     const [startDate, setStartDate] = useState("");
     const election = voting.election;
+
 
     // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
     const [pollingStationState, setPollingStationState] = useState({
@@ -59,7 +61,10 @@ export default function Pollingstation() {
     };
 
     const qrCodeToCredentials = (code) => {
-        const check = checkBallot(voting.election, code);
+
+
+
+        const check = client(voting.election, code);
         if (check.result == 'success') {
             setVotingCredentials(check.credentials);
             setPollingStationState({

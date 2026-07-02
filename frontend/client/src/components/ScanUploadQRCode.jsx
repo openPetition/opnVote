@@ -64,13 +64,14 @@ export default function ScanUploadQRCode(props) {
         let client = voteClient && voteClient[0];
 
 
-        if (!client || !typeof client.importCredentials === 'function') {
+        if (!client || !typeof client.importCredentials === 'function' || !typeof client.importMasterKey === 'function') {
             return;
         }
-
         if (qrContentType == globalConst.qrContentType.KEY) {
             try {
-                let masterTokens = await qrToTokenAndR(code, true);
+                console.log(code);
+                const result = client.importMasterKey(code);
+                console.log(result);
                 props.onResult(code, inputOutputType);
 
             } catch (error) {
@@ -159,8 +160,10 @@ export default function ScanUploadQRCode(props) {
             .scanFile(newImageFile, false)
             .then((qrCodeMessage) => {
                 // handover -> do sth with result
-                props.onResult(qrCodeMessage);
                 html5QrCode.clear();
+                checkCodeAndReturn(qrCodeMessage, globalConst.saveType.IMAGE);
+                //props.onResult(qrCodeMessage);
+
             })
             .catch((err) => {
                 console.debug(`Error scanning file. Reason: ${err}`);

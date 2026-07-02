@@ -12,12 +12,10 @@ import styles from './styles/votetransaction.module.css';
 import globalConst from "@/constants";
 import { Check } from "lucide-react";
 import { privateKeyToAccount } from 'viem/accounts';
-import { checkBallot } from "@/util";
 import { useVoting } from '../VotingContext';
-import { waitForReceipt } from "../pollingstation/sendVotes";
 
 export default function VoteTransaction() {
-    const { userOpHash, voting, updateVoting, updateUserOpHash, updatePage } = useOpnVoteStore((state) => state);
+    const { userOpHash, voting, user, updateVoting, updatePage, voteClient, hashes } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [transactionHash, setTransactionHash] = useState();
     const { smartAccountClient } = useVoting(); // Holt den fertigen Client aus Seite 1
@@ -41,14 +39,36 @@ export default function VoteTransaction() {
 
     const checkTransaction = async () => {
         try {
-            const txHash = await waitForReceipt(smartAccountClient, userOpHash);
+            console.log('checktransaction');
+            let client = voteClient && voteClient[0];
 
-            const { credentials } = checkBallot(voting.election, voting.registerCode);
+            let credentials = null;
+            let stringCredits = "";
+            console.log(voting.jwt);
+            console.log(user.key);
+            let response = "";
+            if (client && typeof client.registerVoter === 'function') {
+                try {
+
+                    credentials = client.importCredentials(voting.registerCode);
+                    console.log(credentials);
+                    resonse = await client.checkVote({ credentials: credentials, txHash: userOpHash });
+
+
+                    console.log('RESPPLESE');
+                    console.log(resonse);
+                } catch (error) {
+                    console.error("failed sth");
+                }
+            }
+
+
+
+
             const voterAccount = privateKeyToAccount(credentials.voterWallet.privateKey);
             const voterAddress = voterAccount.address.toLowerCase()
 
             for (let attempt = 1; attempt <= 10; attempt++) {
-                const { voteCasts } = await querySubgraphTransactionState(voting.electionId, voterAddress)
                 if (voteCasts.length > 0) {
                     console.log('Vote indexed in subgraph ✓', voteCasts[0].transactionHash); // leave in for now
                     setTransactionHash(voteCasts[0].transactionHash);
@@ -118,7 +138,7 @@ export default function VoteTransaction() {
 
     useEffect(() => {
         // be sure, that we only call it once at first
-        if (smartAccountClient && userOpHash?.length > 0 && voteResultState.transactionState === TRANSACTION_STATE_CHECKING) {
+        if (hashes.userOpHash?.length > 0 && voteResultState.transactionState === TRANSACTION_STATE_CHECKING) {
             checkTransaction();
             return;
         }
@@ -132,7 +152,7 @@ export default function VoteTransaction() {
                 notificationType: 'success',
             });
         }
-    }, [userOpHash, smartAccountClient]);
+    }, [hashes]);
 
     return (
         <>

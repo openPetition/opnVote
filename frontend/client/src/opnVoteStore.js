@@ -69,6 +69,10 @@ export const emptyNotification = {
     text: '',
 }
 
+export const emptyHashes = {
+    userOpHash: '',
+    txHash: '',
+}
 
 export const useOpnVoteStore = create(
     persist(
@@ -76,7 +80,10 @@ export const useOpnVoteStore = create(
             user: emptyUser,
             voting: emptyVoting,
             notification: emptyNotification,
-            userOpHash: '',
+            hashes: {
+                userOpHash: '',
+                txHash: '',
+            },
             page: {
                 loading: true,
                 previous: null,
@@ -113,7 +120,7 @@ export const useOpnVoteStore = create(
                     election: state.voting.election,
                     electionInformation: state.voting.electionInformation,
                 },
-                userOpHash: '',
+                hashes: emptyHashes,
             })),
             updateVoting: (votingData) =>
                 set((state) => ({
@@ -134,8 +141,8 @@ export const useOpnVoteStore = create(
                     }
                 }
             },
-            updateUserOpHash: (update) => set(() => ({
-                userOpHash: update
+            updateHashes: (update) => set(() => ({
+                hashes: update
             })),
             setVoteClient: (update) => set(() => ({
                 voteClient: [update]
@@ -148,6 +155,7 @@ export const useOpnVoteStore = create(
                 user: state.user,
                 voting: state.voting,
                 taskId: state.taskId,
+                hashes: state.hashes,
                 page: state.page,
             }),
         }

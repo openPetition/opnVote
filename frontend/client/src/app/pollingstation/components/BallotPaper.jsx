@@ -14,7 +14,7 @@ export default function BallotPaper(props) {
     const { setSmartAccountClient } = useVoting(); // Holt den Setter aus dem Context
 
     const { allowedToVote, votingCredentials, isVoteRecast, showElection } = props;
-    const { updatePage, voting, updateVoting, updateUserOpHash, voteClient, userOpHash } = useOpnVoteStore((state) => state);
+    const { updatePage, voting, updateVoting, voteClient, hashes, updateHashes } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [votes, setVotes] = useState({});
     const [electionState, setElectionState] = useState(globalConst.electionState.ONGOING);
@@ -45,14 +45,20 @@ export default function BallotPaper(props) {
                 let voteMap = Object.values(votes).map(val => ({ value: val }));
                 credentials = client.importCredentials(voting.registerCode);
                 console.log(voteMap);
+                recastOp
                 response = await client.vote({ credentials: credentials, votes: voteMap });
                 console.log(response);
-                if (response.ok) userOpHash = (r.value.txHash);
+                if (response.ok) {
+                    console.log('rein');
+                    userOpHash = response.value.userOpHash;
+                }
+
+
                 console.log(userOpHash);
             }
 
             if (userOpHash && userOpHash.length > 0) {
-                updateUserOpHash(userOpHash);
+                updateHashes(response.value);
                 updateVoting({ votesuccess: false, transactionViewUrl: '' }); //invalidate
                 updatePage({ current: globalConst.pages.VOTETRANSACTION });
             }
