@@ -11,8 +11,6 @@ import Notification from "@/components/Notification";
 
 
 export default function BallotPaper(props) {
-    const { setSmartAccountClient } = useVoting(); // Holt den Setter aus dem Context
-
     const { allowedToVote, votingCredentials, isVoteRecast, showElection } = props;
     const { updatePage, voting, updateVoting, voteClient, hashes, updateHashes } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
@@ -39,30 +37,19 @@ export default function BallotPaper(props) {
         try {
             if (client && typeof client.vote === 'function') {
 
-                console.log(votes);
-
                 let voteMap = Object.values(votes).map(val => ({ value: val }));
                 credentials = client.importCredentials(voting.registerCode);
-                console.log(voteMap);
                 if (!isVoteRecast) {
                     response = await client.vote({ credentials: credentials, votes: voteMap });
-                    console.log('vpte');
-                    console.log(response);
                     if (response.ok) {
-                        console.log('rein');
                         userOpHash = response.value.txHash;
                     }
                 } else {
                     response = await client.recastVote({ credentials: credentials, votes: voteMap });
-                    console.log('recast');
-                    console.log(response);
                     if (response.ok) {
-                        console.log('rein');
                         userOpHash = response.value.txHash;
                     }
                 }
-
-                console.log(userOpHash);
             }
 
             if (userOpHash && userOpHash.length > 0) {

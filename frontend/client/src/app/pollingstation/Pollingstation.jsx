@@ -98,14 +98,10 @@ export default function Pollingstation() {
             return;
         }
         let isVoteRecast = false;
-
-        console.log('voterecast????')
-        console.log(dataVotings);
         // after we got voteCasts data .. check this
         if (dataVotings && dataVotings?.voteCasts && Object.keys(dataVotings?.voteCasts).length > 0) {
             isVoteRecast = true;
         }
-        console.log(isVoteRecast);
         // do not show notification if election / votingphase is not ongoing
         if (electionState != globalConst.electionState.ONGOING) {
             return;
