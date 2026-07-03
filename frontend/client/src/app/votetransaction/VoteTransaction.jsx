@@ -38,71 +38,30 @@ export default function VoteTransaction() {
 
     const checkTransaction = async () => {
         try {
-            console.log('checktransaction');
             let client = voteClient && voteClient[0];
-
             let credentials = null;
-            let stringCredits = "";
             console.log(voting);
-            console.log(voting.jwt);
-            console.log(user.key);
             let response = "";
             if (client && typeof client.registerVoter === 'function') {
                 try {
-                    console.log(voting.registerCode);
                     credentials = client.importCredentials(voting.registerCode);
-                    console.log('==============');
-                    console.log(credentials);
-                    console.log(hashes);
                     response = await client.checkVote({ credentials: credentials });
-                    console.log(response.value);
-                    console.log('whaaaat?');
                     if (response.ok && response.value.indexed) {
-                        console.log('what?');
                         setTransactionHash(response.value.txHash);
-                        console.log('wiiiii');
                         updateVoting({ votesuccess: true });
+                        setVoteResultState({
+                            ...voteResultState,
+                            transactionStateText: t('votetransactionstate.statustitle.success'),
+                            transactionStateSubText: t('votetransactionstate.statustext.success'),
+                            transactionState: TRANSACTION_STATE_SUCCESS,
+                            notificationText: t('votetransactionstate.info.success'),
+                            notificationType: 'success',
+                        });
                     }
-
-
                 } catch (error) {
                     console.error("failed sth");
                 }
             }
-
-
-
-            /*
-            const voterAccount = privateKeyToAccount(credentials.voterWallet.privateKey);
-            const voterAddress = voterAccount.address.toLowerCase()
-
-            for (let attempt = 1; attempt <= 10; attempt++) {
-                if (voteCasts.length > 0) {
-                    console.log('Vote indexed in subgraph ✓', voteCasts[0].transactionHash); // leave in for now
-                    setTransactionHash(voteCasts[0].transactionHash);
-                    updateVoting({ votesuccess: true });
-                    updateUserOpHash(''); //invalidation to prevent wrong redirects from pollingstation
-                    break;
-                }
-                if (attempt === 10) {
-                    console.log('Vote not yet indexed after 10 attempts (subgraph may lag — tx succeeded)');
-                } else {
-                    console.log(`Waiting for subgraph... (attempt ${attempt}/10)`);
-                    await sleep(TRANSACTION_PENDING_DELAY);
-                }
-            }
-
-            if (txHash && txHash.length > 0) {
-                setVoteResultState({
-                    ...voteResultState,
-                    transactionStateText: t('votetransactionstate.statustitle.success'),
-                    transactionStateSubText: t('votetransactionstate.statustext.success'),
-                    transactionState: TRANSACTION_STATE_SUCCESS,
-                    notificationText: t('votetransactionstate.info.success'),
-                    notificationType: 'success',
-                });
-            }
-            */
         } catch (error) {
             console.log(error);
             let notificationText;
