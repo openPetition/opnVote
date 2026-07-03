@@ -40,22 +40,35 @@ export default function VoteTransaction() {
         try {
             let client = voteClient && voteClient[0];
             let credentials = null;
+            console.log(voting);
             let response = "";
             if (client && typeof client.registerVoter === 'function') {
-
-                credentials = client.importCredentials(voting.registerCode);
-                const requestObj = voting.isVoteRecast ? { credentials: credentials, txHash: hashes.txHash } : { credentials: credentials }
-                response = await client.checkVote(requestObj);
-                if (response.ok && response.value.indexed) {
-                    setTransactionHash(response.value.txHash);
+                try {
+                    credentials = client.importCredentials(voting.registerCode);
+                    const requestObj = voting.isVoteRecast ? { credentials: credentials, txHash: hashes.txHash } : { credentials: credentials }
+                    response = await client.checkVote(requestObj);
+                    if (response.ok && response.value.indexed) {
+                        setTransactionHash(response.value.txHash);
+                        //updateHashes({});
+                        updateVoting({ votesuccess: true });
+                        setVoteResultState({
+                            ...voteResultState,
+                            transactionStateText: t('votetransactionstate.statustitle.success'),
+                            transactionStateSubText: t('votetransactionstate.statustext.success'),
+                            transactionState: TRANSACTION_STATE_SUCCESS,
+                            notificationText: t('votetransactionstate.info.success'),
+                            notificationType: 'success',
+                        });
+                    }
+                } catch (error) {
                     updateVoting({ votesuccess: true });
                     setVoteResultState({
                         ...voteResultState,
-                        transactionStateText: t('votetransactionstate.statustitle.success'),
-                        transactionStateSubText: t('votetransactionstate.statustext.success'),
-                        transactionState: TRANSACTION_STATE_SUCCESS,
-                        notificationText: t('votetransactionstate.info.success'),
-                        notificationType: 'success',
+                        transactionStateText: t('votetransactionstate.statustitle.error'),
+                        transactionStateSubText: '',
+                        transactionState: TRANSACTION_STATE_ERROR,
+                        notificationType: 'error',
+                        notificationText: t('votetransactionstate.error.unkown'),
                     });
                 }
             }
@@ -102,7 +115,6 @@ export default function VoteTransaction() {
     useEffect(() => {
         // be sure, that we only call it once at first
         if (hashes.userOpHash?.length > 0 && voteResultState.transactionState === TRANSACTION_STATE_CHECKING) {
-
             checkTransaction();
             return;
         }
