@@ -15,8 +15,6 @@ import KeyTextInvalidError from '@/errors/KeyTextInvalidError';
 import KeyFileInvalidError from '@/errors/KeyFileInvalidError';
 import GeneralQRCodeInputError from '@/errors/GeneralQRCodeInputError';
 import globalConst from '@/constants';
-import { qrToTokenAndR } from 'votingsystem';
-import { checkBallot } from '@/util';
 import { useOpnVoteStore } from '@/opnVoteStore';
 
 const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };

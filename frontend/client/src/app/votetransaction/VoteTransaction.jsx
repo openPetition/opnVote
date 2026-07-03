@@ -11,11 +11,10 @@ import { useOpnVoteStore, modes } from "../../opnVoteStore";
 import styles from './styles/votetransaction.module.css';
 import globalConst from "@/constants";
 import { Check } from "lucide-react";
-import { privateKeyToAccount } from 'viem/accounts';
 import { useVoting } from '../VotingContext';
 
 export default function VoteTransaction() {
-    const { userOpHash, voting, user, updateVoting, updatePage, voteClient, hashes } = useOpnVoteStore((state) => state);
+    const { voting, user, updateVoting, updatePage, voteClient, hashes, updateHashes } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [transactionHash, setTransactionHash] = useState();
     const { smartAccountClient } = useVoting(); // Holt den fertigen Client aus Seite 1
@@ -44,19 +43,28 @@ export default function VoteTransaction() {
 
             let credentials = null;
             let stringCredits = "";
+            console.log(voting);
             console.log(voting.jwt);
             console.log(user.key);
             let response = "";
             if (client && typeof client.registerVoter === 'function') {
                 try {
-
+                    console.log(voting.registerCode);
                     credentials = client.importCredentials(voting.registerCode);
+                    console.log('==============');
                     console.log(credentials);
-                    resonse = await client.checkVote({ credentials: credentials, txHash: userOpHash });
+                    console.log(hashes);
+                    response = await client.checkVote({ credentials: credentials });
+                    console.log(response.value);
+                    console.log('whaaaat?');
+                    if (response.ok && response.value.indexed) {
+                        console.log('what?');
+                        setTransactionHash(response.value.txHash);
+                        console.log('wiiiii');
+                        updateVoting({ votesuccess: true });
+                    }
 
 
-                    console.log('RESPPLESE');
-                    console.log(resonse);
                 } catch (error) {
                     console.error("failed sth");
                 }
@@ -64,7 +72,7 @@ export default function VoteTransaction() {
 
 
 
-
+            /*
             const voterAccount = privateKeyToAccount(credentials.voterWallet.privateKey);
             const voterAddress = voterAccount.address.toLowerCase()
 
@@ -94,7 +102,7 @@ export default function VoteTransaction() {
                     notificationType: 'success',
                 });
             }
-
+            */
         } catch (error) {
             console.log(error);
             let notificationText;
@@ -143,6 +151,7 @@ export default function VoteTransaction() {
             return;
         }
         if (voting.votesuccess) {
+
             setVoteResultState({
                 ...voteResultState,
                 transactionStateText: t('votetransactionstate.statustitle.success'),
@@ -152,7 +161,8 @@ export default function VoteTransaction() {
                 notificationType: 'success',
             });
         }
-    }, [hashes]);
+
+    }, [hashes, voting]);
 
     return (
         <>

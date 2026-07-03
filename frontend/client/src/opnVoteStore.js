@@ -138,6 +138,7 @@ export const useOpnVoteStore = create(
                         history.replaceState({ current: updates.current }, "", "#" + updates.current);
                     } else if (mode == modes.push) {
                         history.pushState({ current: updates.current }, "", "#" + updates.current);
+                        voteClient
                     }
                 }
             },

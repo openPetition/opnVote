@@ -37,7 +37,6 @@ export default function BallotPaper(props) {
         setBallotStationState({ ...ballotStationState, pending: true });
         //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
         try {
-            console.log('nana');
             if (client && typeof client.vote === 'function') {
 
                 console.log(votes);
@@ -45,13 +44,24 @@ export default function BallotPaper(props) {
                 let voteMap = Object.values(votes).map(val => ({ value: val }));
                 credentials = client.importCredentials(voting.registerCode);
                 console.log(voteMap);
-                recastOp
-                response = await client.vote({ credentials: credentials, votes: voteMap });
-                console.log(response);
-                if (response.ok) {
-                    console.log('rein');
-                    userOpHash = response.value.userOpHash;
+                if (!isVoteRecast) {
+                    response = await client.vote({ credentials: credentials, votes: voteMap });
+                    console.log('vpte');
+                    console.log(response);
+                    if (response.ok) {
+                        console.log('rein');
+                        userOpHash = response.value.txHash;
+                    }
+                } else {
+                    response = await client.recastVote({ credentials: credentials, votes: voteMap });
+                    console.log('recast');
+                    console.log(response);
+                    if (response.ok) {
+                        console.log('rein');
+                        userOpHash = response.value.txHash;
+                    }
                 }
+
 
 
                 console.log(userOpHash);
