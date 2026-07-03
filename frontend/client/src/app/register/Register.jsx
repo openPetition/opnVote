@@ -17,7 +17,6 @@ import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
 import Headline from "@/components/Headline";
 import Modal from "@/components/Modal";
-import ElectionTimeInfo from "@/components/ElectionTimeInfo";
 import { createPDF } from "@/save-pdf";
 import AddToCalendar from '@/components/AddToCalendar'
 
@@ -75,11 +74,8 @@ export default function Register() {
         try {
 
             let client = voteClient && voteClient[0];
-
-            let credentials = null;
             let stringCredits = "";
-            console.log(voting.jwt);
-            console.log(user.key);
+
             let response = "";
             if (client && typeof client.registerVoter === 'function') {
                 try {
@@ -89,33 +85,10 @@ export default function Register() {
                     stringCredits = await client?.exportCredentials(response.value);
                     updateVoting({ registerCode: stringCredits, initElectionPermit: true });
                     loadingQRchange();
-
-
-                    console.log(stringCredits);
                 } catch (error) {
                     console.error("Failed to generate master key via client:", error);
                 }
             }
-
-            console.log('afterbeer');
-            /**
-            let registerRSA = {
-                N: BigInt(voting.election.registerPublicKeyN),
-                e: BigInt(voting.election.registerPublicKeyE),
-                NbitLength: Number(RSA_BIT_LENGTH),
-            };
-
-            let masterTokens = await qrToTokenAndR(decodedValue, true);
-            let unblindedElectionToken = await deriveElectionUnblindedToken(voting.electionId, masterTokens.token);
-            let electionR = await deriveElectionR(voting.electionId, masterTokens.r, unblindedElectionToken, registerRSA);
-            let blindedElectionToken = await blindToken(unblindedElectionToken, electionR, registerRSA);
-            let blindedSignature = await getBlindedSignature(voting.jwt, blindedElectionToken);
-            let unblindedSignature = await unblindSignature(blindedSignature, electionR, registerRSA);
-            let voterCredentials = await createVoterCredentials(unblindedSignature, unblindedElectionToken, masterTokens.token, voting.electionId);
-            let qrVoterCredentials = await concatElectionCredentialsForQR(voterCredentials);
-            */
-
-
         } catch (error) {
             let buttonFunction;
             let buttonText;

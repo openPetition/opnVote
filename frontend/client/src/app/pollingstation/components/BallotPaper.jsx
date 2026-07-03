@@ -62,8 +62,6 @@ export default function BallotPaper(props) {
                     }
                 }
 
-
-
                 console.log(userOpHash);
             }
 

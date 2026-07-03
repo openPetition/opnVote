@@ -67,11 +67,8 @@ export default function ScanUploadQRCode(props) {
         }
         if (qrContentType == globalConst.qrContentType.KEY) {
             try {
-                console.log(code);
                 const result = client.importMasterKey(code);
-                console.log(result);
                 props.onResult(code, inputOutputType);
-
             } catch (error) {
                 setError(inputOutputType === globalConst.saveType.CLIPBOARD ? new KeyTextInvalidError() : new KeyFileInvalidError());
                 console.debug(`Error: QR Key Input Invalid: ${error}`);
@@ -80,7 +77,6 @@ export default function ScanUploadQRCode(props) {
             try {
                 const result = client.importCredentials(code);
                 props.onResult(code, inputOutputType);
-
             } catch (error) {
                 setError(inputOutputType === globalConst.saveType.CLIPBOARD ? new BallotTextInvalidError() : new BallotFileInvalidError());
                 console.debug(`Error: QR Ballot Input Invalid: ${error}`);

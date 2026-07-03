@@ -128,11 +128,10 @@ export default function DataLoad() {
 
                 updatePage({ current: targetPage });
             }
-            console.log(votingUpdate);
+
             let publicKey = votingUpdate.election.publicKey;
             let registerPublicKey = votingUpdate.election.registerPublicKey;
 
-            console.log(Config.env);
             let client = createClient(
                 {
                     endpoints: { registerUrl: Config.env.registerUrl, svsUrl: Config.env.svsUrl, subgraphUrl: Config.env.graphConnectUrl },
@@ -147,9 +146,7 @@ export default function DataLoad() {
                 },
                 { electionID: localState.electionId, publicKey, registerPublicKey }
             );
-            console.log(client);
             updateVoting(votingUpdate);
-            console.log('gohere?')
             setVoteClient(client);
 
             if (Object.values(globalConst.pages).includes(localState.fragment)) {
