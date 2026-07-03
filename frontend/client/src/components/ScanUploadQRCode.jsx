@@ -57,11 +57,7 @@ export default function ScanUploadQRCode(props) {
      * @param {string} inputOutputType
      */
     const checkCodeAndReturn = async (code, inputOutputType) => {
-
-
         let client = voteClient && voteClient[0];
-
-
         if (!client || !typeof client.importCredentials === 'function' || !typeof client.importMasterKey === 'function') {
             return;
         }
@@ -82,8 +78,6 @@ export default function ScanUploadQRCode(props) {
                 console.debug(`Error: QR Ballot Input Invalid: ${error}`);
             }
         }
-
-
     }
 
     const extractData = async (file) => {

@@ -40,7 +40,6 @@ export default function VoteTransaction() {
         try {
             let client = voteClient && voteClient[0];
             let credentials = null;
-            console.log(voting);
             let response = "";
             if (client && typeof client.registerVoter === 'function') {
                 try {
