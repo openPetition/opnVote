@@ -25,7 +25,7 @@ export default function CreateSecret() {
             loadingAnimation: true,
         });
 
-        let client = voteClient && voteClient[0];
+        let client = voteClient;
 
         let createdSecret = null;
 

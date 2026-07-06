@@ -27,11 +27,12 @@ export default function BallotPaper(props) {
     });
 
     const saveVotes = async () => {
-        let client = voteClient && voteClient[0];
+        let client = voteClient;
         let credentials = null;
         let response = "";
         let userOpHash = '';
-
+        console.log('client');
+        console.log(client)
         setBallotStationState({ ...ballotStationState, pending: true });
         //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
         try {

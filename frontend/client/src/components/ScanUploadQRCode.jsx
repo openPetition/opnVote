@@ -57,7 +57,7 @@ export default function ScanUploadQRCode(props) {
      * @param {string} inputOutputType
      */
     const checkCodeAndReturn = async (code, inputOutputType) => {
-        let client = voteClient && voteClient[0];
+        let client = voteClient;
         if (!client || !typeof client.importCredentials === 'function' || !typeof client.importMasterKey === 'function') {
             return;
         }

@@ -18,7 +18,7 @@ import { checkBallot } from "@/util";
 import ScanUploadQRCode from "@/components/ScanUploadQRCode";
 
 export default function Pollingstation() {
-    const { voting, updateVoting, updatePage, voteClient } = useOpnVoteStore((state) => state);
+    const { voting, updateVoting, updatePage } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [votingCredentials, setVotingCredentials] = useState({});
     const [getVoteCasts, { data: dataVotings, loading: loadingVotings }] = getVoteCastsData(votingCredentials?.voterWallet?.address, voting.election.id);

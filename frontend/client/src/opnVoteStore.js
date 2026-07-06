@@ -80,7 +80,7 @@ export const useOpnVoteStore = create(
                 previous: null,
                 current: null
             },
-            voteClient: [],
+            voteClient: {},
             clearUser: () => set(() => ({ user: emptyUser })),
             updateUserKey: (key, keySaved) => set(() => ({
                 user: {
@@ -136,7 +136,7 @@ export const useOpnVoteStore = create(
                 hashes: update
             })),
             setVoteClient: (update) => set(() => ({
-                voteClient: [update]
+                voteClient: update
             })),
         }),
         {

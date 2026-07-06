@@ -73,7 +73,7 @@ export default function Register() {
 
         try {
 
-            let client = voteClient && voteClient[0];
+            let client = voteClient;
             let stringCredits = "";
 
             let response = "";

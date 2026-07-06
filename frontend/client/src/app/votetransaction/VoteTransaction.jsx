@@ -38,7 +38,7 @@ export default function VoteTransaction() {
 
     const checkTransaction = async () => {
         try {
-            let client = voteClient && voteClient[0];
+            let client = voteClient;
             let credentials = null;
             let response = "";
             if (client && typeof client.registerVoter === 'function') {
