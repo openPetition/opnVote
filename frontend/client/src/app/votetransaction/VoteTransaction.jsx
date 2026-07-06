@@ -37,15 +37,16 @@ export default function VoteTransaction() {
     });
 
     const checkTransaction = async () => {
-        try {
-            if (voteClient && typeof voteClient.registerVoter === 'function') {
-                try {
-                    let credentials = null;
-                    let response = "";
-                    credentials = voteClient.importCredentials(voting.registerCode);
-                    const requestObj = voting.isVoteRecast ? { credentials: credentials, txHash: hashes.txHash } : { credentials: credentials }
+
+        if (voteClient && typeof voteClient.registerVoter === 'function') {
+            try {
+                let credentials = null;
+                let response = "";
+                credentials = voteClient.importCredentials(voting.registerCode);
+                const requestObj = voting.isVoteRecast ? { credentials: credentials, txHash: hashes.txHash } : { credentials: credentials }
+                for (let attempt = 1; attempt <= 10; attempt++) {
                     response = await voteClient.checkVote(requestObj);
-                    if (response.ok && response.value.indexed) {
+                    if (respone && response.ok && response.value.indexed) {
                         setTransactionHash(response.value.txHash);
                         updateVoting({ votesuccess: true });
                         setVoteResultState({
@@ -56,43 +57,20 @@ export default function VoteTransaction() {
                             notificationText: t('votetransactionstate.info.success'),
                             notificationType: 'success',
                         });
+                        break;
                     }
-                } catch (error) {
-                    updateVoting({ votesuccess: true });
-                    setVoteResultState({
-                        ...voteResultState,
-                        transactionStateText: t('votetransactionstate.statustitle.error'),
-                        transactionStateSubText: '',
-                        transactionState: TRANSACTION_STATE_ERROR,
-                        notificationType: 'error',
-                        notificationText: t('votetransactionstate.error.unkown'),
-                    });
                 }
-            }
-        } catch (error) {
-            let notificationText;
-            if (error instanceof ServerError) {
-                notificationText = t('votetransactionstate.error.servererror');
-            } else if (error instanceof AlreadyVotedError) {
+            } catch (error) {
+                updateVoting({ votesuccess: true });
                 setVoteResultState({
                     ...voteResultState,
                     transactionStateText: t('votetransactionstate.statustitle.error'),
                     transactionStateSubText: '',
                     transactionState: TRANSACTION_STATE_ERROR,
                     notificationType: 'error',
-                    notificationText: t('votetransactionstate.error.alreadyvoted'),
+                    notificationText: t('votetransactionstate.error.unkown'),
                 });
-                return;
-            } else {
-                notificationText = t('votetransactionstate.error.unknown');
             }
-
-            setVoteResultState({
-                ...voteResultState,
-                transactionState: TRANSACTION_STATE_ERROR,
-                notificationType: 'error',
-                notificationText: notificationText,
-            });
         }
     };
 
