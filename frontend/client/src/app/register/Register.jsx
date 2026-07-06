@@ -77,7 +77,7 @@ export default function Register() {
                     let stringCredits = "";
                     let response = "";
                     let voterJwt = voting.jwt;
-                    let key = { hexString: user.key };
+                    let key = voteClient.importMasterKey(user.key);
                     response = await voteClient?.registerVoter({ voterJwt, masterKey: key ?? undefined });
                     stringCredits = await voteClient?.exportCredentials(response.value);
                     updateVoting({ registerCode: stringCredits, initElectionPermit: true });
