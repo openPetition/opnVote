@@ -129,9 +129,6 @@ export default function DataLoad() {
                 updatePage({ current: targetPage });
             }
 
-            let publicKey = votingUpdate.election.publicKey;
-            let registerPublicKey = votingUpdate.election.registerPublicKey;
-
             let client = createClient(
                 {
                     endpoints: { registerUrl: Config.env.registerUrl, svsUrl: Config.env.svsUrl, subgraphUrl: Config.env.graphConnectUrl },
@@ -144,7 +141,11 @@ export default function DataLoad() {
                     rpcUrl: Config.env.rpcnodeUrl,
                     chain: gnosis,
                 },
-                { electionID: localState.electionId, publicKey, registerPublicKey }
+                {
+                    electionID: localState.electionId,
+                    publicKey: votingUpdate.election.publicKey,
+                    registerPublicKey: votingUpdate.election.registerPublicKey
+                }
             );
             updateVoting(votingUpdate);
             setVoteClient(client);

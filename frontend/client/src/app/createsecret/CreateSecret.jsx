@@ -38,9 +38,9 @@ export default function CreateSecret() {
         await delay(1000); // one second for loading the key
 
         if (createdSecret) {
-            setTimeout(() => {
-                updateUserKey(createdSecret.hexString, false);
-            }, 0);
+
+            updateUserKey(createdSecret.hexString, false);
+
         } else {
             setCreateSecretState(prev => ({ ...prev, loadingAnimation: false }));
         }
@@ -55,11 +55,9 @@ export default function CreateSecret() {
         }
 
         if (user?.key?.length > 0) {
-            setTimeout(() => {
-                updatePage({ current: globalConst.pages.SHOWKEY }, modes.replace);
-            }, 0);
+            updatePage({ current: globalConst.pages.SHOWKEY }, modes.replace);
         }
-    }, [user?.key, updatePage]);
+    }, [user?.key]);
 
     return (
         <>

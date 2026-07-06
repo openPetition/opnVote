@@ -14,7 +14,7 @@ import { Check } from "lucide-react";
 import { useVoting } from '../VotingContext';
 
 export default function VoteTransaction() {
-    const { voting, user, updateVoting, updatePage, voteClient, hashes, updateHashes } = useOpnVoteStore((state) => state);
+    const { voting, user, updateVoting, updatePage, voteClient, hashes } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [transactionHash, setTransactionHash] = useState();
     const { smartAccountClient } = useVoting(); // Holt den fertigen Client aus Seite 1
@@ -38,16 +38,15 @@ export default function VoteTransaction() {
 
     const checkTransaction = async () => {
         try {
-            let credentials = null;
-            let response = "";
             if (voteClient && typeof voteClient.registerVoter === 'function') {
                 try {
+                    let credentials = null;
+                    let response = "";
                     credentials = voteClient.importCredentials(voting.registerCode);
                     const requestObj = voting.isVoteRecast ? { credentials: credentials, txHash: hashes.txHash } : { credentials: credentials }
                     response = await voteClient.checkVote(requestObj);
                     if (response.ok && response.value.indexed) {
                         setTransactionHash(response.value.txHash);
-                        //updateHashes({});
                         updateVoting({ votesuccess: true });
                         setVoteResultState({
                             ...voteResultState,

@@ -72,12 +72,10 @@ export default function Register() {
         });
 
         try {
-
-            let stringCredits = "";
-
-            let response = "";
             if (voteClient && typeof voteClient.registerVoter === 'function') {
                 try {
+                    let stringCredits = "";
+                    let response = "";
                     let voterJwt = voting.jwt;
                     let key = { hexString: user.key };
                     response = await voteClient?.registerVoter({ voterJwt, masterKey: key ?? undefined });
