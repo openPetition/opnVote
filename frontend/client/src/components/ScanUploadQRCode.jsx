@@ -57,13 +57,12 @@ export default function ScanUploadQRCode(props) {
      * @param {string} inputOutputType
      */
     const checkCodeAndReturn = async (code, inputOutputType) => {
-        let client = voteClient;
-        if (!client || !typeof client.importCredentials === 'function' || !typeof client.importMasterKey === 'function') {
+        if (!voteClient || !typeof voteClient.importCredentials === 'function' || !typeof voteClient.importMasterKey === 'function') {
             return;
         }
         if (qrContentType == globalConst.qrContentType.KEY) {
             try {
-                const result = client.importMasterKey(code);
+                const result = voteClient.importMasterKey(code);
                 props.onResult(code, inputOutputType);
             } catch (error) {
                 setError(inputOutputType === globalConst.saveType.CLIPBOARD ? new KeyTextInvalidError() : new KeyFileInvalidError());
@@ -71,7 +70,7 @@ export default function ScanUploadQRCode(props) {
             }
         } else {
             try {
-                const result = client.importCredentials(code);
+                const result = voteClient.importCredentials(code);
                 props.onResult(code, inputOutputType);
             } catch (error) {
                 setError(inputOutputType === globalConst.saveType.CLIPBOARD ? new BallotTextInvalidError() : new BallotFileInvalidError());

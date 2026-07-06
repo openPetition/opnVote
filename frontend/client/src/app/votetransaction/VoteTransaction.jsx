@@ -38,14 +38,13 @@ export default function VoteTransaction() {
 
     const checkTransaction = async () => {
         try {
-            let client = voteClient;
             let credentials = null;
             let response = "";
-            if (client && typeof client.registerVoter === 'function') {
+            if (voteClient && typeof voteClient.registerVoter === 'function') {
                 try {
-                    credentials = client.importCredentials(voting.registerCode);
+                    credentials = voteClient.importCredentials(voting.registerCode);
                     const requestObj = voting.isVoteRecast ? { credentials: credentials, txHash: hashes.txHash } : { credentials: credentials }
-                    response = await client.checkVote(requestObj);
+                    response = await voteClient.checkVote(requestObj);
                     if (response.ok && response.value.indexed) {
                         setTransactionHash(response.value.txHash);
                         //updateHashes({});

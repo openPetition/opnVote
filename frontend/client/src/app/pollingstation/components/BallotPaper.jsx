@@ -27,26 +27,23 @@ export default function BallotPaper(props) {
     });
 
     const saveVotes = async () => {
-        let client = voteClient;
         let credentials = null;
         let response = "";
         let userOpHash = '';
-        console.log('client');
-        console.log(client)
         setBallotStationState({ ...ballotStationState, pending: true });
         //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
         try {
-            if (client && typeof client.vote === 'function') {
+            if (voteClient && typeof voteClient.vote === 'function') {
 
                 let voteMap = Object.values(votes).map(val => ({ value: val }));
-                credentials = client.importCredentials(voting.registerCode);
+                credentials = voteClient.importCredentials(voting.registerCode);
                 if (!isVoteRecast) {
-                    response = await client.vote({ credentials: credentials, votes: voteMap });
+                    response = await voteClient.vote({ credentials: credentials, votes: voteMap });
                     if (response.ok) {
                         userOpHash = response.value.txHash;
                     }
                 } else {
-                    response = await client.recastVote({ credentials: credentials, votes: voteMap });
+                    response = await voteClient.recastVote({ credentials: credentials, votes: voteMap });
                     if (response.ok) {
                         userOpHash = response.value.txHash;
                     }

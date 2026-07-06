@@ -25,13 +25,11 @@ export default function CreateSecret() {
             loadingAnimation: true,
         });
 
-        let client = voteClient;
-
         let createdSecret = null;
 
-        if (client && typeof client.generateMasterKey === 'function') {
+        if (voteClient && typeof voteClient.generateMasterKey === 'function') {
             try {
-                createdSecret = await client.generateMasterKey();
+                createdSecret = await voteClient.generateMasterKey();
             } catch (error) {
                 console.error("Failed to generate master key via client:", error);
             }

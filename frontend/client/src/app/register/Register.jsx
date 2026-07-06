@@ -73,16 +73,15 @@ export default function Register() {
 
         try {
 
-            let client = voteClient;
             let stringCredits = "";
 
             let response = "";
-            if (client && typeof client.registerVoter === 'function') {
+            if (voteClient && typeof voteClient.registerVoter === 'function') {
                 try {
                     let voterJwt = voting.jwt;
                     let key = { hexString: user.key };
-                    response = await client?.registerVoter({ voterJwt, masterKey: key ?? undefined });
-                    stringCredits = await client?.exportCredentials(response.value);
+                    response = await voteClient?.registerVoter({ voterJwt, masterKey: key ?? undefined });
+                    stringCredits = await voteClient?.exportCredentials(response.value);
                     updateVoting({ registerCode: stringCredits, initElectionPermit: true });
                     loadingQRchange();
                 } catch (error) {
