@@ -46,7 +46,7 @@ export default function VoteTransaction() {
                 const requestObj = voting.isVoteRecast ? { credentials: credentials, txHash: hashes.txHash } : { credentials: credentials }
                 for (let attempt = 1; attempt <= 10; attempt++) {
                     response = await voteClient.checkVote(requestObj);
-                    if (respone && response.ok && response.value.indexed) {
+                    if (response && response.ok && response.value.indexed) {
                         setTransactionHash(response.value.txHash);
                         updateVoting({ votesuccess: true });
                         setVoteResultState({
@@ -61,7 +61,7 @@ export default function VoteTransaction() {
                     }
                 }
             } catch (error) {
-                updateVoting({ votesuccess: true });
+                updateVoting({ votesuccess: false });
                 setVoteResultState({
                     ...voteResultState,
                     transactionStateText: t('votetransactionstate.statustitle.error'),
