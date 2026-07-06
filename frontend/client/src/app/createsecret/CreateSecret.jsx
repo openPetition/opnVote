@@ -29,7 +29,8 @@ export default function CreateSecret() {
 
         if (voteClient && typeof voteClient.generateMasterKey === 'function') {
             try {
-                createdSecret = await voteClient.generateMasterKey();
+                let masterKey = await voteClient.generateMasterKey();
+                createdSecret = voteClient.exportMasterKey(masterKey);
             } catch (error) {
                 console.error("Failed to generate master key via client:", error);
             }
@@ -38,8 +39,7 @@ export default function CreateSecret() {
         await delay(1000); // one second for loading the key
 
         if (createdSecret) {
-
-            updateUserKey(createdSecret.hexString, false);
+            updateUserKey(createdSecret, false);
 
         } else {
             setCreateSecretState(prev => ({ ...prev, loadingAnimation: false }));
