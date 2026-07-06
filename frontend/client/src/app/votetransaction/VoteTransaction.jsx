@@ -58,6 +58,13 @@ export default function VoteTransaction() {
                             notificationType: 'success',
                         });
                         break;
+                    } else {
+                        if (attempt === 10) {
+                            console.log('Vote not yet indexed after 10 attempts (subgraph may lag — tx succeeded)');
+                        } else {
+                            console.log(`Waiting for subgraph... (attempt ${attempt}/10)`);
+                            await sleep(TRANSACTION_PENDING_DELAY);
+                        }
                     }
                 }
             } catch (error) {
