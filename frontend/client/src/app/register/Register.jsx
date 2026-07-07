@@ -81,7 +81,6 @@ export default function Register() {
                 stringCredits = await voteClient?.exportCredentials(response.value);
                 updateVoting({ registerCode: stringCredits, initElectionPermit: true });
                 loadingQRchange();
-                throw new Error();
             }
         } catch (error) {
             let buttonFunction;
