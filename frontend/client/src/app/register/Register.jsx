@@ -18,7 +18,7 @@ import globalConst from "@/constants";
 import Headline from "@/components/Headline";
 import Modal from "@/components/Modal";
 import { createPDF } from "@/save-pdf";
-import AddToCalendar from '@/components/AddToCalendar'
+import AddToCalendar from '@/components/AddToCalendar';
 
 export default function Register() {
     const { t } = useTranslation();
@@ -34,7 +34,7 @@ export default function Register() {
     const [registerCode, setRegisterCode] = useState("");
     const [showMod, setShowMod] = useState(false);
     const election = voting.election;
-    const electionTitle = voting.electionInformation.title
+    const electionTitle = voting.electionInformation.title;
     const electionTitleSanitized = electionTitle
         .toLowerCase()
         .replace(/ä/g, "ae")

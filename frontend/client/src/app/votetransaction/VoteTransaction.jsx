@@ -43,7 +43,7 @@ export default function VoteTransaction() {
                 let credentials = null;
                 let response = "";
                 credentials = voteClient.importCredentials(voting.registerCode);
-                const requestObj = voting.isVoteRecast ? { credentials: credentials, txHash: hashes.txHash } : { credentials: credentials }
+                const requestObj = voting.isVoteRecast ? { credentials: credentials, txHash: hashes.txHash } : { credentials: credentials };
                 for (let attempt = 1; attempt <= 10; attempt++) {
                     response = await voteClient.checkVote(requestObj);
                     if (response && response.ok && response.value.indexed) {
