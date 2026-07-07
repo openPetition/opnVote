@@ -73,18 +73,15 @@ export default function Register() {
 
         try {
             if (voteClient && typeof voteClient.registerVoter === 'function') {
-                try {
-                    let stringCredits = "";
-                    let response = "";
-                    let voterJwt = voting.jwt;
-                    let key = voteClient.importMasterKey(user.key);
-                    response = await voteClient?.registerVoter({ voterJwt, masterKey: key ?? undefined });
-                    stringCredits = await voteClient?.exportCredentials(response.value);
-                    updateVoting({ registerCode: stringCredits, initElectionPermit: true });
-                    loadingQRchange();
-                } catch (error) {
-                    console.error("Failed to generate master key via client:", error);
-                }
+                let stringCredits = "";
+                let response = "";
+                let voterJwt = voting.jwt;
+                let key = voteClient.importMasterKey(user.key);
+                response = await voteClient?.registerVoter({ voterJwt, masterKey: key ?? undefined });
+                stringCredits = await voteClient?.exportCredentials(response.value);
+                updateVoting({ registerCode: stringCredits, initElectionPermit: true });
+                loadingQRchange();
+                throw new Error();
             }
         } catch (error) {
             let buttonFunction;

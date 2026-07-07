@@ -68,6 +68,11 @@ export default function VoteTransaction() {
                     }
                 }
             } catch (error) {
+                let notificationText;
+                // @TODO distinguish different error types
+                // notificationText = t('votetransactionstate.error.servererror');
+                // notificationText = t('votetransactionstate.error.alreadyvoted')
+                notificationText = t('votetransactionstate.error.unkown');
                 updateVoting({ votesuccess: false });
                 setVoteResultState({
                     ...voteResultState,
@@ -75,7 +80,7 @@ export default function VoteTransaction() {
                     transactionStateSubText: '',
                     transactionState: TRANSACTION_STATE_ERROR,
                     notificationType: 'error',
-                    notificationText: t('votetransactionstate.error.unkown'),
+                    notificationText: notificationText,
                 });
             }
         }
