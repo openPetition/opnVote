@@ -17,6 +17,7 @@ export default function VoteTransaction() {
     const { voting, user, updateVoting, updatePage, voteClient, hashes } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [transactionHash, setTransactionHash] = useState();
+    const [isCheckingTransaction, setIsCheckingTransaction] = useState(false);
     const { smartAccountClient } = useVoting(); // Holt den fertigen Client aus Seite 1
 
     const TRANSACTION_STATE_CHECKING = 'checking';
@@ -39,7 +40,6 @@ export default function VoteTransaction() {
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     const checkTransaction = async () => {
-
         if (voteClient && typeof voteClient.registerVoter === 'function') {
             try {
                 let credentials = null;
@@ -102,11 +102,19 @@ export default function VoteTransaction() {
     };
 
     useEffect(() => {
+        if (isCheckingTransaction) {
+            setIsCheckingTransaction(false);
+            checkTransaction();
+        }
+    }, [isCheckingTransaction]);
+
+    useEffect(() => {
         // be sure, that we only call it once at first
         if (hashes.userOpHash?.length > 0 && voteResultState.transactionState === TRANSACTION_STATE_CHECKING) {
-            checkTransaction();
+            setIsCheckingTransaction(true);
             return;
         }
+
         if (voting.votesuccess) {
             setVoteResultState({
                 ...voteResultState,
