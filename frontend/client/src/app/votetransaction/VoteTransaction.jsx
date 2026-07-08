@@ -36,6 +36,8 @@ export default function VoteTransaction() {
         notificationType: '',
     });
 
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
     const checkTransaction = async () => {
 
         if (voteClient && typeof voteClient.registerVoter === 'function') {
