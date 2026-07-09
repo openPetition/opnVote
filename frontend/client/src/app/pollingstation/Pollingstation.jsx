@@ -60,6 +60,7 @@ export default function Pollingstation() {
 
     const qrCodeToCredentials = (code) => {
         const check = checkBallot(voting.election, code);
+
         if (check.result == 'success') {
             setVotingCredentials(check.credentials);
             setPollingStationState({
@@ -99,12 +100,11 @@ export default function Pollingstation() {
         if (dataVotings && dataVotings?.voteCasts && Object.keys(dataVotings?.voteCasts).length > 0) {
             isVoteRecast = true;
         }
-
         // do not show notification if election / votingphase is not ongoing
         if (electionState != globalConst.electionState.ONGOING) {
             return;
         };
-
+        updateVoting({ isVoteRecast: isVoteRecast });
         setPollingStationState({
             ...pollingStationState,
             allowedToVote: true,
@@ -143,6 +143,7 @@ export default function Pollingstation() {
         // here we have to see wether voter already voted to prepare for vote-recast
         if (Object.keys(votingCredentials).length > 0 && voting.election.id && Object.keys(voting.electionInformation).length > 0) {
             getVoteCasts();
+
         }
     }, [votingCredentials]);
 

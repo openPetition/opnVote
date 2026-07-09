@@ -17,6 +17,8 @@ const nextConfig = {
         delegationAddress: process.env.NEXT_PUBLIC_DELEGATION_ADDRESS,
         entryPoint: process.env.NEXT_PUBLIC_ENTRY_POINT,
         maxVoteRecasts: 2,
+        registerUrl: process.env.NEXT_PUBLIC_REGISTER_URL,
+        svsUrl: process.env.NEXT_PUBLIC_SVS_URL
     },
     images: {
         domains: ['localhost', 'static.openpetition.de', 'client-test.opn.vote'],

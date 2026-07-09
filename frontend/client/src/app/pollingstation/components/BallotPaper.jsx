@@ -2,7 +2,6 @@
 import styles from '../styles/BallotPaper.module.css';
 import { useState, useEffect } from "react";
 import Question from "./Question.jsx";
-import { sendVotes } from "@/app/pollingstation/sendVotes";
 import { useTranslation } from 'next-i18next';
 import { useOpnVoteStore } from "@/opnVoteStore";
 import globalConst from "@/constants";
@@ -12,10 +11,8 @@ import Notification from "@/components/Notification";
 
 
 export default function BallotPaper(props) {
-    const { setSmartAccountClient } = useVoting(); // Holt den Setter aus dem Context
-
     const { allowedToVote, votingCredentials, isVoteRecast, showElection } = props;
-    const { updatePage, voting, updateVoting, updateUserOpHash, userOpHash } = useOpnVoteStore((state) => state);
+    const { updatePage, voting, updateVoting, voteClient, hashes, updateHashes } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [votes, setVotes] = useState({});
     const [electionState, setElectionState] = useState(globalConst.electionState.ONGOING);
@@ -30,12 +27,31 @@ export default function BallotPaper(props) {
     });
 
     const saveVotes = async () => {
+        let credentials = null;
+        let response = "";
+        let userOpHash = '';
         setBallotStationState({ ...ballotStationState, pending: true });
         //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
         try {
-            const userOpHash = await sendVotes(votes, votingCredentials, voting.election.publicKey, isVoteRecast, setSmartAccountClient);
-            if (userOpHash) {
-                updateUserOpHash(userOpHash);
+            if (voteClient && typeof voteClient.vote === 'function') {
+
+                let voteMap = Object.values(votes).map(val => ({ value: val }));
+                credentials = voteClient.importCredentials(voting.registerCode);
+                if (!isVoteRecast) {
+                    response = await voteClient.vote({ credentials: credentials, votes: voteMap });
+                    if (response.ok) {
+                        userOpHash = response.value.txHash;
+                    }
+                } else {
+                    response = await voteClient.recastVote({ credentials: credentials, votes: voteMap });
+                    if (response.ok) {
+                        userOpHash = response.value.txHash;
+                    }
+                }
+            }
+
+            if (userOpHash && userOpHash.length > 0) {
+                updateHashes(response.value);
                 updateVoting({ votesuccess: false, transactionViewUrl: '' }); //invalidate
                 updatePage({ current: globalConst.pages.VOTETRANSACTION });
             }

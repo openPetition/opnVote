@@ -5,11 +5,11 @@ import { Minus, Plus } from "lucide-react";
 export default function Accordeon(props) {
     const { contents } = props;
 
-    const Item = function ({ key, title, text }) {
+    const Item = function ({ title, text }) {
         const [open, setOpen] = useState(false);
 
         return (
-            <li key={key} className={styles.item}>
+            <li className={styles.item}>
                 <div className={styles.item_header} onClick={() => setOpen(!open)}>
                     <h3>{title}</h3>
                     <div className={styles.item_header_icon}>
