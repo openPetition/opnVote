@@ -1,17 +1,17 @@
 {
   "network": "Gnosis Chain",
   "chainId": 100,
-  "deployer": "0xf9562D5EaC0ACFAe5274Aa30F7231d62818B593C",
+  "deployer": "0x3e2a20523380b1a8068ffbac8437ffb57f600466",
   "contracts": {
-    "opnVote_v0_3_0": "0x21dF67cf8ddF94109192E0447e63fC51c3c8A9F7",
-    "blsVerifier": "0x47b51CF2cB6448B6E6f33e02D6797D6bb98f16AE",
+    "blsVerifier": "0x84f815efcad9138761eb7acbee1764f6cc352f03",
+    "opnVote_v0_3_0": "0x4c0904fc134f92033cbcf3e6aacca8817e7e6819",
     "opnVotePaymaster": "0x53f9b337ce2Ea37D87dBAf0D08a9B931ef9D7eae",
     "delegation": "0xe6Cae83BdE06E4c305530e199D7217f42808555B"
   },
   "roles": {
     "paymasterVerifyingSigner": "0x847507B935658Bdf58F166E0B54C662Bc3942a6f",
-    "apOwner": "0x4BCEE727e6f7c3c896B22b513d8C259C8a32d290",
-    "registerOwner": "0x20271F12D8359C672EE574b2f67282984F42a3F8"
+    "apOwner": "0x8ffCACE09db3E33487591C2c732C3da5cB1E69cd",
+    "registerOwner": "0x17E16cc2158cD4102D83cff472705E2aD35E662D"
   },
   "entryPoint": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108"
 }
