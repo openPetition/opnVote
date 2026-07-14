@@ -8,25 +8,45 @@ import globalConst from "@/constants";
 import Button from "@/components/Button";
 import { useVoting } from "@/app/VotingContext"
 import Notification from "@/components/Notification";
-
+import { VoteOption } from "votingsystem";
+import Modal from "@/components/Modal";
 
 export default function BallotPaper(props) {
     const { allowedToVote, votingCredentials, isVoteRecast, showElection } = props;
     const { updatePage, voting, updateVoting, voteClient, hashes, updateHashes } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
-    const [votes, setVotes] = useState({});
     const [electionState, setElectionState] = useState(globalConst.electionState.ONGOING);
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [showInvalidVotesPopup, setShowInvalidVotesPopup] = useState("");
     const election = voting.election;
-
-    // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
+    const [votes, setVotes] = useState(() =>
+        voting.electionInformation.questions.map(() => VoteOption.Invalid)
+    );
     const [ballotStationState, setBallotStationState] = useState({
         showSendError: false,
         pending: false,
     });
 
-    const saveVotes = async () => {
+    const processVotes = () => {
+        const readyVoteMap = votes.map(v => ({ value: v }));
+        const hasInvalidVote = votes.some(v => v === VoteOption.Invalid);
+
+        if (hasInvalidVote) {
+            setShowInvalidVotesPopup(true);
+        } else {
+            saveVotes(readyVoteMap);
+        }
+    };
+
+    const handleConfirmInvalidVotes = () => {
+        setShowInvalidVotesPopup(false);
+        const readyVoteMap = votes.map(v => ({ value: v }));
+        saveVotes(readyVoteMap);
+    };
+
+
+    const saveVotes = async (readyVoteMap) => {
         let credentials = null;
         let response = "";
         let userOpHash = '';
@@ -34,8 +54,6 @@ export default function BallotPaper(props) {
         //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
         try {
             if (voteClient && typeof voteClient.vote === 'function') {
-
-                let voteMap = Object.values(votes).map(val => ({ value: val }));
                 credentials = voteClient.importCredentials(voting.registerCode);
                 if (!isVoteRecast) {
                     response = await voteClient.vote({ credentials: credentials, votes: voteMap });
@@ -75,6 +93,7 @@ export default function BallotPaper(props) {
         const tempEndTime = new Date(Number(voting.election.votingEndTime) * 1000);
         setStartDate(tempStartTime);
         setEndDate(tempEndTime);
+        console.log(votes);
     }, []);
 
     return (
@@ -96,18 +115,22 @@ export default function BallotPaper(props) {
                 </div>
                 <div className={styles.ballot_paper_border}></div>
                 <div className={`op__padding_standard_20 op__wrapper__flex ${styles.op__wrapper__flex}`}>
+
                     {voting.electionInformation.questions.map((question, index) =>
                         <Question
                             key={index}
                             imageUrl={question.imageUrl}
                             questionKey={index}
                             question={question.text}
-                            selectedVote={votes[index]}
+                            // votes[index] ist jetzt direkt die Zahl (0, 1, 2 oder 3)
+                            selectedVote={votes[index] ?? VoteOption.Invalid}
                             showVoteOptions={allowedToVote}
-                            setVote={(selection) => setVotes(votes => ({
-                                ...votes,
-                                [index]: selection
-                            }))}
+                            setVote={(selection) => {
+                                // Keine komplexen Objekt-Prüfungen mehr nötig!
+                                setVotes(prevVotes =>
+                                    prevVotes.map((v, i) => i === index ? selection : v)
+                                );
+                            }}
                         />
 
                     )}
@@ -120,7 +143,7 @@ export default function BallotPaper(props) {
                     <>
                         <div className="op__center-align">
                             <Button
-                                onClick={saveVotes}
+                                onClick={processVotes}
                                 disabled={ballotStationState.pending}
                                 type="primary"
                                 id="test_btn_sendvote"
@@ -140,6 +163,26 @@ export default function BallotPaper(props) {
                         >{t("common.gotooverview")}</Button>
                     </div>
                 }
+                <Modal
+                    showModal={showInvalidVotesPopup}
+                    headerText={t("pollingstation.popup.title", "Unvollständiger Stimmzettel")}
+                    ctaButtonText={t("common.confirm", "Stimme trotzdem abgeben")}
+                    ctaButtonFunction={handleConfirmInvalidVotes}
+                >
+                    <div>
+                        <p style={{ marginBottom: '20px' }}>
+                            {t("pollingstation.popup.message", "Sie haben nicht für alle Fragen eine Auswahl getroffen. Diese Fragen werden als UNGÜLTIG gezählt. Möchten Sie Ihre Stimme trotzdem so abgeben?")}
+                        </p>
+                        {/* Zusätzlicher Abbrechen-Button direkt im Body, da das Modal-Design standardmäßig keinen zweiten Button im Footer vorsieht */}
+                        <Button
+                            type="secondary"
+                            stretched={true}
+                            onClick={() => setShowInvalidVotesPopup(false)}
+                        >
+                            {t("common.cancel", "Zurück zum Stimmzettel")}
+                        </Button>
+                    </div>
+                </Modal>
             </div>
         </>
 

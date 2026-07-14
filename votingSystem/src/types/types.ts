@@ -151,7 +151,8 @@ export type RecastingVotingTransaction = {
 export enum VoteOption {
     Yes = 0,
     No = 1,
-    Abstain = 2
+    Abstain = 2,
+    Invalid = 3
 }
 
 /**
