@@ -52,11 +52,12 @@ export default function BallotPaper(props) {
         let userOpHash = '';
         setBallotStationState({ ...ballotStationState, pending: true });
         //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
+        console.log(readyVoteMap);
         try {
             if (voteClient && typeof voteClient.vote === 'function') {
                 credentials = voteClient.importCredentials(voting.registerCode);
                 if (!isVoteRecast) {
-                    response = await voteClient.vote({ credentials: credentials, votes: voteMap });
+                    response = await voteClient.vote({ credentials: credentials, votes: readyVoteMap });
                     if (response.ok) {
                         userOpHash = response.value.txHash;
                     }
@@ -171,7 +172,7 @@ export default function BallotPaper(props) {
                 >
                     <div>
                         <p style={{ marginBottom: '20px' }}>
-                            {t("pollingstation.popup.message", "Sie haben nicht für alle Fragen eine Auswahl getroffen. Diese Fragen werden als UNGÜLTIG gezählt. Möchten Sie Ihre Stimme trotzdem so abgeben?")}
+                            {t("pollingstation.popup.message", "Sie haben nicht für alle Fragen eine Auswahl getroffen. Diese Fragen werden als UNGÜLTIG gezählt. Möchten Sie Ihren Stimmzettel trotzdem so abgeben?")}
                         </p>
                         {/* Zusätzlicher Abbrechen-Button direkt im Body, da das Modal-Design standardmäßig keinen zweiten Button im Footer vorsieht */}
                         <Button
