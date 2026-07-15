@@ -224,6 +224,7 @@ export default function ScanUploadQRCode(props) {
                     headerText={t(error.title)}
                     ctaButtonText={t(error.button)}
                     ctaButtonFunction={() => setError(null)}
+                    onClose={() => setError(null)}
                 >
                     <Notification
                         type="error"

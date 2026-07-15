@@ -269,6 +269,7 @@ export default function Register() {
 
 
                 }}
+                onClose={() => setShowMod(false)}
             >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <Notification
@@ -465,6 +466,10 @@ export default function Register() {
                                             updatePage({ current: globalConst.pages.OVERVIEW });
                                         }
                                     }}
+                                    onClose={() => setRegisterState({
+                                        ...registerState,
+                                        showSaveRegisterQRSuccess: false
+                                    })}
                                 >
 
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

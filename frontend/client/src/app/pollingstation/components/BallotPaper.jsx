@@ -18,7 +18,7 @@ export default function BallotPaper(props) {
     const [electionState, setElectionState] = useState(globalConst.electionState.ONGOING);
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
-    const [showInvalidVotesPopup, setShowInvalidVotesPopup] = useState("");
+    const [showInvalidVotesPopup, setShowInvalidVotesPopup] = useState(false);
     const election = voting.election;
     const [votes, setVotes] = useState(() =>
         voting.electionInformation.questions.map(() => VoteOption.Invalid)
@@ -166,25 +166,39 @@ export default function BallotPaper(props) {
                 }
                 <Modal
                     showModal={showInvalidVotesPopup}
-                    headerText={t("pollingstation.popup.title", "Unvollständiger Stimmzettel")}
-                    ctaButtonText={t("common.confirm", "Stimme trotzdem abgeben")}
                     ctaButtonFunction={handleConfirmInvalidVotes}
+                    onClose={() => setShowInvalidVotesPopup(false)}
                 >
                     <div>
-                        <p style={{ marginBottom: '20px' }}>
-                            {t("pollingstation.popup.message", "Sie haben nicht für alle Fragen eine Auswahl getroffen. Diese Fragen werden als UNGÜLTIG gezählt. Möchten Sie Ihren Stimmzettel trotzdem so abgeben?")}
-                        </p>
-                        {/* Zusätzlicher Abbrechen-Button direkt im Body, da das Modal-Design standardmäßig keinen zweiten Button im Footer vorsieht */}
+                        <div style={{
+                            display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px'
+                        }}>
+                            <Notification
+                                type="attention"
+                                headline={t("pollingstation.popup.title", "Unvollständiger Stimmzettel")}
+                                text={t("pollingstation.popup.message", "Sie haben nicht für alle Fragen eine Auswahl getroffen. Diese Fragen werden als UNGÜLTIG gezählt. Möchten Sie Ihren Stimmzettel trotzdem so abgeben?")}
+                            />
+                        </div>
+                        <Button
+                            type="primary"
+                            stretched={true}
+                            onClick={() => setShowInvalidVotesPopup(false)}
+                            style={{
+                                marginBottom: '20px'
+                            }}
+                        >
+                            {t("common.cancel", "Stimmzettel bearbeiten")}
+                        </Button>
                         <Button
                             type="secondary"
                             stretched={true}
-                            onClick={() => setShowInvalidVotesPopup(false)}
+                            onClick={() => handleConfirmInvalidVotes()}
                         >
-                            {t("common.cancel", "Zurück zum Stimmzettel")}
+                            {t("common.cancel", "Stimmzettel trotzdem abgeben")}
                         </Button>
                     </div>
-                </Modal>
-            </div>
+                </Modal >
+            </div >
         </>
 
     );
