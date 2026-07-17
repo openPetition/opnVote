@@ -29,10 +29,11 @@ describe('AES: Encryption and Decryption Integration', () => {
         const { encryptVotes, decryptVotes } = votingModule;
 
 
-        // Generating 100 votes ('Yes', 'No', and 'Abstain')
-        const votes = Array.from({ length: 34 }, () => ({ value: VoteOption.Yes }))
-            .concat(Array.from({ length: 33 }, () => ({ value: VoteOption.No })))
-            .concat(Array.from({ length: 33 }, () => ({ value: VoteOption.Abstain })));
+        // Generating 100 votes ('Yes', 'No', 'Abstain' and 'Invalid')
+        const votes = Array.from({ length: 25 }, () => ({ value: VoteOption.Yes }))
+            .concat(Array.from({ length: 25 }, () => ({ value: VoteOption.No })))
+            .concat(Array.from({ length: 25 }, () => ({ value: VoteOption.Abstain })))
+            .concat(Array.from({ length: 25 }, () => ({ value: VoteOption.Invalid })));
 
         const encryptionKey: EncryptionKey = { hexString: ethers.sha256("0x"), encryptionType: EncryptionType.AES };
     
@@ -75,10 +76,11 @@ describe('RSA: Encryption and Decryption Integration', () => {
         const keyGenerationModule = await import("../admin/generateKeyPair");
         const { generateKeyPair } = keyGenerationModule;
 
-        // Generating 95 votes ('Yes', 'No', and 'Abstain')
-        const votes = Array.from({ length: 31 }, () => ({ value: VoteOption.Yes }))
-            .concat(Array.from({ length: 32 }, () => ({ value: VoteOption.No })))
-            .concat(Array.from({ length: 32 }, () => ({ value: VoteOption.Abstain })));
+        // Generating 95 votes ('Yes', 'No', 'Abstain' and 'Invalid')
+        const votes = Array.from({ length: 24 }, () => ({ value: VoteOption.Yes }))
+            .concat(Array.from({ length: 24 }, () => ({ value: VoteOption.No })))
+            .concat(Array.from({ length: 24 }, () => ({ value: VoteOption.Abstain })))
+            .concat(Array.from({ length: 23 }, () => ({ value: VoteOption.Invalid })));
 
         const keyPair = await generateKeyPair();
         const encryptionKeyRSA: EncryptionKey = { hexString: keyPair.publicKey, encryptionType: EncryptionType.RSA };
@@ -164,6 +166,27 @@ describe('AES: Edge Cases for Encryption and Decryption', () => {
         const { encryptVotes } = await import("./voting");
         const encryptionKey: EncryptionKey = { hexString: ethers.sha256("0x"), encryptionType: EncryptionType.AES };
         await expect(encryptVotes([], encryptionKey, EncryptionType.AES)).rejects.toThrow("Failed to encrypt votes: AES: Message cannot be empty.");
+    });
+
+    it('should throw an error when trying to encrypt a vote value outside of VoteOption', async () => {
+        const { encryptVotes } = await import("./voting");
+        const encryptionKey: EncryptionKey = { hexString: ethers.sha256("0x"), encryptionType: EncryptionType.AES };
+        const votes = [{ value: VoteOption.Yes }, { value: 4 as VoteOption }];
+        await expect(encryptVotes(votes, encryptionKey, EncryptionType.AES)).rejects.toThrow("Invalid vote option: 4");
+    });
+
+    it('should reject a decrypted ballot containing a vote value outside of VoteOption', async () => {
+        const { decryptVotes } = await import("./voting");
+        const encryptionKey: EncryptionKey = { hexString: ethers.sha256("0x"), encryptionType: EncryptionType.AES };
+
+        // Encrypt "4,0,1" directly to bypass SDK validation
+        const keyBuffer = ethers.getBytes(encryptionKey.hexString);
+        const iv = ethers.randomBytes(12);
+        const cryptoKey = await globalThis.crypto.subtle.importKey('raw', keyBuffer, { name: 'AES-GCM', length: 256 }, false, ['encrypt']);
+        const encrypted = await globalThis.crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cryptoKey, new TextEncoder().encode("4,0,1"));
+        const technicalInvalidVotes: EncryptedVotes = { hexString: ethers.concat([iv, new Uint8Array(encrypted)]), encryptionType: EncryptionType.AES };
+
+        await expect(decryptVotes(technicalInvalidVotes, encryptionKey, EncryptionType.AES)).rejects.toThrow("Invalid vote option encountered: 4");
     });
 
 
