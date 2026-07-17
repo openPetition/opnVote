@@ -60,7 +60,9 @@ type ElectionResultsPublished @entity(immutable: true) {
   electionId: BigInt! # uint256
   yesVotes: [BigInt!]! # uint256[]
   noVotes: [BigInt!]! # uint256[]
+  abstainVotes: [BigInt!]! # uint256[]
   invalidVotes: [BigInt!]! # uint256[]
+  invalidTechnicalVotes: [BigInt!]! # uint256[]
   privateKey: Bytes! # bytes
   blockNumber: BigInt!
   blockTimestamp: BigInt!
