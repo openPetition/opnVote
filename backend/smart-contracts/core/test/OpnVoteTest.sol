@@ -50,7 +50,8 @@ contract OpnVoteTest is Test {
         //Setting Register Key
         vm.startPrank(registerOwner);
 
-        bytes memory registerElectionBlsPubKey = vm.envBytes("REGISTER_ELECTION_0_BLS_PUBKEY");
+        bytes memory registerElectionBlsPubKey = new bytes(256); // non-identity placeholder 
+        registerElectionBlsPubKey[0] = 0x01;
 
         opnVote.setElectionRegisterPublicKey(electionId, registerElectionBlsPubKey);
         vm.stopPrank();
