@@ -45,14 +45,12 @@ export default function BallotPaper(props) {
         saveVotes(readyVoteMap);
     };
 
-
     const saveVotes = async (readyVoteMap) => {
         let credentials = null;
         let response = "";
         let userOpHash = '';
         setBallotStationState({ ...ballotStationState, pending: true });
-        //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
-        console.log(readyVoteMap);
+
         try {
             if (voteClient && typeof voteClient.vote === 'function') {
                 credentials = voteClient.importCredentials(voting.registerCode);
@@ -123,13 +121,11 @@ export default function BallotPaper(props) {
                             imageUrl={question.imageUrl}
                             questionKey={index}
                             question={question.text}
-                            // votes[index] ist jetzt direkt die Zahl (0, 1, 2 oder 3)
                             selectedVote={votes[index] ?? VoteOption.Invalid}
                             showVoteOptions={allowedToVote}
                             setVote={(selection) => {
-                                // Keine komplexen Objekt-Prüfungen mehr nötig!
-                                setVotes(prevVotes =>
-                                    prevVotes.map((v, i) => i === index ? selection : v)
+                                prevVotes.map((currentVote, voteIndex) => voteIndex === index ? selection : currentVote)
+                            }
                                 );
                             }}
                         />
@@ -175,8 +171,8 @@ export default function BallotPaper(props) {
                         }}>
                             <Notification
                                 type="attention"
-                                headline={t("pollingstation.popup.title", "Unvollständiger Stimmzettel")}
-                                text={t("pollingstation.popup.message", "Sie haben nicht für alle Fragen eine Auswahl getroffen. Diese Fragen werden als UNGÜLTIG gezählt. Möchten Sie Ihren Stimmzettel trotzdem so abgeben?")}
+                                headline={t("ballotpaper.popup.missingselection.title")}
+                                text={t("ballotpaper.popup.missingselection.message")}
                             />
                         </div>
                         <Button
@@ -187,14 +183,14 @@ export default function BallotPaper(props) {
                                 marginBottom: '20px'
                             }}
                         >
-                            {t("common.cancel", "Stimmzettel bearbeiten")}
+                            {t("ballotpaper.popup.missingselection.cancel")}
                         </Button>
                         <Button
                             type="secondary"
                             stretched={true}
                             onClick={() => handleConfirmInvalidVotes()}
                         >
-                            {t("common.cancel", "Stimmzettel trotzdem abgeben")}
+                            {t("ballotpaper.popup.missingselection.continue")}
                         </Button>
                     </div>
                 </Modal >
