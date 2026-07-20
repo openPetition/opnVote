@@ -60,7 +60,7 @@ export default function BallotPaper(props) {
                         userOpHash = response.value.txHash;
                     }
                 } else {
-                    response = await voteClient.recastVote({ credentials: credentials, votes: voteMap });
+                    response = await voteClient.recastVote({ credentials: credentials, votes: readyVoteMap });
                     if (response.ok) {
                         userOpHash = response.value.txHash;
                     }
@@ -124,8 +124,10 @@ export default function BallotPaper(props) {
                             selectedVote={votes[index] ?? VoteOption.Invalid}
                             showVoteOptions={allowedToVote}
                             setVote={(selection) => {
-                                prevVotes.map((currentVote, voteIndex) => voteIndex === index ? selection : currentVote)
-                            }
+                                setVotes((prevVotes) =>
+                                    prevVotes.map((currentVote, voteIndex) =>
+                                        voteIndex === index ? selection : currentVote
+                                    )
                                 );
                             }}
                         />
