@@ -28,9 +28,7 @@ describe('checkVoterSignature Middleware', () => {
       voterAddress: voterWallet.address,
       encryptedVoteRSA: {} as any,
       encryptedVoteAES: {} as any,
-      unblindedElectionToken: {} as any,
       unblindedSignature: {} as any,
-      svsSignature: null,
     }
 
     const voterSignature = {
@@ -56,9 +54,7 @@ describe('checkVoterSignature Middleware', () => {
       voterAddress: voterWallet.address,
       encryptedVoteRSA: {} as any,
       encryptedVoteAES: {} as any,
-      unblindedElectionToken: {} as any,
       unblindedSignature: {} as any,
-      svsSignature: null,
     }
     const message = JSON.stringify(votingTransaction)
     const messageHash = ethers.hashMessage(message)
@@ -82,9 +78,7 @@ describe('checkVoterSignature Middleware', () => {
       voterAddress: voterWallet.address,
       encryptedVoteRSA: {} as any,
       encryptedVoteAES: {} as any,
-      unblindedElectionToken: {} as any,
       unblindedSignature: {} as any,
-      svsSignature: null,
     }
 
     const voterSignature = {

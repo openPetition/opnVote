@@ -1,5 +1,5 @@
 'use client';
-import {useState, useEffect, useRef} from "react";
+import { useEffect, useRef } from "react";
 import styles from '../styles/Modal.module.css';
 import Button from "./Button";
 import { X } from 'lucide-react';
@@ -9,12 +9,13 @@ import { X } from 'lucide-react';
  * @returns
  */
 export default function Modal(props) {
-    const { showModal, headerText, children, ctaButtonText, ctaButtonFunction } = props;
-    const [isOpen, setIsOpen] = useState(showModal);
+    const { showModal, headerText, children, ctaButtonText, ctaButtonFunction, onClose } = props;
     const modalRef = useRef(null);
 
     const closeModal = () => {
-        setIsOpen(false);
+        if (onClose) {
+            onClose();
+        };
     };
 
     const handleClickOutside = (event) => {
@@ -29,7 +30,7 @@ export default function Modal(props) {
         }
     };
     useEffect(() => {
-        if (isOpen) {
+        if (showModal) {
             document.addEventListener('mousedown', handleClickOutside);
             document.addEventListener('keydown', handleEscape);
         } else {
@@ -41,21 +42,17 @@ export default function Modal(props) {
             document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('keydown', handleEscape);
         };
-    }, [isOpen]);
-
-    useEffect(() => {
-        setIsOpen(showModal);
     }, [showModal]);
 
 
     return (
         <>
-            {isOpen && (
+            {showModal && (
                 <>
                     <div className={styles.modal}
-                        style={{ display: isOpen ? 'inline-block' : 'none' }}
+                        style={{ display: showModal ? 'inline-block' : 'none' }}
                         aria-modal="true"
-                        aria-hidden={!isOpen}
+                        aria-hidden={!showModal}
                     >
                         <div className={`${styles.modalDialog} ${styles.modalDialogCentered}`} role="dialog" aria-labelledby="modalTitle" ref={modalRef}>
                             <div className={styles.modalContent}>
@@ -64,7 +61,7 @@ export default function Modal(props) {
                                     <div className={styles.modalClose}>
                                         <X
                                             fill="#fff"
-                                            onClick={() => setIsOpen(false)}
+                                            onClick={() => closeModal()}
                                         />
                                     </div>
 

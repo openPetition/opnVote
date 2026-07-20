@@ -11,23 +11,20 @@ import ScanUploadQRCode from "@/components/ScanUploadQRCode";
 import GenerateQRCode from "../../components/GenerateQRCode";
 import NavigationBox from "../../components/NavigationBox";
 import Button from "../../components/Button";
-import { getBlindedSignature } from '../../service';
 import { useTranslation } from 'next-i18next';
-import { qrToTokenAndR, deriveElectionUnblindedToken, deriveElectionR, blindToken, unblindSignature, createVoterCredentials, concatElectionCredentialsForQR, RSA_BIT_LENGTH } from "votingsystem";
 import Config from "../../../next.config.mjs";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
 import Headline from "@/components/Headline";
 import Modal from "@/components/Modal";
-import ElectionTimeInfo from "@/components/ElectionTimeInfo";
 import { createPDF } from "@/save-pdf";
-import AddToCalendar from '@/components/AddToCalendar'
+import AddToCalendar from '@/components/AddToCalendar';
 
 export default function Register() {
     const { t } = useTranslation();
     const user = useOpnVoteStore((state) => state.user);
 
-    const { voting, updateUserKey, updatePage, updateVoting } = useOpnVoteStore(
+    const { voting, updateUserKey, updatePage, updateVoting, voteClient } = useOpnVoteStore(
         (state) => state, shallow
     );
     const [decodedValue, setDecodedValue] = useState("");
@@ -37,7 +34,7 @@ export default function Register() {
     const [registerCode, setRegisterCode] = useState("");
     const [showMod, setShowMod] = useState(false);
     const election = voting.election;
-    const electionTitle = voting.electionInformation.title
+    const electionTitle = voting.electionInformation.title;
     const electionTitleSanitized = electionTitle
         .toLowerCase()
         .replace(/ä/g, "ae")
@@ -75,23 +72,16 @@ export default function Register() {
         });
 
         try {
-            let registerRSA = {
-                N: BigInt(voting.election.registerPublicKeyN),
-                e: BigInt(voting.election.registerPublicKeyE),
-                NbitLength: Number(RSA_BIT_LENGTH),
-            };
-
-            let masterTokens = await qrToTokenAndR(decodedValue, true);
-            let unblindedElectionToken = await deriveElectionUnblindedToken(voting.electionId, masterTokens.token);
-            let electionR = await deriveElectionR(voting.electionId, masterTokens.r, unblindedElectionToken, registerRSA);
-            let blindedElectionToken = await blindToken(unblindedElectionToken, electionR, registerRSA);
-            let blindedSignature = await getBlindedSignature(voting.jwt, blindedElectionToken);
-            let unblindedSignature = await unblindSignature(blindedSignature, electionR, registerRSA);
-            let voterCredentials = await createVoterCredentials(unblindedSignature, unblindedElectionToken, masterTokens.token, voting.electionId);
-            let qrVoterCredentials = await concatElectionCredentialsForQR(voterCredentials);
-            updateVoting({ registerCode: qrVoterCredentials, initElectionPermit: true });
-            loadingQRchange();
-
+            if (voteClient && typeof voteClient.registerVoter === 'function') {
+                let stringCredits = "";
+                let response = "";
+                let voterJwt = voting.jwt;
+                let key = voteClient.importMasterKey(user.key);
+                response = await voteClient?.registerVoter({ voterJwt, masterKey: key ?? undefined });
+                stringCredits = await voteClient?.exportCredentials(response.value);
+                updateVoting({ registerCode: stringCredits, initElectionPermit: true });
+                loadingQRchange();
+            }
         } catch (error) {
             let buttonFunction;
             let buttonText;
@@ -279,6 +269,7 @@ export default function Register() {
 
 
                 }}
+                onClose={() => setShowMod(false)}
             >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <Notification
@@ -465,7 +456,7 @@ export default function Register() {
                                 <Modal
                                     showModal={registerState.showSaveRegisterQRSuccess}
                                     headerText={t("register.popup.aftersave.headline")}
-                                    ctaButtonText={electionState !== globalConst.electionState.ONGOING ? t("common.gotooverview") : '' }
+                                    ctaButtonText={electionState !== globalConst.electionState.ONGOING ? t("common.gotooverview") : ''}
                                     ctaButtonFunction={() => {
                                         setRegisterState({
                                             ...registerState,
@@ -475,6 +466,10 @@ export default function Register() {
                                             updatePage({ current: globalConst.pages.OVERVIEW });
                                         }
                                     }}
+                                    onClose={() => setRegisterState({
+                                        ...registerState,
+                                        showSaveRegisterQRSuccess: false
+                                    })}
                                 >
 
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -482,11 +477,13 @@ export default function Register() {
                                             type="success"
                                             text={t('register.popup.aftersave.notification')}
                                         />
-                                        <p dangerouslySetInnerHTML={{ __html: t('register.popup.aftersave.text', {
-                                            STARTDATE: startDate,
-                                            ENDDATE: endDate,
-                                            ELECTIONTITLE: electionTitle
-                                        })}}></p>
+                                        <p dangerouslySetInnerHTML={{
+                                            __html: t('register.popup.aftersave.text', {
+                                                STARTDATE: startDate,
+                                                ENDDATE: endDate,
+                                                ELECTIONTITLE: electionTitle
+                                            })
+                                        }}></p>
                                     </div>
                                     {electionState === globalConst.electionState.ONGOING && (
                                         <AddToCalendar

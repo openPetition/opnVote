@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import globalConst from "@/constants";
+import { persist } from 'zustand/middleware';
 
 /**
  * the split storage will extract the "page" entry from the state object given to the storage and
@@ -10,6 +9,7 @@ import globalConst from "@/constants";
  * the logic for that is quite verbose and it requires every part of the state to be
  * JSON-serializable, but that's also true for the former version, as far as I can tell
  */
+
 const splitStorage = {
     getItem: function (name) {
         let localData = JSON.parse(localStorage.getItem(name));
@@ -32,6 +32,8 @@ const splitStorage = {
         sessionStorage.removeItem(name);
     },
 };
+
+export const emptyVoteClient = {};
 
 export const emptyVoting = {
     electionId: null,
@@ -67,6 +69,10 @@ export const emptyNotification = {
     text: '',
 }
 
+export const emptyHashes = {
+    userOpHash: '',
+    txHash: '',
+}
 
 export const useOpnVoteStore = create(
     persist(
@@ -74,12 +80,16 @@ export const useOpnVoteStore = create(
             user: emptyUser,
             voting: emptyVoting,
             notification: emptyNotification,
-            userOpHash: '',
+            hashes: {
+                userOpHash: '',
+                txHash: '',
+            },
             page: {
                 loading: true,
                 previous: null,
                 current: null
             },
+            voteClient: {},
             clearUser: () => set(() => ({ user: emptyUser })),
             updateUserKey: (key, keySaved) => set(() => ({
                 user: {
@@ -110,7 +120,7 @@ export const useOpnVoteStore = create(
                     election: state.voting.election,
                     electionInformation: state.voting.electionInformation,
                 },
-                userOpHash: '',
+                hashes: emptyHashes,
             })),
             updateVoting: (votingData) =>
                 set((state) => ({
@@ -131,13 +141,23 @@ export const useOpnVoteStore = create(
                     }
                 }
             },
-            updateUserOpHash: (update) => set(() => ({
-                userOpHash: update
+            updateHashes: (update) => set(() => ({
+                hashes: update
+            })),
+            setVoteClient: (update) => set(() => ({
+                voteClient: update
             })),
         }),
         {
             name: 'opnvote-storage',
             storage: splitStorage,
+            partialize: (state) => ({
+                user: state.user,
+                voting: state.voting,
+                taskId: state.taskId,
+                hashes: state.hashes,
+                page: state.page,
+            }),
         }
     )
 );

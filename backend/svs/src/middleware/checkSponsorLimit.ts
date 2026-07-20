@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from 'express'
 import { ApiResponse } from '../types/apiResponses'
-import { VotingTransaction, normalizeEthAddress } from 'votingsystem'
+import { normalizeEthAddress } from 'votingsystem'
 import { dataSource } from '../database'
 import { ForwardedTransactionEntity } from '../models/ForwardedTransaction'
 import { logger } from '../utils/logger'
+import { SponsorVotingTransaction } from '../types/sponsorTransaction'
 
 async function incrementSponsorCountWithCheck(senderAddress: string, maxForwards: number) {
   const queryRunner = dataSource.createQueryRunner()
@@ -53,7 +54,7 @@ async function incrementSponsorCountWithCheck(senderAddress: string, maxForwards
 export async function checkSponsorLimit(req: Request, res: Response, next: NextFunction) {
   const startTime = Date.now()
   try {
-    const votingTransaction = req.body.votingTransaction as VotingTransaction
+    const votingTransaction = req.body.votingTransaction as SponsorVotingTransaction
 
     if (!votingTransaction || !votingTransaction.voterAddress) {
       logger.warn('[SponsorLimit] Missing voting transaction or voter address')

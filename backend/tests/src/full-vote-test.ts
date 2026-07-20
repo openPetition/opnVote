@@ -6,26 +6,27 @@ import { gnosis } from 'viem/chains'
 import { createSmartAccountClient } from 'permissionless'
 import { to7702SimpleSmartAccount } from 'permissionless/accounts'
 import {
-  generateMasterTokenAndMasterR,
+  generateMasterKey,
+  deriveElectionWallet,
   deriveElectionUnblindedToken,
-  deriveElectionR,
+  generateBlindingR,
   blindToken,
   unblindSignature,
+  verifyUnblindedSignature,
   createVoterCredentials,
   encryptVotes,
-  createVotingTransactionWithoutSVSSignature,
-  addSVSSignatureToVotingTransaction,
+  createVotingTransaction,
+  createVoteRecastTransaction,
   createVoteCalldata,
   EncryptionType,
   VoteOption,
+  evmG2ToNoble,
 } from 'votingsystem'
-import type { RSAParams, EthSignature, EncryptionKey } from 'votingsystem'
+import type { BlsParams, BlsSignature, EncryptionKey, Vote } from 'votingsystem'
 
 const CHAIN = gnosis
 const DELEGATION_ADDRESS = '0xe6Cae83BdE06E4c305530e199D7217f42808555B' as const
 const ENTRY_POINT = '0x4337084d9e255ff0702461cf8895ce9e3b5ff108' as const
-const PAYMASTER_ADDRESS = '0x53f9b337ce2Ea37D87dBAf0D08a9B931ef9D7eae' as const
-const OPNVOTE_ADDRESS = '0xa36f6cF07eF1DeD3B8B4283E779A4514E30576a8' as const
 
 const OPNVOTE_ABI = [
   {
@@ -33,11 +34,8 @@ const OPNVOTE_ABI = [
     name: 'vote',
     inputs: [
       { name: 'electionId', type: 'uint256' },
-      { name: 'voter', type: 'address' },
-      { name: 'svsSignature', type: 'bytes' },
       { name: 'voteEncrypted', type: 'bytes' },
       { name: 'voteEncryptedUser', type: 'bytes' },
-      { name: 'unblindedElectionToken', type: 'bytes' },
       { name: 'unblindedSignature', type: 'bytes' },
     ],
     outputs: [],
@@ -126,6 +124,10 @@ async function run(includeRecast = false): Promise<string> {
   if (!registerUrl) throw new Error('REGISTER_URL required in .env')
   const subgraphUrl = process.env.SUBGRAPH_URL
   if (!subgraphUrl) throw new Error('SUBGRAPH_URL required in .env')
+  const opnVoteAddress = process.env.OPNVOTE_ADDRESS
+  if (!opnVoteAddress) throw new Error('OPNVOTE_ADDRESS required in .env')
+  const paymasterAddress = process.env.PAYMASTER_ADDRESS
+  if (!paymasterAddress) throw new Error('PAYMASTER_ADDRESS required in .env')
 
   const rpcUrl = process.env.RPC_PROVIDER
   if (!rpcUrl) throw new Error('RPC_PROVIDER required in .env')
@@ -137,22 +139,18 @@ async function run(includeRecast = false): Promise<string> {
 
   log('Fetching election keys from subgraph...')
   const { election } = await querySubgraph<{
-    election: { publicKey: string; registerPublicKeyE: string; registerPublicKeyN: string } | null
+    election: { publicKey: string; registerPublicKey: string } | null
   }>(
     subgraphUrl,
-    `{ election(id: "${ELECTION_ID}") { publicKey registerPublicKeyE registerPublicKeyN } }`,
+    `{ election(id: "${ELECTION_ID}") { publicKey registerPublicKey } }`,
   )
   if (!election) throw new Error(`Election ${ELECTION_ID} not found in subgraph`)
-  if (!election.registerPublicKeyE || !election.registerPublicKeyN)
+  if (!election.registerPublicKey)
     throw new Error(`Register public key not set on-chain for election ${ELECTION_ID}`)
   if (!election.publicKey)
     throw new Error(`Coordinator public key not set on-chain for election ${ELECTION_ID}`)
 
-  const registerParams: RSAParams = {
-    N: BigInt(election.registerPublicKeyN),
-    e: BigInt(election.registerPublicKeyE),
-    NbitLength: 2048,
-  }
+  const blsParams: BlsParams = { pk: evmG2ToNoble(election.registerPublicKey) }
 
   const coordinatorKey: EncryptionKey = {
     hexString: election.publicKey,
@@ -184,10 +182,11 @@ async function run(includeRecast = false): Promise<string> {
   log('--- Step 2: Register ---')
   const voterJwt = createJwt({ voterId: userId, electionId: ELECTION_ID }, apPrivKey)
 
-  const { masterToken, masterR } = generateMasterTokenAndMasterR()
-  const unblindedElectionToken = deriveElectionUnblindedToken(ELECTION_ID, masterToken)
-  const electionR = deriveElectionR(ELECTION_ID, masterR, unblindedElectionToken, registerParams)
-  const blindedToken = blindToken(unblindedElectionToken, electionR, registerParams)
+  const masterKey = generateMasterKey()
+  const voterWallet = deriveElectionWallet(masterKey, ELECTION_ID)
+  const unblindedElectionToken = deriveElectionUnblindedToken(ELECTION_ID, voterWallet.address)
+  const electionR = generateBlindingR()
+  const blindedToken = blindToken(unblindedElectionToken, electionR)
 
   const { blindedSignature: blindedSigHex } = await postJson<{ blindedSignature: string }>(
     `${registerUrl}/api/sign`,
@@ -195,57 +194,35 @@ async function run(includeRecast = false): Promise<string> {
     { Authorization: `Bearer ${voterJwt}` },
   )
 
-  const unblindedSig = unblindSignature(
-    { hexString: blindedSigHex, isBlinded: true },
-    electionR,
-    registerParams,
-  )
+  const blindedSig: BlsSignature = { hexString: blindedSigHex, isBlinded: true }
+  const unblindedSig = unblindSignature(blindedSig, electionR)
+  const isValidBlsSig = verifyUnblindedSignature(unblindedSig, unblindedElectionToken, blsParams)
+  if (!isValidBlsSig) throw new Error('Unblinded signature failed BLS verification')
 
   log('--- Step 3: Voter credentials ---')
-  const voterCredentials = createVoterCredentials(
-    unblindedSig,
-    unblindedElectionToken,
-    masterToken,
-    ELECTION_ID,
-  )
+  const voterCredentials = createVoterCredentials(unblindedSig, masterKey, ELECTION_ID)
   const voterAccount = privateKeyToAccount(voterCredentials.voterWallet.privateKey as Hex)
   log('Voter address', voterAccount.address)
 
-  log('--- Step 4: SVS sign ---')
-  const votes = [{ value: VoteOption.Yes }, { value: VoteOption.No }, { value: VoteOption.No }]
+  log('--- Step 4: sponsor ---')
+  const votes: Vote[] = [
+    { value: VoteOption.Yes },
+    { value: VoteOption.No },
+    { value: VoteOption.No },
+  ]
   const encryptedVotesRSA = await encryptVotes(votes, coordinatorKey, EncryptionType.RSA)
   const encryptedVotesAES = await encryptVotes(
     votes,
     voterCredentials.encryptionKey,
     EncryptionType.AES,
   )
-  const votingTransaction = createVotingTransactionWithoutSVSSignature(
+  const votingTransaction = createVotingTransaction(
     voterCredentials,
     encryptedVotesRSA,
     encryptedVotesAES,
   )
 
-  const msgHash = hashMessage(JSON.stringify(votingTransaction))
-  const voterSig = await voterAccount.signMessage({ message: msgHash })
-  const voterSignature: EthSignature = { hexString: voterSig }
-
-  const svsSignData = await postJson<Record<string, unknown>>(
-    `${svsUrl}/api/votingTransaction/sign`,
-    { votingTransaction, voterSignature },
-  )
-  const svsSignatureRaw = ((svsSignData as any).blindedSignature ??
-    (svsSignData as any).svsSignature) as EthSignature
-  if (!svsSignatureRaw?.hexString)
-    throw new Error(`SVS sign: unexpected response shape: ${JSON.stringify(svsSignData)}`)
-  log('SVS signature received ✓', svsSignatureRaw.hexString.slice(0, 20) + '...')
-
-  const signedVotingTransaction = addSVSSignatureToVotingTransaction(
-    votingTransaction,
-    svsSignatureRaw,
-  )
-
-  log('--- Step 5: SVS sponsor ---')
-  const sponsorMsgHash = hashMessage(JSON.stringify(signedVotingTransaction))
+  const sponsorMsgHash = hashMessage(JSON.stringify(votingTransaction))
   const sponsorSig = await voterAccount.signMessage({ message: sponsorMsgHash })
 
   const { paymasterData, userOpParams } = await postJson<{
@@ -261,11 +238,11 @@ async function run(includeRecast = false): Promise<string> {
       maxPriorityFeePerGas: string
     }
   }>(`${svsUrl}/api/userOp/sponsor`, {
-    votingTransaction: signedVotingTransaction,
+    votingTransaction,
     voterSignature: { hexString: sponsorSig },
   })
 
-  log('--- Step 6: ERC-4337 submit ---')
+  log('--- Step 5: ERC-4337 submit ---')
   const publicClient = createPublicClient({
     chain: CHAIN,
     transport: http(rpcUrl),
@@ -277,7 +254,7 @@ async function run(includeRecast = false): Promise<string> {
     entryPoint: { address: ENTRY_POINT, version: '0.8' },
   })
 
-  const voteCalldata = createVoteCalldata(signedVotingTransaction, OPNVOTE_ABI) as Hex
+  const voteCalldata = createVoteCalldata(votingTransaction, OPNVOTE_ABI) as Hex
 
   const smartAccountClient = createSmartAccountClient({
     client: publicClient,
@@ -286,7 +263,7 @@ async function run(includeRecast = false): Promise<string> {
     paymaster: {
       async getPaymasterStubData() {
         return {
-          paymaster: PAYMASTER_ADDRESS,
+          paymaster: paymasterAddress as Hex,
           paymasterData,
           isFinal: true as const,
           callGasLimit: BigInt(userOpParams.callGasLimit),
@@ -311,7 +288,7 @@ async function run(includeRecast = false): Promise<string> {
 
   const isDeployed = await smartAccount.isDeployed()
   const sendParams = {
-    calls: [{ to: OPNVOTE_ADDRESS, value: 0n, data: voteCalldata }] as const,
+    calls: [{ to: opnVoteAddress as Hex, value: 0n, data: voteCalldata }] as const,
     nonce: BigInt(userOpParams.nonce),
   }
 
@@ -362,10 +339,10 @@ async function run(includeRecast = false): Promise<string> {
 
   if (!includeRecast) return txHash
 
-  log('=== Vote recast ===') // no 7702 setup, no SVS sign needed
+  log('=== Vote recast ===')
 
-  log('--- Step 4 (recast): No SVS sign ---')
-  const recastVotes = [
+  log('--- Step 4 (recast) ---')
+  const recastVotes: Vote[] = [
     { value: VoteOption.No },
     { value: VoteOption.No },
     { value: VoteOption.Yes },
@@ -380,7 +357,7 @@ async function run(includeRecast = false): Promise<string> {
     voterCredentials.encryptionKey,
     EncryptionType.AES,
   )
-  const recastVotingTransaction = createVotingTransactionWithoutSVSSignature(
+  const recastVotingTransaction = createVoteRecastTransaction(
     voterCredentials,
     recastEncryptedVotesRSA,
     recastEncryptedVotesAES,
@@ -417,7 +394,7 @@ async function run(includeRecast = false): Promise<string> {
     paymaster: {
       async getPaymasterStubData() {
         return {
-          paymaster: PAYMASTER_ADDRESS,
+          paymaster: paymasterAddress as Hex,
           paymasterData: recastPaymasterData,
           isFinal: true as const,
           callGasLimit: BigInt(recastUserOpParams.callGasLimit),
@@ -441,7 +418,7 @@ async function run(includeRecast = false): Promise<string> {
   })
 
   const recastUserOpHash = await recastSmartAccountClient.sendUserOperation({
-    calls: [{ to: OPNVOTE_ADDRESS, value: 0n, data: recastVoteCalldata }] as const,
+    calls: [{ to: opnVoteAddress as Hex, value: 0n, data: recastVoteCalldata }] as const,
     nonce: BigInt(recastUserOpParams.nonce),
   })
 

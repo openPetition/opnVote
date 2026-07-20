@@ -2,40 +2,73 @@
 import styles from '../styles/BallotPaper.module.css';
 import { useState, useEffect } from "react";
 import Question from "./Question.jsx";
-import { sendVotes } from "@/app/pollingstation/sendVotes";
 import { useTranslation } from 'next-i18next';
 import { useOpnVoteStore } from "@/opnVoteStore";
 import globalConst from "@/constants";
 import Button from "@/components/Button";
-import { useVoting } from "@/app/VotingContext"
+import { useVoting } from "@/app/VotingContext";
 import Notification from "@/components/Notification";
-
+import { VoteOption } from "votingsystem";
+import Modal from "@/components/Modal";
 
 export default function BallotPaper(props) {
-    const { setSmartAccountClient } = useVoting(); // Holt den Setter aus dem Context
-
     const { allowedToVote, votingCredentials, isVoteRecast, showElection } = props;
-    const { updatePage, voting, updateVoting, updateUserOpHash, userOpHash } = useOpnVoteStore((state) => state);
+    const { updatePage, voting, updateVoting, voteClient, hashes, updateHashes } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
-    const [votes, setVotes] = useState({});
     const [electionState, setElectionState] = useState(globalConst.electionState.ONGOING);
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [showInvalidVotesPopup, setShowInvalidVotesPopup] = useState(false);
     const election = voting.election;
-
-    // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
+    const [votes, setVotes] = useState(() =>
+        voting.electionInformation.questions.map(() => VoteOption.Invalid)
+    );
     const [ballotStationState, setBallotStationState] = useState({
         showSendError: false,
         pending: false,
     });
 
+    const processVotes = () => {
+        const hasInvalidVote = votes.some(vote => vote === VoteOption.Invalid);
+
+        if (hasInvalidVote) {
+            setShowInvalidVotesPopup(true);
+        } else {
+            saveVotes();
+        }
+    };
+
+    const handleConfirmInvalidVotes = () => {
+        setShowInvalidVotesPopup(false);
+        saveVotes();
+    };
+
     const saveVotes = async () => {
+        let response = "";
+        let userOpHash = '';
         setBallotStationState({ ...ballotStationState, pending: true });
-        //result will be changed still ! we have to work with result (error notes.. redirect or sth else..)
+
         try {
-            const userOpHash = await sendVotes(votes, votingCredentials, voting.election.publicKey, isVoteRecast, setSmartAccountClient);
-            if (userOpHash) {
-                updateUserOpHash(userOpHash);
+            if (voteClient && typeof voteClient.vote === 'function') {
+                const votesDTO = {
+                    credentials: voteClient.importCredentials(voting.registerCode),
+                    votes: votes.map(vote => ({ value: vote })),
+                };
+                if (!isVoteRecast) {
+                    response = await voteClient.vote(votesDTO);
+                    if (response.ok) {
+                        userOpHash = response.value.txHash;
+                    }
+                } else {
+                    response = await voteClient.recastVote(votesDTO);
+                    if (response.ok) {
+                        userOpHash = response.value.txHash;
+                    }
+                }
+            }
+
+            if (userOpHash && userOpHash.length > 0) {
+                updateHashes(response.value);
                 updateVoting({ votesuccess: false, transactionViewUrl: '' }); //invalidate
                 updatePage({ current: globalConst.pages.VOTETRANSACTION });
             }
@@ -80,18 +113,22 @@ export default function BallotPaper(props) {
                 </div>
                 <div className={styles.ballot_paper_border}></div>
                 <div className={`op__padding_standard_20 op__wrapper__flex ${styles.op__wrapper__flex}`}>
+
                     {voting.electionInformation.questions.map((question, index) =>
                         <Question
                             key={index}
                             imageUrl={question.imageUrl}
                             questionKey={index}
                             question={question.text}
-                            selectedVote={votes[index]}
+                            selectedVote={votes[index] ?? VoteOption.Invalid}
                             showVoteOptions={allowedToVote}
-                            setVote={(selection) => setVotes(votes => ({
-                                ...votes,
-                                [index]: selection
-                            }))}
+                            setVote={(selection) => {
+                                setVotes((prevVotes) =>
+                                    prevVotes.map((currentVote, voteIndex) =>
+                                        voteIndex === index ? selection : currentVote
+                                    )
+                                );
+                            }}
                         />
 
                     )}
@@ -104,7 +141,7 @@ export default function BallotPaper(props) {
                     <>
                         <div className="op__center-align">
                             <Button
-                                onClick={saveVotes}
+                                onClick={processVotes}
                                 disabled={ballotStationState.pending}
                                 type="primary"
                                 id="test_btn_sendvote"
@@ -124,7 +161,41 @@ export default function BallotPaper(props) {
                         >{t("common.gotooverview")}</Button>
                     </div>
                 }
-            </div>
+                <Modal
+                    showModal={showInvalidVotesPopup}
+                    ctaButtonFunction={handleConfirmInvalidVotes}
+                    onClose={() => setShowInvalidVotesPopup(false)}
+                >
+                    <div>
+                        <div style={{
+                            display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px'
+                        }}>
+                            <Notification
+                                type="attention"
+                                headline={t("ballotpaper.popup.missingselection.title")}
+                                text={t("ballotpaper.popup.missingselection.message")}
+                            />
+                        </div>
+                        <Button
+                            type="primary"
+                            stretched={true}
+                            onClick={() => setShowInvalidVotesPopup(false)}
+                            style={{
+                                marginBottom: '20px'
+                            }}
+                        >
+                            {t("ballotpaper.popup.missingselection.cancel")}
+                        </Button>
+                        <Button
+                            type="secondary"
+                            stretched={true}
+                            onClick={() => handleConfirmInvalidVotes()}
+                        >
+                            {t("ballotpaper.popup.missingselection.continue")}
+                        </Button>
+                    </div>
+                </Modal >
+            </div >
         </>
 
     );

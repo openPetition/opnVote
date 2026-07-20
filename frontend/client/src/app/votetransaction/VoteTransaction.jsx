@@ -11,15 +11,13 @@ import { useOpnVoteStore, modes } from "../../opnVoteStore";
 import styles from './styles/votetransaction.module.css';
 import globalConst from "@/constants";
 import { Check } from "lucide-react";
-import { privateKeyToAccount } from 'viem/accounts';
-import { checkBallot } from "@/util";
 import { useVoting } from '../VotingContext';
-import { waitForReceipt } from "../pollingstation/sendVotes";
 
 export default function VoteTransaction() {
-    const { userOpHash, voting, updateVoting, updateUserOpHash, updatePage } = useOpnVoteStore((state) => state);
+    const { voting, user, updateVoting, updatePage, voteClient, hashes } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [transactionHash, setTransactionHash] = useState();
+    const [isCheckingTransaction, setIsCheckingTransaction] = useState(false);
     const { smartAccountClient } = useVoting(); // Holt den fertigen Client aus Seite 1
 
     const TRANSACTION_STATE_CHECKING = 'checking';
@@ -39,67 +37,54 @@ export default function VoteTransaction() {
         notificationType: '',
     });
 
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
     const checkTransaction = async () => {
-        try {
-            const txHash = await waitForReceipt(smartAccountClient, userOpHash);
-
-            const { credentials } = checkBallot(voting.election, voting.registerCode);
-            const voterAccount = privateKeyToAccount(credentials.voterWallet.privateKey);
-            const voterAddress = voterAccount.address.toLowerCase()
-
-            for (let attempt = 1; attempt <= 10; attempt++) {
-                const { voteCasts } = await querySubgraphTransactionState(voting.electionId, voterAddress)
-                if (voteCasts.length > 0) {
-                    console.log('Vote indexed in subgraph ✓', voteCasts[0].transactionHash); // leave in for now
-                    setTransactionHash(voteCasts[0].transactionHash);
-                    updateVoting({ votesuccess: true });
-                    updateUserOpHash(''); //invalidation to prevent wrong redirects from pollingstation
-                    break;
+        if (voteClient && typeof voteClient.registerVoter === 'function') {
+            try {
+                let credentials = null;
+                let response = "";
+                credentials = voteClient.importCredentials(voting.registerCode);
+                const requestObj = voting.isVoteRecast ? { credentials: credentials, txHash: hashes.txHash } : { credentials: credentials };
+                for (let attempt = 1; attempt <= 10; attempt++) {
+                    response = await voteClient.checkVote(requestObj);
+                    if (response && response.ok && response.value.indexed) {
+                        setTransactionHash(response.value.txHash);
+                        updateVoting({ votesuccess: true });
+                        setVoteResultState({
+                            ...voteResultState,
+                            transactionStateText: t('votetransactionstate.statustitle.success'),
+                            transactionStateSubText: t('votetransactionstate.statustext.success'),
+                            transactionState: TRANSACTION_STATE_SUCCESS,
+                            notificationText: t('votetransactionstate.info.success'),
+                            notificationType: 'success',
+                        });
+                        break;
+                    } else {
+                        if (attempt === 10) {
+                            console.log('Vote not yet indexed after 10 attempts (subgraph may lag — tx succeeded)');
+                        } else {
+                            console.log(`Waiting for subgraph... (attempt ${attempt}/10)`);
+                            await sleep(TRANSACTION_PENDING_DELAY);
+                        }
+                    }
                 }
-                if (attempt === 10) {
-                    console.log('Vote not yet indexed after 10 attempts (subgraph may lag — tx succeeded)');
-                } else {
-                    console.log(`Waiting for subgraph... (attempt ${attempt}/10)`);
-                    await sleep(TRANSACTION_PENDING_DELAY);
-                }
-            }
-
-            if (txHash && txHash.length > 0) {
-                setVoteResultState({
-                    ...voteResultState,
-                    transactionStateText: t('votetransactionstate.statustitle.success'),
-                    transactionStateSubText: t('votetransactionstate.statustext.success'),
-                    transactionState: TRANSACTION_STATE_SUCCESS,
-                    notificationText: t('votetransactionstate.info.success'),
-                    notificationType: 'success',
-                });
-            }
-
-        } catch (error) {
-            console.log(error);
-            let notificationText;
-            if (error instanceof ServerError) {
-                notificationText = t('votetransactionstate.error.servererror');
-            } else if (error instanceof AlreadyVotedError) {
+            } catch (error) {
+                let notificationText;
+                // @TODO distinguish different error types
+                // notificationText = t('votetransactionstate.error.servererror');
+                // notificationText = t('votetransactionstate.error.alreadyvoted')
+                notificationText = t('votetransactionstate.error.unkown');
+                updateVoting({ votesuccess: false });
                 setVoteResultState({
                     ...voteResultState,
                     transactionStateText: t('votetransactionstate.statustitle.error'),
                     transactionStateSubText: '',
                     transactionState: TRANSACTION_STATE_ERROR,
                     notificationType: 'error',
-                    notificationText: t('votetransactionstate.error.alreadyvoted'),
+                    notificationText: notificationText,
                 });
-                return;
-            } else {
-                notificationText = t('votetransactionstate.error.unknown');
             }
-
-            setVoteResultState({
-                ...voteResultState,
-                transactionState: TRANSACTION_STATE_ERROR,
-                notificationType: 'error',
-                notificationText: notificationText,
-            });
         }
     };
 
@@ -117,11 +102,19 @@ export default function VoteTransaction() {
     };
 
     useEffect(() => {
-        // be sure, that we only call it once at first
-        if (smartAccountClient && userOpHash?.length > 0 && voteResultState.transactionState === TRANSACTION_STATE_CHECKING) {
+        if (isCheckingTransaction) {
+            setIsCheckingTransaction(false);
             checkTransaction();
+        }
+    }, [isCheckingTransaction]);
+
+    useEffect(() => {
+        // be sure, that we only call it once at first
+        if (hashes.userOpHash?.length > 0 && voteResultState.transactionState === TRANSACTION_STATE_CHECKING) {
+            setIsCheckingTransaction(true);
             return;
         }
+
         if (voting.votesuccess) {
             setVoteResultState({
                 ...voteResultState,
@@ -132,7 +125,7 @@ export default function VoteTransaction() {
                 notificationType: 'success',
             });
         }
-    }, [userOpHash, smartAccountClient]);
+    }, [hashes]);
 
     return (
         <>

@@ -1,8 +1,12 @@
 import { Request, Response, NextFunction } from 'express'
 import { ApiResponse } from '../types/apiResponses'
-import { VotingTransaction, validateVotingTransaction } from 'votingsystem'
+import { validateRecastingVotingTransaction, validateVotingTransaction } from 'votingsystem'
 import { ethers } from 'ethers'
 import { logger } from '../utils/logger'
+import {
+  isRecastingVotingTransaction,
+  SponsorVotingTransaction,
+} from '../types/sponsorTransaction'
 
 // EIP-7702 delegation designator prefix: 0xef0100
 const EIP7702_PREFIX = '0xef0100'
@@ -13,7 +17,7 @@ const EIP7702_PREFIX = '0xef0100'
  */
 export async function checkSponsorEligibility(req: Request, res: Response, next: NextFunction) {
   try {
-    const votingTransaction = req.body.votingTransaction as VotingTransaction
+    const votingTransaction = req.body.votingTransaction as SponsorVotingTransaction
 
     if (!votingTransaction) {
       return res.status(400).json({
@@ -22,7 +26,11 @@ export async function checkSponsorEligibility(req: Request, res: Response, next:
       } as ApiResponse<null>)
     }
 
-    validateVotingTransaction(votingTransaction)
+    if (isRecastingVotingTransaction(votingTransaction)) {
+      validateRecastingVotingTransaction(votingTransaction)
+    } else {
+      validateVotingTransaction(votingTransaction)
+    }
 
     // Verify EIP-7702 account delegation
     const provider = req.app.get('rpcProvider') as ethers.JsonRpcProvider

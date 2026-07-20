@@ -16,6 +16,7 @@ export default function Notification(props) {
         success: '/images/notificationicons/icon_success_white.svg',
         info: '/images/notificationicons/icon_info.svg',
         error: '/images/notificationicons/icon_error.svg',
+        attention: '/images/notificationicons/icon_attention.svg'
     };
 
     useEffect(() => {

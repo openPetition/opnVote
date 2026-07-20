@@ -5,12 +5,13 @@ import { ethers } from 'ethers'
 import { GraphQLClient, gql } from 'graphql-request'
 import { logger } from './utils/logger'
 import { getEnvVar } from './utils/utils'
-import opnvoteAbi from './abis/opnvote-0.2.0.json'
+import opnvoteAbi from './abis/opnvote-0.3.0.json'
 import {
   decryptVotes,
   EncryptedVotes,
   EncryptionKey,
   EncryptionType,
+  QuestionResult,
   VoteOption,
 } from 'votingsystem'
 const GRAPHQL_ENDPOINT = getEnvVar<string>('GRAPHQL_ENDPOINT', 'string')
@@ -286,20 +287,17 @@ async function main() {
   } else {
     logger.info('Decrypting votes and tallying results...')
 
-    const tallyByQuestion = new Map<number, Record<VoteOption, number>>()
+    const tallyByQuestion = new Map<number, QuestionResult>()
 
     for (let questionId = 0; questionId < NUMBER_OF_QUESTIONS; questionId++) {
-      tallyByQuestion.set(questionId, {
-        [VoteOption.Yes]: 0,
-        [VoteOption.No]: 0,
-        [VoteOption.Abstain]: 0,
-      })
+      tallyByQuestion.set(questionId, { yes: 0, no: 0, abstain: 0, invalid: 0, invalidTechnical: 0 })
     }
 
-    const optionLabels: Record<VoteOption, string> = {
-      [VoteOption.Yes]: 'Yes',
-      [VoteOption.No]: 'No',
-      [VoteOption.Abstain]: 'Abstain',
+    const optionFields: Record<VoteOption, 'yes' | 'no' | 'abstain' | 'invalid'> = {
+      [VoteOption.Yes]: 'yes',
+      [VoteOption.No]: 'no',
+      [VoteOption.Abstain]: 'abstain',
+      [VoteOption.Invalid]: 'invalid',
     }
 
     const privateKey: EncryptionKey = {
@@ -362,7 +360,7 @@ async function main() {
         for (let questionId = 0; questionId < NUMBER_OF_QUESTIONS; questionId++) {
           const decryptedVote = decryptedVotes[questionId]
           const questionTally = tallyByQuestion.get(questionId)!
-          questionTally[decryptedVote.value as VoteOption]++
+          questionTally[optionFields[decryptedVote.value as VoteOption]]++
         }
       } catch (error) {
         decryptionErrors++
@@ -383,18 +381,23 @@ async function main() {
     logger.info(`Invalid ballots (decrypted but invalid): ${invalidBallots}`)
 
     const sortedQuestions = Array.from(tallyByQuestion.keys()).sort((a, b) => a - b)
-    const expectedAnswersPerQuestion = successfullyDecrypted
+    const invalidTechnical = decryptionErrors + invalidBallots
+    for (const result of tallyByQuestion.values()) {
+      result.invalidTechnical = invalidTechnical
+    }
+    const expectedAnswersPerQuestion = votesMap.size
+    const totalAnswers = (result: QuestionResult) =>
+      result.yes + result.no + result.abstain + result.invalid + result.invalidTechnical
 
     for (const questionId of sortedQuestions) {
-      const questionTally = tallyByQuestion.get(questionId)!
+      const result = tallyByQuestion.get(questionId)!
       logger.info(`Question ${questionId}:`)
-      logger.info(`  ${optionLabels[VoteOption.Yes]}: ${questionTally[VoteOption.Yes]}`)
-      logger.info(`  ${optionLabels[VoteOption.No]}: ${questionTally[VoteOption.No]}`)
-      logger.info(`  ${optionLabels[VoteOption.Abstain]}: ${questionTally[VoteOption.Abstain]}`)
-      const total =
-        questionTally[VoteOption.Yes] +
-        questionTally[VoteOption.No] +
-        questionTally[VoteOption.Abstain]
+      logger.info(`  Yes: ${result.yes}`)
+      logger.info(`  No: ${result.no}`)
+      logger.info(`  Abstain: ${result.abstain}`)
+      logger.info(`  Invalid: ${result.invalid}`)
+      logger.info(`  Invalid (technical): ${result.invalidTechnical}`)
+      const total = totalAnswers(result)
       logger.info(`  Total: ${total}`)
 
       if (total !== expectedAnswersPerQuestion) {
@@ -409,11 +412,7 @@ async function main() {
 
     let allQuestionsValid = true
     for (const questionId of sortedQuestions) {
-      const questionTally = tallyByQuestion.get(questionId)!
-      const total =
-        questionTally[VoteOption.Yes] +
-        questionTally[VoteOption.No] +
-        questionTally[VoteOption.Abstain]
+      const total = totalAnswers(tallyByQuestion.get(questionId)!)
 
       logger.info(`  Q${questionId}: ${total}/${expectedAnswersPerQuestion} answers`)
 
