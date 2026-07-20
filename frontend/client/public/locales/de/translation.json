@@ -1,4 +1,8 @@
 {
+    "ballotpaper.popup.missingselection.cancel": "Stimmzettel bearbeiten",
+    "ballotpaper.popup.missingselection.continue": "Stimmzettel trotzdem abgeben",
+    "ballotpaper.popup.missingselection.message": "Sie haben nicht für alle Fragen eine Auswahl getroffen. Diese Fragen werden als UNGÜLTIG gezählt. Möchten Sie Ihren Stimmzettel trotzdem so abgeben?",
+    "ballotpaper.popup.missingselection.title": "Unvollständiger Stimmzettel",
     "common.abort": "Abbrechen",
     "common.apploadfailed": "Die Applikation konnte nicht geladen werden.",
     "common.apploading": "Die Applikation wird geladen.",
