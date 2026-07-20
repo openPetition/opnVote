@@ -44,14 +44,12 @@ export default function BallotPaper(props) {
     };
 
     const saveVotes = async () => {
-        let credentials = null;
         let response = "";
         let userOpHash = '';
         setBallotStationState({ ...ballotStationState, pending: true });
 
         try {
             if (voteClient && typeof voteClient.vote === 'function') {
-                credentials = voteClient.importCredentials(voting.registerCode);
                 const votesDTO = {
                     credentials: voteClient.importCredentials(voting.registerCode),
                     votes: votes.map(vote => ({ value: vote })),
