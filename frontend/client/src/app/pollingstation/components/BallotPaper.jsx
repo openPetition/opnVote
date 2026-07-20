@@ -6,7 +6,7 @@ import { useTranslation } from 'next-i18next';
 import { useOpnVoteStore } from "@/opnVoteStore";
 import globalConst from "@/constants";
 import Button from "@/components/Button";
-import { useVoting } from "@/app/VotingContext"
+import { useVoting } from "@/app/VotingContext";
 import Notification from "@/components/Notification";
 import { VoteOption } from "votingsystem";
 import Modal from "@/components/Modal";

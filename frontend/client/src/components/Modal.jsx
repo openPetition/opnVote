@@ -14,7 +14,7 @@ export default function Modal(props) {
 
     const closeModal = () => {
         if (onClose) {
-            onClose()
+            onClose();
         };
     };
 
