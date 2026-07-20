@@ -106,7 +106,9 @@ export function handleElectionResultsPublished(event: ElectionResultsPublishedEv
   entity.electionId = event.params.electionId
   entity.yesVotes = event.params.yesVotes
   entity.noVotes = event.params.noVotes
+  entity.abstainVotes = event.params.abstainVotes
   entity.invalidVotes = event.params.invalidVotes
+  entity.invalidTechnicalVotes = event.params.invalidTechnicalVotes
   entity.privateKey = event.params.privateKey
 
   entity.blockNumber = event.block.number

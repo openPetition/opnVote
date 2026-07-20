@@ -162,3 +162,19 @@ export enum VoteOption {
 export type Vote = {
     value: VoteOption;
 };
+
+/**
+ * Tally result of a single question
+ * @property {number} yes - Number of Yes votes
+ * @property {number} no - Number of No votes
+ * @property {number} abstain - Number of Abstain votes
+ * @property {number} invalid - Number of invalid votes (deliberately invalid by voter)
+ * @property {number} invalidTechnical - Number of ballots that could not be decrypted/parsed during tallying
+ */
+export type QuestionResult = {
+    yes: number;
+    no: number;
+    abstain: number;
+    invalid: number;
+    invalidTechnical: number;
+};

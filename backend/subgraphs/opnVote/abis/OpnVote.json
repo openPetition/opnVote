@@ -401,7 +401,17 @@
         "internalType": "uint256[]"
       },
       {
+        "name": "abstainVotes",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
         "name": "invalidVotes",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "invalidTechnicalVotes",
         "type": "uint256[]",
         "internalType": "uint256[]"
       },
@@ -718,7 +728,19 @@
         "internalType": "uint256[]"
       },
       {
+        "name": "abstainVotes",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
+      },
+      {
         "name": "invalidVotes",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "invalidTechnicalVotes",
         "type": "uint256[]",
         "indexed": false,
         "internalType": "uint256[]"

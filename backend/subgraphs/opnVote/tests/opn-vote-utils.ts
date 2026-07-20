@@ -136,7 +136,9 @@ export function createElectionResultsPublishedEvent(
   electionId: BigInt,
   yesVotes: Array<BigInt>,
   noVotes: Array<BigInt>,
+  abstainVotes: Array<BigInt>,
   invalidVotes: Array<BigInt>,
+  invalidTechnicalVotes: Array<BigInt>,
   privateKey: Bytes
 ): ElectionResultsPublished {
   let electionResultsPublishedEvent =
@@ -164,8 +166,20 @@ export function createElectionResultsPublishedEvent(
   )
   electionResultsPublishedEvent.parameters.push(
     new ethereum.EventParam(
+      "abstainVotes",
+      ethereum.Value.fromUnsignedBigIntArray(abstainVotes)
+    )
+  )
+  electionResultsPublishedEvent.parameters.push(
+    new ethereum.EventParam(
       "invalidVotes",
       ethereum.Value.fromUnsignedBigIntArray(invalidVotes)
+    )
+  )
+  electionResultsPublishedEvent.parameters.push(
+    new ethereum.EventParam(
+      "invalidTechnicalVotes",
+      ethereum.Value.fromUnsignedBigIntArray(invalidTechnicalVotes)
     )
   )
   electionResultsPublishedEvent.parameters.push(

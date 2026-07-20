@@ -6,7 +6,7 @@ import {Election, AuthorizationProvider, Register, ElectionStatus} from "./Struc
 import {BLSVerifier} from "./BLSVerifier.sol";
 
 contract OpnVote is Ownable {
-    string public constant VERSION = "0.3.0";
+    string public constant VERSION = "0.3.1";
 
     /// @return Current contract version
     function version() external pure returns (string memory) {
@@ -96,7 +96,13 @@ contract OpnVote is Ownable {
     event ElectionCanceled(uint256 indexed electionId, string cancelReasonIpfsCid);
 
     event ElectionResultsPublished(
-        uint256 indexed electionId, uint256[] yesVotes, uint256[] noVotes, uint256[] invalidVotes, bytes privateKey
+        uint256 indexed electionId,
+        uint256[] yesVotes,
+        uint256[] noVotes,
+        uint256[] abstainVotes,
+        uint256[] invalidVotes,
+        uint256[] invalidTechnicalVotes,
+        bytes privateKey
     );
 
     /**
@@ -338,21 +344,26 @@ contract OpnVote is Ownable {
         uint256 electionId,
         uint256[] calldata yesVotes,
         uint256[] calldata noVotes,
+        uint256[] calldata abstainVotes,
         uint256[] calldata invalidVotes,
+        uint256[] calldata invalidTechnicalVotes,
         bytes memory privateKey
     ) external onlyOwner {
         Election storage election = elections[electionId];
         require(election.votingStartTime != 0, "Election unknown");
         require(election.status == ElectionStatus.Ended, "Election not ended");
         require(
-            yesVotes.length > 0 && yesVotes.length == noVotes.length && yesVotes.length == invalidVotes.length,
+            yesVotes.length > 0 && yesVotes.length == noVotes.length && yesVotes.length == abstainVotes.length
+                && yesVotes.length == invalidVotes.length && yesVotes.length == invalidTechnicalVotes.length,
             "Array length mismatch"
         );
 
         election.status = ElectionStatus.ResultsPublished;
         election.privateKey = privateKey;
 
-        emit ElectionResultsPublished(electionId, yesVotes, noVotes, invalidVotes, privateKey);
+        emit ElectionResultsPublished(
+            electionId, yesVotes, noVotes, abstainVotes, invalidVotes, invalidTechnicalVotes, privateKey
+        );
         emit ElectionStatusChanged(electionId, ElectionStatus.Ended, ElectionStatus.ResultsPublished);
     }
 }

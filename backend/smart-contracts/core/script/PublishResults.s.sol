@@ -18,18 +18,28 @@ contract PublishResultsScript is Script {
         // TODO: pass vote counts via env or JSON
         uint256[] memory yesVotes = new uint256[](3);
         uint256[] memory noVotes = new uint256[](3);
+        uint256[] memory abstainVotes = new uint256[](3);
         uint256[] memory invalidVotes = new uint256[](3);
+        uint256[] memory invalidTechnicalVotes = new uint256[](3);
         yesVotes[0] = 1;
         yesVotes[1] = 2;
         yesVotes[2] = 3;
         noVotes[0] = 4;
         noVotes[1] = 5;
         noVotes[2] = 6;
+        abstainVotes[0] = 1;
+        abstainVotes[1] = 0;
+        abstainVotes[2] = 1;
         invalidVotes[0] = 0;
         invalidVotes[1] = 1;
         invalidVotes[2] = 2;
+        invalidTechnicalVotes[0] = 0;
+        invalidTechnicalVotes[1] = 0;
+        invalidTechnicalVotes[2] = 1;
 
         vm.startBroadcast();
-        opnVote.publishElectionResults(electionId, yesVotes, noVotes, invalidVotes, privateKey);
+        opnVote.publishElectionResults(
+            electionId, yesVotes, noVotes, abstainVotes, invalidVotes, invalidTechnicalVotes, privateKey
+        );
     }
 }
