@@ -29,23 +29,21 @@ export default function BallotPaper(props) {
     });
 
     const processVotes = () => {
-        const readyVoteMap = votes.map(vote => ({ value: vote }));
         const hasInvalidVote = votes.some(vote => vote === VoteOption.Invalid);
 
         if (hasInvalidVote) {
             setShowInvalidVotesPopup(true);
         } else {
-            saveVotes(readyVoteMap);
+            saveVotes();
         }
     };
 
     const handleConfirmInvalidVotes = () => {
         setShowInvalidVotesPopup(false);
-        const readyVoteMap = votes.map(vote => ({ value: vote }));
-        saveVotes(readyVoteMap);
+        saveVotes();
     };
 
-    const saveVotes = async (readyVoteMap) => {
+    const saveVotes = async () => {
         let credentials = null;
         let response = "";
         let userOpHash = '';
@@ -54,13 +52,17 @@ export default function BallotPaper(props) {
         try {
             if (voteClient && typeof voteClient.vote === 'function') {
                 credentials = voteClient.importCredentials(voting.registerCode);
+                const votesDTO = {
+                    credentials: voteClient.importCredentials(voting.registerCode),
+                    votes: votes.map(vote => ({ value: vote })),
+                };
                 if (!isVoteRecast) {
-                    response = await voteClient.vote({ credentials: credentials, votes: readyVoteMap });
+                    response = await voteClient.vote(votesDTO);
                     if (response.ok) {
                         userOpHash = response.value.txHash;
                     }
                 } else {
-                    response = await voteClient.recastVote({ credentials: credentials, votes: readyVoteMap });
+                    response = await voteClient.recastVote(votesDTO);
                     if (response.ok) {
                         userOpHash = response.value.txHash;
                     }

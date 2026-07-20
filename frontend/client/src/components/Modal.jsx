@@ -13,7 +13,9 @@ export default function Modal(props) {
     const modalRef = useRef(null);
 
     const closeModal = () => {
-        if (onClose) onClose();
+        if (onClose) {
+            onClose()
+        };
     };
 
     const handleClickOutside = (event) => {
