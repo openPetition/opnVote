@@ -29,8 +29,8 @@ export default function BallotPaper(props) {
     });
 
     const processVotes = () => {
-        const readyVoteMap = votes.map(v => ({ value: v }));
-        const hasInvalidVote = votes.some(v => v === VoteOption.Invalid);
+        const readyVoteMap = votes.map(vote => ({ value: vote }));
+        const hasInvalidVote = votes.some(vote => vote === VoteOption.Invalid);
 
         if (hasInvalidVote) {
             setShowInvalidVotesPopup(true);
@@ -41,7 +41,7 @@ export default function BallotPaper(props) {
 
     const handleConfirmInvalidVotes = () => {
         setShowInvalidVotesPopup(false);
-        const readyVoteMap = votes.map(v => ({ value: v }));
+        const readyVoteMap = votes.map(vote => ({ value: vote }));
         saveVotes(readyVoteMap);
     };
 
@@ -92,7 +92,6 @@ export default function BallotPaper(props) {
         const tempEndTime = new Date(Number(voting.election.votingEndTime) * 1000);
         setStartDate(tempStartTime);
         setEndDate(tempEndTime);
-        console.log(votes);
     }, []);
 
     return (
