@@ -93,6 +93,7 @@ export default function ErrorPopup({ error, onClose, supportEmail = 'info@opn.vo
     return (
         <Modal
             showModal={true}
+            contentClassName={styles.errorPopup}
             headerText={t(error.userError.title)}
             ctaButtonText={t(error.userError.button)}
             ctaButtonFunction={dismissError}

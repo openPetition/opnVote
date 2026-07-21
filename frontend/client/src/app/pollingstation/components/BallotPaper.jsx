@@ -10,6 +10,7 @@ import { useVoting } from "@/app/VotingContext";
 import Notification from "@/components/Notification";
 import { VoteOption } from "votingsystem";
 import Modal from "@/components/Modal";
+import ErrorPopup from "@/components/ErrorPopup";
 
 export default function BallotPaper(props) {
     const { allowedToVote, votingCredentials, isVoteRecast, showElection } = props;
@@ -27,6 +28,8 @@ export default function BallotPaper(props) {
         showSendError: false,
         pending: false,
     });
+    const [sendErrorDetails, setSendErrorDetails] = useState(null);
+    const [errorPopup, setErrorPopup] = useState(null);
 
     const processVotes = () => {
         const hasInvalidVote = votes.some(vote => vote === VoteOption.Invalid);
@@ -49,6 +52,8 @@ export default function BallotPaper(props) {
         setBallotStationState({ ...ballotStationState, pending: true });
 
         try {
+            throw new Error('Testfehler: Vote-Übertragung simuliert');
+
             if (voteClient && typeof voteClient.vote === 'function') {
                 const votesDTO = {
                     credentials: voteClient.importCredentials(voting.registerCode),
@@ -73,6 +78,19 @@ export default function BallotPaper(props) {
                 updatePage({ current: globalConst.pages.VOTETRANSACTION });
             }
         } catch (e) {
+            setSendErrorDetails({
+                userError: {
+                    title: 'pollingstation.button.errorpopup.headline',
+                    text: 'pollingstation.button.errormessage',
+                    button: 'pollingstation.button.errorpopup.button',
+                },
+                location: 'pollingstation.button.errorpopup.headline',
+                module: 'BallotPaper',
+                block: 'saveVotes',
+                technicalDetails: e instanceof Error
+                    ? e.message || e.name
+                    : t('errorpopup.technicaldetails.unavailable'),
+            });
             setBallotStationState({
                 ...ballotStationState,
                 showSendError: t('pollingstation.button.errormessage'),
@@ -148,7 +166,12 @@ export default function BallotPaper(props) {
                             >{t("pollingstation.button.savevotes")}</Button>
                         </div>
                         {ballotStationState.showSendError && (
-                            <Notification type="error" text={ballotStationState.showSendError} />
+                            <Notification
+                                type="error"
+                                text={ballotStationState.showSendError}
+                                linkText={t('pollingstation.button.errorpopup.link')}
+                                linkAction={() => setErrorPopup(sendErrorDetails)}
+                            />
                         )}
                     </>
                 )
@@ -195,6 +218,7 @@ export default function BallotPaper(props) {
                         </Button>
                     </div>
                 </Modal >
+                <ErrorPopup error={errorPopup} onClose={() => setErrorPopup(null)} />
             </div >
         </>
 

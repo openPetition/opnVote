@@ -9,7 +9,7 @@ import Button from './Button';
  * @returns
  */
 export default function Notification(props) {
-    const { type, text, headline, additionalGlobalClass, buttonText, buttonAction } = props;
+    const { type, text, headline, additionalGlobalClass, buttonText, buttonAction, linkText, linkAction } = props;
     const [NotificationIcon, setNotifcationIcon] = useState('');
 
     const iconComponents = {
@@ -31,6 +31,15 @@ export default function Notification(props) {
                     <div>
                         {headline && headline.length > 0 && (<strong>{headline}{' '}</strong>)}
                         {text && text.length > 0 && (<><div dangerouslySetInnerHTML={{ __html: text }} /></>)}
+                        {linkText && (
+                            <button
+                                className={styles.linkButton}
+                                type="button"
+                                onClick={linkAction}
+                            >
+                                {linkText}
+                            </button>
+                        )}
                     </div>
                 </div>
                 {buttonText && (
