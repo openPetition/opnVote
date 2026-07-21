@@ -80,8 +80,6 @@ export default function Register() {
         });
 
         try {
-            throw new Error('Testfehler: Wahlschein konnte nicht beantragt werden');
-
             if (voteClient && typeof voteClient.registerVoter === 'function') {
                 let stringCredits = "";
                 let response = "";
