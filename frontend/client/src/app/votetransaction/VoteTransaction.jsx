@@ -6,6 +6,9 @@ import { useTranslation, Trans } from "next-i18next";
 import Button from '@/components/Button';
 import Loading from '@/components/Loading';
 import Headline from "@/components/Headline";
+import Notification from '@/components/Notification';
+import ErrorPopup from '@/components/ErrorPopup';
+import { VoteTransactionError } from '@/errors';
 import { AlreadyVotedError, ServerError, querySubgraphTransactionState } from '../../service';
 import { useOpnVoteStore, modes } from "../../opnVoteStore";
 import styles from './styles/votetransaction.module.css';
@@ -18,6 +21,8 @@ export default function VoteTransaction() {
     const { t } = useTranslation();
     const [transactionHash, setTransactionHash] = useState();
     const [isCheckingTransaction, setIsCheckingTransaction] = useState(false);
+    const [transactionErrorDetails, setTransactionErrorDetails] = useState(null);
+    const [errorPopup, setErrorPopup] = useState(null);
     const { smartAccountClient } = useVoting(); // Holt den fertigen Client aus Seite 1
 
     const TRANSACTION_STATE_CHECKING = 'checking';
@@ -42,6 +47,8 @@ export default function VoteTransaction() {
     const checkTransaction = async () => {
         if (voteClient && typeof voteClient.registerVoter === 'function') {
             try {
+                throw new Error('Testfehler: Transaktionsstatus konnte nicht abgefragt werden');
+
                 let credentials = null;
                 let response = "";
                 credentials = voteClient.importCredentials(voting.registerCode);
@@ -74,7 +81,16 @@ export default function VoteTransaction() {
                 // @TODO distinguish different error types
                 // notificationText = t('votetransactionstate.error.servererror');
                 // notificationText = t('votetransactionstate.error.alreadyvoted')
-                notificationText = t('votetransactionstate.error.unkown');
+                notificationText = t('votetransactionstate.error.unknown');
+                setTransactionErrorDetails({
+                    userError: new VoteTransactionError(),
+                    location: 'votetransactionstate.errorpopup.headline',
+                    module: 'VoteTransaction',
+                    block: 'checkTransaction',
+                    technicalDetails: error instanceof Error
+                        ? error.message || error.name
+                        : t('errorpopup.technicaldetails.unavailable'),
+                });
                 updateVoting({ votesuccess: false });
                 setVoteResultState({
                     ...voteResultState,
@@ -165,7 +181,16 @@ export default function VoteTransaction() {
                                 </>)}
                             </>
                         ) : (
-                            <>{voteResultState.notificationText}</>
+                            voteResultState.transactionState === TRANSACTION_STATE_ERROR ? (
+                                <Notification
+                                    type="error"
+                                    text={voteResultState.notificationText}
+                                    linkText={t('votetransactionstate.errorpopup.link')}
+                                    linkAction={() => setErrorPopup(transactionErrorDetails)}
+                                />
+                            ) : (
+                                <>{voteResultState.notificationText}</>
+                            )
                         )}
                     </div>
                 </div>
@@ -175,6 +200,7 @@ export default function VoteTransaction() {
                     </div>
                 )}
             </div>
+            <ErrorPopup error={errorPopup} onClose={() => setErrorPopup(null)} />
         </>
     );
 }

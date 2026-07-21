@@ -47,3 +47,15 @@ export class KeyTextInvalidError {
     title = "scanuploadqrcode.notification.error.key.text.popup.headline";
     button = "scanuploadqrcode.notification.error.key.text.popup.buttontext";
 }
+
+export class VoteSubmissionError {
+    text = "pollingstation.button.errormessage";
+    title = "pollingstation.button.errorpopup.headline";
+    button = "pollingstation.button.errorpopup.button";
+}
+
+export class VoteTransactionError {
+    text = "votetransactionstate.error.unknown";
+    title = "votetransactionstate.errorpopup.headline";
+    button = "votetransactionstate.errorpopup.button";
+}

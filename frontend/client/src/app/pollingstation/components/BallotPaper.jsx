@@ -11,6 +11,7 @@ import Notification from "@/components/Notification";
 import { VoteOption } from "votingsystem";
 import Modal from "@/components/Modal";
 import ErrorPopup from "@/components/ErrorPopup";
+import { VoteSubmissionError } from "@/errors";
 
 export default function BallotPaper(props) {
     const { allowedToVote, votingCredentials, isVoteRecast, showElection } = props;
@@ -52,8 +53,6 @@ export default function BallotPaper(props) {
         setBallotStationState({ ...ballotStationState, pending: true });
 
         try {
-            throw new Error('Testfehler: Vote-Übertragung simuliert');
-
             if (voteClient && typeof voteClient.vote === 'function') {
                 const votesDTO = {
                     credentials: voteClient.importCredentials(voting.registerCode),
@@ -79,11 +78,7 @@ export default function BallotPaper(props) {
             }
         } catch (e) {
             setSendErrorDetails({
-                userError: {
-                    title: 'pollingstation.button.errorpopup.headline',
-                    text: 'pollingstation.button.errormessage',
-                    button: 'pollingstation.button.errorpopup.button',
-                },
+                userError: new VoteSubmissionError(),
                 location: 'pollingstation.button.errorpopup.headline',
                 module: 'BallotPaper',
                 block: 'saveVotes',
