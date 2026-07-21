@@ -19,6 +19,12 @@ import Headline from "@/components/Headline";
 import Modal from "@/components/Modal";
 import { createPDF } from "@/save-pdf";
 import AddToCalendar from '@/components/AddToCalendar';
+import ErrorPopup from '@/components/ErrorPopup';
+import {
+    ElectionPermitAlreadyRegisteredError,
+    VoterRegistrationError,
+    VoterSessionExpiredError,
+} from '@/errors';
 
 export default function Register() {
     const { t } = useTranslation();
@@ -33,6 +39,8 @@ export default function Register() {
     const [endDate, setEndDate] = useState("");
     const [registerCode, setRegisterCode] = useState("");
     const [showMod, setShowMod] = useState(false);
+    const [registrationErrorDetails, setRegistrationErrorDetails] = useState(null);
+    const [errorPopup, setErrorPopup] = useState(null);
     const election = voting.election;
     const electionTitle = voting.electionInformation.title;
     const electionTitleSanitized = electionTitle
@@ -72,6 +80,8 @@ export default function Register() {
         });
 
         try {
+            throw new Error('Testfehler: Wahlschein konnte nicht beantragt werden');
+
             if (voteClient && typeof voteClient.registerVoter === 'function') {
                 let stringCredits = "";
                 let response = "";
@@ -86,23 +96,37 @@ export default function Register() {
             let buttonFunction;
             let buttonText;
             let errorNotificationText;
+            let userError;
 
             switch (error.message) {
                 case globalConst.ERROR.JWTAUTH:
                     buttonFunction = goToStart;
                     buttonText = t('register.error.jwtauthbuttontext');
                     errorNotificationText = t('register.error.jwtauth');
+                    userError = new VoterSessionExpiredError();
                     break;
                 case globalConst.ERROR.ALREADYREGISTERED:
                     buttonFunction = activateQRCodeUpload;
                     buttonText = t('register.error.alreadyregisteredbuttontext');
                     errorNotificationText = t('register.error.alreadyregistered');
+                    userError = new ElectionPermitAlreadyRegisteredError();
                     break;
                 default:
                     buttonFunction = '';
                     buttonText = '';
                     errorNotificationText = t('register.error.general');
+                    userError = new VoterRegistrationError();
             }
+
+            setRegistrationErrorDetails({
+                userError,
+                location: 'register.errorpopup.headline',
+                module: 'Register',
+                block: 'generateVoteCredentials',
+                technicalDetails: error instanceof Error
+                    ? error.message || error.name
+                    : t('errorpopup.technicaldetails.unavailable'),
+            });
 
             setRegisterState({
                 ...registerState,
@@ -315,6 +339,8 @@ export default function Register() {
                             text={registerState.notificationText}
                             buttonText={registerState.notificationButtonText}
                             buttonAction={registerState.notificationButtonAction}
+                            linkText={t('register.errorpopup.link')}
+                            linkAction={() => setErrorPopup(registrationErrorDetails)}
                         />
                     </>
                 )}
@@ -565,6 +591,7 @@ export default function Register() {
                     </>
                 )}
             </div>
+            <ErrorPopup error={errorPopup} onClose={() => setErrorPopup(null)} />
         </>
     );
 }

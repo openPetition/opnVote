@@ -59,3 +59,21 @@ export class VoteTransactionError {
     title = "votetransactionstate.errorpopup.headline";
     button = "votetransactionstate.errorpopup.button";
 }
+
+export class VoterSessionExpiredError {
+    text = "register.error.jwtauth";
+    title = "register.errorpopup.headline";
+    button = "register.errorpopup.button";
+}
+
+export class ElectionPermitAlreadyRegisteredError {
+    text = "register.error.alreadyregistered";
+    title = "register.errorpopup.headline";
+    button = "register.errorpopup.button";
+}
+
+export class VoterRegistrationError {
+    text = "register.error.general";
+    title = "register.errorpopup.headline";
+    button = "register.errorpopup.button";
+}
