@@ -1,4 +1,8 @@
 {
+    "ballotpaper.popup.missingselection.cancel": "Edit ballot paper",
+    "ballotpaper.popup.missingselection.continue": "Submit ballot paper anyway",
+    "ballotpaper.popup.missingselection.message": "You have not made a selection for all questions. These questions will be counted as INVALID. Do you still want to submit your ballot paper this way?",
+    "ballotpaper.popup.missingselection.title": "Incomplete ballot paper",
     "common.abort": "Cancel",
     "common.apploadfailed": "Application could not be loaded.",
     "common.apploading": "Loading application.",

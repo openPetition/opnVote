@@ -161,6 +161,7 @@ export default function Pollingstation() {
                             showNotification: false
                         })
                 }
+                onClose={() => setPollingStationState({ ...pollingStationState, showNotification: false })}
             >
                 <Notification
                     type={pollingStationState.notificationType}

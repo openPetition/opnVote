@@ -7,6 +7,14 @@ export default function Question(props) {
     const { question, questionKey, showVoteOptions, setVote, selectedVote, imageUrl } = props;
     const { t } = useTranslation();
 
+    const handleToggle = (option, isChecked) => {
+        if (isChecked) {
+            setVote(option);
+        } else {
+            setVote(VoteOption.Invalid);
+        }
+    };
+
     return (
         <>
             <div className={`${styles.question_container} `}>
@@ -26,39 +34,39 @@ export default function Question(props) {
                                     <label
                                         htmlFor={`voteselect_${questionKey}_yes`}>{t("pollingstation.question.answer.yes")}</label>
                                     <input
-                                        type="radio"
+                                        type="checkbox"
                                         id={`voteselect_${questionKey}_yes`}
                                         name={`voteselect_${questionKey}`}
                                         defaultChecked={selectedVote === VoteOption.Yes}
                                         className={`${styles.voting_field} ${selectedVote === VoteOption.Yes ? styles.selected : ''}`}
                                         value={t("pollingstation.question.answer.yes")}
-                                        onChange={() => setVote(VoteOption.Yes)}
+                                        onChange={(e) => handleToggle(VoteOption.Yes, e.target.checked)}
                                     />
                                 </div>
                                 <div className={styles.vote_option}>
                                     <label
                                         htmlFor={`voteselect_${questionKey}_no`}>{t("pollingstation.question.answer.no")}</label>
                                     <input
-                                        type="radio"
+                                        type="checkbox"
                                         id={`voteselect_${questionKey}_no`}
                                         name={`voteselect_${questionKey}`}
                                         defaultChecked={selectedVote === VoteOption.No}
                                         className={`${styles.voting_field} ${selectedVote === VoteOption.No ? styles.selected : ''}`}
                                         value={t("pollingstation.question.answer.no")}
-                                        onChange={() => setVote(VoteOption.No)}
+                                        onChange={(e) => handleToggle(VoteOption.No, e.target.checked)}
                                     />
                                 </div>
                                 <div className={styles.vote_option}>
                                     <label
                                         htmlFor={`voteselect_${questionKey}_abstain`}>{t("pollingstation.question.answer.abstain")}</label>
                                     <input
-                                        type="radio"
+                                        type="checkbox"
                                         id={`voteselect_${questionKey}_abstain`}
                                         name={`voteselect_${questionKey}`}
                                         defaultChecked={selectedVote === VoteOption.Abstain}
                                         className={`${styles.voting_field} ${selectedVote === VoteOption.Abstain ? styles.selected : ''}`}
                                         value={t("pollingstation.question.answer.abstain")}
-                                        onChange={() => setVote(VoteOption.Abstain)}
+                                        onChange={(e) => handleToggle(VoteOption.Abstain, e.target.checked)}
                                     />
                                 </div>
                             </div>
@@ -67,7 +75,7 @@ export default function Question(props) {
                 </div>
 
             </div>
-            <hr/>
+            <hr />
         </>
     );
 }

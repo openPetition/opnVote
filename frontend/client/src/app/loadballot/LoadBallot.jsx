@@ -45,6 +45,7 @@ export default function LoadBallot() {
                     headerText={t(error.title)}
                     ctaButtonText={t(error.button)}
                     ctaButtonFunction={() => setError(null)}
+                    onClose={() => setError(null)}
                 >
                     <Notification
                         type="error"
