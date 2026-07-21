@@ -1,8 +1,7 @@
 'use client'
 
 import { qrToElectionCredentials, validateCredentials } from "votingsystem";
-import BallotNotFittingError from "./errors/BallotNotFittingError";
-import BallotInvalidError from "./errors/BallotInvalidError";
+
 
 export function parseJwt(jwtToken) {
     try {
