@@ -77,3 +77,9 @@ export class VoterRegistrationError {
     title = "register.errorpopup.headline";
     button = "register.errorpopup.button";
 }
+
+export class SecurityKeyGenerationError {
+    text = "secret.error.generation.text";
+    title = "secret.error.generation.headline";
+    button = "secret.error.generation.button";
+}
