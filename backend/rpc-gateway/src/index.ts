@@ -2,6 +2,7 @@ import fastify, { FastifyRequest, FastifyReply } from 'fastify'
 import axios from 'axios'
 import * as dotenv from 'dotenv'
 import { logger } from './utils/logger'
+import { registerBundlerRoute } from './bundler'
 dotenv.config()
 
 const server = fastify({ logger: false, trustProxy: true })
@@ -20,7 +21,7 @@ server.register(require('@fastify/rate-limit'), {
     const apiKey = req.headers['x-api-key'] as string
     return apiKey === TEST_KEY
       ? Number(process.env.RPC_RATE_LIMIT_MAX_TEST) || 5000
-      : Number(process.env.RPC_RATE_LIMIT_MAX) || 60
+      : Number(process.env.RPC_RATE_LIMIT_MAX) || 120
   },
   timeWindow: '1 minute',
   keyGenerator: (req: FastifyRequest) => {
@@ -140,6 +141,8 @@ async function checkNodeSync(): Promise<void> {
     usePrimaryNode = true
   }
 }
+
+registerBundlerRoute(server)
 
 server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
   try {
