@@ -39,6 +39,27 @@ import type {
     VoteStatus,
 } from "./types";
 
+const REQUEST_TIMEOUT_MS = 15_000;
+
+function rpcProvider(rpcUrl: string, chainId: number): ethers.JsonRpcProvider {
+    const req = new ethers.FetchRequest(rpcUrl);
+    req.timeout = REQUEST_TIMEOUT_MS;
+    const network = ethers.Network.from(chainId);
+    return new ethers.JsonRpcProvider(req, network, { staticNetwork: network });
+}
+
+async function withTimeout<T>(p: Promise<T>): Promise<T> {
+    let timer: ReturnType<typeof setTimeout>;
+    const timeout = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`rpc timeout after ${REQUEST_TIMEOUT_MS}ms`)), REQUEST_TIMEOUT_MS);
+    });
+    try {
+        return await Promise.race([p, timeout]);
+    } finally {
+        clearTimeout(timer!);
+    }
+}
+
 /**
  * Sends POST-Request as JSON to backend or subgraph endpoint; Returns the data field
  * @param url - Endpoint URL
@@ -57,6 +78,7 @@ async function postJson<T>(
             method: "POST",
             headers: { "Content-Type": "application/json", ...headers },
             body: JSON.stringify(body),
+            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         });
     } catch (e) {
         return { ok: false, error: `network error: ${String(e)}`, retryable: true };
@@ -144,9 +166,11 @@ async function getPaymasterCaps(config: Configuration): Promise<{ maxCostCap: bi
         const paymaster = new ethers.Contract(
             config.contracts.paymaster,
             PAYMASTER_ABI,
-            new ethers.JsonRpcProvider(config.rpcUrl),
+            rpcProvider(config.rpcUrl, config.chain.id),
         );
-        const [maxCostCap, maxFeePerGasCap] = await Promise.all([paymaster.maxCostCap(), paymaster.maxFeePerGasCap()]);
+        const [maxCostCap, maxFeePerGasCap] = await withTimeout(
+            Promise.all([paymaster.maxCostCap(), paymaster.maxFeePerGasCap()]),
+        );
         const caps = { maxCostCap, maxFeePerGasCap };
         capsCache.set(key, caps);
         return caps;
@@ -167,6 +191,7 @@ async function sponsorOnChain(
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ jsonrpc: "2.0", method: "pimlico_getUserOperationGasPrice", params: [], id: 1 }),
+            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         });
         const gasJson = (await gasRes.json()) as { result?: Record<string, { maxFeePerGas: string; maxPriorityFeePerGas: string }> };
         const tier = gasJson?.result?.fast ?? gasJson?.result?.standard;
@@ -187,13 +212,13 @@ async function sponsorOnChain(
             if (maxPriorityFeePerGas > ceiling) maxPriorityFeePerGas = ceiling;
         }
 
-        const provider = new ethers.JsonRpcProvider(config.rpcUrl);
+        const provider = rpcProvider(config.rpcUrl, config.chain.id);
         const entryPoint = new ethers.Contract(
             config.contracts.entryPoint,
             ["function getNonce(address sender, uint192 key) view returns (uint256)"],
             provider,
         );
-        const nonce: bigint = await entryPoint.getNonce(voterAddress, 0);
+        const nonce: bigint = await withTimeout(entryPoint.getNonce(voterAddress, 0));
 
         return {
             ok: true,
