@@ -97,7 +97,7 @@
     "checkloadballot.upload.title": "Ballot Check",
     "checkloadballot.uploadcomponent.headline": "Check to see if you've saved your ballot correctly!",
     "checkloadballot.uploadcomponent.subheadline": "Every web browser behaves differently; to make sure you've saved your ballot in a way that allows you to find it again, you can upload it here as a test.",
-    "checkloadballot.notification.success.text": "",
+    "checkloadballot.notification.success.text": "Your ballot has been verified. Please keep it in a safe place until voting begins, and be sure to mark the voting period on your calendar.",
     "loadsecret.backToSecretCreation": "Back to creating a security key",
     "loadsecret.upload.success": "Security key successfully added",
     "navigation.changelanguage": "change language",
