@@ -20,6 +20,7 @@ import Faq from "@/app/faq/Faq";
 import Glossary from "@/app/glossary/Glossary";
 import Head from "@/components/Head";
 import { VotingProvider } from './VotingContext';
+import CheckLoadBallot from '@/app/checkLoadBallot/CheckLoadBallot'
 
 export default function Home() {
     const { t } = useTranslation();
@@ -80,6 +81,8 @@ export default function Home() {
                                 <ShowSecret />
                             ) || page.current == globalConst.pages.VOTETRANSACTION && (
                                 <VoteTransaction />
+                            ) || page.current == globalConst.pages.CHECKLOADBALLOT && (
+                                <CheckLoadBallot />
                             ) || page.current == globalConst.pages.FAQ && (
                                 <Faq />
                             ) || page.current == globalConst.pages.GLOSSARY && (

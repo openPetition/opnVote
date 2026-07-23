@@ -28,6 +28,7 @@ const globalConst = {
         'SHOWKEY': 'showkey',
         'REGISTER': 'register',
         'LOADBALLOT': 'loadballot',
+        'CHECKLOADBALLOT': 'checkloadballot',
         'POLLINGSTATION': 'pollingstation',
         'VOTETRANSACTION': 'votetransaction',
         'LOADING': 'loading',

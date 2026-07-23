@@ -157,6 +157,7 @@ export const useOpnVoteStore = create(
                 taskId: state.taskId,
                 hashes: state.hashes,
                 page: state.page,
+                notification: state.notification,
             }),
         }
     )
