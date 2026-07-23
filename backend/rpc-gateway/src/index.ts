@@ -1,9 +1,8 @@
+import 'dotenv/config'
 import fastify, { FastifyRequest, FastifyReply } from 'fastify'
 import axios from 'axios'
-import * as dotenv from 'dotenv'
 import { logger } from './utils/logger'
 import { registerBundlerRoute } from './bundler'
-dotenv.config()
 
 const server = fastify({ logger: false, trustProxy: true })
 
