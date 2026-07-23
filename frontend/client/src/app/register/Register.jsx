@@ -2,6 +2,7 @@
 
 import { shallow } from "zustand/shallow";
 import { useState, useEffect } from "react";
+import { useRef } from 'react';
 
 import NextImage from 'next/image';
 import Notification from "../../components/Notification";
@@ -20,6 +21,7 @@ import Modal from "@/components/Modal";
 import { createPDF } from "@/save-pdf";
 import AddToCalendar from '@/components/AddToCalendar';
 import styles from '@/app/createsecret/styles/CreateSecret.module.css'
+import { ArrowDownCircle } from 'lucide-react';
 
 export default function Register() {
     const { t } = useTranslation();
@@ -46,6 +48,7 @@ export default function Register() {
         .replace(/\s+/g, "_")
         .slice(0, 20);
 
+    const addToCalendarButtonRef = useRef(null);
     const delay = ms => new Promise(res => setTimeout(res, ms));
     // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
 
@@ -183,6 +186,18 @@ export default function Register() {
         updatePage({ current: globalConst.pages.LOADKEY });
     };
 
+    const scrollToAddToCalendarButton = () => {
+        setTimeout(() => {
+            if (addToCalendarButtonRef.current) {
+                addToCalendarButtonRef.current.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                });
+            }
+        }, 100)
+
+    };
+
     useEffect(() => {
         // work with qr code value / decoded value in next step
         if (decodedValue && decodedValue.length > 0) {
@@ -299,7 +314,8 @@ export default function Register() {
                         type="success"
                         text={t("register.notification.aftersave.text")}
                     />
-                    {electionState === globalConst.electionState.ONGOING && <div dangerouslySetInnerHTML={{ __html: t("register.popup.aftersave.infotext") }} />}
+                    {electionState === globalConst.electionState.ONGOING &&
+                        <div dangerouslySetInnerHTML={{ __html: t("register.popup.aftersave.infotext") }} />}
 
                     {electionState === globalConst.electionState.FINISHED && (
                         <div style={{ backgroundColor: '#efefef', borderRadius: '4px', padding: '10px' }}>
@@ -335,7 +351,27 @@ export default function Register() {
                     <>
                         <Notification
                             type={registerState.notificationType}
-                            text={registerState.notificationText}
+                            text={
+                                <>
+                                    {registerState.notificationText}{' '}
+                                    <button
+                                        type="button"
+                                        onClick={scrollToAddToCalendarButton}
+                                        style={{
+                                            border: 'none',
+                                            background: 'transparent',
+                                            padding: 0,
+                                            cursor: 'pointer',
+                                            verticalAlign: 'middle',
+                                        }}
+                                    >
+                                        <ArrowDownCircle
+                                            size={20}
+                                            color="#0d6c7f"
+                                        />
+                                    </button>
+                                </>
+                            }
                             buttonText={registerState.notificationButtonText}
                             buttonAction={registerState.notificationButtonAction}
                         />
@@ -457,6 +493,7 @@ export default function Register() {
                                             ELECTIONTITLE: electionTitle,
                                             ELECTIONURL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
                                         })}
+                                        buttonRef={addToCalendarButtonRef}
                                     />
                                 </div>
 
