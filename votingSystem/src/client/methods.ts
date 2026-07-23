@@ -24,7 +24,8 @@ import {
     type RecastingVotingTransaction,
     type VotingTransaction,
 } from "../types/types";
-import { OPNVOTE_ABI } from "./abi";
+import { OPNVOTE_ABI, PAYMASTER_ABI } from "./abi";
+import { RULES_GAS_DEFAULTS, GAS_PRICE_BUFFER_NUM, GAS_PRICE_BUFFER_DEN } from "./gasDefaults";
 import type {
     CheckVoteParams,
     Configuration,
@@ -110,7 +111,109 @@ export async function registerVoter(
 }
 
 /**
- * Encrypts votes, builds and signs transaction, gets it sponsored by SVS
+ * @deprecated backup only; on-chain sponsoring is the default. Used only when svsUrl is set
+ * Signs an EIP-191 voter signature for the SVS to return signed paymaster data.
+ */
+async function sponsorViaSvs(
+    config: Configuration,
+    votingTransaction: VotingTransaction | RecastingVotingTransaction,
+    credentials: ElectionCredentials,
+): Promise<Result<SponsorData>> {
+    let sponsorSignature: string;
+    try {
+        const messageHash = ethers.hashMessage(JSON.stringify(votingTransaction));
+        sponsorSignature = await credentials.voterWallet.signMessage(messageHash);
+    } catch (e) {
+        return { ok: false, error: `failed to sign sponsor request: ${String(e)}`, retryable: false };
+    }
+    return postJson<SponsorData>(`${config.endpoints.svsUrl}/api/userOp/sponsor`, {
+        votingTransaction,
+        voterSignature: { hexString: sponsorSignature },
+    });
+}
+
+const TOTAL_GAS_LIMIT = Object.values(RULES_GAS_DEFAULTS).reduce((sum, v) => sum + BigInt(v), 0n);
+
+const capsCache = new Map<string, { maxCostCap: bigint; maxFeePerGasCap: bigint }>();
+
+async function getPaymasterCaps(config: Configuration): Promise<{ maxCostCap: bigint; maxFeePerGasCap: bigint } | null> {
+    const key = config.contracts.paymaster.toLowerCase();
+    const cached = capsCache.get(key);
+    if (cached) return cached;
+    try {
+        const paymaster = new ethers.Contract(
+            config.contracts.paymaster,
+            PAYMASTER_ABI,
+            new ethers.JsonRpcProvider(config.rpcUrl),
+        );
+        const [maxCostCap, maxFeePerGasCap] = await Promise.all([paymaster.maxCostCap(), paymaster.maxFeePerGasCap()]);
+        const caps = { maxCostCap, maxFeePerGasCap };
+        capsCache.set(key, caps);
+        return caps;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * On-chain sponsoring; paymaster enforces sponsoring rules
+ */
+async function sponsorOnChain(
+    config: Configuration,
+    voterAddress: string,
+): Promise<Result<SponsorData>> {
+    try {
+        const gasRes = await fetch(config.endpoints.bundlerUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ jsonrpc: "2.0", method: "pimlico_getUserOperationGasPrice", params: [], id: 1 }),
+        });
+        const gasJson = (await gasRes.json()) as { result?: Record<string, { maxFeePerGas: string; maxPriorityFeePerGas: string }> };
+        const tier = gasJson?.result?.fast ?? gasJson?.result?.standard;
+        if (!tier) {
+            return { ok: false, error: "failed to fetch gas price from bundler", retryable: true };
+        }
+        let maxFeePerGas = (BigInt(tier.maxFeePerGas) * GAS_PRICE_BUFFER_NUM) / GAS_PRICE_BUFFER_DEN;
+        let maxPriorityFeePerGas = (BigInt(tier.maxPriorityFeePerGas) * GAS_PRICE_BUFFER_NUM) / GAS_PRICE_BUFFER_DEN;
+
+        const caps = await getPaymasterCaps(config); // non-blocking call
+        if (caps) {
+            const costCeiling = caps.maxCostCap / TOTAL_GAS_LIMIT;
+            const ceiling = caps.maxFeePerGasCap < costCeiling ? caps.maxFeePerGasCap : costCeiling;
+            if (BigInt(tier.maxFeePerGas) > ceiling) {
+                return { ok: false, error: "gas price too high to sponsor, try again later", retryable: true };
+            }
+            if (maxFeePerGas > ceiling) maxFeePerGas = ceiling;
+            if (maxPriorityFeePerGas > ceiling) maxPriorityFeePerGas = ceiling;
+        }
+
+        const provider = new ethers.JsonRpcProvider(config.rpcUrl);
+        const entryPoint = new ethers.Contract(
+            config.contracts.entryPoint,
+            ["function getNonce(address sender, uint192 key) view returns (uint256)"],
+            provider,
+        );
+        const nonce: bigint = await entryPoint.getNonce(voterAddress, 0);
+
+        return {
+            ok: true,
+            value: {
+                paymasterData: "0x",
+                userOpParams: {
+                    ...RULES_GAS_DEFAULTS,
+                    maxFeePerGas: maxFeePerGas.toString(),
+                    maxPriorityFeePerGas: maxPriorityFeePerGas.toString(),
+                    nonce: nonce.toString(),
+                },
+            },
+        };
+    } catch (e) {
+        return { ok: false, error: `failed to prepare on-chain sponsor: ${String(e)}`, retryable: true };
+    }
+}
+
+/**
+ * Encrypts votes, builds the vote transaction and gets it sponsored
  * @param config - Client config
  * @param election - Election context
  * @param params - Credentials and votes
@@ -131,7 +234,6 @@ async function prepare(
 
     let votingTransaction: VotingTransaction | RecastingVotingTransaction;
     let voteCalldata: string;
-    let sponsorSignature: string;
     try {
         const encryptedVoteRSA = await encryptVotes(votes, coordinatorKey, EncryptionType.RSA);
         const encryptedVoteAES = await encryptVotes(votes, credentials.encryptionKey, EncryptionType.AES);
@@ -140,18 +242,13 @@ async function prepare(
                 ? createVoteRecastTransaction(credentials, encryptedVoteRSA, encryptedVoteAES)
                 : createVotingTransaction(credentials, encryptedVoteRSA, encryptedVoteAES);
         voteCalldata = createVoteCalldata(votingTransaction, OPNVOTE_ABI);
-
-        // EIP-191 sign for svs request
-        const messageHash = ethers.hashMessage(JSON.stringify(votingTransaction));
-        sponsorSignature = await credentials.voterWallet.signMessage(messageHash);
     } catch (e) {
         return { ok: false, error: `failed to prepare vote: ${String(e)}`, retryable: false };
     }
 
-    const sponsor = await postJson<SponsorData>(`${config.endpoints.svsUrl}/api/userOp/sponsor`, {
-        votingTransaction,
-        voterSignature: { hexString: sponsorSignature },
-    });
+    const sponsor = config.endpoints.svsUrl
+        ? await sponsorViaSvs(config, votingTransaction, credentials)
+        : await sponsorOnChain(config, credentials.voterWallet.address);
     if (!sponsor.ok) {
         return sponsor;
     }

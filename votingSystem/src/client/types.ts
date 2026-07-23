@@ -18,13 +18,15 @@ export type Result<T> =
 /**
  * Endpoints for backend services
  * @property {string} registerUrl - URL of the register
- * @property {string} svsUrl - URL of the SVS
+ * @property {string} bundlerUrl - URL of the bundler gateway
  * @property {string} subgraphUrl - URL of the Subgraph
+ * @property {string} svsUrl - URL of the SVS; if set, the signature path is used instead of on-chain sponsoring
  */
 export type Endpoints = {
     registerUrl: string;
-    svsUrl: string;
+    bundlerUrl: string;
     subgraphUrl: string;
+    svsUrl?: string;
 };
 
 /**
