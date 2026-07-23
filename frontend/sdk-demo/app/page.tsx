@@ -191,10 +191,10 @@ export default function Home() {
                 <button style={btn} disabled={busy || !electionId} onClick={createClientOp}>createClient</button>
                 <button style={btn} disabled={busy || !hasClient} onClick={generateMasterKeyOp}>generateMasterKey</button>
                 <button style={btn} disabled={busy || !masterKey} onClick={exportMasterKeyOp}>exportMasterKey</button>
-                <button style={btn} disabled={busy || !qr} onClick={importMasterKeyOp}>importMasterKey</button>
+                <button style={btn} disabled={busy || qrKind !== "masterKey"} onClick={importMasterKeyOp}>importMasterKey</button>
                 <button style={btn} disabled={busy || !hasClient || !voterJwt} onClick={registerVoterOp}>registerVoter</button>
                 <button style={btn} disabled={busy || !hasCreds} onClick={exportOp}>exportCredentials</button>
-                <button style={btn} disabled={busy || !qr} onClick={importOp}>importCredentials</button>
+                <button style={btn} disabled={busy || qrKind !== "credentials"} onClick={importOp}>importCredentials</button>
                 <button style={btn} disabled={busy || !hasCreds} onClick={voteOp}>vote</button>
                 <button style={btn} disabled={busy || !hasCreds} onClick={recastOp}>recastVote</button>
                 <button style={btn} disabled={busy || !hasCreds} onClick={checkVotedOp}>checkVote (voted?)</button>
