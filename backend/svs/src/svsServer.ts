@@ -7,7 +7,6 @@ import helmet from 'helmet'
 import cors from 'cors'
 import { dataSource } from './database'
 import sponsorRoutes from './routes/sponsorRoutes'
-import forwardRoutes from './routes/forwardRoutes'
 import swaggerUi from 'swagger-ui-express'
 import swaggerSpec from './config/swaggerConfig'
 import https from 'https'
@@ -93,7 +92,6 @@ dataSource
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
     app.use('/api/userOp', sponsorRoutes)
-    app.use('/api/forward', forwardRoutes)
 
     app.get('/', (_req, res) => {
       res.redirect('/api-docs')
