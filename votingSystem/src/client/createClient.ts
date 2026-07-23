@@ -19,10 +19,10 @@ function validateSetup(config: Configuration, election: Election): void {
 
     if (!election.publicKey) throw new Error("election.publicKey is required");
     if (!config.endpoints.registerUrl) throw new Error("endpoints.registerUrl is required");
-    if (!config.endpoints.svsUrl) throw new Error("endpoints.svsUrl is required");
+    if (!config.endpoints.bundlerUrl) throw new Error("endpoints.bundlerUrl is required");
     if (!config.endpoints.subgraphUrl) throw new Error("endpoints.subgraphUrl is required");
-    if (!config.rpcUrl) throw new Error("endpoints.rpcUrl is required");
-    if (!config.chain) throw new Error("endpoints.chain is required");
+    if (!config.rpcUrl) throw new Error("config.rpcUrl is required");
+    if (!config.chain) throw new Error("config.chain is required");
 }
 
 /**
