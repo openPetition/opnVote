@@ -42,6 +42,7 @@ export default function Notification(props) {
                             >
                                 {linkText}
                             </button>
+                        )}
                     </div>
                 </div>
                 {buttonText && (
