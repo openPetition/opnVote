@@ -109,6 +109,7 @@ describe('POST /api/userOp/sponsor', () => {
     app.set('PAYMASTER_ADDRESS', '0x0000000000000000000000000000000000000003')
     app.set('ACCOUNT_IMPLEMENTATION_ADDRESS', EXPECTED_IMPLEMENTATION)
     app.set('MAX_SPONSOR_COUNT', 10)
+    app.set('SPONSOR_SIGNING_ENABLED', true)
     app.set('OPNVOTE_CONTRACT_ADDRESS', '0x0000000000000000000000000000000000000001')
     app.set('BUNDLER_URL', 'https://mock-bundler')
     jest.clearAllMocks()
@@ -149,6 +150,19 @@ describe('POST /api/userOp/sponsor', () => {
     }
   }
 
+  it('should return 503 when SVS signing is disabled', async () => {
+    app.set('SPONSOR_SIGNING_ENABLED', false)
+
+    const response = await request(app)
+      .post('/api/userOp/sponsor')
+      .send({
+        votingTransaction: makeTransaction(),
+      })
+
+    expect(response.status).toBe(503)
+    expect(response.body.data).toBeNull()
+  })
+
   it('should return paymaster data and gas params for a valid transaction (fresh EOA)', async () => {
     const response = await request(app)
       .post('/api/userOp/sponsor')
@@ -159,11 +173,11 @@ describe('POST /api/userOp/sponsor', () => {
     expect(response.status).toBe(200)
     expect(response.body.data).toHaveProperty('paymasterData')
     expect(response.body.data.userOpParams).toEqual({
-      callGasLimit: '150000',
-      verificationGasLimit: '110000',
-      paymasterVerificationGasLimit: '80000',
-      paymasterPostOpGasLimit: '1',
-      preVerificationGas: '200000',
+      callGasLimit: '500000',
+      verificationGasLimit: '200000',
+      paymasterVerificationGasLimit: '500000',
+      paymasterPostOpGasLimit: '60000',
+      preVerificationGas: '250000',
       maxFeePerGas: '2000000000',
       maxPriorityFeePerGas: '1000000000',
       nonce: '0',

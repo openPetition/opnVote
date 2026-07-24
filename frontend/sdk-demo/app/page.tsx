@@ -11,6 +11,7 @@ import { QRCodeSVG } from "qrcode.react";
 
 const env = {
     registerUrl: process.env.NEXT_PUBLIC_REGISTER_URL,
+    bundlerUrl: process.env.NEXT_PUBLIC_BUNDLER_URL,
     svsUrl: process.env.NEXT_PUBLIC_SVS_URL,
     subgraphUrl: process.env.NEXT_PUBLIC_SUBGRAPH_URL,
     rpcUrl: process.env.NEXT_PUBLIC_RPC_URL,
@@ -65,14 +66,14 @@ export default function Home() {
         withBusy(async () => {
             const id = Number(electionId);
             if (!id) return add("✗ enter electionID");
-            const missing = Object.entries(env).filter(([, v]) => !v).map(([k]) => k);
+            const missing = Object.entries(env).filter(([k, v]) => !v && k !== "svsUrl").map(([k]) => k);
             if (missing.length) return add("✗ missing env: " + missing.join(", "));
 
             add(`createClient(electionID=${id})…`);
             const { publicKey, registerPublicKey } = await fetchElectionKeys(env.subgraphUrl!, id);
             const c = createClient(
                 {
-                    endpoints: { registerUrl: env.registerUrl!, svsUrl: env.svsUrl!, subgraphUrl: env.subgraphUrl! },
+                    endpoints: { registerUrl: env.registerUrl!, bundlerUrl: env.bundlerUrl!, subgraphUrl: env.subgraphUrl!, svsUrl: env.svsUrl },
                     contracts: {
                         opnvote: env.opnvote as `0x${string}`,
                         paymaster: env.paymaster as `0x${string}`,
@@ -190,10 +191,10 @@ export default function Home() {
                 <button style={btn} disabled={busy || !electionId} onClick={createClientOp}>createClient</button>
                 <button style={btn} disabled={busy || !hasClient} onClick={generateMasterKeyOp}>generateMasterKey</button>
                 <button style={btn} disabled={busy || !masterKey} onClick={exportMasterKeyOp}>exportMasterKey</button>
-                <button style={btn} disabled={busy || !qr} onClick={importMasterKeyOp}>importMasterKey</button>
+                <button style={btn} disabled={busy || qrKind !== "masterKey"} onClick={importMasterKeyOp}>importMasterKey</button>
                 <button style={btn} disabled={busy || !hasClient || !voterJwt} onClick={registerVoterOp}>registerVoter</button>
                 <button style={btn} disabled={busy || !hasCreds} onClick={exportOp}>exportCredentials</button>
-                <button style={btn} disabled={busy || !qr} onClick={importOp}>importCredentials</button>
+                <button style={btn} disabled={busy || qrKind !== "credentials"} onClick={importOp}>importCredentials</button>
                 <button style={btn} disabled={busy || !hasCreds} onClick={voteOp}>vote</button>
                 <button style={btn} disabled={busy || !hasCreds} onClick={recastOp}>recastVote</button>
                 <button style={btn} disabled={busy || !hasCreds} onClick={checkVotedOp}>checkVote (voted?)</button>

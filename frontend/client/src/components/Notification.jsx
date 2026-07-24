@@ -9,7 +9,7 @@ import Button from './Button';
  * @returns
  */
 export default function Notification(props) {
-    const { type, text, headline, additionalGlobalClass, buttonText, buttonAction, linkText, linkAction } = props;
+    const { type, text, headline, additionalGlobalClass, buttonText, buttonAction, htmlText, linkText, linkAction } = props;
     const [NotificationIcon, setNotifcationIcon] = useState('');
 
     const iconComponents = {
@@ -30,7 +30,10 @@ export default function Notification(props) {
                     <div className={styles.icon} style={{ backgroundImage: `url(${NotificationIcon})` }}></div>
                     <div>
                         {headline && headline.length > 0 && (<strong>{headline}{' '}</strong>)}
-                        {text && text.length > 0 && (<><div dangerouslySetInnerHTML={{ __html: text }} /></>)}
+                        {text && <div>{text}</div>}
+                        {htmlText && typeof htmlText === 'string' && htmlText.length > 0 && (
+                            <div dangerouslySetInnerHTML={{ __html: htmlText }} />
+                        )}
                         {linkText && (
                             <button
                                 className={styles.linkButton}
@@ -39,7 +42,6 @@ export default function Notification(props) {
                             >
                                 {linkText}
                             </button>
-                        )}
                     </div>
                 </div>
                 {buttonText && (

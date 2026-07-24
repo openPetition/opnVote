@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express'
 import { ApiResponse } from '../types/apiResponses'
 import { signPaymasterData, createVoteCalldata } from 'votingsystem'
 import { checkElectionStatus } from '../middleware/checkElectionStatus'
+import { checkSponsoringEnabled } from '../middleware/checkSponsoringEnabled'
 import { checkSponsorEligibility } from '../middleware/checkSponsorEligibility'
 import { checkVoterSignature } from '../middleware/checkVoterSignature'
 import { checkSponsorLimit } from '../middleware/checkSponsorLimit'
@@ -127,6 +128,7 @@ const router = Router()
  */
 router.post(
   '/sponsor',
+  checkSponsoringEnabled, // block any request if SVS signing is not enabled
   checkSponsorEligibility, // Validates request structure, voting transaction fields, and 7702 delegation
   checkVoterSignature, // Verifies the caller signature
   checkElectionStatus,

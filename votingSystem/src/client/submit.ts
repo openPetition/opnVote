@@ -1,38 +1,9 @@
-import { createPublicClient, custom, http, type Hex } from "viem";
+import { createPublicClient, http, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { createSmartAccountClient } from "permissionless";
 import { to7702SimpleSmartAccount } from "permissionless/accounts";
 import type { ElectionCredentials } from "../types/types";
 import type { Configuration, PreparedVote, Result, VoteResult } from "./types";
-
-/**
- * Builds a custom viem transport
- * @param svsUrl - SVS URL
- * @returns A viem custom transport
- */
-function svsForwardTransport(svsUrl: string) {
-    return custom({
-        async request({ method, params }: { method: string; params?: unknown }) {
-            const res = await fetch(`${svsUrl}/api/forward`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ jsonrpc: "2.0", method, params, id: 1 }),
-            });
-            const json = (await res.json()) as {
-                data?: { result?: unknown; error?: unknown };
-                error?: unknown;
-            };
-            if (!res.ok || json.error) {
-                throw new Error(`SVS forward [${res.status}]: ${JSON.stringify(json.error ?? json)}`);
-            }
-            const bundlerResponse = json.data;
-            if (!bundlerResponse || bundlerResponse.error) {
-                throw new Error(`Bundler error: ${JSON.stringify(bundlerResponse?.error)}`);
-            }
-            return bundlerResponse.result;
-        },
-    });
-}
 
 /**
  * Submits a prepared, sponsored vote via ERC-4337 + EIP-7702
@@ -81,7 +52,7 @@ export async function submit(
                     throw new Error("getPaymasterData cannot be called when isFinal: true");
                 },
             },
-            bundlerTransport: svsForwardTransport(endpoints.svsUrl),
+            bundlerTransport: http(endpoints.bundlerUrl),
             userOperation: {
                 estimateFeesPerGas: async () => ({
                     maxFeePerGas: BigInt(userOpParams.maxFeePerGas),
