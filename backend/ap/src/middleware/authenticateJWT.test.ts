@@ -28,14 +28,14 @@ describe('authenticateJWT Middleware', () => {
   })
 
   it('should call next if token is valid', () => {
-    ;(jwt.verify as jest.Mock).mockReturnValue({ electionID: 1 })
+    ;(jwt.verify as jest.Mock).mockReturnValue({ electionId: 1 })
     authenticateJWT(mockReq as Request, mockRes as Response, nextFunction)
     expect(nextFunction).toHaveBeenCalled()
     expect(mockRes.status).not.toHaveBeenCalled()
   })
 
   it('should call next and set user if token is valid', () => {
-    const authData = { electionID: 1 }
+    const authData = { electionId: 1 }
     ;(jwt.verify as jest.Mock).mockReturnValue(authData)
     authenticateJWT(mockReq as Request, mockRes as Response, nextFunction)
 

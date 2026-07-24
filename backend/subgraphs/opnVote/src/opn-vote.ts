@@ -1,4 +1,5 @@
 import {
+  ApAdded as ApAddedEvent,
   ElectionCanceled as ElectionCanceledEvent,
   ElectionCreated as ElectionCreatedEvent,
   ElectionRegisterPublicKeySet as ElectionRegisterPublicKeySetEvent,
@@ -6,6 +7,7 @@ import {
   ElectionStatusChanged as ElectionStatusChangedEvent,
   ElectionUpdated as ElectionUpdatedEvent,
   OwnershipTransferred as OwnershipTransferredEvent,
+  RegisterAdded as RegisterAddedEvent,
   VoteCast as VoteCastEvent,
   VoteUpdated as VoteUpdatedEvent,
   VoterAuthorized as VoterAuthorizedEvent,
@@ -14,6 +16,7 @@ import {
   VotersRegistered as VotersRegisteredEvent,
 } from '../generated/OpnVote/OpnVote'
 import {
+  ApAdded,
   Election,
   ElectionCanceled,
   ElectionRegisterPublicKeySet,
@@ -21,6 +24,7 @@ import {
   ElectionStatusChanged,
   ElectionUpdated,
   OwnershipTransferred,
+  RegisterAdded,
   VoteCast,
   VoteUpdated,
   VoterAuthorized,
@@ -58,6 +62,7 @@ export function handleElectionCreated(event: ElectionCreatedEvent): void {
   entity.authorizedVoterCount = BigInt.fromI32(0)
   entity.registeredVoterCount = BigInt.fromI32(0)
   entity.totalVotes = BigInt.fromI32(0)
+  entity.totalVoteUpdates = BigInt.fromI32(0)
   entity.status = 0
   entity.descriptionIpfsCid = event.params.descriptionIpfsCid
   entity.cancelReasonIpfsCid = ''
@@ -189,6 +194,34 @@ export function handleOwnershipTransferred(event: OwnershipTransferredEvent): vo
   entity.save()
 }
 
+export function handleApAdded(event: ApAddedEvent): void {
+  let entity = new ApAdded(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  entity.apId = event.params.id
+  entity.owner = event.params.owner
+  entity.apName = event.params.apName
+  entity.apUri = event.params.apUri
+
+  entity.blockNumber = event.block.number
+  entity.blockTimestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+
+  entity.save()
+}
+
+export function handleRegisterAdded(event: RegisterAddedEvent): void {
+  let entity = new RegisterAdded(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  entity.registerId = event.params.id
+  entity.owner = event.params.owner
+  entity.registerName = event.params.registerName
+  entity.registerUri = event.params.registerUri
+
+  entity.blockNumber = event.block.number
+  entity.blockTimestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+
+  entity.save()
+}
+
 export function handleVoteCast(event: VoteCastEvent): void {
   let entity = new VoteCast(event.transaction.hash.concatI32(event.logIndex.toI32()))
   entity.electionId = event.params.electionId
@@ -232,6 +265,22 @@ export function handleVoteUpdated(event: VoteUpdatedEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  // Update Election Entity
+
+  const electionId = event.params.electionId.toString()
+  let electionEntity = Election.load(electionId)
+  if (electionEntity == null) {
+    log.error('Election entity not found for ID: {}', [electionId])
+
+    return
+  }
+
+  if (!electionEntity.totalVoteUpdates) {
+    electionEntity.totalVoteUpdates = BigInt.fromI32(0)
+  }
+  electionEntity.totalVoteUpdates = electionEntity.totalVoteUpdates!.plus(BigInt.fromI32(1))
+  electionEntity.save()
 }
 
 export function handleVoterAuthorized(event: VoterAuthorizedEvent): void {

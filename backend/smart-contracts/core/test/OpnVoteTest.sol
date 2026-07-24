@@ -50,7 +50,8 @@ contract OpnVoteTest is Test {
         //Setting Register Key
         vm.startPrank(registerOwner);
 
-        bytes memory registerElectionBlsPubKey = vm.envBytes("REGISTER_ELECTION_0_BLS_PUBKEY");
+        bytes memory registerElectionBlsPubKey = new bytes(256); // non-identity placeholder 
+        registerElectionBlsPubKey[0] = 0x01;
 
         opnVote.setElectionRegisterPublicKey(electionId, registerElectionBlsPubKey);
         vm.stopPrank();
@@ -82,7 +83,13 @@ contract OpnVoteTest is Test {
 
         vm.startPrank(voter);
         opnVote.vote(electionId, voteEncrypted, voteEncryptedUser, unblindedSignature);
+        assertEq(opnVote.totalVoteUpdates(electionId), 0, "cast should not increase recasts");
+
+        opnVote.vote(electionId, voteEncrypted, voteEncryptedUser, new bytes(64));
+        opnVote.vote(electionId, voteEncrypted, voteEncryptedUser, new bytes(64));
         vm.stopPrank();
+
+        assertEq(opnVote.totalVoteUpdates(electionId), 2, "recasts should increment totalVoteUpdates");
     }
 
     function test_RevertWhen_RegisterPubKeyIsIdentity() public {

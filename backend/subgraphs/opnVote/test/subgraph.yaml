@@ -10,14 +10,15 @@ dataSources:
     name: OpnVote
     network: gnosis
     source:
-      address: '0x0000000000000000000000000000000000000000' # TODO: address + startBlock need to be updated for OpnVote 0.3.1
+      address: '0x9b6EBb5aD5E92ec5bc0b76776F4fdbEdC22E6744' # OpnVote v0.4.0 (test)
       abi: OpnVote
-      startBlock: 0
+      startBlock: 47317104
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
       language: wasm/assemblyscript
       entities:
+        - ApAdded
         - Election
         - ElectionCanceled
         - ElectionCreated
@@ -26,6 +27,7 @@ dataSources:
         - ElectionStatusChanged
         - ElectionUpdated
         - OwnershipTransferred
+        - RegisterAdded
         - VoteCast
         - VoteUpdated
         - VoterAuthorized
@@ -34,8 +36,10 @@ dataSources:
         - VotersRegistered
       abis:
         - name: OpnVote
-          file: ../abis/OpnVote.json
+          file: ../abis/opnvote-0.4.2.json
       eventHandlers:
+        - event: ApAdded(indexed uint8,indexed address,string,string)
+          handler: handleApAdded
         - event: ElectionCanceled(indexed uint256,string)
           handler: handleElectionCanceled
         - event: ElectionCreated(indexed uint256,uint256,uint256,uint256,uint256,uint8,uint8,string,bytes)
@@ -50,6 +54,8 @@ dataSources:
           handler: handleElectionUpdated
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
+        - event: RegisterAdded(indexed uint8,indexed address,string,string)
+          handler: handleRegisterAdded
         - event: VoteCast(indexed uint256,indexed address,bytes,bytes,bytes)
           handler: handleVoteCast
         - event: VoteUpdated(indexed uint256,indexed address,bytes,bytes)

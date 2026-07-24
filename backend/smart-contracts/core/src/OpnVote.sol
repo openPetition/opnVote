@@ -6,7 +6,7 @@ import {Election, AuthorizationProvider, Register, ElectionStatus} from "./Struc
 import {BLSVerifier} from "./BLSVerifier.sol";
 
 contract OpnVote is Ownable {
-    string public constant VERSION = "0.3.1";
+    string public constant VERSION = "0.4.2";
 
     /// @return Current contract version
     function version() external pure returns (string memory) {
@@ -27,17 +27,22 @@ contract OpnVote is Ownable {
     mapping(uint8 => Register) public registers;
     mapping(uint8 => AuthorizationProvider) public aps;
     mapping(uint256 => Election) public elections;
+    mapping(uint256 => uint256) public totalVoteUpdates;
 
     /**
      * Events *
      */
 
     // AP Events
+    event ApAdded(uint8 indexed id, address indexed owner, string apName, string apUri);
+
     event VoterAuthorized(uint8 indexed apId, uint256 indexed electionId, uint256 indexed voterId);
 
     event VotersAuthorized(uint8 indexed apId, uint256 indexed electionId, uint256[] voterIds);
 
     // Register Events
+    event RegisterAdded(uint8 indexed id, address indexed owner, string registerName, string registerUri);
+
     event VoterRegistered(
         uint8 indexed registerId,
         uint256 indexed electionId,
@@ -178,43 +183,80 @@ contract OpnVote is Ownable {
     /**
      * Voter Methods  *
      */
+
+    /// @dev Will be consumed through AA; cannot use any ERC-7562 blocked opcodes (e.g. block.timestamp)
+    function _checkVote(
+        uint256 electionId,
+        address voter,
+        bytes calldata voteEncrypted,
+        bytes calldata voteEncryptedUser,
+        bytes calldata unblindedSignature
+    ) internal view returns (bool ok, string memory reason, uint48 validUntil) {
+        Election storage election = elections[electionId];
+        if (election.votingStartTime == 0) return (false, "Election unknown", 0);
+
+        if (voteEncrypted.length != 256 && voteEncrypted.length != 512) { // Allowing RSA 2048 and 4096
+            return (false, "Invalid voteEncrypted length", 0);
+        }
+        if (voteEncryptedUser.length == 0 || voteEncryptedUser.length > 512) { // Allowing symmetric enc and up to RSA 4096
+            return (false, "Invalid voteEncryptedUser length", 0);
+        }
+
+        if (election.status != ElectionStatus.Active) return (false, "Election is not active", 0);
+
+        if (unblindedSignature.length == 128) {
+            // First vote
+            if (election.hasVoted[voter]) return (false, "Already voted", 0);
+
+            bytes memory unblindedElectionToken = abi.encodePacked(keccak256(abi.encodePacked(electionId, voter)));
+
+            if (!BLS_VERIFIER.verify(unblindedElectionToken, unblindedSignature, election.registerPubKey)) {
+                return (false, "Sig invalid", 0);
+            }
+        } else {
+            // Vote recasting
+            if (!election.hasVoted[voter]) return (false, "voter unknown", 0);
+        }
+
+        // casting to uint48
+        uint256 votingEndTime = election.votingEndTime;
+        validUntil = votingEndTime > type(uint48).max ? type(uint48).max : uint48(votingEndTime);
+        return (true, "", validUntil);
+    }
+
+    /// vote preflight check; validUntil is returned for EntryPoint validation
+    function canVote(
+        uint256 electionId,
+        address voter,
+        bytes calldata voteEncrypted,
+        bytes calldata voteEncryptedUser,
+        bytes calldata unblindedSignature
+    ) external view returns (bool ok, string memory reason, uint48 validUntil) {
+        return _checkVote(electionId, voter, voteEncrypted, voteEncryptedUser, unblindedSignature);
+    }
+
     function vote(
         uint256 electionId,
         bytes calldata voteEncrypted,
         bytes calldata voteEncryptedUser,
         bytes calldata unblindedSignature
     ) external {
+        (bool ok, string memory reason,) =
+            _checkVote(electionId, msg.sender, voteEncrypted, voteEncryptedUser, unblindedSignature);
+        require(ok, reason);
+
         Election storage election = elections[electionId];
-        require(election.votingStartTime != 0, "Election unknown");
-
-        require(voteEncrypted.length == 256 || voteEncrypted.length == 512, "Invalid voteEncrypted length"); // Allowing RSA 2048 and 4096
-        require(voteEncryptedUser.length > 0 && voteEncryptedUser.length <= 512, "Invalid voteEncryptedUser length"); // Allowing symmetric enc and up to RSA 4096
-
-        require(election.status == ElectionStatus.Active, "Election is not active");
         require(election.votingEndTime >= block.timestamp, "Election ended");
 
         if (unblindedSignature.length == 128) {
-            require(!election.hasVoted[msg.sender], "Already voted");
-            
+            //First vote
             election.totalVotes += 1;
             election.hasVoted[msg.sender] = true;
 
-            bytes memory unblindedElectionToken = abi.encodePacked(
-                keccak256(abi.encodePacked(electionId, msg.sender))
-            );
-
-            bool isValidSig = BLS_VERIFIER.verify(
-                unblindedElectionToken,
-                unblindedSignature,
-                election.registerPubKey
-            );
-            require(isValidSig, "Sig invalid");
-
-            //First vote
             emit VoteCast(electionId, msg.sender, voteEncrypted, voteEncryptedUser, unblindedSignature);
         } else {
             //Vote recasting
-            require(election.hasVoted[msg.sender], "voter unknown");
+            totalVoteUpdates[electionId] += 1;
             emit VoteUpdated(electionId, msg.sender, voteEncrypted, voteEncryptedUser);
         }
     }
@@ -226,12 +268,14 @@ contract OpnVote is Ownable {
         require(registers[newRegister.id].owner == address(0), "Id already used");
         require(newRegister.owner != address(0), "No owner specified");
         registers[newRegister.id] = newRegister;
+        emit RegisterAdded(newRegister.id, newRegister.owner, newRegister.registerName, newRegister.registerUri);
     }
 
     function addAp(AuthorizationProvider memory newAp) external onlyOwner {
         require(aps[newAp.id].owner == address(0), "Id already used");
         require(newAp.owner != address(0), "No owner specified");
         aps[newAp.id] = newAp;
+        emit ApAdded(newAp.id, newAp.owner, newAp.apName, newAp.apUri);
     }
 
     /**
