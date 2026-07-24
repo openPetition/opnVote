@@ -83,7 +83,13 @@ contract OpnVoteTest is Test {
 
         vm.startPrank(voter);
         opnVote.vote(electionId, voteEncrypted, voteEncryptedUser, unblindedSignature);
+        assertEq(opnVote.totalVoteUpdates(electionId), 0, "cast should not increase recasts");
+
+        opnVote.vote(electionId, voteEncrypted, voteEncryptedUser, new bytes(64));
+        opnVote.vote(electionId, voteEncrypted, voteEncryptedUser, new bytes(64));
         vm.stopPrank();
+
+        assertEq(opnVote.totalVoteUpdates(electionId), 2, "recasts should increment totalVoteUpdates");
     }
 
     function test_RevertWhen_RegisterPubKeyIsIdentity() public {

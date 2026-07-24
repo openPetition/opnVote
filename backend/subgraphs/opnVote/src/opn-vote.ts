@@ -62,6 +62,7 @@ export function handleElectionCreated(event: ElectionCreatedEvent): void {
   entity.authorizedVoterCount = BigInt.fromI32(0)
   entity.registeredVoterCount = BigInt.fromI32(0)
   entity.totalVotes = BigInt.fromI32(0)
+  entity.totalVoteUpdates = BigInt.fromI32(0)
   entity.status = 0
   entity.descriptionIpfsCid = event.params.descriptionIpfsCid
   entity.cancelReasonIpfsCid = ''
@@ -264,6 +265,22 @@ export function handleVoteUpdated(event: VoteUpdatedEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  // Update Election Entity
+
+  const electionId = event.params.electionId.toString()
+  let electionEntity = Election.load(electionId)
+  if (electionEntity == null) {
+    log.error('Election entity not found for ID: {}', [electionId])
+
+    return
+  }
+
+  if (!electionEntity.totalVoteUpdates) {
+    electionEntity.totalVoteUpdates = BigInt.fromI32(0)
+  }
+  electionEntity.totalVoteUpdates = electionEntity.totalVoteUpdates!.plus(BigInt.fromI32(1))
+  electionEntity.save()
 }
 
 export function handleVoterAuthorized(event: VoterAuthorizedEvent): void {

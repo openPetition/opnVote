@@ -5,7 +5,7 @@ import { ethers } from 'ethers'
 import { GraphQLClient, gql } from 'graphql-request'
 import { logger } from './utils/logger'
 import { getEnvVar } from './utils/utils'
-import opnvoteAbi from './abis/opnvote-0.3.0.json'
+import opnvoteAbi from './abis/opnvote-0.4.2.json'
 import {
   decryptVotes,
   EncryptedVotes,
@@ -57,6 +57,7 @@ async function main() {
 
   logger.info(`Fetching election data for election ID: ${ELECTION_ID}`)
   const election = await contract.elections(ELECTION_ID)
+  const totalVoteUpdatesOnChain = Number(await contract.totalVoteUpdates(ELECTION_ID))
   logger.info('Election data fetched successfully')
 
   if (Number(election.totalRegistered) > Number(election.totalAuthorized)) {
@@ -280,6 +281,28 @@ async function main() {
     }
   } else {
     logger.info(`Vote count matches: ${actualTotalVotes} votes`)
+  }
+
+  const expectedTotalVoteUpdates = totalVoteUpdatesOnChain
+  const actualTotalVoteUpdates = totalVoteRecasts
+
+  if (actualTotalVoteUpdates !== expectedTotalVoteUpdates) {
+    logger.warn(
+      `Vote recast count mismatch! Expected: ${expectedTotalVoteUpdates}, Got: ${actualTotalVoteUpdates}`,
+    )
+
+    // Retry
+    const updatedTotalVoteUpdates = Number(await contract.totalVoteUpdates(ELECTION_ID))
+
+    if (actualTotalVoteUpdates !== updatedTotalVoteUpdates) {
+      const msg = `ERROR: Vote recast count mismatch! Expected: ${updatedTotalVoteUpdates}, Got: ${actualTotalVoteUpdates}`
+      logger.error(msg)
+      errors.push(msg)
+    } else {
+      logger.info(`Vote recast count matches (recovered): ${actualTotalVoteUpdates} updates`)
+    }
+  } else {
+    logger.info(`Vote recast count matches: ${actualTotalVoteUpdates} updates`)
   }
 
   if (!privateKeyToUse || privateKeyToUse === '0x') {
