@@ -6,7 +6,7 @@ import {Election, AuthorizationProvider, Register, ElectionStatus} from "./Struc
 import {BLSVerifier} from "./BLSVerifier.sol";
 
 contract OpnVote is Ownable {
-    string public constant VERSION = "0.4.1";
+    string public constant VERSION = "0.4.2";
 
     /// @return Current contract version
     function version() external pure returns (string memory) {
@@ -27,6 +27,7 @@ contract OpnVote is Ownable {
     mapping(uint8 => Register) public registers;
     mapping(uint8 => AuthorizationProvider) public aps;
     mapping(uint256 => Election) public elections;
+    mapping(uint256 => uint256) public totalVoteUpdates;
 
     /**
      * Events *
@@ -255,6 +256,7 @@ contract OpnVote is Ownable {
             emit VoteCast(electionId, msg.sender, voteEncrypted, voteEncryptedUser, unblindedSignature);
         } else {
             //Vote recasting
+            totalVoteUpdates[electionId] += 1;
             emit VoteUpdated(electionId, msg.sender, voteEncrypted, voteEncryptedUser);
         }
     }
