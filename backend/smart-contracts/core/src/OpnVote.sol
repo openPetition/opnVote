@@ -6,7 +6,7 @@ import {Election, AuthorizationProvider, Register, ElectionStatus} from "./Struc
 import {BLSVerifier} from "./BLSVerifier.sol";
 
 contract OpnVote is Ownable {
-    string public constant VERSION = "0.4.0";
+    string public constant VERSION = "0.4.1";
 
     /// @return Current contract version
     function version() external pure returns (string memory) {
@@ -33,11 +33,15 @@ contract OpnVote is Ownable {
      */
 
     // AP Events
+    event ApAdded(uint8 indexed id, address indexed owner, string apName, string apUri);
+
     event VoterAuthorized(uint8 indexed apId, uint256 indexed electionId, uint256 indexed voterId);
 
     event VotersAuthorized(uint8 indexed apId, uint256 indexed electionId, uint256[] voterIds);
 
     // Register Events
+    event RegisterAdded(uint8 indexed id, address indexed owner, string registerName, string registerUri);
+
     event VoterRegistered(
         uint8 indexed registerId,
         uint256 indexed electionId,
@@ -262,12 +266,14 @@ contract OpnVote is Ownable {
         require(registers[newRegister.id].owner == address(0), "Id already used");
         require(newRegister.owner != address(0), "No owner specified");
         registers[newRegister.id] = newRegister;
+        emit RegisterAdded(newRegister.id, newRegister.owner, newRegister.registerName, newRegister.registerUri);
     }
 
     function addAp(AuthorizationProvider memory newAp) external onlyOwner {
         require(aps[newAp.id].owner == address(0), "Id already used");
         require(newAp.owner != address(0), "No owner specified");
         aps[newAp.id] = newAp;
+        emit ApAdded(newAp.id, newAp.owner, newAp.apName, newAp.apUri);
     }
 
     /**
