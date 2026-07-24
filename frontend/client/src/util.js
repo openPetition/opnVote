@@ -1,6 +1,7 @@
 'use client'
 
 import { qrToElectionCredentials, validateCredentials } from "votingsystem";
+import { BallotInvalidError, BallotNotFittingError } from "@/errors";
 
 
 export function parseJwt(jwtToken) {
@@ -23,7 +24,7 @@ export function parseJwt(jwtToken) {
 
 export function checkBallot(election, code) {
     try {
-        let credentials = qrToElectionCredentials(code);
+        const credentials = qrToElectionCredentials(code);
         if (Object.keys(credentials).length > 0) {
             validateCredentials(credentials);
             if (election?.id && (parseInt(credentials?.electionID) === parseInt(election?.id))) {
@@ -32,12 +33,40 @@ export function checkBallot(election, code) {
                     credentials: credentials,
                     registerCode: code,
                 };
-            } else {
-                throw new Error();
             }
-        }
-    } catch (e) {
-        throw new Error();
-    }
 
-};
+            return {
+                result: 'error',
+                error: new BallotNotFittingError(),
+                technicalDetails: {
+                    key: 'errorpopup.technicaldetails.ballot.notfitting',
+                    values: {
+                        ACTUAL_ELECTION_ID: credentials?.electionID,
+                        EXPECTED_ELECTION_ID: election?.id,
+                    },
+                },
+            };
+        }
+
+        return {
+            result: 'error',
+            error: new BallotInvalidError(),
+            technicalDetails: {
+                key: 'errorpopup.technicaldetails.ballot.nocredentials',
+            },
+        };
+    } catch (caughtError) {
+        return {
+            result: 'error',
+            error: new BallotInvalidError(),
+            technicalDetails: {
+                key: 'errorpopup.technicaldetails.ballot.invalid',
+                values: {
+                    ERROR: caughtError instanceof Error
+                        ? caughtError.message || caughtError.name
+                        : undefined,
+                },
+            },
+        };
+    }
+}

@@ -18,6 +18,7 @@ import {
 } from '@/errors';
 import globalConst from '@/constants';
 import { useOpnVoteStore } from '@/opnVoteStore';
+import { checkBallot } from '@/util';
 
 const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
 let html5QrCode;
@@ -98,8 +99,26 @@ export default function ScanUploadQRCode(props) {
             }
         } else {
             try {
-                const result = voteClient.importCredentials(code);
-                props.onResult(code, inputOutputType);
+                const ballotCheck = checkBallot(voting.election, code);
+
+                if (ballotCheck.result !== 'success') {
+                    const { key, values = {} } = ballotCheck.technicalDetails;
+                    showError(
+                        ballotCheck.error,
+                        inputOutputType === globalConst.saveType.CLIPBOARD
+                            ? 'scanuploadqrcode.notification.error.location.ballottext'
+                            : 'scanuploadqrcode.notification.error.location.ballotfile',
+                        new Error(t(key, {
+                            ...values,
+                            ERROR: values.ERROR || t('errorpopup.technicaldetails.unavailable'),
+                        })),
+                        'checkCodeAndReturn'
+                    );
+                    return;
+                }
+
+                voteClient.importCredentials(code);
+                props.onResult(ballotCheck.registerCode, inputOutputType);
             } catch (caughtError) {
                 showError(
                     inputOutputType === globalConst.saveType.CLIPBOARD ? new BallotTextInvalidError() : new BallotFileInvalidError(),
