@@ -36,7 +36,7 @@ dataSources:
         - VotersRegistered
       abis:
         - name: OpnVote
-          file: ../abis/opnvote-0.4.1.json
+          file: ../abis/opnvote-0.4.2.json
       eventHandlers:
         - event: ApAdded(indexed uint8,indexed address,string,string)
           handler: handleApAdded

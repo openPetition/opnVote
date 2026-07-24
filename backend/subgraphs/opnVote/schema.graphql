@@ -24,6 +24,7 @@ type Election @entity(immutable: false) {
   publicKey: Bytes
   privateKey: Bytes
   totalVotes: BigInt
+  totalVoteUpdates: BigInt
   registeredVoterCount: BigInt
   authorizedVoterCount: BigInt
   status: Int
