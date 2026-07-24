@@ -1,4 +1,5 @@
 import {
+  ApAdded as ApAddedEvent,
   ElectionCanceled as ElectionCanceledEvent,
   ElectionCreated as ElectionCreatedEvent,
   ElectionRegisterPublicKeySet as ElectionRegisterPublicKeySetEvent,
@@ -6,6 +7,7 @@ import {
   ElectionStatusChanged as ElectionStatusChangedEvent,
   ElectionUpdated as ElectionUpdatedEvent,
   OwnershipTransferred as OwnershipTransferredEvent,
+  RegisterAdded as RegisterAddedEvent,
   VoteCast as VoteCastEvent,
   VoteUpdated as VoteUpdatedEvent,
   VoterAuthorized as VoterAuthorizedEvent,
@@ -14,6 +16,7 @@ import {
   VotersRegistered as VotersRegisteredEvent,
 } from '../generated/OpnVote/OpnVote'
 import {
+  ApAdded,
   Election,
   ElectionCanceled,
   ElectionRegisterPublicKeySet,
@@ -21,6 +24,7 @@ import {
   ElectionStatusChanged,
   ElectionUpdated,
   OwnershipTransferred,
+  RegisterAdded,
   VoteCast,
   VoteUpdated,
   VoterAuthorized,
@@ -181,6 +185,34 @@ export function handleOwnershipTransferred(event: OwnershipTransferredEvent): vo
   let entity = new OwnershipTransferred(event.transaction.hash.concatI32(event.logIndex.toI32()))
   entity.previousOwner = event.params.previousOwner
   entity.newOwner = event.params.newOwner
+
+  entity.blockNumber = event.block.number
+  entity.blockTimestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+
+  entity.save()
+}
+
+export function handleApAdded(event: ApAddedEvent): void {
+  let entity = new ApAdded(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  entity.apId = event.params.id
+  entity.owner = event.params.owner
+  entity.apName = event.params.apName
+  entity.apUri = event.params.apUri
+
+  entity.blockNumber = event.block.number
+  entity.blockTimestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+
+  entity.save()
+}
+
+export function handleRegisterAdded(event: RegisterAddedEvent): void {
+  let entity = new RegisterAdded(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  entity.registerId = event.params.id
+  entity.owner = event.params.owner
+  entity.registerName = event.params.registerName
+  entity.registerUri = event.params.registerUri
 
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
