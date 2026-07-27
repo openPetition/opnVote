@@ -23,6 +23,20 @@ import { checkBallot } from '@/util';
 const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
 let html5QrCode;
 
+const getInputErrorLocation = (qrContentType, inputOutputType) => {
+    const isTextInput = inputOutputType === globalConst.saveType.CLIPBOARD;
+
+    if (qrContentType === globalConst.qrContentType.KEY) {
+        return isTextInput
+            ? 'scanuploadqrcode.notification.error.location.keytext'
+            : 'scanuploadqrcode.notification.error.location.keyfile';
+    }
+
+    return isTextInput
+        ? 'scanuploadqrcode.notification.error.location.ballottext'
+        : 'scanuploadqrcode.notification.error.location.ballotfile';
+};
+
 export default function ScanUploadQRCode(props) {
     const { voting, voteClient } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
@@ -90,9 +104,7 @@ export default function ScanUploadQRCode(props) {
             } catch (caughtError) {
                 showError(
                     inputOutputType === globalConst.saveType.CLIPBOARD ? new KeyTextInvalidError() : new KeyFileInvalidError(),
-                    inputOutputType === globalConst.saveType.CLIPBOARD
-                        ? 'scanuploadqrcode.notification.error.location.keytext'
-                        : 'scanuploadqrcode.notification.error.location.keyfile',
+                    getInputErrorLocation(qrContentType, inputOutputType),
                     caughtError,
                     'checkCodeAndReturn'
                 );
@@ -105,9 +117,7 @@ export default function ScanUploadQRCode(props) {
                     const { key, values = {} } = ballotCheck.technicalDetails;
                     showError(
                         ballotCheck.error,
-                        inputOutputType === globalConst.saveType.CLIPBOARD
-                            ? 'scanuploadqrcode.notification.error.location.ballottext'
-                            : 'scanuploadqrcode.notification.error.location.ballotfile',
+                        getInputErrorLocation(qrContentType, inputOutputType),
                         new Error(t(key, {
                             ...values,
                             ERROR: values.ERROR || t('errorpopup.technicaldetails.unavailable'),
@@ -122,9 +132,7 @@ export default function ScanUploadQRCode(props) {
             } catch (caughtError) {
                 showError(
                     inputOutputType === globalConst.saveType.CLIPBOARD ? new BallotTextInvalidError() : new BallotFileInvalidError(),
-                    inputOutputType === globalConst.saveType.CLIPBOARD
-                        ? 'scanuploadqrcode.notification.error.location.ballottext'
-                        : 'scanuploadqrcode.notification.error.location.ballotfile',
+                    getInputErrorLocation(qrContentType, inputOutputType),
                     caughtError,
                     'checkCodeAndReturn'
                 );
