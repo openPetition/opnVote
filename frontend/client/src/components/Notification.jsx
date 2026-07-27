@@ -9,7 +9,7 @@ import Button from './Button';
  * @returns
  */
 export default function Notification(props) {
-    const { type, text, headline, additionalGlobalClass, buttonText, buttonAction, htmlText } = props;
+    const { type, text, headline, additionalGlobalClass, buttonText, buttonAction, htmlText, children } = props;
     const [NotificationIcon, setNotifcationIcon] = useState('');
 
     const iconComponents = {
@@ -38,6 +38,7 @@ export default function Notification(props) {
                         {htmlText && typeof htmlText === 'string' && htmlText.length > 0 && (
                             <div dangerouslySetInnerHTML={{ __html: htmlText }} />
                         )}
+                        {children}
                     </div>
                 </div>
                 {buttonText && (
@@ -50,5 +51,5 @@ export default function Notification(props) {
                 )}
             </div>
         </>
-    )
+    );
 }
