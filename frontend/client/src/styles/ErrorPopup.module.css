@@ -1,0 +1,73 @@
+.errorPopup {
+    text-align: left;
+}
+
+.errorSupportText {
+    margin-top: 1.5rem;
+}
+
+.errorReportEmailLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--op-blue-dark);
+}
+
+.technicalDetails {
+    margin-top: 1.5rem;
+    overflow-wrap: anywhere;
+}
+
+.technicalDetails summary {
+    cursor: pointer;
+}
+
+.technicalDetails summary:hover {
+    color: var(--op-blue-dark);
+}
+
+.technicalDetails pre {
+    margin: 0.5rem 0 0;
+    white-space: pre-wrap;
+}
+
+.technicalDetailsContent {
+    position: relative;
+    margin-top: 0.75rem;
+    padding: var(--op-padding-standard);
+    background-color: var(--op-grey-light);
+    border: 1px solid var(--op-grey-border);
+    border-radius: var(--op-border-radius);
+}
+
+.technicalDetail {
+    margin-top: 0.75rem;
+    overflow-wrap: anywhere;
+}
+
+.technicalDetail:first-of-type {
+    margin-top: 0;
+}
+
+.technicalDetail code {
+    white-space: pre-wrap;
+}
+
+.copyTechnicalDetailsButton {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    padding: 0.4rem;
+    color: var(--op-grey-dark);
+    background: transparent;
+    border: 0;
+    border-radius: var(--op-border-radius);
+    cursor: pointer;
+}
+
+.copyTechnicalDetailsButton:hover,
+.copyTechnicalDetailsButton:focus-visible {
+    color: var(--op-blue-dark);
+    background-color: var(--op-white);
+}
