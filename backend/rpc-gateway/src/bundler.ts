@@ -25,10 +25,28 @@ function requireEnv(name: string): string {
   return value
 }
 
+function parsePaymasterPairs(raw: string): Map<string, { label: string; opnvote: string }> {
+  const pairs = new Map<string, { label: string; opnvote: string }>()
+  for (const entry of raw.split(',').map(e => e.trim()).filter(Boolean)) {
+    const parts = entry.split(':').map(p => p.trim())
+    if (parts.length !== 3 || parts.some(p => !p)) {
+      throw new Error(`PAYMASTER_PAIRS: entry "${entry}" is invalid. Format should be "label:paymaster:sponsored-contract"`)
+    }
+    const [label, paymaster, opnvote] = parts
+    if (!ethers.isAddress(paymaster) || !ethers.isAddress(opnvote)) {
+      throw new Error(`PAYMASTER_PAIRS: invalid address: "${entry}"`)
+    }
+    pairs.set(paymaster.toLowerCase(), { label, opnvote: opnvote.toLowerCase() })
+  }
+  if (pairs.size === 0) {
+    throw new Error('PAYMASTER_PAIRS: paymaster:sponsored contract pairs are required')
+  }
+  return pairs
+}
+
 const BUNDLER_URL = requireEnv('BUNDLER_URL')
-const PAYMASTER_ADDRESS = requireEnv('PAYMASTER_ADDRESS').toLowerCase()
 const ENTRYPOINT_ADDRESS = requireEnv('ENTRYPOINT_ADDRESS').toLowerCase()
-const OPNVOTE_ADDRESS = requireEnv('OPNVOTE_CONTRACT_ADDRESS').toLowerCase()
+const PAYMASTER_PAIRS = parsePaymasterPairs(requireEnv('PAYMASTER_PAIRS'))
 const REQUEST_TIMEOUT = parseInt(process.env.REQUEST_TIMEOUT || '10000')
 const GAS_PRICE_TTL = parseInt(process.env.BUNDLER_GAS_PRICE_TTL_MS || '2000')
 const SEND_DEDUP_TTL = parseInt(process.env.BUNDLER_SEND_DEDUP_TTL_MS || '5000')
@@ -56,26 +74,30 @@ function isDuplicateSend(userOp: Record<string, string>): boolean {
   return false
 }
 
-function validateSendUserOp(params: any[]): string | null {
+function validateSendUserOp(params: any[]): { error?: string; opnvote?: string } {
   const [userOp, entryPoint] = params as [Record<string, string>, string]
   if (typeof entryPoint !== 'string' || entryPoint.toLowerCase() !== ENTRYPOINT_ADDRESS) {
-    return 'Invalid entrypoint'
+    return { error: 'Invalid entrypoint' }
   }
-  if ((userOp?.paymaster ?? '').toLowerCase() !== PAYMASTER_ADDRESS) {
-    return 'Invalid paymaster'
+  const pair = PAYMASTER_PAIRS.get((userOp?.paymaster ?? '').toLowerCase())
+  if (!pair) {
+    return { error: 'Invalid paymaster' }
   }
   try {
     const [dest, value, func] = accountIface.decodeFunctionData('execute', userOp.callData)
-    if (dest.toLowerCase() !== OPNVOTE_ADDRESS) return 'Invalid target'
-    if (value !== 0n) return 'Non-zero value'
-    if (!String(func).startsWith(VOTE_SELECTOR)) return 'Not a vote call'
+    if (dest.toLowerCase() !== pair.opnvote) return { error: 'Invalid target' }
+    if (value !== 0n) return { error: 'Non-zero value' }
+    if (!String(func).startsWith(VOTE_SELECTOR)) return { error: 'Not a vote call' }
   } catch {
-    return 'Undecodable callData'
+    return { error: 'Undecodable callData' }
   }
-  return null
+  return { opnvote: pair.opnvote }
 }
 
-async function canVotePrecheck(userOp: Record<string, string>): Promise<string | null> {
+async function canVotePrecheck(
+  userOp: Record<string, string>,
+  opnvoteAddress: string,
+): Promise<string | null> {
   if (!provider) return null
   try {
     const [, , func] = accountIface.decodeFunctionData('execute', userOp.callData)
@@ -88,7 +110,7 @@ async function canVotePrecheck(userOp: Record<string, string>): Promise<string |
       voteEncryptedUser,
       unblindedSignature,
     ])
-    const raw = await provider.call({ to: OPNVOTE_ADDRESS, data })
+    const raw = await provider.call({ to: opnvoteAddress, data })
     const [ok, reason] = opnvoteIface.decodeFunctionResult('canVote', raw)
     return ok ? null : `canVote: ${reason}`
   } catch (err: any) {
@@ -133,16 +155,16 @@ export function registerBundlerRoute(server: FastifyInstance): void {
     }
 
     if (body.method === 'eth_sendUserOperation') {
-      const validationError = validateSendUserOp(body.params)
-      if (validationError) {
+      const { error: validationError, opnvote: opnvoteAddress } = validateSendUserOp(body.params)
+      if (validationError || !opnvoteAddress) {
         logger.warn(`[Bundler] UserOp rejected: ${validationError} (ip=${request.ip})`)
-        return reply.status(403).send(rpcError(body.id, -32602, validationError))
+        return reply.status(403).send(rpcError(body.id, -32602, validationError ?? 'Invalid userOp'))
       }
       if (isDuplicateSend(body.params[0])) {
         logger.warn(`[Bundler] Duplicate send (sender, nonce) rejected (ip=${request.ip})`)
         return reply.status(429).send(rpcError(body.id, -32005, 'Duplicate userOp'))
       }
-      const canVoteError = await canVotePrecheck(body.params[0])
+      const canVoteError = await canVotePrecheck(body.params[0], opnvoteAddress)
       if (canVoteError) {
         logger.warn(`[Bundler] UserOp rejected: ${canVoteError} (ip=${request.ip})`)
         return reply.status(403).send(rpcError(body.id, -32602, canVoteError))
