@@ -9,7 +9,7 @@ import Button from './Button';
  * @returns
  */
 export default function Notification(props) {
-    const { type, text, headline, additionalGlobalClass, buttonText, buttonAction, htmlText, children } = props;
+    const { type, text, headline, additionalGlobalClass, buttonText, buttonAction, children } = props;
     const [NotificationIcon, setNotifcationIcon] = useState('');
 
     const iconComponents = {
@@ -35,12 +35,9 @@ export default function Notification(props) {
                                 {text}
                             </div>
                         )}
-                        {htmlText && typeof htmlText === 'string' && htmlText.length > 0 && (
-                            <div dangerouslySetInnerHTML={{ __html: htmlText }} />
-                        )}
-                        {children}
                     </div>
                 </div>
+                {children}
                 {buttonText && (
                     <div className={`op__center-align op__margin_standard_top`} >
                         <Button
