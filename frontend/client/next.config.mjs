@@ -18,7 +18,8 @@ const nextConfig = {
         entryPoint: process.env.NEXT_PUBLIC_ENTRY_POINT,
         maxVoteRecasts: 2,
         registerUrl: process.env.NEXT_PUBLIC_REGISTER_URL,
-        svsUrl: process.env.NEXT_PUBLIC_SVS_URL
+        svsUrl: process.env.NEXT_PUBLIC_SVS_URL,
+        bundlerUrl: process.env.NEXT_PUBLIC_BUNDLER_URL,
     },
     images: {
         domains: ['localhost', 'static.openpetition.de', 'client-test.opn.vote'],

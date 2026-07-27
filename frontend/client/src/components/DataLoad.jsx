@@ -6,7 +6,7 @@ import { getElectionData } from '@/service-graphql';
 import { useOpnVoteStore, emptyVoting, modes } from '@/opnVoteStore';
 import { parseJwt } from '@/util';
 import { createClient } from "votingsystem/client";
-import Config from "../../next.config.mjs"
+import Config from "../../next.config.mjs";
 import { gnosis } from "viem/chains";
 
 export default function DataLoad() {
@@ -131,7 +131,12 @@ export default function DataLoad() {
 
             let client = createClient(
                 {
-                    endpoints: { registerUrl: Config.env.registerUrl, svsUrl: Config.env.svsUrl, subgraphUrl: Config.env.graphConnectUrl },
+                    endpoints: {
+                        registerUrl: Config.env.registerUrl,
+                        //svsUrl: Config.env.svsUrl, // only uncomment if onchain doesn't work...
+                        subgraphUrl: Config.env.graphConnectUrl,
+                        bundlerUrl: Config.env.bundlerUrl,
+                    },
                     contracts: {
                         opnvote: Config.env.opnVoteContractAddress,
                         paymaster: Config.env.paymasterAddress,
