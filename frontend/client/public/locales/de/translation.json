@@ -22,6 +22,8 @@
     "common.pagetitle": "opn.vote - Demokratisches E-Voting",
     "common.save": "Speichern",
     "common.saveimage": "Bild Speichern",
+    "dataload.error.headline": "Wahldaten konnten nicht geladen werden",
+    "dataload.error.text": "Versuchen Sie es später erneut. Wenn der Fehler weiterhin auftritt, wenden Sie sich bitte an die Wahlleitung.",
     "errorpopup.email.description": "Schilderung (bitte ausfüllen):",
     "errorpopup.email.link": "Fehlerbericht per E-Mail senden",
     "errorpopup.email.subject": "opnVote – Fehlerbericht",
