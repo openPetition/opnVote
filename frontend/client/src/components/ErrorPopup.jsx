@@ -101,7 +101,7 @@ export default function ErrorPopup({ error, onClose, supportEmail = 'info@opn.vo
         >
             <Notification
                 type="error"
-                headline={t(error.location)}
+                headline={error.location && error.location !== error.userError.title ? t(error.location) : undefined}
                 text={t(error.userError.text)}
             />
             <p className={styles.errorSupportText}>{t('errorpopup.support')}</p>

@@ -85,7 +85,7 @@ export class SecurityKeyGenerationError {
 }
 
 export class ElectionDataLoadError {
-    text = "common.apploadfailed";
-    title = "common.apploadfailed";
+    text = "dataload.error.text";
+    title = "dataload.error.headline";
     button = "common.back";
 }

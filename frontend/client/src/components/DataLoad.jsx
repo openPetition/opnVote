@@ -109,7 +109,7 @@ export default function DataLoad() {
 
         try {
             if (!dataElection.election || Object.keys(dataElection.election).length === 0) {
-                throw new Error('No election data was returned for the requested election ID.');
+                throw new Error('No election data was returned for the requested election ID: ' + localState.electionId);
             }
 
             let election = dataElection.election;
@@ -205,6 +205,9 @@ export default function DataLoad() {
     }, [page.current]);
 
     return (
-        <ErrorPopup error={errorPopup} onClose={() => setErrorPopup(null)} />
+        <ErrorPopup
+            error={errorPopup}
+            onClose={() => setErrorPopup(null)}
+        />
     );
 }
