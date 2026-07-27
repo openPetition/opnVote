@@ -10,7 +10,7 @@ import styles from "./styles/CreateSecret.module.css";
 export default function CreateSecret() {
     const { t } = useTranslation();
 
-    const [createSecretState, setCreateSecretState] = useState({
+    const [localState, setLocalState] = useState({
         loadingAnimation: false,
         showSecret: false,
     });
@@ -20,8 +20,8 @@ export default function CreateSecret() {
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
     async function generateAndCreate() {
-        setCreateSecretState({
-            ...createSecretState,
+        setLocalState({
+            ...localState,
             loadingAnimation: true,
         });
 
@@ -42,14 +42,14 @@ export default function CreateSecret() {
             updateUserKey(createdSecret, false);
 
         } else {
-            setCreateSecretState(prev => ({ ...prev, loadingAnimation: false }));
+            setLocalState(prev => ({ ...prev, loadingAnimation: false }));
         }
     }
 
     useEffect(() => {
         if (user?.key?.length === 0) {
-            setCreateSecretState({
-                ...createSecretState,
+            setLocalState({
+                ...localState,
                 loadingAnimation: false,
             });
         }
@@ -72,7 +72,7 @@ export default function CreateSecret() {
                 <LoadKey
                     onClick={generateAndCreate}
                     animationDuration={1}
-                    showLoadingAnimation={createSecretState.loadingAnimation}
+                    showLoadingAnimation={localState.loadingAnimation}
                 />
                 <a className={styles.link} onClick={() => {
                     updatePage({ current: globalConst.pages.LOADKEY });
