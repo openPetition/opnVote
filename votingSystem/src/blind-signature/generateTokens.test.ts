@@ -142,15 +142,49 @@ describe('deriveElectionUnblindedToken', () => {
 describe('generateBlindingR', () => {
     it('should produce a valid Fr sk', () => {
         for (let i = 0; i < 20; i++) {
-            const r = generateBlindingR();
+            const r = generateBlindingR(generateMasterKey(), i);
             expect(() => validateR(r)).not.toThrow();
         }
     });
 
-    it('should produce different values across calls', () => {
-        const r1 = generateBlindingR();
-        const r2 = generateBlindingR();
+    it('should derive same R for same master key and election ID', () => {
+        const masterKey = generateMasterKey();
+        for (let i = 0; i < 20; i++) {
+            const electionID = Math.floor(Math.random() * 1000);
+            const r1 = generateBlindingR(masterKey, electionID);
+            const r2 = generateBlindingR(masterKey, electionID);
+
+            expect(() => validateR(r1)).not.toThrow();
+            expect(r1.hexString).toBe(r2.hexString);
+        }
+    });
+
+    it('should derive different R for different election ID', () => {
+        const masterKey = generateMasterKey();
+        const r1 = generateBlindingR(masterKey, 1);
+        const r2 = generateBlindingR(masterKey, 2);
         expect(r1.hexString).not.toBe(r2.hexString);
+    });
+
+    it('should derive different R for different master keys', () => {
+        const r1 = generateBlindingR(generateMasterKey(), 1);
+        const r2 = generateBlindingR(generateMasterKey(), 1);
+        expect(r1.hexString).not.toBe(r2.hexString);
+    });
+
+    it('should not derive equal wallet private key and r', () => {
+        const masterKey = generateMasterKey();
+        const electionID = 42;
+        const r = generateBlindingR(masterKey, electionID);
+        const wallet = deriveElectionWallet(masterKey, electionID);
+        expect(r.hexString).not.toBe(wallet.privateKey);
+    });
+
+    it('should throw if masterKey or electionID is missing', () => {
+        const masterKey = generateMasterKey();
+        expect(() => (generateBlindingR as any)()).toThrow();
+        expect(() => (generateBlindingR as any)(masterKey)).toThrow();
+        expect(() => (generateBlindingR as any)(undefined, 1)).toThrow();
     });
 });
 
@@ -171,7 +205,7 @@ describe('BLS blind-signature flow', () => {
             const electionID = Math.floor(Math.random() * 1000);
             const voterWallet = deriveElectionWallet(masterKey, electionID);
             const unblindedElectionToken = deriveElectionUnblindedToken(electionID, voterWallet.address);
-            const r = generateBlindingR();
+            const r = generateBlindingR(masterKey, electionID);
 
             expect(() => validateToken(unblindedElectionToken)).not.toThrow();
             expect(() => validateR(r)).not.toThrow();
@@ -193,6 +227,22 @@ describe('BLS blind-signature flow', () => {
         }
     });
 
+    it('should create valid signature with deterministic R', () => {
+        const electionID = 28;
+        const voterWallet = deriveElectionWallet(masterKey, electionID);
+        const unblindedElectionToken = deriveElectionUnblindedToken(electionID, voterWallet.address);
+        const r = generateBlindingR(masterKey, electionID);
+
+        const blindedElectionToken = blindToken(unblindedElectionToken, r);
+        const blindedSignature = signToken(blindedElectionToken, TestRegister);
+        const unblinded = unblindSignature(blindedSignature, r);
+
+        expect(verifyUnblindedSignature(unblinded, unblindedElectionToken, TestRegister)).toBe(true);
+
+        const rSecond = generateBlindingR(masterKey, electionID);
+        expect(blindToken(unblindedElectionToken, rSecond).hexString).toBe(blindedElectionToken.hexString);
+    });
+
     it('should fail verification when unblinded token is replaced by a token derived from a different voter address', () => {
         const numberOfTests = 2;
 
@@ -200,7 +250,7 @@ describe('BLS blind-signature flow', () => {
             const electionID = Math.floor(Math.random() * 1000);
             const voterWallet = deriveElectionWallet(masterKey, electionID);
             const unblindedElectionToken = deriveElectionUnblindedToken(electionID, voterWallet.address);
-            const r = generateBlindingR();
+            const r = generateBlindingR(masterKey, electionID);
 
             const blindedElectionToken = blindToken(unblindedElectionToken, r);
             const blindedSignature = signToken(blindedElectionToken, TestRegister);
