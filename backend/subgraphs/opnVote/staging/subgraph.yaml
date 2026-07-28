@@ -10,9 +10,9 @@ dataSources:
     name: OpnVote
     network: gnosis
     source:
-      address: '0x0000000000000000000000000000000000000000' # TODO: address + startBlock need to be updated for OpnVote 0.3.1
+      address: '0xc68851599dcd169868e90d25aef4b21e3a294592' # OpnVote v0.4.2 (staging)
       abi: OpnVote
-      startBlock: 0
+      startBlock: 47415378
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9

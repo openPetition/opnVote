@@ -4,13 +4,13 @@
   "scripts": {
     "codegen:staging": "graph codegen staging/subgraph.yaml --output-dir ./generated",
     "build:staging": "cd staging && graph build",
-    "deploy:staging": "cd staging && graph deploy --node https://api.studio.thegraph.com/deploy/ opnvote-staging-0x21df67cf8ddf94109192e0447e63fc51c3c8a9f7",
-    "create-local:staging": "cd staging && graph create --node http://127.0.0.1:8020/ opnvote-staging-0x21df67cf8ddf94109192e0447e63fc51c3c8a9f7",
-    "deploy-local:staging": "cd staging && graph deploy --node http://127.0.0.1:8020/ --ipfs http://127.0.0.1:5001 opnvote-staging-0x21df67cf8ddf94109192e0447e63fc51c3c8a9f7",
+    "deploy:staging": "cd staging && graph deploy --node https://api.studio.thegraph.com/deploy/ opnvote-staging-0xc68851599dcd169868e90d25aef4b21e3a294592",
+    "create-local:staging": "cd staging && graph create --node http://127.0.0.1:8020/ opnvote-staging-0xc68851599dcd169868e90d25aef4b21e3a294592",
+    "deploy-local:staging": "cd staging && graph deploy --node http://127.0.0.1:8020/ --ipfs http://127.0.0.1:5001 opnvote-staging-0xc68851599dcd169868e90d25aef4b21e3a294592",
     "codegen:test": "graph codegen test/subgraph.yaml --output-dir ./generated",
     "build:test": "cd test && graph build",
-    "create-local:test": "cd test && graph create --node http://127.0.0.1:8020/ opnvote-test-0x9b6ebb5ad5e92ec5bc0b76776f4fdbedc22e6744",
-    "deploy-local:test": "cd test && graph deploy --node http://127.0.0.1:8020/ --ipfs http://127.0.0.1:5001 opnvote-test-0x9b6ebb5ad5e92ec5bc0b76776f4fdbedc22e6744",
+    "create-local:test": "cd test && graph create --node http://127.0.0.1:8020/ opnvote-test-0x7b34057a613d544af9678dfae3e0e0ed55b6782b",
+    "deploy-local:test": "cd test && graph deploy --node http://127.0.0.1:8020/ --ipfs http://127.0.0.1:5001 opnvote-test-0x7b34057a613d544af9678dfae3e0e0ed55b6782b",
     "test": "graph test"
   },
   "dependencies": {
