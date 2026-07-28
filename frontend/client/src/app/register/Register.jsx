@@ -12,7 +12,7 @@ import ScanUploadQRCode from "@/components/ScanUploadQRCode";
 import GenerateQRCode from "../../components/GenerateQRCode";
 import NavigationBox from "../../components/NavigationBox";
 import Button from "../../components/Button";
-import { useTranslation } from 'next-i18next'
+import { useTranslation } from 'next-i18next';
 import Config from "../../../next.config.mjs";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
@@ -26,7 +26,7 @@ import {
     VoterRegistrationError,
     VoterSessionExpiredError,
 } from '@/errors';
-import styles from '@/app/createsecret/styles/CreateSecret.module.css'
+import styles from '@/app/createsecret/styles/CreateSecret.module.css';
 import { ArrowDownCircle } from 'lucide-react';
 
 export default function Register() {
@@ -220,7 +220,7 @@ export default function Register() {
                     block: 'start',
                 });
             }
-        }, 100)
+        }, 100);
 
     };
 
@@ -246,6 +246,7 @@ export default function Register() {
 
     useEffect(() => {
         if (registerCode && voting.registerCode != registerCode) {
+            setErrorPopup(null);
             updateVoting({ registerCode: registerCode });
         }
     }, [registerCode]);
@@ -380,6 +381,7 @@ export default function Register() {
                             text={
                                 <>
                                     {registerState.notificationText}{' '}
+                                    {registerState.notificationType !== 'error' && (
                                     <button
                                         type="button"
                                         onClick={scrollToAddToCalendarButton}
@@ -396,6 +398,7 @@ export default function Register() {
                                             color="#0d6c7f"
                                         />
                                     </button>
+                                    )}
                                 </>
                             }
                             buttonText={registerState.notificationButtonText}

@@ -12,7 +12,7 @@ import Notification from "@/components/Notification";
 export default function ShowSecret() {
     const { t } = useTranslation();
     const { user, updatePage, updateUser, notification, updateNotification } = useOpnVoteStore((state) => state);
-    const [pageNotification, setPageNotification] = useState(notification)
+    const [pageNotification, setPageNotification] = useState(notification);
 
     const goToRegister = () => {
         updatePage({ current: globalConst.pages.REGISTER });
@@ -25,7 +25,7 @@ export default function ShowSecret() {
                 targetPage: '',
                 type: '',
                 text: ''
-            })
+            });
         }
     }, [notification]);
 
