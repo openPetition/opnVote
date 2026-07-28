@@ -34,7 +34,7 @@ export default function ErrorPopup({ error, onClose, supportEmail = 'info@opn.vo
 
     useEffect(() => {
         setTechnicalDetailsCopied(false);
-        setTechnicalDetailsOpen(false);
+        setTechnicalDetailsOpen(Boolean(error?.openTechnicalDetails));
     }, [error]);
 
     if (!error) {
@@ -111,6 +111,7 @@ export default function ErrorPopup({ error, onClose, supportEmail = 'info@opn.vo
             </a>
             <details
                 className={styles.technicalDetails}
+                open={technicalDetailsOpen}
                 onToggle={(event) => setTechnicalDetailsOpen(event.currentTarget.open)}
             >
                 <summary>
