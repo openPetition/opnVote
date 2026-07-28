@@ -90,6 +90,9 @@ export default function Register() {
                 let voterJwt = voting.jwt;
                 let key = voteClient.importMasterKey(user.key);
                 response = await voteClient?.registerVoter({ voterJwt, masterKey: key ?? undefined });
+                if (!response.ok) {
+                    throw new Error(response.error);
+                }
                 stringCredits = await voteClient?.exportCredentials(response.value);
                 updateVoting({ registerCode: stringCredits, initElectionPermit: true });
                 loadingQRchange();
@@ -107,6 +110,7 @@ export default function Register() {
                     errorNotificationText = t('register.error.jwtauth');
                     userError = new VoterSessionExpiredError();
                     break;
+                case 'HTTP 400: {"data":null,"error":"Already registered"}': // this isn't nice.
                 case globalConst.ERROR.ALREADYREGISTERED:
                     buttonFunction = activateQRCodeUpload;
                     buttonText = t('register.error.alreadyregisteredbuttontext');
