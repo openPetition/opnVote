@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import globalConst from "@/constants";
 import { getElectionData } from '@/service-graphql';
 import { useOpnVoteStore, emptyVoting, modes } from '@/opnVoteStore';
@@ -8,8 +9,11 @@ import { parseJwt } from '@/util';
 import { createClient } from "votingsystem/client";
 import Config from "../../next.config.mjs";
 import { gnosis } from "viem/chains";
+import ErrorPopup from './ErrorPopup';
+import ElectionDataLoadError from '@/errors/ElectionDataLoadError';
 
 export default function DataLoad() {
+    const { t } = useTranslation();
     const [localState, setLocalState] = useState({
         electionId: null,
         election: {},
@@ -20,8 +24,22 @@ export default function DataLoad() {
         updatePage: false,
     });
 
-    const [getElection, { data: dataElection, loading: loadingElection }] = getElectionData(localState.electionId);
+    const [errorPopup, setErrorPopup] = useState(null);
+    const [getElection, { data: dataElection, loading: loadingElection, error: electionLoadError }] = getElectionData(localState.electionId);
     const { voting, updateVoting, page, updatePage, user, clearUser, setVoteClient, updateHashes } = useOpnVoteStore((state) => state);
+
+    const showError = (caughtError, block) => {
+        setErrorPopup({
+            userError: new ElectionDataLoadError(),
+            location: 'common.apploadfailed',
+            module: 'DataLoad',
+            block,
+            technicalDetails: caughtError instanceof Error
+                ? caughtError.message || caughtError.name
+                : t('errorpopup.technicaldetails.unavailable'),
+        });
+        updatePage({ loading: false });
+    };
 
     useEffect(() => {
         const onHashChange = (event) => {
@@ -82,7 +100,18 @@ export default function DataLoad() {
 
     useEffect(() => {
         if (loadingElection) return;
-        if (dataElection && dataElection?.election && Object.keys(dataElection?.election).length > 0) {
+        if (electionLoadError) {
+            showError(electionLoadError, 'getElection');
+            return;
+        }
+
+        if (!dataElection) return;
+
+        try {
+            if (!dataElection.election || Object.keys(dataElection.election).length === 0) {
+                throw new Error('No election data was returned for the requested election ID: ' + localState.electionId);
+            }
+
             let election = dataElection.election;
             if (election.id == 15) {
                 // hard coded end time, since the graphql data is temporarily outdated
@@ -93,10 +122,12 @@ export default function DataLoad() {
                 updatePage: true,
                 updateElection: true,
                 election: election,
-                electionInformation: JSON.parse(dataElection.election?.descriptionBlob)
+                electionInformation: JSON.parse(election.descriptionBlob)
             });
+        } catch (caughtError) {
+            showError(caughtError, 'processElectionData');
         }
-    }, [dataElection]);
+    }, [dataElection, electionLoadError, loadingElection]);
 
     // update everything in one step
     useEffect(() => {
@@ -178,8 +209,10 @@ export default function DataLoad() {
         window.scroll(0, 0);
     }, [page.current]);
 
-    //TODO: add notification in error case
     return (
-        <></>
+        <ErrorPopup
+            error={errorPopup}
+            onClose={() => setErrorPopup(null)}
+        />
     );
 }

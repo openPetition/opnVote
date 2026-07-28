@@ -9,7 +9,7 @@ import { X } from 'lucide-react';
  * @returns
  */
 export default function Modal(props) {
-    const { showModal, headerText, children, ctaButtonText, ctaButtonFunction, onClose } = props;
+    const { showModal, headerText, children, ctaButtonText, ctaButtonFunction, onClose, contentClassName } = props;
     const modalRef = useRef(null);
 
     const closeModal = () => {
@@ -55,7 +55,7 @@ export default function Modal(props) {
                         aria-hidden={!showModal}
                     >
                         <div className={`${styles.modalDialog} ${styles.modalDialogCentered}`} role="dialog" aria-labelledby="modalTitle" ref={modalRef}>
-                            <div className={styles.modalContent}>
+                            <div className={`${styles.modalContent} ${contentClassName || ''}`}>
                                 <div className={styles.modalHeader}>
 
                                     <div className={styles.modalClose}>
