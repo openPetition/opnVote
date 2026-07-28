@@ -26,7 +26,7 @@ export default function VoteTransaction() {
     const { smartAccountClient } = useVoting(); // Holt den fertigen Client aus Seite 1
 
     const TRANSACTION_STATE_CHECKING = 'checking';
-    const TRANSACTION_STATE_INDEXING_DELAYED = 'indexing-delayed';
+    const TRANSACTION_STATE_PENDING = 'pending';
     const TRANSACTION_STATE_SUCCESS = 'success';
     const TRANSACTION_STATE_ERROR = 'error';
     const TRANSACTION_STATE_ERROR_RETRY = 'error-retry';
@@ -94,7 +94,7 @@ export default function VoteTransaction() {
                                 ...voteResultState,
                                 transactionStateText: t('votetransactionstate.statustitle.pending'),
                                 transactionStateSubText: '',
-                                transactionState: TRANSACTION_STATE_INDEXING_DELAYED,
+                                transactionState: TRANSACTION_STATE_PENDING,
                                 notificationType: 'attention',
                                 notificationText: t('votetransactionstate.pending.text'),
                             });
@@ -182,7 +182,7 @@ export default function VoteTransaction() {
                 <div className={styles.loading}>
                     {voteResultState.transactionState === TRANSACTION_STATE_SUCCESS ? (
                         <Check width={70} height={70} style={{ color: "#29B0CC" }} strokeWidth={1} />
-                    ) : voteResultState.transactionState === TRANSACTION_STATE_INDEXING_DELAYED ? (
+                    ) : voteResultState.transactionState === TRANSACTION_STATE_PENDING ? (
                         <TriangleAlert
                             width={70}
                             height={70}
@@ -198,7 +198,7 @@ export default function VoteTransaction() {
 
             <div className="op__contentbox_max op__center-align op__padding_standard">
                 <div className={styles.item}>
-                    {voteResultState.transactionState !== TRANSACTION_STATE_INDEXING_DELAYED && (
+                    {voteResultState.transactionState !== TRANSACTION_STATE_PENDING && (
                         <>
                             <h3 className={styles.itemvalue}>{voteResultState.transactionStateText}</h3>
                             <div className={styles.itemlabel}>{voteResultState.transactionStateSubText}</div>
@@ -221,17 +221,17 @@ export default function VoteTransaction() {
                                 </>)}
                             </>
                         ) : (
-                            voteResultState.transactionState === TRANSACTION_STATE_ERROR || voteResultState.transactionState === TRANSACTION_STATE_INDEXING_DELAYED ? (
+                            voteResultState.transactionState === TRANSACTION_STATE_ERROR || voteResultState.transactionState === TRANSACTION_STATE_PENDING ? (
                                 <Notification
                                     type={voteResultState.notificationType}
                                     text={voteResultState.notificationText}
-                                    buttonText={voteResultState.transactionState === TRANSACTION_STATE_INDEXING_DELAYED
+                                    buttonText={voteResultState.transactionState === TRANSACTION_STATE_PENDING
                                         ? t('votetransactionstate.pending.retry')
                                         : undefined}
-                                    buttonAction={voteResultState.transactionState === TRANSACTION_STATE_INDEXING_DELAYED
+                                    buttonAction={voteResultState.transactionState === TRANSACTION_STATE_PENDING
                                         ? retryTransactionCheck
                                         : undefined}
-                                    linkText={t(voteResultState.transactionState === TRANSACTION_STATE_INDEXING_DELAYED
+                                    linkText={t(voteResultState.transactionState === TRANSACTION_STATE_PENDING
                                         ? 'votetransactionstate.pending.popup.link'
                                         : 'votetransactionstate.errorpopup.link')}
                                     linkAction={() => setErrorPopup(transactionErrorDetails)}
