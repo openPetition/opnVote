@@ -10,7 +10,7 @@ import { createClient } from "votingsystem/client";
 import Config from "../../next.config.mjs";
 import { gnosis } from "viem/chains";
 import ErrorPopup from './ErrorPopup';
-import ElectionDataLoadError from '@/errors/ElectionDataLoadError';
+import { ElectionDataLoadError } from '@/errors';
 
 export default function DataLoad() {
     const { t } = useTranslation();
