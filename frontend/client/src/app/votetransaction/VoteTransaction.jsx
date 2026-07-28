@@ -31,7 +31,7 @@ export default function VoteTransaction() {
     const TRANSACTION_STATE_ERROR = 'error';
     const TRANSACTION_STATE_ERROR_RETRY = 'error-retry';
 
-    const TRANSACTION_PENDING_DELAY = 60; // in milli seconds
+    const TRANSACTION_PENDING_DELAY = 6000; // in milli seconds
 
     const [voteResultState, setVoteResultState] = useState({
         transactionStateText: t('votetransactionstate.statustitle.checking'),
@@ -66,7 +66,6 @@ export default function VoteTransaction() {
                 const requestObj = voting.isVoteRecast ? { credentials: credentials, txHash: hashes.txHash } : { credentials: credentials };
                 for (let attempt = 1; attempt <= 10; attempt++) {
                     response = await voteClient.checkVote(requestObj);
-                    response = { ok: true, value: { indexed: false } };
                     if (response && response.ok && response.value.indexed) {
                         setTransactionHash(response.value.txHash);
                         updateVoting({ votesuccess: true });
