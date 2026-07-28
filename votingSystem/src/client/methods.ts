@@ -111,7 +111,7 @@ export async function registerVoter(
     const masterKey = params.masterKey ?? generateMasterKey();
     const wallet = deriveElectionWallet(masterKey, election.electionID);
     const unblindedToken = deriveElectionUnblindedToken(election.electionID, wallet.address);
-    const r = generateBlindingR();
+    const r = generateBlindingR(masterKey, election.electionID);
     const blindedToken = blindToken(unblindedToken, r);
 
     const signed = await postJson<{ blindedSignature: string }>(

@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import { bls12_381 } from "@noble/curves/bls12-381";
 import { bytesToNumberBE } from "@noble/curves/abstract/utils";
+import { mapHashToField } from "@noble/curves/abstract/modular";
 import { BlsParams, MasterKey, Token, R, BlsSignature } from "../types/types";
 import { base64ToHexString, hexStringToBase64, hexStringToBigInt, validateBase64, validateBlsParams, validateBlsSignature, validateElectionID, validateEthAddress, validateMasterKey, validateR, validateToken } from "../utils/utils";
 
@@ -70,11 +71,19 @@ export function deriveElectionUnblindedToken(electionID: number, voterAddress: s
 
 
 /**
- * Generates a blinding factor R for BLS blind-signature flow
- * @returns A random R as 32-byte hex-string
+ * Derives the blinding factor R for the BLS blind-signature flow
+ * @param masterKey - Master key
+ * @param electionID - Unique election ID
+ * @returns R as 32-byte hex-string
  */
-export function generateBlindingR(): R {
-    const r = bytesToNumberBE(bls12_381.utils.randomPrivateKey())
+export function generateBlindingR(masterKey: MasterKey, electionID: number): R {
+    validateMasterKey(masterKey)
+    validateElectionID(electionID)
+
+    const electionIDHex = ethers.toBeHex(electionID, 32)
+    const seedInput = '0x' + masterKey.hexString.substring(2) + "|" + "Blinding-R" + "|" + electionIDHex.substring(2)
+    const seed = ethers.getBytes(ethers.sha512(ethers.toUtf8Bytes(seedInput)))
+    const r = bytesToNumberBE(mapHashToField(seed, bls12_381.fields.Fr.ORDER))
     return { hexString: '0x' + r.toString(16).padStart(64, '0') }
 }
 
