@@ -29,7 +29,6 @@ export default function VoteTransaction() {
     const TRANSACTION_STATE_PENDING = 'pending';
     const TRANSACTION_STATE_SUCCESS = 'success';
     const TRANSACTION_STATE_ERROR = 'error';
-    const TRANSACTION_STATE_ERROR_RETRY = 'error-retry';
 
     const TRANSACTION_PENDING_DELAY = 6000; // in milli seconds
 
@@ -242,11 +241,6 @@ export default function VoteTransaction() {
                         )}
                     </div>
                 </div>
-                {voteResultState.transactionState == TRANSACTION_STATE_ERROR_RETRY && (
-                    <div className="op__padding_standard_top">
-                        <Button type="primary" onClick={() => { updateUserOpHash(''); updatePage({ current: globalConst.pages.POLLINGSTATION }, modes.replace); }}>{t("votetransactionstate.errorretry")}</Button>
-                    </div>
-                )}
             </div>
             <ErrorPopup error={errorPopup} onClose={() => setErrorPopup(null)} />
         </>
