@@ -9,7 +9,7 @@ import Button from './Button';
  * @returns
  */
 export default function Notification(props) {
-    const { type, text, headline, additionalGlobalClass, buttonText, buttonAction, children } = props;
+    const { type, text, headline, additionalGlobalClass, buttonText, buttonAction, linkText, linkAction, children } = props;
     const [NotificationIcon, setNotifcationIcon] = useState('');
 
     const iconComponents = {
@@ -34,6 +34,11 @@ export default function Notification(props) {
                             <div>
                                 {text}
                             </div>
+                        )}
+                        {linkText && (
+                            <button className={styles.linkButton} type="button" onClick={linkAction}>
+                                {linkText}
+                            </button>
                         )}
                     </div>
                 </div>
