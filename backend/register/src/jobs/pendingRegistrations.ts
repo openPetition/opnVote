@@ -114,9 +114,15 @@ async function init() {
   }
 }
 
-init()
+init().catch(error => {
+  logger.error(`Register failed to initialize: ${error}`)
+  process.exit(1)
+})
 
 let isProcessing = false
+let skippedRuns = 0
+let lastBalanceAlert = 0
+const BALANCE_ALERT_INTERVAL = parseInt(process.env.BALANCE_ALERT_INTERVAL_MS || '3600000')
 
 /**
  * On-chain registration of pending registrations
@@ -125,11 +131,19 @@ let isProcessing = false
  */
 export async function processPendingRegistrations(): Promise<void> {
   if (isProcessing) {
-    logger.info('Already processing pending Registrations, skipping')
+    skippedRuns++
+    if (skippedRuns === 5) {
+      logger.error(
+        `Register Jobs: Still processing pending Registrations after ${skippedRuns} skipped runs. Stuck?`,
+      )
+    } else {
+      logger.info('Already processing pending Registrations, skipping')
+    }
     return
   }
 
   isProcessing = true
+  skippedRuns = 0
   try {
     logger.debug('Processing pending Registrations...')
     const balance = await withRetry(() => provider.getBalance(wallet.address))
@@ -250,7 +264,7 @@ export async function processPendingRegistrations(): Promise<void> {
           `Processing ${finalFilteredRegistrations.length} registrations for election ${electionId}`,
         )
         if (finalFilteredRegistrations.length === 0) {
-          logger.error(`No new registrations found for election ${electionId}`)
+          logger.info(`No new registrations found for election ${electionId}`)
           continue
         }
 
@@ -414,7 +428,7 @@ export async function processPendingRegistrations(): Promise<void> {
               )
             }
           } catch (error) {
-            logger.error('Transaction failed or timeout reached:', error)
+            logger.error(`Transaction failed or timeout reached: ${error}`)
             for (const registration of registrationBatch) {
               await BlindedSignatureService.updateRegistrationStatus(
                 registration.voterId,
@@ -432,7 +446,9 @@ export async function processPendingRegistrations(): Promise<void> {
           }
         }
       } catch (error) {
-        logger.error(`Error processing pending Registrations with electionId: ${electionId}`, error)
+        logger.error(
+          `Error processing pending Registrations with electionId ${electionId}: ${error}`,
+        )
         await timeout(30000) // 30 seconds timeout for potential node recovery
       }
     }
@@ -502,13 +518,20 @@ async function waitForTransaction(
  * @returns true if the balance is sufficient, false otherwise
  */
 function validateBalance(balance: bigint): boolean {
+  const shouldAlertBalance = Date.now() - lastBalanceAlert > BALANCE_ALERT_INTERVAL
   if (balance < WALLET_THRESHOLDS.MINIMUM_BALANCE) {
-    logger.error(`Insufficient balance: ${ethers.formatEther(balance)} Wallet: ${wallet.address}`)
+    if (shouldAlertBalance) {
+      lastBalanceAlert = Date.now()
+      logger.error(`Insufficient balance: ${ethers.formatEther(balance)} Wallet: ${wallet.address}`)
+    }
     return false
   } else if (balance < WALLET_THRESHOLDS.LOW_BALANCE) {
-    logger.warn(
-      `Register Wallet Balance is low: ${ethers.formatEther(balance)} Wallet: ${wallet.address}`,
-    )
+    if (shouldAlertBalance) {
+      lastBalanceAlert = Date.now()
+      logger.warn(
+        `Register Wallet Balance is low: ${ethers.formatEther(balance)} Wallet: ${wallet.address}`,
+      )
+    }
     return true
   } else {
     logger.info(`Register Wallet Balance: ${ethers.formatEther(balance)} Wallet: ${wallet.address}`)

@@ -142,11 +142,7 @@ router.post(
       }
     } catch (error) {
       const duration = Date.now() - startTime
-      if (duration > 500) {
-        logger.warn(`[SLOW] Error in registration process after ${duration}ms: ${error}`)
-      } else {
-        logger.debug(`Error in registration process after ${duration}ms: ${error}`)
-      }
+      logger.error(`Error in registration process after ${duration}ms: ${error}`)
 
       return res.status(500).json({
         data: null,
@@ -154,11 +150,7 @@ router.post(
       } as ApiResponse<null>)
     } finally {
       const duration = Date.now() - startTime
-      if (duration > 500) {
-        logger.warn(`[SLOW] Total DB transaction time: ${duration}ms`)
-      } else {
-        logger.debug(`Total DB transaction time: ${duration}ms`)
-      }
+      logger.info(`Total DB transaction time: ${duration}ms`)
     }
   },
 )

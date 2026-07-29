@@ -16,6 +16,7 @@ import swaggerSpec from './config/swaggerConfig'
 import https from 'https'
 import http from 'http'
 import { initializeRegisterKeys } from './init/initializeRegisterKeys'
+import { logger } from './utils/logger'
 
 const AP_JWT_PUBLIC_KEY_PATH = process.env.AP_JWT_PUBLIC_KEY_PATH
 const SERVER_URL = process.env.SERVER_URL
@@ -59,11 +60,11 @@ if (SSL_KEY_PATH && SSL_CERT_PATH) {
 
   // Start HTTPS server
   https.createServer(httpsOptions, app).listen(port, () => {
-    console.log(`⚡️[server]: Server is running at ${SERVER_URL}`)
+    logger.info(`⚡️[server]: Server is running at ${SERVER_URL}`)
   })
 } else {
   http.createServer({}, app).listen(port, () => {
-    console.log(`⚡️[server]: Server is running at ${SERVER_URL}`)
+    logger.info(`⚡️[server]: Server is running at ${SERVER_URL}`)
   })
 }
 
@@ -82,5 +83,5 @@ dataSource
     app.use('/api/admin', adminRoutes)
   })
   .catch(err => {
-    console.error('Error during Data Source initialization', err)
+    logger.error(`Error during Data Source initialization: ${err}`)
   })

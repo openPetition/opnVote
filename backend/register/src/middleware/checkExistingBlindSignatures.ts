@@ -4,6 +4,7 @@ import { dataSource } from '../database'
 import { RequestWithUser } from '../types/jwt'
 import { ApiResponse } from '../types/apiResponses'
 import { Token } from 'votingsystem'
+import { logger } from '../utils/logger'
 
 /**
  * Middleware to check if user already received a blinded Signature for election Id
@@ -58,7 +59,7 @@ export async function checkForExistingBlindedSignature(
 
     next()
   } catch (error) {
-    console.error('Database error:', error)
+    logger.error(`Database error: ${error}`)
     return res.status(500).json({
       data: null,
       error: 'Internal server error',
@@ -93,7 +94,7 @@ export async function unauthenticatedCheckForExistingBlindSignature(
     }
     next()
   } catch (error) {
-    console.error('Database error:', error)
+    logger.error(`Database error: ${error}`)
     return res.status(500).json({
       data: null,
       error: 'Internal server error',

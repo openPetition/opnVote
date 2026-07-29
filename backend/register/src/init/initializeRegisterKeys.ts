@@ -1,5 +1,6 @@
 import { RegisterKeyService } from '../services/registerKeyService'
 import { validateBlsParams } from 'votingsystem'
+import { logger } from '../utils/logger'
 
 // Create register key array from .env variables REGISTER_ELECTION_[0-99]_PK and REGISTER_ELECTION_[0-99]_SK
 const registerKeys = Array.from({ length: 100 }, (_, i) => i)
@@ -16,21 +17,18 @@ function maskKey(key: string): string {
 
 /**
  * Initializes register keys from .env
- * WARNING: This function is intended only for manual key insertion.
- * For production use, use admin routes to manage register keys.
  * @throws {Error} If keys already exist for the specified election id
  */
 export async function initializeRegisterKeys() {
   if (registerKeys.length > 0) {
-    console.warn(`Initializing ${registerKeys.length} register keys from environment variables.`)
+    logger.info(`Initializing ${registerKeys.length} register keys from environment variables.`)
   }
 
   try {
     for (const key of registerKeys) {
       const existingKey = await RegisterKeyService.getKeysByElectionId(key.electionId)
       if (existingKey) {
-        console.error(`Warning: Register key already exist in db for election ${key.electionId}.`)
-        console.info(`Info: Register key initialization skipped for election ${key.electionId}`)
+        logger.info(`Register key already exists in db for election ${key.electionId}. Skipping...`)
         continue
       }
 
@@ -43,11 +41,11 @@ export async function initializeRegisterKeys() {
 
       await RegisterKeyService.storeKeys(key.electionId, blsParams)
 
-      console.log(`Successfully initialized key for election id ${key.electionId}:
+      logger.info(`Successfully initialized key for election id ${key.electionId}:
                 pk: ${maskKey(key.pk)}`)
     }
   } catch (error) {
-    console.error('Error initializing register key:', error)
+    logger.error(`Error initializing register key: ${error}`)
     throw error
   }
 }
