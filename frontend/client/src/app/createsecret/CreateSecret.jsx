@@ -31,7 +31,6 @@ export default function CreateSecret() {
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
     async function generateAndCreate() {
-        setCreateSecretState({
         setLocalState({
             ...localState,
             loadingAnimation: true,
