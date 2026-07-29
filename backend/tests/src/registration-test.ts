@@ -70,7 +70,7 @@ async function createRegistrationPayload() {
   const electionID = config.electionID
   const voterWallet = deriveElectionWallet(masterKey, electionID)
   const unblindedElectionToken = deriveElectionUnblindedToken(electionID, voterWallet.address)
-  const electionR = generateBlindingR()
+  const electionR = generateBlindingR(masterKey, electionID)
   const blindedElectionToken = blindToken(unblindedElectionToken, electionR)
 
   return {
