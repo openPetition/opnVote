@@ -187,6 +187,7 @@
     "pollingstation.button.errorpopup.button": "Schließen",
     "pollingstation.button.errorpopup.headline": "Verarbeitung der Stimme fehlgeschlagen",
     "pollingstation.button.errorpopup.link": "Technische Details anzeigen",
+    "pollingstation.button.pending": "Ihr Stimmzettel wird übermittelt. Das kann ein paar Sekunden dauern. Sie werden dann automatisch weitergeleitet.",
     "pollingstation.button.savevotes": "Stimmzettel abgeben",
     "pollingstation.button.uploadballot": "Wahlschein hochladen",
     "pollingstation.electionHeader.countdown.dateuntil": "bis",
