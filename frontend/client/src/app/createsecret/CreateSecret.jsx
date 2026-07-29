@@ -9,7 +9,6 @@ import Button from "@/components/Button";
 import Notification from "@/components/Notification";
 import globalConst from "@/constants";
 import styles from "./styles/CreateSecret.module.css";
-import Notification from "@/components/Notification";
 import ErrorPopup from "@/components/ErrorPopup";
 import { SecurityKeyGenerationError } from "@/errors";
 
