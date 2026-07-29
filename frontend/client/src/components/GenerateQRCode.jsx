@@ -38,7 +38,7 @@ export default function GenerateQRCode(props) {
         setTimeout(() => {
             setShowCodeStringCopied(false);
         }, 4000);
-    }
+    };
 
     const getWordWrappedLines = (context, text, maxWidth) => {
         const words = text.split(' ');

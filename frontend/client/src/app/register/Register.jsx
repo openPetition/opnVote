@@ -12,7 +12,7 @@ import ScanUploadQRCode from "@/components/ScanUploadQRCode";
 import GenerateQRCode from "../../components/GenerateQRCode";
 import NavigationBox from "../../components/NavigationBox";
 import Button from "../../components/Button";
-import { useTranslation } from 'next-i18next'
+import { useTranslation } from 'next-i18next';
 import Config from "../../../next.config.mjs";
 import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
@@ -20,7 +20,13 @@ import Headline from "@/components/Headline";
 import Modal from "@/components/Modal";
 import { createPDF } from "@/save-pdf";
 import AddToCalendar from '@/components/AddToCalendar';
-import styles from '@/app/createsecret/styles/CreateSecret.module.css'
+import ErrorPopup from '@/components/ErrorPopup';
+import {
+    ElectionPermitAlreadyRegisteredError,
+    VoterRegistrationError,
+    VoterSessionExpiredError,
+} from '@/errors';
+import styles from '@/app/createsecret/styles/CreateSecret.module.css';
 import { ArrowDownCircle } from 'lucide-react';
 
 export default function Register() {
@@ -36,6 +42,8 @@ export default function Register() {
     const [endDate, setEndDate] = useState("");
     const [registerCode, setRegisterCode] = useState("");
     const [showMod, setShowMod] = useState(false);
+    const [registrationErrorDetails, setRegistrationErrorDetails] = useState(null);
+    const [errorPopup, setErrorPopup] = useState(null);
     const election = voting.election;
     const electionTitle = voting.electionInformation.title;
     const electionTitleSanitized = electionTitle
@@ -82,6 +90,9 @@ export default function Register() {
                 let voterJwt = voting.jwt;
                 let key = voteClient.importMasterKey(user.key);
                 response = await voteClient?.registerVoter({ voterJwt, masterKey: key ?? undefined });
+                if (!response.ok) {
+                    throw new Error(response.error);
+                }
                 stringCredits = await voteClient?.exportCredentials(response.value);
                 updateVoting({ registerCode: stringCredits, initElectionPermit: true });
                 loadingQRchange();
@@ -90,23 +101,38 @@ export default function Register() {
             let buttonFunction;
             let buttonText;
             let errorNotificationText;
+            let userError;
 
             switch (error.message) {
                 case globalConst.ERROR.JWTAUTH:
                     buttonFunction = goToStart;
                     buttonText = t('register.error.jwtauthbuttontext');
                     errorNotificationText = t('register.error.jwtauth');
+                    userError = new VoterSessionExpiredError();
                     break;
+                case 'HTTP 400: {"data":null,"error":"Already registered"}': // this isn't nice.
                 case globalConst.ERROR.ALREADYREGISTERED:
                     buttonFunction = activateQRCodeUpload;
                     buttonText = t('register.error.alreadyregisteredbuttontext');
                     errorNotificationText = t('register.error.alreadyregistered');
+                    userError = new ElectionPermitAlreadyRegisteredError();
                     break;
                 default:
                     buttonFunction = '';
                     buttonText = '';
                     errorNotificationText = t('register.error.general');
+                    userError = new VoterRegistrationError();
             }
+
+            setRegistrationErrorDetails({
+                userError,
+                location: 'register.errorpopup.headline',
+                module: 'Register',
+                block: 'generateVoteCredentials',
+                technicalDetails: error instanceof Error
+                    ? error.message || error.name
+                    : t('errorpopup.technicaldetails.unavailable'),
+            });
 
             setRegisterState({
                 ...registerState,
@@ -194,7 +220,7 @@ export default function Register() {
                     block: 'start',
                 });
             }
-        }, 100)
+        }, 100);
 
     };
 
@@ -220,6 +246,7 @@ export default function Register() {
 
     useEffect(() => {
         if (registerCode && voting.registerCode != registerCode) {
+            setErrorPopup(null);
             updateVoting({ registerCode: registerCode });
         }
     }, [registerCode]);
@@ -354,6 +381,7 @@ export default function Register() {
                             text={
                                 <>
                                     {registerState.notificationText}{' '}
+                                    {registerState.notificationType !== 'error' && (
                                     <button
                                         type="button"
                                         onClick={scrollToAddToCalendarButton}
@@ -370,10 +398,13 @@ export default function Register() {
                                             color="#0d6c7f"
                                         />
                                     </button>
+                                    )}
                                 </>
                             }
                             buttonText={registerState.notificationButtonText}
                             buttonAction={registerState.notificationButtonAction}
+                            linkText={t('register.errorpopup.link')}
+                            linkAction={() => setErrorPopup(registrationErrorDetails)}
                         />
                     </>
                 )}
@@ -615,6 +646,7 @@ export default function Register() {
                     </>
                 )}
             </div>
+            <ErrorPopup error={errorPopup} onClose={() => setErrorPopup(null)} />
         </>
     );
 }
