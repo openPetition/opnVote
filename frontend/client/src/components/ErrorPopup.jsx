@@ -34,7 +34,7 @@ export default function ErrorPopup({ error, onClose, supportEmail = 'info@opn.vo
 
     useEffect(() => {
         setTechnicalDetailsCopied(false);
-        setTechnicalDetailsOpen(false);
+        setTechnicalDetailsOpen(Boolean(error?.openTechnicalDetails));
     }, [error]);
 
     if (!error) {
@@ -100,7 +100,7 @@ export default function ErrorPopup({ error, onClose, supportEmail = 'info@opn.vo
             onClose={dismissError}
         >
             <Notification
-                type="error"
+                type={error.notificationType || 'error'}
                 headline={error.location && error.location !== error.userError.title ? t(error.location) : undefined}
                 text={t(error.userError.text)}
             />
@@ -111,6 +111,7 @@ export default function ErrorPopup({ error, onClose, supportEmail = 'info@opn.vo
             </a>
             <details
                 className={styles.technicalDetails}
+                open={technicalDetailsOpen}
                 onToggle={(event) => setTechnicalDetailsOpen(event.currentTarget.open)}
             >
                 <summary>
@@ -138,4 +139,3 @@ export default function ErrorPopup({ error, onClose, supportEmail = 'info@opn.vo
         </Modal>
     );
 }
-

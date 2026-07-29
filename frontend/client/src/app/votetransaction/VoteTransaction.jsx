@@ -8,12 +8,12 @@ import Loading from '@/components/Loading';
 import Headline from "@/components/Headline";
 import Notification from '@/components/Notification';
 import ErrorPopup from '@/components/ErrorPopup';
-import { VoteTransactionError } from '@/errors';
+import { VoteTransactionError, VoteTransactionPendingError } from '@/errors';
 import { AlreadyVotedError, ServerError, querySubgraphTransactionState } from '../../service';
 import { useOpnVoteStore, modes } from "../../opnVoteStore";
 import styles from './styles/votetransaction.module.css';
 import globalConst from "@/constants";
-import { Check } from "lucide-react";
+import { Check, TriangleAlert } from "lucide-react";
 import { useVoting } from '../VotingContext';
 
 export default function VoteTransaction() {
@@ -29,7 +29,6 @@ export default function VoteTransaction() {
     const TRANSACTION_STATE_PENDING = 'pending';
     const TRANSACTION_STATE_SUCCESS = 'success';
     const TRANSACTION_STATE_ERROR = 'error';
-    const TRANSACTION_STATE_ERROR_RETRY = 'error-retry';
 
     const TRANSACTION_PENDING_DELAY = 6000; // in milli seconds
 
@@ -43,6 +42,19 @@ export default function VoteTransaction() {
     });
 
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    const retryTransactionCheck = () => {
+        setTransactionErrorDetails(null);
+        setVoteResultState((previousState) => ({
+            ...previousState,
+            transactionStateText: t('votetransactionstate.statustitle.checking'),
+            transactionStateSubText: '',
+            transactionState: TRANSACTION_STATE_CHECKING,
+            notificationText: '',
+            notificationType: '',
+        }));
+        setIsCheckingTransaction(true);
+    };
 
     const checkTransaction = async () => {
         if (voteClient && typeof voteClient.registerVoter === 'function') {
@@ -67,7 +79,24 @@ export default function VoteTransaction() {
                         break;
                     } else {
                         if (attempt === 10) {
-                            console.log('Vote not yet indexed after 10 attempts (subgraph may lag — tx succeeded)');
+                            const userError = new VoteTransactionPendingError();
+                            setTransactionErrorDetails({
+                                userError,
+                                location: userError.title,
+                                notificationType: 'attention',
+                                openTechnicalDetails: true,
+                                module: 'VoteTransaction',
+                                block: 'checkTransaction',
+                                technicalDetails: 'The transaction was not indexed after 10 attempts.',
+                            });
+                            setVoteResultState({
+                                ...voteResultState,
+                                transactionStateText: t('votetransactionstate.statustitle.pending'),
+                                transactionStateSubText: '',
+                                transactionState: TRANSACTION_STATE_PENDING,
+                                notificationType: 'attention',
+                                notificationText: t('votetransactionstate.pending.text'),
+                            });
                         } else {
                             console.log(`Waiting for subgraph... (attempt ${attempt}/10)`);
                             await sleep(TRANSACTION_PENDING_DELAY);
@@ -150,18 +179,30 @@ export default function VoteTransaction() {
 
             <div className={styles.loadingContainer}>
                 <div className={styles.loading}>
-                    {voteResultState.transactionState == TRANSACTION_STATE_SUCCESS && (
+                    {voteResultState.transactionState === TRANSACTION_STATE_SUCCESS ? (
                         <Check width={70} height={70} style={{ color: "#29B0CC" }} strokeWidth={1} />
-                    ) || (
-                            <Loading />
-                        )}
+                    ) : voteResultState.transactionState === TRANSACTION_STATE_PENDING ? (
+                        <TriangleAlert
+                            width={70}
+                            height={70}
+                            style={{ color: "#9A6700" }}
+                            strokeWidth={1}
+                            aria-label={t('votetransactionstate.pending.popup.headline')}
+                        />
+                    ) : (
+                        <Loading />
+                    )}
                 </div>
             </div>
 
             <div className="op__contentbox_max op__center-align op__padding_standard">
                 <div className={styles.item}>
-                    <h3 className={styles.itemvalue}>{voteResultState.transactionStateText}</h3>
-                    <div className={styles.itemlabel}>{voteResultState.transactionStateSubText}</div>
+                    {voteResultState.transactionState !== TRANSACTION_STATE_PENDING && (
+                        <>
+                            <h3 className={styles.itemvalue}>{voteResultState.transactionStateText}</h3>
+                            <div className={styles.itemlabel}>{voteResultState.transactionStateSubText}</div>
+                        </>
+                    )}
                     <div className={styles.itemheadline}>
                         {transactionHash ? (
                             <>
@@ -179,11 +220,19 @@ export default function VoteTransaction() {
                                 </>)}
                             </>
                         ) : (
-                            voteResultState.transactionState === TRANSACTION_STATE_ERROR ? (
+                            voteResultState.transactionState === TRANSACTION_STATE_ERROR || voteResultState.transactionState === TRANSACTION_STATE_PENDING ? (
                                 <Notification
-                                    type="error"
+                                    type={voteResultState.notificationType}
                                     text={voteResultState.notificationText}
-                                    linkText={t('votetransactionstate.errorpopup.link')}
+                                    buttonText={voteResultState.transactionState === TRANSACTION_STATE_PENDING
+                                        ? t('votetransactionstate.pending.retry')
+                                        : undefined}
+                                    buttonAction={voteResultState.transactionState === TRANSACTION_STATE_PENDING
+                                        ? retryTransactionCheck
+                                        : undefined}
+                                    linkText={t(voteResultState.transactionState === TRANSACTION_STATE_PENDING
+                                        ? 'votetransactionstate.pending.popup.link'
+                                        : 'votetransactionstate.errorpopup.link')}
                                     linkAction={() => setErrorPopup(transactionErrorDetails)}
                                 />
                             ) : (
@@ -192,11 +241,6 @@ export default function VoteTransaction() {
                         )}
                     </div>
                 </div>
-                {voteResultState.transactionState == TRANSACTION_STATE_ERROR_RETRY && (
-                    <div className="op__padding_standard_top">
-                        <Button type="primary" onClick={() => { updateUserOpHash(''); updatePage({ current: globalConst.pages.POLLINGSTATION }, modes.replace); }}>{t("votetransactionstate.errorretry")}</Button>
-                    </div>
-                )}
             </div>
             <ErrorPopup error={errorPopup} onClose={() => setErrorPopup(null)} />
         </>
