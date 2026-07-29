@@ -4,7 +4,7 @@ import {
     concatElectionCredentialsForQR,
     qrToElectionCredentials,
 } from "../voter-credentials/voterCredentials";
-import { checkVote, recastVote, registerVoter, vote } from "./methods";
+import { checkRegistration, checkVote, recastVote, registerVoter, vote } from "./methods";
 import type { Configuration, Election, VotingClient } from "./types";
 
 /**
@@ -42,6 +42,7 @@ export function createClient(config: Configuration, election: Election): VotingC
         importMasterKey: qrToMasterKey,
         exportCredentials: concatElectionCredentialsForQR,
         importCredentials: qrToElectionCredentials,
+        checkRegistration: (params) => checkRegistration(config, election, params),
         registerVoter: (params) => registerVoter(config, election, params),
         vote: (params) => vote(config, election, params),
         recastVote: (params) => recastVote(config, election, params),

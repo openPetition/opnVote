@@ -40,6 +40,7 @@ export const emptyVoting = {
     election: {},
     electionInformation: {},
     jwt: '',
+    isRegistered: null,
     registerCode: '',
     registerCodeSaved: false,
     registerCodeSavedAs: [],
