@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import axios from 'axios'
 import { ethers } from 'ethers'
 import { logger } from './utils/logger'
+import { shouldAlert } from './utils/alertThrottle'
 import opnvoteAbi from './abi/opnvote-0.4.0.json'
 import accountAbi from './abi/account.json'
 
@@ -55,6 +56,11 @@ const provider = process.env.PRIMARY_RPC_URL
   ? new ethers.JsonRpcProvider(process.env.PRIMARY_RPC_URL)
   : null
 
+if (!provider) {
+  logger.error('[Bundler] PRIMARY_RPC_URL not set.')
+  throw new Error('PRIMARY_RPC_URL not set.')
+}
+
 let gasPriceCache: { at: number; result: any } | null = null
 
 const recentSends = new Map<string, number>()
@@ -62,6 +68,24 @@ setInterval(() => {
   const cutoff = Date.now() - SEND_DEDUP_TTL
   for (const [k, t] of recentSends) if (t < cutoff) recentSends.delete(k)
 }, SEND_DEDUP_TTL).unref()
+
+function logUpstreamResponse(method: string, res: any): void {
+  try {
+    if (res?.error) {
+      const message = String(res.error.message ?? res.error.code ?? 'unknown')
+      if (shouldAlert(`upstream: ${message.slice(0, 60)}`)) {
+        logger.error(`[Bundler] ${method} upstream error: ${message}`)
+      }
+    } else if (method === 'eth_getUserOperationReceipt' && res?.result?.success === false) {
+      const tx = res.result.receipt?.transactionHash
+      if (shouldAlert(`reverted: ${tx}`)) {
+        logger.error(`[Bundler] UserOp reverted: ${tx}`)
+      }
+    }
+  } catch {
+    return
+  }
+}
 
 function rpcError(id: any, code: number, message: string) {
   return { jsonrpc: '2.0', error: { code, message }, id: id ?? null }
@@ -115,12 +139,16 @@ async function canVotePrecheck(
     return ok ? null : `canVote: ${reason}`
   } catch (err: any) {
     if (err?.code === 'CALL_EXCEPTION') {
-      logger.warn(
-        `[Bundler] canVote reverted: reason=${err.reason ?? err.shortMessage} sender=${userOp.sender} callData=${userOp.callData}`,
-      )
+      if (shouldAlert(`canvote-reverted: ${err.reason ?? err.shortMessage}`)) {
+        logger.warn(
+          `[Bundler] canVote reverted: reason=${err.reason ?? err.shortMessage} sender=${userOp.sender} callData=${userOp.callData}`,
+        )
+      }
       return 'canVote reverted'
     }
-    logger.warn(`[Bundler] canVote precheck skipped: ${err}`)
+    if (shouldAlert('canvote-skipped')) {
+      logger.warn(`[Bundler] canVote check skipped: ${err?.message ?? err}`)
+    }
     return null
   }
 }
@@ -141,7 +169,9 @@ export function registerBundlerRoute(server: FastifyInstance): void {
     }
 
     if (!ALLOWED_METHODS.has(body.method)) {
-      logger.warn(`[Bundler] Rejected method: ${body.method}`)
+      if (shouldAlert(`method: ${String(body.method).slice(0, 60)}`)) {
+        logger.warn(`[Bundler] Rejected method: ${body.method}`)
+      }
       return reply.status(403).send(rpcError(body.id, -32601, `Method not allowed: ${body.method}`))
     }
 
@@ -149,32 +179,50 @@ export function registerBundlerRoute(server: FastifyInstance): void {
       if (gasPriceCache && Date.now() - gasPriceCache.at < GAS_PRICE_TTL) {
         return reply.send({ jsonrpc: '2.0', result: gasPriceCache.result, id: body.id })
       }
-      const res = await forwardToBundler(body)
-      if (res.result) gasPriceCache = { at: Date.now(), result: res.result }
-      return reply.send(res)
+      try {
+        const res = await forwardToBundler(body)
+        if (res.result) gasPriceCache = { at: Date.now(), result: res.result }
+        logUpstreamResponse(body.method, res)
+        return reply.send(res)
+      } catch (err: any) {
+        if (shouldAlert('forward: pimlico_getUserOperationGasPrice')) {
+          logger.error(`[Bundler] ${body.method} failed: ${err?.message ?? err}`)
+        }
+        return reply.status(502).send(rpcError(body.id, -32603, 'Bundler request failed'))
+      }
     }
 
     if (body.method === 'eth_sendUserOperation') {
       const { error: validationError, opnvote: opnvoteAddress } = validateSendUserOp(body.params)
       if (validationError || !opnvoteAddress) {
-        logger.warn(`[Bundler] UserOp rejected: ${validationError} (ip=${request.ip})`)
+        if (shouldAlert(`validation: ${validationError}`)) {
+          logger.warn(`[Bundler] UserOp rejected: ${validationError} (ip=${request.ip})`)
+        }
         return reply.status(403).send(rpcError(body.id, -32602, validationError ?? 'Invalid userOp'))
       }
       if (isDuplicateSend(body.params[0])) {
-        logger.warn(`[Bundler] Duplicate send (sender, nonce) rejected (ip=${request.ip})`)
+        if (shouldAlert('duplicate-send')) {
+          logger.warn(`[Bundler] Duplicate send (sender, nonce) rejected (ip=${request.ip})`)
+        }
         return reply.status(429).send(rpcError(body.id, -32005, 'Duplicate userOp'))
       }
       const canVoteError = await canVotePrecheck(body.params[0], opnvoteAddress)
       if (canVoteError) {
-        logger.warn(`[Bundler] UserOp rejected: ${canVoteError} (ip=${request.ip})`)
+        if (shouldAlert(`canvote: ${canVoteError}`)) {
+          logger.warn(`[Bundler] UserOp rejected: ${canVoteError} (ip=${request.ip})`)
+        }
         return reply.status(403).send(rpcError(body.id, -32602, canVoteError))
       }
     }
 
     try {
-      return reply.send(await forwardToBundler(body))
-    } catch (err) {
-      logger.error(`[Bundler] ${body.method} failed:`, err)
+      const res = await forwardToBundler(body)
+      logUpstreamResponse(body.method, res)
+      return reply.send(res)
+    } catch (err: any) {
+      if (shouldAlert(`forward: ${body.method}`)) {
+        logger.error(`[Bundler] ${body.method} failed: ${err?.message ?? err}`)
+      }
       return reply.status(502).send(rpcError(body.id, -32603, 'Bundler request failed'))
     }
   })
