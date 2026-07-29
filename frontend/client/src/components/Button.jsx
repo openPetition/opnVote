@@ -11,7 +11,7 @@ const Button = forwardRef(function Button(
         <button
             ref={ref}
             {...props}
-            className={`${styles.btn} ${styles[type]} ${stretched ? 'op__width_100' : ''}`}
+            className={`${styles.btn} ${styles[type]} ${stretched ? 'op__width_100' : ''} ${props.className}`}
         >
             {children}
         </button>

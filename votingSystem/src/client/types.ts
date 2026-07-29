@@ -159,6 +159,7 @@ export type VotingClient = {
     generateMasterKey(): MasterKey;
     exportMasterKey(masterKey: MasterKey): string;
     importMasterKey(serialized: string): MasterKey;
+    checkRegistration(params: RegisterVoterParams): Promise<Result<boolean>>;
     registerVoter(params: RegisterVoterParams): Promise<Result<ElectionCredentials>>;
     exportCredentials(credentials: ElectionCredentials): string;
     importCredentials(serialized: string): ElectionCredentials;

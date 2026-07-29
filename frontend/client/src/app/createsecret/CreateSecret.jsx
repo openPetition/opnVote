@@ -4,6 +4,9 @@ import LoadKey from "./components/LoadKey";
 import { useTranslation } from "next-i18next";
 import { useOpnVoteStore, modes } from "../../opnVoteStore";
 import Headline from "@/components/Headline";
+import Loading from "@/components/Loading";
+import Button from "@/components/Button";
+import Notification from "@/components/Notification";
 import globalConst from "@/constants";
 import styles from "./styles/CreateSecret.module.css";
 import Notification from "@/components/Notification";
@@ -13,21 +16,24 @@ import { SecurityKeyGenerationError } from "@/errors";
 export default function CreateSecret() {
     const { t } = useTranslation();
 
-    const [createSecretState, setCreateSecretState] = useState({
+    const [localState, setLocalState] = useState({
+        jwt: '',
+        checkingRegistration: null,
+        allowKeyCreation: false,
         loadingAnimation: false,
         showSecret: false,
     });
     const [keyGenerationErrorDetails, setKeyGenerationErrorDetails] = useState(null);
     const [errorPopup, setErrorPopup] = useState(null);
 
-    const { user, voting, updateUserKey, updatePage, voteClient } = useOpnVoteStore((state) => state);
+    const { user, voting, updateUserKey, updatePage, voteClient, updateVoting } = useOpnVoteStore((state) => state);
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
     async function generateAndCreate() {
-        setKeyGenerationErrorDetails(null);
         setCreateSecretState({
-            ...createSecretState,
+        setLocalState({
+            ...localState,
             loadingAnimation: true,
         });
 
@@ -60,14 +66,49 @@ export default function CreateSecret() {
             updateUserKey(createdSecret, false);
 
         } else {
-            setCreateSecretState(prev => ({ ...prev, loadingAnimation: false }));
+            setLocalState(prev => ({ ...prev, loadingAnimation: false }));
+        }
+    }
+    useEffect(() => {
+        if (voteClient && typeof voteClient.checkRegistration === 'function' && voting.jwt && !user.key) {
+            if (voting.jwt != localState.jwt || voting.isRegistered === null) {
+                setLocalState({
+                    ...localState,
+                    jwt: voting.jwt,
+                    checkingRegistration: true,
+                });
+            }
+        }
+    }, [voteClient, voting.jwt]);
+
+    async function checkRegistration() {
+        if (localState.checkingRegistration) {
+            const result = await voteClient.checkRegistration({voterJwt: voting.jwt});
+
+            // we assume non-registration if registration comes back with error, i.e. we assume
+            // registration if and only if the result is .ok and the value is true
+            const isRegistered = result.ok && result.value;
+            updateVoting({
+                ...voting,
+                isRegistered: isRegistered,
+            });
+            setLocalState({
+                ...localState,
+                checkingRegistration: false,
+                allowKeyCreation: !isRegistered,
+            });
         }
     }
 
     useEffect(() => {
+        checkRegistration();
+    }, [localState.checkingRegistration, voting]);
+
+    useEffect(() => {
         if (user?.key?.length === 0) {
-            setCreateSecretState({
-                ...createSecretState,
+            setLocalState({
+                ...localState,
+                checkingRegistration: true,
                 loadingAnimation: false,
             });
         }
@@ -86,26 +127,48 @@ export default function CreateSecret() {
                     progressBarStep={globalConst.progressBarStep.createKey}
                 />
             </div>
-            <main className="op__contentbox_760">
-                <LoadKey
-                    onClick={generateAndCreate}
-                    animationDuration={1}
-                    showLoadingAnimation={createSecretState.loadingAnimation}
-                />
-                {keyGenerationErrorDetails && (
-                    <Notification
-                        type="error"
-                        text={t(keyGenerationErrorDetails.userError.text)}
-                        linkText={t('secret.error.generation.link')}
-                        linkAction={() => setErrorPopup(keyGenerationErrorDetails)}
+            {localState.allowKeyCreation ? (
+                <main className="op__contentbox_760">
+                    <LoadKey
+                        onClick={generateAndCreate}
+                        animationDuration={1}
+                        showLoadingAnimation={localState.loadingAnimation}
                     />
-                )}
-                <a className={styles.link} onClick={() => {
-                    updatePage({ current: globalConst.pages.LOADKEY });
-                }}>
-                    <p>{t('secret.key.existingKey')}</p>
-                </a>
-            </main>
+                    {keyGenerationErrorDetails && (
+                        <Notification
+                            type="error"
+                            text={t(keyGenerationErrorDetails.userError.text)}
+                            linkText={t('secret.error.generation.link')}
+                            linkAction={() => setErrorPopup(keyGenerationErrorDetails)}
+                        />
+                    )}
+                    <a className={styles.link} onClick={() => {
+                        updatePage({ current: globalConst.pages.LOADKEY });
+                    }}>
+                        <p>{t('secret.key.existingKey')}</p>
+                    </a>
+                </main>
+            ) : ((localState.checkingRegistration === null || localState.checkingRegistration === true) ? (
+                <main className="op__contentbox_760">
+                    <Loading loadingText={t('secret.registrationcheck.text')}/>
+                </main>
+            ) : (
+                <main className="op__contentbox_760">
+                    <Notification type="error" headline={t('secret.alreadyregistered.headline')} text={t('secret.alreadyregistered.text')}>
+                        <div className={`op__center-align op__margin_standard_top`} >
+                            <Button
+                                type="primary"
+                                onClick={() => updatePage({ current: globalConst.pages.LOADKEY }, modes.replace)}
+                            >{t('secret.alreadyregistered.loadkey')}</Button>
+                            <Button
+                                type="primary"
+                                className={`op__margin_standard_left op__margin_standard_top`}
+                                onClick={() => updatePage({ current: globalConst.pages.LOADBALLOT }, modes.replace)}
+                            >{t('secret.alreadyregistered.loadballot')}</Button>
+                        </div>
+                    </Notification>
+                </main>
+            ))}
             <ErrorPopup error={errorPopup} onClose={() => setErrorPopup(null)} />
         </>
     );

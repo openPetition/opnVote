@@ -95,6 +95,33 @@ async function postJson<T>(
     return { ok: true, value: (json?.data ?? json) as T };
 }
 
+export async function checkRegistration(
+    config: Configuration,
+    election: Election,
+    params: RegisterVoterParams,
+): Promise<Result<boolean>> {
+   let jwt;
+
+    try {
+        jwt = JSON.parse(atob(params.voterJwt.split('.')[1]));
+    } catch (e) {
+        return { ok: false, error: "invalid voter jwt", retryable: false };
+    }
+    if (jwt.electionId != election.electionID) {
+        return { ok: false, error: "mismatch between jwt election id and client election id", retryable: false };
+    }
+    const query = `{ votersRegistereds(where: {voterIds_contains: ["${jwt.voterId}"], electionId: "${jwt.electionId}"}, first: 1) { id } }`;
+    const res = await postJson<{
+        voteCasts?: { transactionHash: string }[];
+        voteUpdateds?: { transactionHash: string }[];
+    }>(config.endpoints.subgraphUrl, { query });
+    if (!res.ok) {
+       return res;
+    }
+    return { ok: true, value: res.value.votersRegistereds.length > 0 };
+}
+
+
 /**
  * Registers a voter; derives election wallet and token, blinds the token, lets register
  * sign it, unblinds and verifies the signature
@@ -111,7 +138,7 @@ export async function registerVoter(
     const masterKey = params.masterKey ?? generateMasterKey();
     const wallet = deriveElectionWallet(masterKey, election.electionID);
     const unblindedToken = deriveElectionUnblindedToken(election.electionID, wallet.address);
-    const r = generateBlindingR();
+    const r = generateBlindingR(masterKey, election.electionID);
     const blindedToken = blindToken(unblindedToken, r);
 
     const signed = await postJson<{ blindedSignature: string }>(

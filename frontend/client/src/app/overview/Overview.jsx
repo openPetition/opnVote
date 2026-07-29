@@ -16,7 +16,7 @@ const BOX_STATE_ACTIVATABLE = 'Activatable';
 const BOX_STATE_PASSIVE = 'Passive';
 
 export default function Overview() {
-    const { user, voting, updateVoting, updatePage, updateUserKey } = useOpnVoteStore((state) => state);
+    const { user, voting, updateVoting, updatePage, updateUserKey, voteClient } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [boxes, setBoxes] = useState({
         id: { state: BOX_STATE_ACTIVATABLE, type: 'id' },
@@ -116,10 +116,14 @@ export default function Overview() {
                 </BoxHead>
                 <p>{t('overview.box.key.text')}</p>
                 <Buttons>
-                    {box.state == BOX_STATE_ACTIVATABLE && box.canRegister && voting.jwt && (<>
-                        <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.CREATEKEY)}>{t("overview.box.key.button.create")}</Button>
-                        <Button onClick={() => goToPage(globalConst.pages.LOADKEY)}>{t("overview.box.key.button.load")}</Button>
-                    </>)}
+                    {box.state == BOX_STATE_ACTIVATABLE && box.canRegister && voting.jwt && (
+                        <>
+                            {box.canCreate && (
+                                <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.CREATEKEY)}>{t("overview.box.key.button.create")}</Button>
+                            )}
+                            <Button onClick={() => goToPage(globalConst.pages.LOADKEY)}>{t("overview.box.key.button.load")}</Button>
+                        </>
+                    )}
                     {box.state == BOX_STATE_ACTIVE && user.key && (<>
                         <Button onClick={() => goToPage(globalConst.pages.SHOWKEY)}>{t("overview.box.key.button.save")}</Button>
                     </>)}
@@ -199,6 +203,16 @@ export default function Overview() {
         );
     };
 
+    const checkRegistration = async function() {
+        const result = await voteClient.checkRegistration({voterJwt: voting.jwt});
+        if (result.ok) {
+            updateVoting({
+                ...voting,
+                isRegistered: result.value,
+            });
+        }
+    };
+
     useEffect(() => {
         let newBoxes = {
             id: { state: BOX_STATE_ACTIVATABLE, type: 'id' },
@@ -227,6 +241,7 @@ export default function Overview() {
         newBoxes.ballot.active = (registrationStartTime < now && now < registrationEndTime) ? registrationEndTime : null;
         newBoxes.ballot.past = registrationEndTime < now ? registrationEndTime : null;
         newBoxes.key.canRegister = registrationStartTime < now && now < registrationEndTime;
+        newBoxes.key.canCreate = !voting.isRegistered;
 
         if (voting.registerCode && voting.transactionViewUrl) {
             // there are votes in our local storage! activate all boxes
@@ -246,9 +261,12 @@ export default function Overview() {
             newBoxes.key.state = BOX_STATE_ACTIVE;
             newBoxes.ballot.state = BOX_STATE_ACTIVE;
         }
+        if (voting.jwt && voting.isRegistered === null && typeof voteClient.checkRegistration !== 'undefined') {
+            checkRegistration();
+        }
 
         setBoxes(newBoxes);
-    }, [voting, user]);
+    }, [voting, user, voteClient]);
 
     return (
         <>
