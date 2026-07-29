@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { ApiResponse } from '../types/apiResponses'
+import { logger } from '../utils/logger'
 
 /**
  * Middleware to authenticate a JWT is signed by AP
@@ -22,7 +23,7 @@ export function authenticateJWT(req: Request, res: Response, next: NextFunction)
 
     const apPubKey = req.app.get('AP_JWT_PUBLIC_KEY')
     if (!apPubKey) {
-      console.error('AP JWT Public Key is not set.')
+      logger.error('AP JWT Public Key is not set')
       return res.status(500).json({
         data: null,
         error: 'Internal server error. Configuration missing.',
@@ -41,7 +42,11 @@ export function authenticateJWT(req: Request, res: Response, next: NextFunction)
 
     next()
   } catch (err) {
-    // console.error('Error authenticating JWT:', err);
+    if (err instanceof jwt.JsonWebTokenError || err instanceof jwt.TokenExpiredError) {
+      logger.debug(`JWT rejected: ${err.message}`)
+    } else {
+      logger.error(`AP Jobs: Failed to authenticate JWT: ${err}`)
+    }
     return res.status(403).json({
       data: null,
       error: 'Failed to authenticate JWT',
