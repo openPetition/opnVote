@@ -112,13 +112,12 @@ export async function checkRegistration(
     }
     const query = `{ votersRegistereds(where: {voterIds_contains: ["${jwt.voterId}"], electionId: "${jwt.electionId}"}, first: 1) { id } }`;
     const res = await postJson<{
-        voteCasts?: { transactionHash: string }[];
-        voteUpdateds?: { transactionHash: string }[];
+        votersRegistereds?: { id: string }[];
     }>(config.endpoints.subgraphUrl, { query });
     if (!res.ok) {
        return res;
     }
-    return { ok: true, value: res.value.votersRegistereds.length > 0 };
+    return { ok: true, value: (res.value.votersRegistereds ?? []).length > 0 };
 }
 
 
