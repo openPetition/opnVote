@@ -51,6 +51,10 @@ const PAYMASTER_PAIRS = parsePaymasterPairs(requireEnv('PAYMASTER_PAIRS'))
 const REQUEST_TIMEOUT = parseInt(process.env.REQUEST_TIMEOUT || '10000')
 const GAS_PRICE_TTL = parseInt(process.env.BUNDLER_GAS_PRICE_TTL_MS || '2000')
 const SEND_DEDUP_TTL = parseInt(process.env.BUNDLER_SEND_DEDUP_TTL_MS || '5000')
+const DEPOSIT_CHECK_INTERVAL = parseInt(process.env.PAYMASTER_DEPOSIT_CHECK_MS || '300000')
+const DEPOSIT_ALERT_INTERVAL = parseInt(process.env.PAYMASTER_DEPOSIT_ALERT_MS || '3600000')
+const LOW_DEPOSIT = ethers.parseEther(process.env.PAYMASTER_LOW_DEPOSIT || '1.5')
+const MIN_DEPOSIT = ethers.parseEther(process.env.PAYMASTER_MIN_DEPOSIT || '0.3')
 
 const provider = process.env.PRIMARY_RPC_URL
   ? new ethers.JsonRpcProvider(process.env.PRIMARY_RPC_URL)
@@ -68,6 +72,51 @@ setInterval(() => {
   const cutoff = Date.now() - SEND_DEDUP_TTL
   for (const [k, t] of recentSends) if (t < cutoff) recentSends.delete(k)
 }, SEND_DEDUP_TTL).unref()
+
+const entryPoint = new ethers.Contract(
+  ENTRYPOINT_ADDRESS,
+  ['function balanceOf(address account) view returns (uint256)'],
+  provider,
+)
+
+const lastDepositAlerts = new Map<string, number>()
+
+async function checkPaymasterDeposits(): Promise<void> {
+  for (const [paymaster, pair] of PAYMASTER_PAIRS) {
+    try {
+      const deposit: bigint = await entryPoint.balanceOf(paymaster)
+      if (deposit >= LOW_DEPOSIT) continue
+      const level = deposit < MIN_DEPOSIT ? 'error' : 'warn'
+      const key = `${pair.label}:${level}`
+      const last = lastDepositAlerts.get(key)
+      if (last && Date.now() - last < DEPOSIT_ALERT_INTERVAL) continue
+      lastDepositAlerts.set(key, Date.now())
+      const amount = ethers.formatEther(deposit)
+      if (level === 'error') {
+        logger.error(
+          `[Bundler] Paymaster ${pair.label} deposit almost empty: ${amount} dai`,
+        )
+      } else {
+        logger.warn(
+          `[Bundler] Paymaster ${pair.label} deposit low: ${amount} dai`,
+        )
+      }
+    } catch (err: any) {
+      if (shouldAlert('deposit-check-failed')) {
+        logger.warn(`[Bundler] Paymaster deposit check failed: ${err?.message ?? err}`)
+      }
+    }
+  }
+}
+
+function runDepositCheck(): void {
+  checkPaymasterDeposits().catch(err =>
+    logger.error(`[Bundler] Paymaster deposit check failed: ${err?.message ?? err}`),
+  )
+}
+
+runDepositCheck()
+setInterval(runDepositCheck, DEPOSIT_CHECK_INTERVAL).unref()
 
 function logUpstreamResponse(method: string, res: any): void {
   try {
