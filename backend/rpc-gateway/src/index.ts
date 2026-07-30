@@ -69,6 +69,7 @@ function setNodeState(state: string, level: 'error' | 'warn' | 'info', message: 
 
 const ALLOWED_METHODS = [
   'eth_blockNumber',
+  'eth_getBalance',
   'eth_getTransactionCount',
   'eth_call',
   'eth_estimateGas',
