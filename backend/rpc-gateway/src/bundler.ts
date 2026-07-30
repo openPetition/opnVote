@@ -267,6 +267,10 @@ export function registerBundlerRoute(server: FastifyInstance): void {
     try {
       const res = await forwardToBundler(body)
       logUpstreamResponse(body.method, res)
+      if (body.method === 'eth_sendUserOperation' && res?.result) {
+        const pair = PAYMASTER_PAIRS.get((body.params[0]?.paymaster ?? '').toLowerCase())
+        logger.info(`[Bundler] UserOp accepted (${pair?.label}): ${res.result}`)
+      }
       return reply.send(res)
     } catch (err: any) {
       if (shouldAlert(`forward: ${body.method}`)) {
