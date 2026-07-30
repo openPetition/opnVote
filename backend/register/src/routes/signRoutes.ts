@@ -112,6 +112,7 @@ router.post(
             batchId: null,
           })
           .execute()
+        logger.info(`Registration completed for voter ${voterId} in election ${electionId}`)
         return res.json({
           data: {
             blindedSignature: blindedSignature.hexString.toLowerCase(),
