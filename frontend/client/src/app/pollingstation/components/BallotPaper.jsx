@@ -6,6 +6,7 @@ import { useTranslation } from 'next-i18next';
 import { useOpnVoteStore } from "@/opnVoteStore";
 import globalConst from "@/constants";
 import Button from "@/components/Button";
+import Loading from "@/components/Loading";
 import { useVoting } from "@/app/VotingContext";
 import Notification from "@/components/Notification";
 import { VoteOption } from "votingsystem";
@@ -160,6 +161,11 @@ export default function BallotPaper(props) {
                                 id="test_btn_sendvote"
                             >{t("pollingstation.button.savevotes")}</Button>
                         </div>
+                        {ballotStationState.pending && (
+                            <div className="op__flex_center-center">
+                                <Loading theme="small"/><span>{t('pollingstation.button.pending')}</span>
+                            </div>
+                        )}
                         {ballotStationState.showSendError && (
                             <Notification
                                 type="error"
