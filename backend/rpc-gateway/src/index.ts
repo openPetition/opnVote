@@ -2,6 +2,7 @@ import 'dotenv/config'
 import fastify, { FastifyRequest, FastifyReply } from 'fastify'
 import axios from 'axios'
 import { logger } from './utils/logger'
+import { shouldAlert } from './utils/alertThrottle'
 import { registerBundlerRoute } from './bundler'
 
 const server = fastify({ logger: false, trustProxy: true })
@@ -12,6 +13,7 @@ server.register(require('@fastify/cors'), {
 
 const TEST_KEY = process.env.TEST_API_KEY
 if (!TEST_KEY) {
+  logger.error('RPC Gateway: TEST_API_KEY not set')
   throw new Error('TEST_API_KEY is not set')
 }
 
@@ -34,6 +36,7 @@ const RPC_ENDPOINTS = [process.env.PRIMARY_RPC_URL, process.env.SECONDARY_RPC_UR
 )
 
 if (RPC_ENDPOINTS.length === 0) {
+  logger.error('RPC Gateway: no RPC endpoint set')
   throw new Error(
     'No RPC endpoints configured. Please set PRIMARY_RPC_URL and SECONDARY_RPC_URL in env.',
   )
@@ -45,15 +48,28 @@ const SYNC_CHECK_INTERVAL = parseInt(process.env.SYNC_CHECK_INTERVAL || '60000')
 const WARNING_BLOCK_LAG = parseInt(process.env.WARNING_BLOCK_LAG || '3')
 const FAILOVER_BLOCK_LAG = parseInt(process.env.FAILOVER_BLOCK_LAG || '5')
 const SECONDARY_UNREACHABLE_THRESHOLD = 3
-const SECONDARY_WARN_INTERVAL = 9
 
 let primaryBlockNumber: number | null = null
 let secondaryBlockNumber: number | null = null
 let usePrimaryNode = true
 let secondaryUnreachableCount = 0
+let lastNodeState: string | null = null
+
+function setNodeState(state: string, level: 'error' | 'warn' | 'info', message: string): void {
+  if (lastNodeState === state) return
+  lastNodeState = state
+  if (level === 'error') {
+    logger.error(message)
+  } else if (level === 'warn') {
+    logger.warn(message)
+  } else {
+    logger.info(message)
+  }
+}
 
 const ALLOWED_METHODS = [
   'eth_blockNumber',
+  'eth_getBalance',
   'eth_getTransactionCount',
   'eth_call',
   'eth_estimateGas',
@@ -95,21 +111,22 @@ async function checkNodeSync(): Promise<void> {
   secondaryBlockNumber = await getBlockNumber(RPC_ENDPOINTS[1])
 
   if (primaryBlockNumber === null) {
-    logger.error(`Primary node unreachable`)
+    if (secondaryBlockNumber === null) {
+      setNodeState('all-down', 'error', `All RPC nodes down (primary and secondary)`)
+    } else {
+      setNodeState('primary-down', 'error', `Primary node down`)
+    }
     usePrimaryNode = false
     return
   }
 
   if (secondaryBlockNumber === null) {
     secondaryUnreachableCount++
-    const shouldWarn =
-      secondaryUnreachableCount === SECONDARY_UNREACHABLE_THRESHOLD ||
-      (secondaryUnreachableCount > SECONDARY_UNREACHABLE_THRESHOLD &&
-        (secondaryUnreachableCount - SECONDARY_UNREACHABLE_THRESHOLD) % SECONDARY_WARN_INTERVAL ===
-          0)
-    if (shouldWarn) {
-      logger.warn(
-        `Secondary node unreachable: connection failed ${secondaryUnreachableCount} times`,
+    if (secondaryUnreachableCount >= SECONDARY_UNREACHABLE_THRESHOLD) {
+      setNodeState(
+        'secondary-down',
+        'warn',
+        `Secondary node down: connection failed ${secondaryUnreachableCount} times`,
       )
     }
     usePrimaryNode = true
@@ -125,18 +142,28 @@ async function checkNodeSync(): Promise<void> {
   const secondaryBehind = primaryBlockNumber - secondaryBlockNumber
 
   if (primaryBehind >= FAILOVER_BLOCK_LAG) {
-    logger.error(`Primary node ${primaryBehind} blocks behind secondary! Failing over`)
+    setNodeState(
+      'primary-lagging',
+      'error',
+      `Primary node ${primaryBehind} blocks behind secondary! Failing over`,
+    )
     usePrimaryNode = false
   } else if (primaryBehind >= WARNING_BLOCK_LAG) {
-    logger.warn(`Primary node ${primaryBehind} blocks behind secondary`)
+    setNodeState('primary-behind', 'warn', `Primary node ${primaryBehind} blocks behind secondary`)
     usePrimaryNode = true
   } else if (secondaryBehind >= FAILOVER_BLOCK_LAG) {
-    logger.warn(`Secondary node ${secondaryBehind} blocks behind primary`)
+    setNodeState(
+      'secondary-behind',
+      'warn',
+      `Secondary node ${secondaryBehind} blocks behind primary`,
+    )
     usePrimaryNode = true
   } else {
-    if (!usePrimaryNode) {
-      logger.info(`✅ Primary node in sync. Switching back to primary`)
-    }
+    const isFirstCheck = lastNodeState === null
+    const message = usePrimaryNode
+      ? `✅ Both nodes reachable`
+      : `✅ Primary node in sync. Switching back to primary`
+    setNodeState('healthy', isFirstCheck ? 'info' : 'warn', message)
     usePrimaryNode = true
   }
 }
@@ -165,8 +192,8 @@ server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
 
     const response = await processRPCRequest(body, request)
     return reply.send(response)
-  } catch (error) {
-    logger.error('Error processing request:', error)
+  } catch (error: any) {
+    logger.error(`Error processing request: ${error?.message ?? error}`)
     return reply.status(500).send({
       jsonrpc: '2.0',
       error: {
@@ -219,6 +246,13 @@ async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
         timeout: REQUEST_TIMEOUT,
       })
 
+      const upstreamError = (response.data as any)?.error
+      if (upstreamError && shouldAlert(`upstream:${endpointName}:${upstreamError.code}`)) {
+        logger.warn(
+          `Upstream error from ${endpointName}: ${upstreamError.code} ${upstreamError.message} for: ${rpcRequest.method}`,
+        )
+      }
+
       logger.info(`✅ Success: ${endpointName} responded for method: ${rpcRequest.method}`)
       return response.data
     } catch (error: any) {
@@ -231,16 +265,20 @@ async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
               ? `HTTP ${error.response.status}`
               : error.message || 'Unknown error'
 
-      logger.error(`Failed: ${endpointName} - ${errorMsg} for method: ${rpcRequest.method}`)
+      if (shouldAlert(`endpoint-failed:${endpointName}:${errorMsg}`)) {
+        logger.error(`Failed: ${endpointName} - ${errorMsg} for method: ${rpcRequest.method}`)
+      }
 
       if (i < orderedEndpoints.length - 1) {
-        logger.warn(`🔄 Failing over to next RPC endpoint...`)
+        logger.debug(`🔄 Failing over to next RPC endpoint...`)
         continue
       }
     }
   }
 
-  logger.error(`All RPC endpoints failed for method: ${rpcRequest.method}`)
+  if (shouldAlert('all-endpoints-failed')) {
+    logger.error(`All RPC endpoints failed for method: ${rpcRequest.method}`)
+  }
 
   return {
     jsonrpc: '2.0',
@@ -321,7 +359,9 @@ const start = async () => {
 
     if (RPC_ENDPOINTS.length >= 2) {
       await checkNodeSync()
-      setInterval(checkNodeSync, SYNC_CHECK_INTERVAL)
+      setInterval(() => {
+        checkNodeSync().catch(err => logger.error(`Node sync check failed: ${err?.message ?? err}`))
+      }, SYNC_CHECK_INTERVAL)
       logger.info(
         `Node sync monitor started (interval: ${
           SYNC_CHECK_INTERVAL / 1000
@@ -330,10 +370,22 @@ const start = async () => {
     } else {
       logger.warn(`Node sync monitor disabled: Set 2 RPC endpoints`)
     }
-  } catch (err) {
-    logger.error(err)
+  } catch (err: any) {
+    logger.error(`RPC Gateway failed to start: ${err?.message ?? err}`)
     process.exit(1)
   }
 }
+
+process.on('unhandledRejection', reason => {
+  logger.error(
+    `RPC Gateway: exiting! Unhandled promise rejection: ${(reason as any)?.message ?? reason}`,
+  )
+  process.exit(1)
+})
+
+process.on('uncaughtException', err => {
+  logger.error(`RPC Gateway: exiting! Uncaught exception: ${err?.message ?? err}`)
+  process.exit(1)
+})
 
 start()

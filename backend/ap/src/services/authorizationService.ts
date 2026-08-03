@@ -1,5 +1,6 @@
 import { dataSource } from '../database'
 import { Authorization } from '../models/Authorization'
+import { logger } from '../utils/logger'
 
 type OnchainStatus = 'pending' | 'submitted' | 'confirmed' | 'failed'
 
@@ -35,7 +36,7 @@ export class AuthorizationService {
     batchId?: string,
   ): Promise<void> {
     const repository = dataSource.getRepository(Authorization)
-    await repository.update(
+    const result = await repository.update(
       { voterId, electionId },
       {
         onchainStatus: status,
@@ -43,5 +44,10 @@ export class AuthorizationService {
         batchId: batchId || null,
       },
     )
+    if (!result.affected) {
+      logger.error(
+        `AP Jobs: Failed to update status to ${status} for voter ${voterId}, election ${electionId}: no matching row found`,
+      )
+    }
   }
 }

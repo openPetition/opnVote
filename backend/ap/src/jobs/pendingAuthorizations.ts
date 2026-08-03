@@ -102,9 +102,15 @@ async function init() {
   }
 }
 
-init()
+init().catch(error => {
+  logger.error(`AP Jobs: Failed to initialize authorization batcher: ${error}`)
+  process.exit(1)
+})
 
 let isProcessing = false
+let skippedRuns = 0
+let lastBalanceAlert = 0
+const BALANCE_ALERT_INTERVAL = parseInt(process.env.BALANCE_ALERT_INTERVAL_MS || '1800000')
 
 /**
  * On-chain authorization of pending authorizations
@@ -113,11 +119,19 @@ let isProcessing = false
  */
 export async function processPendingAuthorizations(): Promise<void> {
   if (isProcessing) {
-    logger.info('Already processing pending authorizations, skipping')
+    skippedRuns++
+    if (skippedRuns === 5) {
+      logger.error(
+        `AP Jobs: Still processing pending authorizations after ${skippedRuns} skipped runs. Stuck?`,
+      )
+    } else {
+      logger.info('Already processing pending authorizations, skipping')
+    }
     return
   }
 
   isProcessing = true
+  skippedRuns = 0
   try {
     logger.debug('Processing pending Authorizations...')
     const balance = await withRetry(() => provider.getBalance(wallet.address))
@@ -232,7 +246,7 @@ export async function processPendingAuthorizations(): Promise<void> {
           `Processing ${finalFilteredAuthorizations.length} authorizations for election ${electionId}`,
         )
         if (finalFilteredAuthorizations.length === 0) {
-          logger.error(`No new authorizations found for election ${electionId}`)
+          logger.info(`No new authorizations found for election ${electionId}`)
           continue
         }
 
@@ -382,7 +396,7 @@ export async function processPendingAuthorizations(): Promise<void> {
               )
             }
           } catch (error) {
-            logger.error('Transaction failed or timeout reached:', error)
+            logger.error(`Transaction failed or timeout reached: ${error}`)
             for (const auth of authorizationBatch) {
               await AuthorizationService.updateAuthorizationStatus(
                 auth.voterId,
@@ -473,15 +487,22 @@ async function waitForTransaction(
  * @returns true if the balance is sufficient, false otherwise
  */
 function validateBalance(balance: bigint): boolean {
+  const shouldAlertBalance = Date.now() - lastBalanceAlert > BALANCE_ALERT_INTERVAL
   if (balance < WALLET_THRESHOLDS.MINIMUM_BALANCE) {
-    logger.error(`Insufficient balance: ${ethers.formatEther(balance)} Wallet: ${wallet.address}`)
+    if (shouldAlertBalance) {
+      lastBalanceAlert = Date.now()
+      logger.error(`Insufficient balance: ${ethers.formatEther(balance)} Wallet: ${wallet.address}`)
+    }
     return false
   } else if (balance < WALLET_THRESHOLDS.LOW_BALANCE) {
-    logger.warn(
-      `Authorization Wallet Balance is low: ${ethers.formatEther(balance)} Wallet: ${
-        wallet.address
-      }`,
-    )
+    if (shouldAlertBalance) {
+      lastBalanceAlert = Date.now()
+      logger.warn(
+        `Authorization Wallet Balance is low: ${ethers.formatEther(balance)} Wallet: ${
+          wallet.address
+        }`,
+      )
+    }
     return true
   } else {
     logger.info(

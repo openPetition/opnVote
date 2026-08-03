@@ -111,6 +111,9 @@ router.post(
 
       // Validate JWT electionID matches request electionID
       if (req.user!.electionId !== electionId) {
+        logger.warn(
+          `AP: JWT electionId ${req.user!.electionId} does not match request electionId ${electionId}`,
+        )
         return res.status(403).json({
           data: null,
           error: 'JWT electionId does not match request electionId',
@@ -129,6 +132,7 @@ router.post(
       try {
         const electionAuthProvider = await fetchElectionAuthProvider(electionId)
         if (!electionAuthProvider) {
+          logger.warn(`AP: Election ${electionId} not found in subgraph`)
           return res.status(404).json({
             data: null,
             error: 'Election not found',
@@ -197,7 +201,7 @@ router.post(
           })
 
           logger.warn(
-            `Failed to authorize voter ${voterIdNumber} for election ${electionId}: ${errorMessage}`,
+            `AP: Failed to authorize voter ${voterIdNumber} for election ${electionId}: ${errorMessage}`,
           )
         }
       }
@@ -209,6 +213,15 @@ router.post(
           `Failed: ${result.failedIds.length}, ` +
           `Total: ${result.totalProcessed}`,
       )
+
+      const unexpectedFailures = result.failedIds.filter(
+        f => f.error !== 'Voter already authorized for this election',
+      )
+      if (unexpectedFailures.length > 0) {
+        logger.error(
+          `AP: Failed to authorize ${unexpectedFailures.length} voters for election ${electionId}: ${unexpectedFailures[0].error}`,
+        )
+      }
 
       return res.status(200).json({
         data: result,

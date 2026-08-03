@@ -1,5 +1,6 @@
 import { fetchElectionEndTimeStatus } from '../graphql/graphqlClient'
 import { ElectionStatusResponse } from '../types/graphql'
+import { logger } from '../utils/logger'
 
 /**
  * Functionality for fetching and managing the status of an election.
@@ -20,7 +21,7 @@ export class ElectionStatusService {
       const electionData = await fetchElectionEndTimeStatus(electionId)
       return electionData
     } catch (error) {
-      console.error('Error fetching election status:', error)
+      logger.error(`Error fetching election status: ${error}`)
       return null
     }
   }

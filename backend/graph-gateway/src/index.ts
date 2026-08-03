@@ -2,6 +2,7 @@ import fastify, { FastifyRequest, FastifyReply } from 'fastify'
 import axios from 'axios'
 import * as dotenv from 'dotenv'
 import { logger } from './utils/logger'
+import { shouldAlert } from './utils/alertThrottle'
 dotenv.config()
 
 const server = fastify({ logger: true, trustProxy: true })
@@ -12,6 +13,7 @@ server.register(require('@fastify/cors'), {
 
 const TEST_KEY = process.env.TEST_API_KEY
 if (!TEST_KEY) {
+  logger.error('GraphQL Gateway: TEST_API_KEY not set')
   throw new Error('TEST_API_KEY is not set')
 }
 
@@ -32,6 +34,7 @@ server.register(require('@fastify/rate-limit'), {
 const GRAPHQL_ENDPOINT = process.env.GRAPHQL_ENDPOINT!
 
 if (!GRAPHQL_ENDPOINT) {
+  logger.error('GraphQL Gateway: GRAPHQL_ENDPOINT not set')
   throw new Error('GRAPHQL_ENDPOINT not configured. Please set GRAPHQL_ENDPOINT in env.')
 }
 
@@ -42,6 +45,20 @@ const MAX_QUERY_SIZE = parseInt(process.env.MAX_QUERY_SIZE || '10000')
 const WHITELISTED_IPS = process.env.WHITELISTED_IPS
   ? process.env.WHITELISTED_IPS.split(',').map(ip => ip.trim())
   : []
+
+function logGraphqlErrors(data: any): boolean {
+  try {
+    const errors = data?.errors
+    if (!Array.isArray(errors) || errors.length === 0) return false
+    const message = String(errors[0]?.message ?? 'unknown')
+    if (shouldAlert(`graphql:${message.slice(0, 60)}`)) {
+      logger.error(`GraphQL response contained errors: ${message}`)
+    }
+    return true
+  } catch {
+    return false
+  }
+}
 
 server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
   try {
@@ -78,8 +95,8 @@ server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
 
     const { data, statusCode } = await processGraphQLRequest(body)
     return reply.status(statusCode).send(data)
-  } catch (error) {
-    logger.error('Error processing request:', error)
+  } catch (error: any) {
+    logger.error(`Error processing request: ${error?.message ?? error}`)
     return reply.status(500).send({
       errors: [
         {
@@ -101,7 +118,9 @@ function validateQuerySize(query: string): { valid: boolean; error?: string; siz
   const querySize = Buffer.byteLength(query, 'utf8')
 
   if (querySize > MAX_QUERY_SIZE) {
-    logger.warn(`Query too large: ${querySize} bytes (max: ${MAX_QUERY_SIZE})`)
+    if (shouldAlert('query-too-large')) {
+      logger.warn(`Query too large: ${querySize} bytes (max: ${MAX_QUERY_SIZE})`)
+    }
     return {
       valid: false,
       error: `Query too large: ${querySize} bytes, allowed: ${MAX_QUERY_SIZE} bytes`,
@@ -123,7 +142,9 @@ async function processGraphQLRequest(graphqlRequest: any) {
       timeout: REQUEST_TIMEOUT,
     })
 
-    logger.info(`✅ GraphQL request successful`)
+    if (!logGraphqlErrors(response.data)) {
+      logger.info(`✅ GraphQL request successful`)
+    }
     return { data: response.data, statusCode: response.status }
   } catch (error: any) {
     const errorMsg =
@@ -135,7 +156,9 @@ async function processGraphQLRequest(graphqlRequest: any) {
         ? `HTTP ${error.response.status}`
         : error.message || 'Unknown error'
 
-    logger.error(`❌ GraphQL request failed: ${errorMsg}`)
+    if (shouldAlert(`graphql-failed: ${errorMsg}`)) {
+      logger.error(`❌ GraphQL request failed: ${errorMsg}`)
+    }
 
     if (error.response) {
       return {
@@ -193,10 +216,22 @@ const start = async () => {
     if (WHITELISTED_IPS.length > 0) {
       logger.info(`Custom whitelisted IPs from env: ${WHITELISTED_IPS.join(', ')}`)
     }
-  } catch (err) {
-    logger.error(err)
+  } catch (err: any) {
+    logger.error(`GraphQL Gateway failed to start: ${err?.message ?? err}`)
     process.exit(1)
   }
 }
+
+process.on('unhandledRejection', reason => {
+  logger.error(
+    `GraphQL Gateway: Exiting! Unhandled promise rejection: ${(reason as any)?.message ?? reason}`,
+  )
+  process.exit(1)
+})
+
+process.on('uncaughtException', err => {
+  logger.error(`GraphQL Gateway: Exiting! Uncaught exception: ${err?.message ?? err}`)
+  process.exit(1)
+})
 
 start()

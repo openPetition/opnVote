@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { ElectionStatusService } from '../services/electionService'
 import { ApiResponse } from '../types/apiResponses'
+import { logger } from '../utils/logger'
 
 /**
  * Middleware to check the current election status provided by Jwt.
@@ -20,6 +21,9 @@ export async function checkElectionStatus(req: Request, res: Response, next: Nex
     const electionData = await ElectionStatusService.getElectionStatus(req.user.electionId)
 
     if (electionData === null) {
+      logger.error(
+        `Election ${req.user.electionId} not found in subgraph`,
+      )
       return res.status(500).json({
         error: 'Failed to fetch election status',
       } as ApiResponse<null>)
@@ -34,7 +38,7 @@ export async function checkElectionStatus(req: Request, res: Response, next: Nex
 
     next()
   } catch (error) {
-    console.error('Error checking election status:', error)
+    logger.error(`Error checking election status: ${error}`)
     return res.status(500).json({
       error: 'Failed to check election status',
     } as ApiResponse<null>)

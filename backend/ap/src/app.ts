@@ -14,6 +14,7 @@ import swaggerUi from 'swagger-ui-express'
 import swaggerSpec from './config/swaggerConfig'
 import authorizeRoutes from './routes/authorize'
 import devSignRoutes from './routes/devSign'
+import { logger } from './utils/logger'
 
 const AP_JWT_PUBLIC_KEY_PATH = process.env.AP_JWT_PUBLIC_KEY_PATH
 const DEV_AP_JWT_PRIVATE_KEY_PATH = process.env.DEV_AP_JWT_PRIVATE_KEY_PATH
@@ -54,9 +55,9 @@ app.use(
 try {
   const apJwtPublicKey = fs.readFileSync(path.resolve(AP_JWT_PUBLIC_KEY_PATH), 'utf8')
   app.set('AP_JWT_PUBLIC_KEY', apJwtPublicKey)
-  console.log('✅ AP JWT Public Key loaded successfully')
+  logger.info('✅ AP JWT Public Key loaded successfully')
 } catch (error) {
-  console.error('❌ Failed to load AP JWT Public Key:', error)
+  logger.error(`Failed to load AP JWT Public Key: ${error}`)
   process.exit(1)
 }
 
@@ -65,9 +66,9 @@ if (process.env.NODE_ENV === 'development') {
     try {
       const devPrivateKey = fs.readFileSync(path.resolve(DEV_AP_JWT_PRIVATE_KEY_PATH), 'utf8')
       app.set('DEV_AP_JWT_PRIVATE_KEY', devPrivateKey)
-      console.log('✅ [DEV] AP JWT Priv Key loaded')
+      logger.info('✅ [DEV] AP JWT Priv Key loaded')
     } catch (error) {
-      console.error('❌ [DEV] Failed to load DEV AP JWT Priv Key:', error)
+      logger.error(`[DEV] Failed to load DEV AP JWT Priv Key: ${error}`)
       process.exit(1)
     }
   }
@@ -84,11 +85,11 @@ if (SSL_KEY_PATH && SSL_CERT_PATH) {
 
   // Start HTTPS server
   https.createServer(httpsOptions, app).listen(port, () => {
-    console.log(`⚡️[server]: Server is running at ${SERVER_URL}`)
+    logger.info(`⚡️[server]: Server is running at ${SERVER_URL}`)
   })
 } else {
   http.createServer({}, app).listen(port, () => {
-    console.log(`⚡️[server]: Server is running at ${SERVER_URL}`)
+    logger.info(`⚡️[server]: Server is running at ${SERVER_URL}`)
   })
 }
 
@@ -110,9 +111,9 @@ dataSource
       res.redirect('/api-docs')
     })
 
-    console.log('✅ Database initialized and routes registered')
+    logger.info('✅ Database initialized and routes registered')
   })
   .catch(err => {
-    console.error('❌ Error during Data Source initialization', err)
+    logger.error(`Error during Data Source initialization: ${err}`)
     process.exit(1)
   })

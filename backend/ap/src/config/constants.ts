@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
 
 export const WALLET_THRESHOLDS = {
-  MINIMUM_BALANCE: ethers.parseEther('0.0005'),
-  LOW_BALANCE: ethers.parseEther('0.001'),
+  MINIMUM_BALANCE: ethers.parseEther('0.01'),
+  LOW_BALANCE: ethers.parseEther('0.05'),
 };
 
 export const TX_LIMITS = {
