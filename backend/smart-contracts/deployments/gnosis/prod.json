@@ -1,16 +1,17 @@
 {
   "network": "Gnosis Chain",
   "chainId": 100,
-  "deployer": "",
+  "deployer": "0x18e46B051A6a670a581371D76693FaF312BD4380",
   "contracts": {
-    "OpnVote_v0_2_0": "",
-    "OpnVotePaymaster": ""
+    "opnVote_v0_4_2": "0x9292813F4A639A9E96bf976B6CD5A47edaf4324E",
+    "blsVerifier": "0x79440791399e79e7ed1041749724AE190f1b7e73",
+    "opnVotePaymaster": "0xDa767551cAF9f1CeD06579126f6a087d5c45de07",
+    "delegation": "0xe6Cae83BdE06E4c305530e199D7217f42808555B"
   },
   "roles": {
-    "paymasterVerifyingSigner": "",
-    "apOwner": "",
-    "registerOwner": "",
-    "svsOwner": ""
+    "paymasterVerifyingSigner": "0xd660934E8397bF59F4143E895eC85a07Af639B4F",
+    "apOwner": "0x7308bD3e583A9A07721D2286aD5d78059aC69db5",
+    "registerOwner": "0x51d45818bEEf58CCf14d97BB4A2D12D3b13146E8"
   },
   "entryPoint": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108"
 }

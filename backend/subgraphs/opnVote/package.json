@@ -2,6 +2,11 @@
   "name": "opnvote-subgraphs",
   "license": "UNLICENSED",
   "scripts": {
+    "codegen:prod": "graph codegen prod/subgraph.yaml --output-dir ./generated",
+    "build:prod": "cd prod && graph build",
+    "deploy:prod": "cd prod && graph deploy --node https://api.studio.thegraph.com/deploy/ opnvote-prod-0x9292813f4a639a9e96bf976b6cd5a47edaf4324e",
+    "create-local:prod": "cd prod && graph create --node http://127.0.0.1:8020/ opnvote-prod-0x9292813f4a639a9e96bf976b6cd5a47edaf4324e",
+    "deploy-local:prod": "cd prod && graph deploy --node http://127.0.0.1:8020/ --ipfs http://127.0.0.1:5001 opnvote-prod-0x9292813f4a639a9e96bf976b6cd5a47edaf4324e",
     "codegen:staging": "graph codegen staging/subgraph.yaml --output-dir ./generated",
     "build:staging": "cd staging && graph build",
     "deploy:staging": "cd staging && graph deploy --node https://api.studio.thegraph.com/deploy/ opnvote-staging-0xc68851599dcd169868e90d25aef4b21e3a294592",

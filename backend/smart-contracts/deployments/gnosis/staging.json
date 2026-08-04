@@ -3,9 +3,9 @@
   "chainId": 100,
   "deployer": "0xf9562D5EaC0ACFAe5274Aa30F7231d62818B593C",
   "contracts": {
-    "opnVote_v0_3_0": "0x21dF67cf8ddF94109192E0447e63fC51c3c8A9F7",
-    "blsVerifier": "0x47b51CF2cB6448B6E6f33e02D6797D6bb98f16AE",
-    "opnVotePaymaster": "0x53f9b337ce2Ea37D87dBAf0D08a9B931ef9D7eae",
+    "opnVote_v0_4_2": "0xC68851599dcd169868E90d25Aef4B21e3a294592",
+    "blsVerifier": "0x924caCDC27424b11abD317a1FB06A2e084c8752b",
+    "opnVotePaymaster": "0x95b20Ee1CBA8b83EcC22E5971Cd2888fABde9bBA",
     "delegation": "0xe6Cae83BdE06E4c305530e199D7217f42808555B"
   },
   "roles": {
