@@ -413,7 +413,7 @@ export default function Register() {
                     <>
                         <Notification
                             type={'info'}
-                            text={t("showballot.votingstartfuture.info", { STARTDATE: startDate, ENDDATE: endDate, interpolation: { escapeValue: false } })}
+                            htmlText={t("showballot.votingstartfuture.info", { STARTDATE: startDate, ENDDATE: endDate, interpolation: { escapeValue: false } })}
                         />
                     </>
                 )}
