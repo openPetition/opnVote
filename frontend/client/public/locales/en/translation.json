@@ -380,7 +380,7 @@
     "secret.notification.success.popup.understand": "Save security key",
     "secret.notification.success.text.key-generated": "Your security key has been successfully created. Now you need to save it.",
     "secret.registrationcheck.text": "Checking vote authorization",
-    "showballot.votingstartfuture.info": "<p><strong>From {{STARTDATE, date}} to {{ENDDATE, date}} at {{ENDDATE, time}}  you can vote - we will inform you again by mail and on our website!</strong></p><p>Why can't I vote directly? The creation of the security key and ballot paper is separate from the election period so that the system cannot link your identity to your vote: This ensures that your vote remains secret. After you have securely saved the PDF with the ballot paper, you can close this window.</p>",
+    "showballot.votingstartfuture.info": "<p><strong>From {{STARTDATE, date}} to {{ENDDATE, date}} at {{ENDDATE, time}}  you can vote - we will inform you again by mail and on our website!</strong></p><p>Why can't I vote directly? The creation of the security key and ballot paper is separate from the election period so that the system cannot link your identity to your vote: This ensures that your vote remains secret. After you have securely saved the ballot paper, you can close this window.</p>",
     "showsecret.savedinfo.headline": "Great! You saved your security key!",
     "showsecret.savedinfo.text": "Now you can create your election permit. To do so, click the following button:",
     "votetransactionstate.election15.1": "The announcement of the voting results will be broadcast live on <a href=\"https://www.youtube.com/@Abstimmung21/streams\">YouTube</a> at the closing event of ABSTIMMUNG21 on October 31, 2025.",
