@@ -284,7 +284,7 @@
     "register.popup.aftersave.headline": "Glückwunsch. Alles Erledigt!",
     "register.popup.aftersave.infotext": "<strong>ACHTUNG</strong>: Stimmen Sie zu einem späteren Zeitpunkt und von einer anderen Internetverbindung ab, um eine Verbindung zwischen Ihrer Stimme und Ihrer Identität auszuschließen und eine geheime Wahl zu garantieren.",
     "register.popup.aftersave.notification": "Sie haben erfolgreich einen Wahlschein erstellt! Stellen Sie bitte sicher, dass Sie diesen abgespeichert haben und wiederfinden können.",
-    "register.popup.aftersave.text": "Jedes Gerät und jeder Internetbrowser behandelt die Speicherung des Wahlscheins unterschiedlich. Mit dem Wahlschein können Sie vom {{STARTDATE, date}} bis {{ENDDATE, date}} Ihre Stimme im Rahmen der \"{{ELECTIONTITLE}}\" abgeben. Wir werden Sie über unsere Kanäle informieren. Damit Sie den Beginn des Abstimmungs-Zeitraums nicht verpassen, können Sie sich den Termin zu Ihrem Kalender hinzufügen.",
+    "register.popup.aftersave.text": "Damit Sie den Beginn des Abstimmungs-Zeitraums nicht verpassen, können Sie sich den Termin zu Ihrem Kalender hinzufügen.",
     "register.smallHeader.electionend": "Enddatum der Wahl",
     "register.smallHeader.state": "Status",
     "register.smallHeader.statetitle.finished": "Beendet",
