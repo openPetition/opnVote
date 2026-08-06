@@ -24,6 +24,7 @@ export default function CheckLoadBallot() {
                 type: 'success',
                 text: t('checkloadballot.notification.success.text'),
                 show: true,
+                showCalendarLink: true,
             });
             updatePage({ current: globalConst.pages.REGISTER });
         } else {

@@ -70,6 +70,7 @@ export default function Register() {
         showNotification: false,
         notificationText: '',
         notificationType: '',
+        showCalendarLink: false,
         showQRLoadingAnimation: false,
         showVoteLater: false,
         showSaveRegisterQRSuccess: false,
@@ -140,6 +141,7 @@ export default function Register() {
                 showNotification: true,
                 notificationText: errorNotificationText,
                 notificationType: 'error',
+                showCalendarLink: false,
                 notificationButtonText: buttonText,
                 notificationButtonAction: buttonFunction
             });
@@ -294,6 +296,7 @@ export default function Register() {
                 showNotification: true,
                 notificationType: notification.type || 'success',
                 notificationText: notification.text,
+                showCalendarLink: Boolean(notification.showCalendarLink),
             }));
 
             updateNotification({
@@ -301,6 +304,7 @@ export default function Register() {
                 type: '',
                 text: '',
                 show: false,
+                showCalendarLink: false,
             });
         }
     }, [notification, updateNotification]);
@@ -381,7 +385,7 @@ export default function Register() {
                             text={
                                 <>
                                     {registerState.notificationText}{' '}
-                                    {registerState.notificationType !== 'error' && (
+                                    {registerState.showCalendarLink && (
                                     <button
                                         type="button"
                                         onClick={scrollToAddToCalendarButton}
@@ -403,8 +407,12 @@ export default function Register() {
                             }
                             buttonText={registerState.notificationButtonText}
                             buttonAction={registerState.notificationButtonAction}
-                            linkText={t('register.errorpopup.link')}
-                            linkAction={() => setErrorPopup(registrationErrorDetails)}
+                            linkText={registerState.notificationType === 'error'
+                                ? t('register.errorpopup.link')
+                                : undefined}
+                            linkAction={registerState.notificationType === 'error'
+                                ? () => setErrorPopup(registrationErrorDetails)
+                                : undefined}
                         />
                     </>
                 )}
