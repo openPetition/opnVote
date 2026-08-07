@@ -16,6 +16,7 @@ import ElectionTimeInfo from "@/components/ElectionTimeInfo";
 import BallotPaper from "./components/BallotPaper";
 import { checkBallot } from "@/util";
 import ScanUploadQRCode from "@/components/ScanUploadQRCode";
+import AddToCalendar from '@/components/AddToCalendar';
 
 export default function Pollingstation() {
     const { voting, updateVoting, updatePage } = useOpnVoteStore((state) => state);
@@ -25,6 +26,16 @@ export default function Pollingstation() {
     const [electionState, setElectionState] = useState(globalConst.electionState.ONGOING);
     const [startDate, setStartDate] = useState("");
     const election = voting.election;
+    const electionTitle = voting.electionInformation.title || '';
+    const electionTitleSanitized = electionTitle
+        .toLowerCase()
+        .replace(/ä/g, "ae")
+        .replace(/ö/g, "oe")
+        .replace(/ü/g, "ue")
+        .replace(/ß/g, "ss")
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "_")
+        .slice(0, 20) || 'election_permit';
 
     // manages what to show and how far we came incl. noticiation cause they also can cause some change in view.
     const [pollingStationState, setPollingStationState] = useState({
@@ -120,7 +131,7 @@ export default function Pollingstation() {
 
     useEffect(() => {
         const currentTime = Math.floor(new Date().getTime() / 1000);
-        const state = Number(currentTime) < Number(election.votingStartTime) ? globalConst.electionState.PLANNED : Number(currentTime) < Number(election.votingEndTime) ? globalConst.electionState.ONGOING : globalConst.electionState.FINISHED;
+        const state = globalConst.electionState.PLANNED;
         setElectionState(state);
         const tempStartTime = new Date(Number(voting.election.votingStartTime) * 1000);
         setStartDate(tempStartTime);
@@ -265,8 +276,37 @@ export default function Pollingstation() {
                 </div>
             }
 
+            {electionState === globalConst.electionState.PLANNED && Object.keys(votingCredentials).length > 0 && (
+                <div style={{ maxWidth: '460px', margin: '2rem auto' }}>
+                    <Notification
+                        type="success"
+                        htmlText={t('pollingstation.notification.success.ballotfits.planned')}
+                    />
+                    <div style={{ margin: 'auto', maxWidth: '340px' }}>
+                        <AddToCalendar
+                            electionURL={Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation'}
+                            electionId={voting.electionId}
+                            eventDate={startDate}
+                            eventTitle={t('register.popup.aftersave.addToCalendar.title', {
+                                ELECTIONTITLE: electionTitle,
+                            })}
+                            electionTitleSanitized={electionTitleSanitized}
+                            eventDescription={t('register.popup.aftersave.addToCalendar.description', {
+                                STARTDATE: startDate,
+                                ENDDATE: new Date(Number(election.votingEndTime) * 1000),
+                                ELECTIONTITLE: electionTitle,
+                                ELECTIONURL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
+                            })}
+                        />
+                    </div>
+                </div>
+            )}
+
             {electionState === globalConst.electionState.PLANNED && (
-                <div className={styles.electiontime_content_box}>
+                <div
+                    className={styles.electiontime_content_box}
+                    style={Object.keys(votingCredentials).length > 0 ? { margin: '2rem auto' } : undefined}
+                >
                     <ElectionTimeInfo
                         countDownEndTime={election.votingStartTime}
                         countDownState={electionState}
