@@ -77,7 +77,7 @@ export default function ScanUploadQRCode(props) {
     };
 
     useEffect(() => {
-        html5QrCode = new Html5Qrcode("reader", {formatsToSupport: [0]});
+        html5QrCode = new Html5Qrcode("reader", { formatsToSupport: [0] });
         const oldRegion = document.getElementById("qr-shaded-region");
         oldRegion && oldRegion.remove();
     }, []);
@@ -338,7 +338,6 @@ export default function ScanUploadQRCode(props) {
                         <Button
                             onClick={() => setIsQrTextInputActivated(true)}
                             type="primary_light"
-                            className={isQrTextInputActivated ? 'op__display-none' : 'op__display-block'}
                         >
                             {insertAsTextButton}
                         </Button>
