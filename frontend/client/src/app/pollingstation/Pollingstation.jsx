@@ -131,11 +131,7 @@ export default function Pollingstation() {
 
     useEffect(() => {
         const currentTime = Math.floor(new Date().getTime() / 1000);
-        const state = Number(currentTime) < Number(election.votingStartTime)
-            ? globalConst.electionState.PLANNED
-            : Number(currentTime) < Number(election.votingEndTime)
-                ? globalConst.electionState.ONGOING
-                : globalConst.electionState.FINISHED;
+        const state = Number(currentTime) < Number(election.votingStartTime) ? globalConst.electionState.PLANNED : Number(currentTime) < Number(election.votingEndTime) ? globalConst.electionState.ONGOING : globalConst.electionState.FINISHED;
         setElectionState(state);
         const tempStartTime = new Date(Number(voting.election.votingStartTime) * 1000);
         setStartDate(tempStartTime);
