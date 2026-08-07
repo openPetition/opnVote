@@ -14,18 +14,16 @@
     gap: 1rem;
 }
 
-.inner_stripe_box:last-child {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    max-height: 320px;
+.election_details {
+    flex: 1;
+    min-width: 0;
 }
 
 .title {
-    text-align: left;
+    text-align: center;
     margin: 0;
     padding: 0;
-    margin-bottom: 1rem;
+    margin-bottom: var(--op-padding-standard--20);
     font: normal normal bold var(--op-font-size-bigger) 'op__roboto--slab';
 }
 
@@ -42,6 +40,8 @@
 }
 
 .election_informations_box {
+    display: flex;
+    justify-content: center;
     gap: 1rem;
     max-width: 100%;
     text-align: center;
@@ -60,11 +60,11 @@
 }
 
 .ongoing {
-    color: #5dc876;
+    color: #348a4b;
 }
 
 .planned {
-    color: #f6ff91;
+    color: #a87400;
 }
 
 .election_image {
@@ -94,13 +94,12 @@
         width: 160px;
     }
 
-    .election_informations_box {
-        min-width: 160px;
+    .title {
+        text-align: left;
     }
 
-    .election_informations {
-        flex-direction: row;
-        justify-content: space-around;
-
+    .election_informations_box {
+        justify-content: flex-start;
+        text-align: left;
     }
 }
