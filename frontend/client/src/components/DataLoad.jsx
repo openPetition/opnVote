@@ -142,7 +142,10 @@ export default function DataLoad() {
             let oldJwt = parseJwt(voting.jwt);
             let newJwt = parseJwt(localState.jwt);
 
-            if (newJwt && (newJwt?.voterId != oldJwt?.voterId || newJwt?.electionId != oldJwt?.electionId)) {
+            if (
+                newJwt && (newJwt?.voterId != oldJwt?.voterId || newJwt?.electionId != oldJwt?.electionId)
+                || voting.electionId && voting.electionId != localState.electionId
+            ) {
                 // drop information about the user
                 clearUser();
                 // overwrite current voting data with emptyVoting data (votingUpdate was only partial update until now)
