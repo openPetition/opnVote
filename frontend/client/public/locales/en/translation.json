@@ -220,6 +220,7 @@
     "pollingstation.notification.error.novotechange.popup.buttontext": "Back to voting",
     "pollingstation.notification.error.novotechange.popup.headline": "Voting not possible",
     "pollingstation.notification.success.ballotfits": "The register has recognised your election permit. You are now ready to vote!",
+    "pollingstation.notification.success.ballotfits.planned": "<p>Your election permit was uploaded successfully. Please keep it in a safe place.</p><br /><p>We will inform you again once the voting period begins. Only then will your election permit take you directly to your ballot paper.</p><br /><p>You can also add the start of the voting period to your calendar now.</p>",
     "pollingstation.notification.success.popup.buttontext.cast": "Vote now",
     "pollingstation.notification.success.popup.buttontext.recast": "Change your vote now",
     "pollingstation.notification.success.popup.headline.cast": "Your election permit has been uploaded successfully!",
