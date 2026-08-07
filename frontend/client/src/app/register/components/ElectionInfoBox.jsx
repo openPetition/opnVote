@@ -39,39 +39,28 @@ export default function ElectionInfoBox(props) {
                             alt=""
                         />
                     </div>
-                    <div><h3 className={`${styles.title}`}>{voting.electionInformation.title}</h3></div>
-                </div>
-
-                <div className={`${styles.inner_stripe_box} `}>
-
-                    <div className={styles.election_informations}>
-                        <div className={`${styles.election_informations_box}`}>
-                            <h3>
-                                <CircleDot
-                                    strokeWidth={5}
-                                    className={`${styles.state_circle} ${styles[electionState]}`}
-                                />
-                                {{
-                                    [globalConst.electionState.PLANNED]: t('register.smallHeader.statetitle.planned'),
-                                    [globalConst.electionState.ONGOING]: t('register.smallHeader.statetitle.ongoing'),
-                                    [globalConst.electionState.FINISHED]: t('register.smallHeader.statetitle.finished'),
-                                }[electionState]}
-                            </h3>
-                            <small>{t('register.smallHeader.state')}</small>
+                    <div className={styles.election_details}>
+                        <h3 className={`${styles.title}`}>{voting.electionInformation.title}</h3>
+                        <div className={styles.election_informations}>
+                            <div className={`${styles.election_informations_box}`}>
+                                <h3>{t('register.smallHeader.state')}:</h3>
+                                <small>
+                                    <CircleDot
+                                        strokeWidth={5}
+                                        className={`${styles.state_circle} ${styles[electionState]}`}
+                                    />
+                                    {{
+                                        [globalConst.electionState.PLANNED]: t('register.smallHeader.statetitle.planned'),
+                                        [globalConst.electionState.ONGOING]: t('register.smallHeader.statetitle.ongoing'),
+                                        [globalConst.electionState.FINISHED]: t('register.smallHeader.statetitle.finished'),
+                                    }[electionState]}
+                                </small>
+                            </div>
+                            <div className={`${styles.election_informations_box}`}>
+                                <h3>{t('register.smallHeader.electionend')}:</h3>
+                                <small>{endDate}</small>
+                            </div>
                         </div>
-                        <div className={`${styles.election_informations_box}`}>
-                            <h3>{endDate}</h3>
-                            <small>{t('register.smallHeader.electionend')}</small>
-                        </div>
-                        <div className={`${styles.election_informations_box}`}>
-                            <h3>{{
-                                [globalConst.electionState.PLANNED]: t('register.smallHeader.whatshappening.state.planned'),
-                                [globalConst.electionState.ONGOING]: t('register.smallHeader.whatshappening.state.ongoing'),
-                                [globalConst.electionState.FINISHED]: t('register.smallHeader.whatshappening.state.finished'),
-                            }[electionState]}</h3>
-                            <small>{t('register.smallHeader.whatshappening.title')}</small>
-                        </div>
-
                     </div>
                 </div>
 
