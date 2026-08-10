@@ -21,7 +21,7 @@ export default function LoadBallot() {
     const qrCodeToCredentials = (code) => {
         const result = checkBallot(voting.election, code);
         if (result.result === 'success') {
-            updateVoting({ registerCode: result.registerCode });
+            updateVoting({ registerCode: result.registerCode, registerCodeSaved: true });
             updatePage({ current: globalConst.pages.POLLINGSTATION });
         } else {
             setError(result.error);
