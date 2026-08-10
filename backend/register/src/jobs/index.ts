@@ -13,11 +13,15 @@ if (!JOB_CRON_SCHEDULE) {
  * Initialize cron jobs
  */
 export function initializeJobs(): void {
-  cron.schedule(JOB_CRON_SCHEDULE!, async () => {
-    await processPendingRegistrations().catch(error => {
-      logger.error(`Scheduled registration run failed: ${error}`)
-    })
-  })
+  cron.schedule(
+    JOB_CRON_SCHEDULE!,
+    async () => {
+      await processPendingRegistrations().catch(error => {
+        logger.error(`Scheduled registration run failed: ${error}`)
+      })
+    },
+    { timezone: 'UTC', noOverlap: true },
+  )
 
   logger.info('Job scheduler initialized')
 }
