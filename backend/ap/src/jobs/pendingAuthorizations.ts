@@ -324,10 +324,7 @@ export async function processPendingAuthorizations(): Promise<void> {
           }
 
           const estimatedGas = await withRetry(() =>
-            contract.authorizeVoters.estimateGas(BigInt(electionId), voterIds, {
-              maxFeePerGas: adjustedMaxFeePerGas,
-              maxPriorityFeePerGas: adjustedMaxPriorityFeePerGas,
-            }),
+            contract.authorizeVoters.estimateGas(BigInt(electionId), voterIds),
           )
           const gasLimitWithBuffer = (estimatedGas * TX_MULTIPLIERS.GAS_LIMIT_PERCENTAGE) / 100n
 
@@ -335,6 +332,17 @@ export async function processPendingAuthorizations(): Promise<void> {
             estimatedGas: estimatedGas.toString(),
             gasLimitWithBuffer: gasLimitWithBuffer.toString(),
           })
+
+          const maxTxCost = gasLimitWithBuffer * adjustedMaxFeePerGas
+          const currentBalance = await withRetry(() => provider.getBalance(wallet.address))
+          if (currentBalance < maxTxCost) {
+            logger.error(
+              `Insufficient balance for transaction: ${ethers.formatEther(
+                currentBalance,
+              )} < ${ethers.formatEther(maxTxCost)} Wallet: ${wallet.address}`,
+            )
+            throw new Error('Insufficient balance for transaction')
+          }
 
           // Create and send transaction
           const tx: ethers.TransactionResponse = await contract.authorizeVoters(
