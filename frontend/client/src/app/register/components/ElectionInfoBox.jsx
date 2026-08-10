@@ -49,16 +49,16 @@ export default function ElectionInfoBox(props) {
                                         strokeWidth={5}
                                         className={`${styles.state_circle} ${styles[electionState]}`}
                                     />
+                                </small>
                                     {{
                                         [globalConst.electionState.PLANNED]: t('register.smallHeader.statetitle.planned'),
                                         [globalConst.electionState.ONGOING]: t('register.smallHeader.statetitle.ongoing'),
                                         [globalConst.electionState.FINISHED]: t('register.smallHeader.statetitle.finished'),
                                     }[electionState]}
-                                </small>
                             </div>
                             <div className={`${styles.election_informations_box}`}>
                                 <h3>{t('register.smallHeader.electionend')}:</h3>
-                                <small>{endDate}</small>
+                                {endDate}
                             </div>
                         </div>
                     </div>

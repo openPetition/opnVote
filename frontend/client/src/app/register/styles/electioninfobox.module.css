@@ -49,7 +49,6 @@
 
 .state_circle {
     display: inline-block;
-    margin-right: var(--op-padding-standard);
     height: 16px;
     width: 16px;
     margin-top: -3px;
@@ -101,5 +100,6 @@
     .election_informations_box {
         justify-content: flex-start;
         text-align: left;
+        gap: var(--op-padding-small);
     }
 }
