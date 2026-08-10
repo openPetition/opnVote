@@ -6,6 +6,7 @@ import Headline from "@/components/Headline";
 import globalConst from "@/constants";
 import ScanUploadQRCode from "@/components/ScanUploadQRCode";
 import Button from "@/components/Button";
+import { ArrowLeft } from "lucide-react";
 
 export default function LoadSecret() {
     const { t } = useTranslation();
@@ -54,10 +55,20 @@ export default function LoadSecret() {
                             })
                         }}
                     />
-                    <Button
-                        onClick={() => { updatePage({ current: globalConst.pages.CREATEKEY }); }}
-                        type="primary"
-                    >{t("loadsecret.backToSecretCreation")}</Button>
+					<div className="op__flex op__flex_direction_column_small op__flex_direction_row_wide op__flex_center_align op__mob_padding_standard_left_right op__padding_standard_bottom">
+						<Button
+							type="primary"
+							onClick={() => updatePage({ current: globalConst.pages.CREATEKEY })}
+							style={{
+								display: "inline-flex",
+								alignItems: "center",
+								gap: "10px"
+							}}
+						>
+							<ArrowLeft color="#fff" size={20} strokeWidth={3} />
+							{t("loadsecret.backToSecretCreation")}
+						</Button>
+					</div>
                 </>
             </main>
         </>
