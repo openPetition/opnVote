@@ -19,7 +19,7 @@ export function initializeJobs(): void {
         logger.error(`AP jobs: Scheduled run failed: ${error}`)
       })
     },
-    { timezone: 'UTC', noOverlap: true },
+    { timezone: 'UTC' },
   )
 
   logger.info('Job scheduler initialized')

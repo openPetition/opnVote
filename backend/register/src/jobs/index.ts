@@ -20,7 +20,7 @@ export function initializeJobs(): void {
         logger.error(`Scheduled registration run failed: ${error}`)
       })
     },
-    { timezone: 'UTC', noOverlap: true },
+    { timezone: 'UTC' },
   )
 
   logger.info('Job scheduler initialized')
