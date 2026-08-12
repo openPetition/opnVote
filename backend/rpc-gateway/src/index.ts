@@ -5,7 +5,7 @@ import { logger } from './utils/logger'
 import { shouldAlert } from './utils/alertThrottle'
 import { registerBundlerRoute } from './bundler'
 
-const server = fastify({ logger: false, trustProxy: true })
+const server = fastify({ logger: false, trustProxy: 1 })
 
 server.register(require('@fastify/cors'), {
   origin: true,
