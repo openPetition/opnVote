@@ -5,7 +5,7 @@ import { logger } from './utils/logger'
 import { shouldAlert } from './utils/alertThrottle'
 dotenv.config()
 
-const server = fastify({ logger: true, trustProxy: true })
+const server = fastify({ logger: true, trustProxy: 1 })
 
 server.register(require('@fastify/cors'), {
   origin: true,
