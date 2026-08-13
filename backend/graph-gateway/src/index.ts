@@ -11,11 +11,7 @@ server.register(require('@fastify/cors'), {
   origin: true,
 })
 
-const TEST_KEY = process.env.TEST_API_KEY
-if (!TEST_KEY) {
-  logger.error('GraphQL Gateway: TEST_API_KEY not set')
-  throw new Error('TEST_API_KEY is not set')
-}
+const TEST_KEY = process.env.TEST_API_KEY || null
 
 server.register(require('@fastify/rate-limit'), {
   max: (req: FastifyRequest) => {
