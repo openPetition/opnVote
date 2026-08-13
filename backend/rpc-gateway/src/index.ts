@@ -43,6 +43,7 @@ const REQUEST_TIMEOUT = parseInt(process.env.REQUEST_TIMEOUT || '10000')
 const SYNC_CHECK_INTERVAL = parseInt(process.env.SYNC_CHECK_INTERVAL || '60000')
 const WARNING_BLOCK_LAG = parseInt(process.env.WARNING_BLOCK_LAG || '3')
 const FAILOVER_BLOCK_LAG = parseInt(process.env.FAILOVER_BLOCK_LAG || '5')
+const MAX_BATCH_SIZE = parseInt(process.env.MAX_BATCH_SIZE || '20')
 const SECONDARY_UNREACHABLE_THRESHOLD = 3
 
 let primaryBlockNumber: number | null = null
@@ -182,6 +183,16 @@ server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
     }
 
     if (Array.isArray(body)) {
+      if (body.length === 0 || (!isWhitelistedRequest(request) && body.length > MAX_BATCH_SIZE)) {
+        return reply.status(400).send({
+          jsonrpc: '2.0',
+          error: {
+            code: -32600,
+            message: `Request exceeds batch size limit`,
+          },
+          id: null,
+        })
+      }
       const responses = await Promise.all(body.map(req => processRPCRequest(req, request)))
       return reply.send(responses)
     }
@@ -202,14 +213,14 @@ server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
 })
 
 async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
-  if (!rpcRequest.jsonrpc || !rpcRequest.method || rpcRequest.id === undefined) {
+  if (!rpcRequest || !rpcRequest.jsonrpc || !rpcRequest.method || rpcRequest.id === undefined) {
     return {
       jsonrpc: '2.0',
       error: {
         code: -32600,
         message: 'Invalid Request',
       },
-      id: rpcRequest.id || null,
+      id: rpcRequest?.id || null,
     }
   }
 
