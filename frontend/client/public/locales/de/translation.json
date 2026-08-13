@@ -6,7 +6,7 @@
     "checkloadballot.notification.success.text": "Ihr Wahlschein wurde erkannt, bewahren Sie ihn bis zur Abstimmung gut auf und tragen Sie sich den Abstimmungszeitraum in Ihren Kalender ein.",
     "checkloadballot.upload.title": "Wahlschein Check",
     "checkloadballot.uploadcomponent.headline": "Testen Sie, ob sie Ihren Wahlschein korrekt gespeichert haben!",
-    "checkloadballot.uploadcomponent.subheadline": "Jeder Internetbrowser verhält sich unterschiedlich, um sicherzustellen, dass Sie den Wahlschein wieder auffindbar abgespeichert haben, können Sie ihn hier testweise hochladen.",
+    "checkloadballot.uploadcomponent.subheadline": "Jeder Internetbrowser verhält sich unterschiedlich. Um sicherzustellen, dass Sie den Wahlschein wieder auffindbar abgespeichert haben, können Sie ihn hier testweise hochladen.",
     "common.abort": "Abbrechen",
     "common.apploadfailed": "Die Applikation konnte nicht geladen werden.",
     "common.apploading": "Die Applikation wird geladen.",
