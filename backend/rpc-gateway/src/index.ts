@@ -25,6 +25,7 @@ server.register(require('@fastify/rate-limit'), {
     const apiKey = req.headers['x-api-key'] as string
     return apiKey === TEST_KEY ? `test-${apiKey}` : req.ip
   },
+  allowList: (req: FastifyRequest) => isWhitelistedRequest(req),
 })
 
 const RPC_ENDPOINTS = [process.env.PRIMARY_RPC_URL, process.env.SECONDARY_RPC_URL].filter(
@@ -165,9 +166,7 @@ async function checkNodeSync(): Promise<void> {
   }
 }
 
-registerBundlerRoute(server)
-
-server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
+const handleRpcRequest = async (request: FastifyRequest, reply: FastifyReply) => {
   try {
     const body = request.body as any
 
@@ -210,7 +209,7 @@ server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
       id: null,
     })
   }
-})
+}
 
 async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
   if (!rpcRequest || !rpcRequest.jsonrpc || !rpcRequest.method || rpcRequest.id === undefined) {
@@ -297,7 +296,7 @@ async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
   }
 }
 
-server.get('/health', async (request: FastifyRequest, reply: FastifyReply) => {
+const handleHealthRequest = async (request: FastifyRequest, reply: FastifyReply) => {
   const healthStatus = {
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -343,6 +342,12 @@ server.get('/health', async (request: FastifyRequest, reply: FastifyReply) => {
   }
 
   return healthStatus
+}
+
+server.after(() => {
+  registerBundlerRoute(server)
+  server.post('/', handleRpcRequest)
+  server.get('/health', handleHealthRequest)
 })
 
 const start = async () => {
