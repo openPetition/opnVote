@@ -19,3 +19,21 @@
 .item_header_icon {
     flex: 0 0 24px;
 }
+
+.item_content ol,
+.item_content ul {
+    margin-bottom: var(--op-padding-standard);
+    padding-left: 2rem;
+}
+
+.item_content ol {
+    list-style: decimal;
+}
+
+.item_content ul {
+    list-style: disc;
+}
+
+.item_content li + li {
+    margin-top: var(--op-padding-small);
+}
