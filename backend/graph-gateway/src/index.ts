@@ -5,7 +5,11 @@ import { logger } from './utils/logger'
 import { shouldAlert } from './utils/alertThrottle'
 dotenv.config()
 
-const server = fastify({ logger: true, trustProxy: 1 })
+const server = fastify({
+  logger: true,
+  trustProxy: 1,
+  bodyLimit: parseInt(process.env.MAX_BODY_SIZE || '51200'),
+})
 
 server.register(require('@fastify/cors'), {
   origin: true,
@@ -60,7 +64,13 @@ server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
   try {
     const body = request.body as any
 
-    if (!body || typeof body !== 'object') {
+    if (
+      !body ||
+      typeof body !== 'object' ||
+      Array.isArray(body) ||
+      !body.query ||
+      typeof body.query !== 'string'
+    ) {
       return reply.status(400).send({
         errors: [
           {
