@@ -71,6 +71,7 @@ export default function Register() {
         notificationText: '',
         notificationType: '',
         showCalendarLink: false,
+        isBallotCheckSuccess: false,
         showQRLoadingAnimation: false,
         showVoteLater: false,
         showSaveRegisterQRSuccess: false,
@@ -297,6 +298,7 @@ export default function Register() {
                 notificationType: notification.type || 'success',
                 notificationText: notification.text,
                 showCalendarLink: Boolean(notification.showCalendarLink),
+                isBallotCheckSuccess: Boolean(notification.isBallotCheckSuccess),
             }));
 
             updateNotification({
@@ -305,9 +307,15 @@ export default function Register() {
                 text: '',
                 show: false,
                 showCalendarLink: false,
+                isBallotCheckSuccess: false,
             });
         }
     }, [notification, updateNotification]);
+
+    const hasBallotCheckCalendarNotifications =
+        registerState.isBallotCheckSuccess &&
+        electionState === globalConst.electionState.PLANNED &&
+        voting.registerCodeSaved;
 
     return (
         <>
@@ -382,6 +390,7 @@ export default function Register() {
                     <>
                         <Notification
                             type={registerState.notificationType}
+                            colorVariant={hasBallotCheckCalendarNotifications ? 'successDark' : undefined}
                             text={
                                 <>
                                     {registerState.notificationText}{' '}
@@ -421,6 +430,7 @@ export default function Register() {
                     <>
                         <Notification
                             type={'info'}
+                            colorVariant={hasBallotCheckCalendarNotifications ? 'infoLight' : undefined}
                             htmlText={t("showballot.votingstartfuture.info", { STARTDATE: startDate, ENDDATE: endDate, interpolation: { escapeValue: false } })}
                         />
                     </>

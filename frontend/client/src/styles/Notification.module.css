@@ -32,9 +32,17 @@
     box-shadow: 0 0 10px #3E3D401A;
 }
 
+.successDark {
+    background-color: var(--op-blue);
+}
+
 .info {
     background-color: var(--op-blue);
     box-shadow: 0px 0px 10px #3E3D401A;
+}
+
+.infoLight {
+    background-color: var(--op-blue-light);
 }
 
 .attention {

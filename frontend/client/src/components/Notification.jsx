@@ -9,7 +9,7 @@ import Button from './Button';
  * @returns
  */
 export default function Notification(props) {
-    const { type, text, headline, additionalGlobalClass, buttonText, buttonAction, htmlText, linkText, linkAction, children } = props;
+    const { type, text, headline, additionalGlobalClass, buttonText, buttonAction, htmlText, linkText, linkAction, children, colorVariant } = props;
     const [NotificationIcon, setNotifcationIcon] = useState('');
 
     const iconComponents = {
@@ -25,7 +25,7 @@ export default function Notification(props) {
 
     return (
         <>
-            <div className={`op__margin_standard_top ${styles.basic} ${styles[type]} ${additionalGlobalClass ? additionalGlobalClass : ''}`} role="alert">
+            <div className={`op__margin_standard_top ${styles.basic} ${styles[type]} ${colorVariant ? styles[colorVariant] : ''} ${additionalGlobalClass ? additionalGlobalClass : ''}`} role="alert">
                 <div className={styles.notificationflex}>
                     <div className={styles.icon} style={{ backgroundImage: `url(${NotificationIcon})` }}></div>
                     <div>
