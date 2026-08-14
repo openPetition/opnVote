@@ -11,11 +11,7 @@ server.register(require('@fastify/cors'), {
   origin: true,
 })
 
-const TEST_KEY = process.env.TEST_API_KEY
-if (!TEST_KEY) {
-  logger.error('RPC Gateway: TEST_API_KEY not set')
-  throw new Error('TEST_API_KEY is not set')
-}
+const TEST_KEY = process.env.TEST_API_KEY || null
 
 server.register(require('@fastify/rate-limit'), {
   max: (req: FastifyRequest) => {
@@ -29,6 +25,7 @@ server.register(require('@fastify/rate-limit'), {
     const apiKey = req.headers['x-api-key'] as string
     return apiKey === TEST_KEY ? `test-${apiKey}` : req.ip
   },
+  allowList: (req: FastifyRequest) => isWhitelistedRequest(req),
 })
 
 const RPC_ENDPOINTS = [process.env.PRIMARY_RPC_URL, process.env.SECONDARY_RPC_URL].filter(
@@ -47,6 +44,7 @@ const REQUEST_TIMEOUT = parseInt(process.env.REQUEST_TIMEOUT || '10000')
 const SYNC_CHECK_INTERVAL = parseInt(process.env.SYNC_CHECK_INTERVAL || '60000')
 const WARNING_BLOCK_LAG = parseInt(process.env.WARNING_BLOCK_LAG || '3')
 const FAILOVER_BLOCK_LAG = parseInt(process.env.FAILOVER_BLOCK_LAG || '5')
+const MAX_BATCH_SIZE = parseInt(process.env.MAX_BATCH_SIZE || '20')
 const SECONDARY_UNREACHABLE_THRESHOLD = 3
 
 let primaryBlockNumber: number | null = null
@@ -168,9 +166,7 @@ async function checkNodeSync(): Promise<void> {
   }
 }
 
-registerBundlerRoute(server)
-
-server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
+const handleRpcRequest = async (request: FastifyRequest, reply: FastifyReply) => {
   try {
     const body = request.body as any
 
@@ -186,6 +182,16 @@ server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
     }
 
     if (Array.isArray(body)) {
+      if (body.length === 0 || (!isWhitelistedRequest(request) && body.length > MAX_BATCH_SIZE)) {
+        return reply.status(400).send({
+          jsonrpc: '2.0',
+          error: {
+            code: -32600,
+            message: `Request exceeds batch size limit`,
+          },
+          id: null,
+        })
+      }
       const responses = await Promise.all(body.map(req => processRPCRequest(req, request)))
       return reply.send(responses)
     }
@@ -203,17 +209,17 @@ server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
       id: null,
     })
   }
-})
+}
 
 async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
-  if (!rpcRequest.jsonrpc || !rpcRequest.method || rpcRequest.id === undefined) {
+  if (!rpcRequest || !rpcRequest.jsonrpc || !rpcRequest.method || rpcRequest.id === undefined) {
     return {
       jsonrpc: '2.0',
       error: {
         code: -32600,
         message: 'Invalid Request',
       },
-      id: rpcRequest.id || null,
+      id: rpcRequest?.id || null,
     }
   }
 
@@ -290,7 +296,7 @@ async function processRPCRequest(rpcRequest: any, request: FastifyRequest) {
   }
 }
 
-server.get('/health', async (request: FastifyRequest, reply: FastifyReply) => {
+const handleHealthRequest = async (request: FastifyRequest, reply: FastifyReply) => {
   const healthStatus = {
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -336,6 +342,12 @@ server.get('/health', async (request: FastifyRequest, reply: FastifyReply) => {
   }
 
   return healthStatus
+}
+
+server.after(() => {
+  registerBundlerRoute(server)
+  server.post('/', handleRpcRequest)
+  server.get('/health', handleHealthRequest)
 })
 
 const start = async () => {

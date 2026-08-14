@@ -16,8 +16,8 @@ export default function Accordeon(props) {
                         {open ? <Minus size={24} /> : <Plus size={24} />}
                     </div>
                 </div>
-                <div>
-                    {open && <p className="op__margin_1_top_bottom">{text}</p>}
+                <div className={styles.item_content}>
+                    {open && <div className="op__margin_1_top_bottom">{text}</div>}
                 </div>
                 <hr className="op__margin_standard_top_bottom" />
             </li>

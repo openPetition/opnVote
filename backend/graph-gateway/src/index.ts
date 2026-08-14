@@ -5,17 +5,17 @@ import { logger } from './utils/logger'
 import { shouldAlert } from './utils/alertThrottle'
 dotenv.config()
 
-const server = fastify({ logger: true, trustProxy: 1 })
+const server = fastify({
+  logger: true,
+  trustProxy: 1,
+  bodyLimit: parseInt(process.env.MAX_BODY_SIZE || '51200'),
+})
 
 server.register(require('@fastify/cors'), {
   origin: true,
 })
 
-const TEST_KEY = process.env.TEST_API_KEY
-if (!TEST_KEY) {
-  logger.error('GraphQL Gateway: TEST_API_KEY not set')
-  throw new Error('TEST_API_KEY is not set')
-}
+const TEST_KEY = process.env.TEST_API_KEY || null
 
 server.register(require('@fastify/rate-limit'), {
   max: (req: FastifyRequest) => {
@@ -29,6 +29,7 @@ server.register(require('@fastify/rate-limit'), {
     const apiKey = req.headers['x-api-key'] as string
     return apiKey === TEST_KEY ? `test-${apiKey}` : req.ip
   },
+  allowList: (req: FastifyRequest) => isWhitelistedRequest(req),
 })
 
 const GRAPHQL_ENDPOINT = process.env.GRAPHQL_ENDPOINT!
@@ -46,6 +47,12 @@ const WHITELISTED_IPS = process.env.WHITELISTED_IPS
   ? process.env.WHITELISTED_IPS.split(',').map(ip => ip.trim())
   : []
 
+function isWhitelistedRequest(req: FastifyRequest): boolean {
+  const localIps = ['127.0.0.1', '::1', '::ffff:127.0.0.1']
+  const allWhitelistedIps = [...localIps, ...WHITELISTED_IPS]
+  return allWhitelistedIps.includes(req.ip)
+}
+
 function logGraphqlErrors(data: any): boolean {
   try {
     const errors = data?.errors
@@ -60,11 +67,17 @@ function logGraphqlErrors(data: any): boolean {
   }
 }
 
-server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
+const handleGraphqlRequest = async (request: FastifyRequest, reply: FastifyReply) => {
   try {
     const body = request.body as any
 
-    if (!body || typeof body !== 'object') {
+    if (
+      !body ||
+      typeof body !== 'object' ||
+      Array.isArray(body) ||
+      !body.query ||
+      typeof body.query !== 'string'
+    ) {
       return reply.status(400).send({
         errors: [
           {
@@ -108,7 +121,7 @@ server.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
       ],
     })
   }
-})
+}
 
 function validateQuerySize(query: string): { valid: boolean; error?: string; size?: number } {
   if (!query || typeof query !== 'string') {
@@ -192,7 +205,7 @@ async function processGraphQLRequest(graphqlRequest: any) {
   }
 }
 
-server.get('/health', async () => {
+const handleHealthRequest = async () => {
   const healthStatus = {
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -200,6 +213,11 @@ server.get('/health', async () => {
   }
 
   return healthStatus
+}
+
+server.after(() => {
+  server.post('/', handleGraphqlRequest)
+  server.get('/health', handleHealthRequest)
 })
 
 const start = async () => {
