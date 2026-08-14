@@ -70,3 +70,15 @@
 .linkButton:focus-visible {
     color: var(--op-blue-dark);
 }
+
+.highlightLastHtmlParagraph p:last-child {
+    margin-top: var(--op-padding-standard);
+}
+
+.highlightLastHtmlParagraph p:last-child::before {
+    content: '';
+    display: block;
+    width: 2.5rem;
+    margin-bottom: var(--op-padding-small);
+    border-top: 3px solid var(--op-blue-dark);
+}

@@ -440,6 +440,7 @@ export default function Register() {
                             type={'info'}
                             colorVariant={hasBallotCheckCalendarNotifications ? 'infoLight' : undefined}
                             additionalGlobalClass="op__margin_standard_top_bottom"
+                            highlightLastHtmlParagraph
                             htmlText={t("showballot.votingstartfuture.info", { STARTDATE: startDate, ENDDATE: endDate, interpolation: { escapeValue: false } })}
                         />
                     </>
