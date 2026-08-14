@@ -46,6 +46,17 @@ export function handleElectionCanceled(event: ElectionCanceledEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  const electionID = event.params.electionId.toString()
+  let electionEntity = Election.load(electionID)
+  if (electionEntity == null) {
+    log.error('Election entity not found for ID: {}', [electionID])
+
+    return
+  }
+
+  electionEntity.cancelReasonIpfsCid = event.params.cancelReasonIpfsCid
+  electionEntity.save()
 }
 
 export function handleElectionCreated(event: ElectionCreatedEvent): void {
@@ -180,6 +191,35 @@ export function handleElectionUpdated(event: ElectionUpdatedEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  const electionID = event.params.electionId.toString()
+  let electionEntity = Election.load(electionID)
+  if (electionEntity == null) {
+    log.error('Election entity not found for ID: {}', [electionID])
+
+    return
+  }
+
+  electionEntity.votingStartTime = event.params.votingStartTime
+  electionEntity.votingEndTime = event.params.votingEndTime
+  electionEntity.registrationStartTime = event.params.registrationStartTime
+  electionEntity.registrationEndTime = event.params.registrationEndTime
+  electionEntity.registerId = event.params.registerId
+  electionEntity.authProviderId = event.params.authProviderId
+  electionEntity.publicKey = event.params.publicKey
+
+  if (electionEntity.descriptionIpfsCid != event.params.descriptionIpfsCid) {
+    electionEntity.descriptionIpfsCid = event.params.descriptionIpfsCid
+    const ipfsBlob = ipfs.cat(event.params.descriptionIpfsCid)
+
+    if (ipfsBlob !== null) {
+      electionEntity.descriptionBlob = ipfsBlob.toString()
+    } else {
+      electionEntity.descriptionBlob = ''
+    }
+  }
+
+  electionEntity.save()
 }
 
 export function handleOwnershipTransferred(event: OwnershipTransferredEvent): void {
