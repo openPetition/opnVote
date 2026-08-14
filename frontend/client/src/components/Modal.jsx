@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import styles from '../styles/Modal.module.css';
 import Button from "./Button";
 import { X } from 'lucide-react';
+import { useTranslation } from 'next-i18next';
 
 /**
  * @param {*} props
@@ -10,6 +11,7 @@ import { X } from 'lucide-react';
  */
 export default function Modal(props) {
     const { showModal, headerText, children, ctaButtonText, ctaButtonFunction, onClose, contentClassName } = props;
+    const { t } = useTranslation();
     const modalRef = useRef(null);
 
     const closeModal = () => {
@@ -58,12 +60,17 @@ export default function Modal(props) {
                             <div className={`${styles.modalContent} ${contentClassName || ''}`}>
                                 <div className={styles.modalHeader}>
 
-                                    <div className={styles.modalClose}>
+                                    <button
+                                        type="button"
+                                        className={styles.modalClose}
+                                        onClick={closeModal}
+                                        aria-label={t('common.close')}
+                                    >
                                         <X
                                             fill="#fff"
-                                            onClick={() => closeModal()}
+                                            aria-hidden="true"
                                         />
-                                    </div>
+                                    </button>
 
                                     {headerText && (
                                         <h3 className={styles.h3}

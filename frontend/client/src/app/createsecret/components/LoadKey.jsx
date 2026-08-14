@@ -35,8 +35,19 @@ export default function LoadKey(props) {
                 {isRendered && (
                     <>
                         <p className="op__center-align op__padding_standard_bottom">{t('secret.headline.createSecret.infoText')}</p>
-                        <button className={styles.key_circle_button} onClick={onClick}>
-                            <svg id={styles.key_svg} xmlns="http://www.w3.org/2000/svg" width="140" height="67.47" viewBox="0 0 140 67.47">
+                        <button
+                            className={styles.key_circle_button}
+                            onClick={onClick}
+                            aria-label={t('secret.key.button')}
+                        >
+                            <svg
+                                id={styles.key_svg}
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="140"
+                                height="67.47"
+                                viewBox="0 0 140 67.47"
+                                aria-hidden="true"
+                            >
                                 <defs>
                                     <linearGradient id="left-to-right-circle">
                                         <stop offset="0" stopColor="#29B0CC">

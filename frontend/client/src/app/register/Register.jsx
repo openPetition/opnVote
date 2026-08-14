@@ -389,6 +389,7 @@ export default function Register() {
                                     <button
                                         type="button"
                                         onClick={scrollToAddToCalendarButton}
+                                        aria-label={t('common.button.addToCalendar')}
                                         style={{
                                             border: 'none',
                                             background: 'transparent',
@@ -400,6 +401,7 @@ export default function Register() {
                                         <ArrowDownCircle
                                             size={20}
                                             color="#0d6c7f"
+                                            aria-hidden="true"
                                         />
                                     </button>
                                     )}
