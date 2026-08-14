@@ -492,7 +492,7 @@ export default function Register() {
 
                         {registerState.showBallot && (
                             <>
-                                <div id="ballot-download-options">
+                                <div id="ballotDownloadOptions">
                                     {shouldShowBallotDownloads && (
                                         <>
                                             <GenerateQRCode
@@ -566,7 +566,7 @@ export default function Register() {
                                                 type="secondary"
                                                 stretched
                                                 aria-expanded={registerState.showBallotDownloads}
-                                                aria-controls="ballot-download-options"
+                                                aria-controls="ballotDownloadOptions"
                                                 onClick={() => setRegisterState((prev) => ({
                                                     ...prev,
                                                     showBallotDownloads: !prev.showBallotDownloads,
