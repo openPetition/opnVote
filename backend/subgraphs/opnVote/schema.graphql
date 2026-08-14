@@ -21,6 +21,7 @@ type AuthorizationProvider @entity(immutable: true) {
 
 type Election @entity(immutable: false) {
   id: String!
+  contractAddress: Bytes!
   votingStartTime: BigInt! # uint256
   votingEndTime: BigInt! # uint256
   registrationStartTime: BigInt! # uint256

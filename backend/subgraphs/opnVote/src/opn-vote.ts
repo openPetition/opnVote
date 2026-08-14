@@ -64,6 +64,7 @@ export function handleElectionCanceled(event: ElectionCanceledEvent): void {
 
 export function handleElectionCreated(event: ElectionCreatedEvent): void {
   let entity = new Election(event.params.electionId.toString())
+  entity.contractAddress = event.address
   entity.registrationStartTime = event.params.registrationStartTime
   entity.registrationEndTime = event.params.registrationEndTime
   entity.votingStartTime = event.params.votingStartTime
