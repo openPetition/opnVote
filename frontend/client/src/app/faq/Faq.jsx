@@ -41,9 +41,7 @@ export default function Faq() {
         },
         topics: {
             title: t("faq.content.topics.title"),
-            text: <Trans i18nKey="faq.content.topics.text"
-                components={{ Linkabstimmung21: <Link href="https://www.openpetition.de/abstimmung21" /> }}
-            />,
+            text: <div dangerouslySetInnerHTML={{ __html: t('faq.content.topics.text') }} />,
         },
         populists: {
             title: t("faq.content.populists.title"),
