@@ -72,6 +72,7 @@ export default function Register() {
         notificationType: '',
         showCalendarLink: false,
         isBallotCheckSuccess: false,
+        showBallotDownloads: true,
         showQRLoadingAnimation: false,
         showVoteLater: false,
         showSaveRegisterQRSuccess: false,
@@ -299,6 +300,7 @@ export default function Register() {
                 notificationText: notification.text,
                 showCalendarLink: Boolean(notification.showCalendarLink),
                 isBallotCheckSuccess: Boolean(notification.isBallotCheckSuccess),
+                showBallotDownloads: !notification.isBallotCheckSuccess,
             }));
 
             updateNotification({
@@ -312,10 +314,16 @@ export default function Register() {
         }
     }, [notification, updateNotification]);
 
-    const hasBallotCheckCalendarNotifications =
-        registerState.isBallotCheckSuccess &&
+    const shouldShowBallotCheckCalendarNotification =
         electionState === globalConst.electionState.PLANNED &&
         voting.registerCodeSaved;
+
+    const hasBallotCheckCalendarNotifications =
+        registerState.isBallotCheckSuccess &&
+        shouldShowBallotCheckCalendarNotification;
+
+    const shouldShowBallotDownloads =
+        !registerState.isBallotCheckSuccess || registerState.showBallotDownloads;
 
     return (
         <>
@@ -426,11 +434,12 @@ export default function Register() {
                     </>
                 )}
 
-                {electionState === globalConst.electionState.PLANNED && voting.registerCodeSaved && (
+                {shouldShowBallotCheckCalendarNotification && (
                     <>
                         <Notification
                             type={'info'}
                             colorVariant={hasBallotCheckCalendarNotifications ? 'infoLight' : undefined}
+                            additionalGlobalClass="op__margin_standard_top_bottom"
                             htmlText={t("showballot.votingstartfuture.info", { STARTDATE: startDate, ENDDATE: endDate, interpolation: { escapeValue: false } })}
                         />
                     </>
@@ -483,41 +492,47 @@ export default function Register() {
 
                         {registerState.showBallot && (
                             <>
-                                <GenerateQRCode
-                                    headline={t("register.generateqrcode.headline")}
-                                    text={voting.registerCode}
-                                    downloadHeadline={(t("register.generateqrcode.downloadHeadline")).toUpperCase()}
-                                    downloadSubHeadline={voting.electionInformation.title}
-                                    downloadFilename={t("register.generateqrcode.downloadFilename", {
-                                        ELECTIONTITLE: electionTitleSanitized,
-                                        CREATIONDATE: new Date().toISOString().split('T')[0]
-                                    })}
-                                    headimage="election-permit-no-whitespace"
-                                    pdfQRtype={globalConst.pdfType.ELECTIONPERMIT}
-                                    qrCodeString={voting.registerCode}
-                                    saved={voting.registerCodeSaved}
-                                    savedAs={voting.registerCodeSavedAs}
-                                    pdfInformation={{
-                                        ELECTION_URL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
-                                        STARTDATE: startDate,
-                                        ENDDATE: endDate
-                                    }}
-                                    afterSaveFunction={(type) => {
-                                        let registerCodeSavedAsLocal = voting.registerCodeSavedAs;
-                                        if (!registerCodeSavedAsLocal.includes(type)) {
-                                            registerCodeSavedAsLocal.push(type);
-                                        }
-                                        updateVoting({ initElectionPermit: false });
-                                        setRegisterState({
-                                            ...registerState,
-                                            showSaveRegisterQRSuccess: true
-                                        });
-                                        updateVoting({
-                                            registerCodeSaved: true,
-                                            registerCodeSavedAs: registerCodeSavedAsLocal
-                                        });
-                                    }}
-                                />
+                                <div id="ballot-download-options">
+                                    {shouldShowBallotDownloads && (
+                                        <>
+                                            <GenerateQRCode
+                                                headline={t("register.generateqrcode.headline")}
+                                                text={voting.registerCode}
+                                                downloadHeadline={(t("register.generateqrcode.downloadHeadline")).toUpperCase()}
+                                                downloadSubHeadline={voting.electionInformation.title}
+                                                downloadFilename={t("register.generateqrcode.downloadFilename", {
+                                                    ELECTIONTITLE: electionTitleSanitized,
+                                                    CREATIONDATE: new Date().toISOString().split('T')[0]
+                                                })}
+                                                headimage="election-permit-no-whitespace"
+                                                pdfQRtype={globalConst.pdfType.ELECTIONPERMIT}
+                                                qrCodeString={voting.registerCode}
+                                                saved={voting.registerCodeSaved}
+                                                savedAs={voting.registerCodeSavedAs}
+                                                pdfInformation={{
+                                                    ELECTION_URL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
+                                                    STARTDATE: startDate,
+                                                    ENDDATE: endDate
+                                                }}
+                                            afterSaveFunction={(type) => {
+                                                let registerCodeSavedAsLocal = voting.registerCodeSavedAs;
+                                                    if (!registerCodeSavedAsLocal.includes(type)) {
+                                                        registerCodeSavedAsLocal.push(type);
+                                                    }
+                                                    updateVoting({ initElectionPermit: false });
+                                                    setRegisterState({
+                                                        ...registerState,
+                                                        showSaveRegisterQRSuccess: true
+                                                    });
+                                                    updateVoting({
+                                                        registerCodeSaved: true,
+                                                        registerCodeSavedAs: registerCodeSavedAsLocal
+                                                    });
+                                                }}
+                                            />
+                                        </>
+                                    )}
+                                </div>
                                 <div>
                                     <p dangerouslySetInnerHTML={{
                                         __html: t('register.popup.aftersave.text', {
@@ -544,6 +559,25 @@ export default function Register() {
                                         })}
                                         buttonRef={addToCalendarButtonRef}
                                     />
+
+                                    {registerState.isBallotCheckSuccess && (
+                                        <div className="op__margin_standard_top">
+                                            <Button
+                                                type="secondary"
+                                                stretched
+                                                aria-expanded={registerState.showBallotDownloads}
+                                                aria-controls="ballot-download-options"
+                                                onClick={() => setRegisterState((prev) => ({
+                                                    ...prev,
+                                                    showBallotDownloads: !prev.showBallotDownloads,
+                                                }))}
+                                            >
+                                                {t(registerState.showBallotDownloads
+                                                    ? 'register.generateqrcode.hidedownloadoptions'
+                                                    : 'register.generateqrcode.showdownloadoptions')}
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="op__display_none_small op__display_none_wide">
