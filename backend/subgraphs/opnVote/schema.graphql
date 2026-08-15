@@ -9,8 +9,19 @@ type ApAdded @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type AuthorizationProvider @entity(immutable: true) {
+  id: String! # apId
+  owner: Bytes! # address
+  apName: String! # string
+  apUri: String! # string
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
 type Election @entity(immutable: false) {
   id: String!
+  contractAddress: Bytes!
   votingStartTime: BigInt! # uint256
   votingEndTime: BigInt! # uint256
   registrationStartTime: BigInt! # uint256
@@ -67,6 +78,19 @@ type ElectionRegisterPublicKeySet @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type ElectionResult @entity(immutable: true) {
+  id: String! # electionId
+  yesVotes: [BigInt!]! # uint256[]
+  noVotes: [BigInt!]! # uint256[]
+  abstainVotes: [BigInt!]! # uint256[]
+  invalidVotes: [BigInt!]! # uint256[]
+  invalidTechnicalVotes: [BigInt!]! # uint256[]
+  privateKey: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
 type ElectionResultsPublished @entity(immutable: true) {
   id: Bytes!
   electionId: BigInt! # uint256
@@ -111,6 +135,16 @@ type OwnershipTransferred @entity(immutable: true) {
   id: Bytes!
   previousOwner: Bytes! # address
   newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Register @entity(immutable: true) {
+  id: String! # registerId
+  owner: Bytes! # address
+  registerName: String! # string
+  registerUri: String! # string
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!

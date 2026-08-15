@@ -17,13 +17,16 @@ import {
 } from '../generated/OpnVote/OpnVote'
 import {
   ApAdded,
+  AuthorizationProvider,
   Election,
   ElectionCanceled,
   ElectionRegisterPublicKeySet,
+  ElectionResult,
   ElectionResultsPublished,
   ElectionStatusChanged,
   ElectionUpdated,
   OwnershipTransferred,
+  Register,
   RegisterAdded,
   VoteCast,
   VoteUpdated,
@@ -46,10 +49,22 @@ export function handleElectionCanceled(event: ElectionCanceledEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  const electionID = event.params.electionId.toString()
+  let electionEntity = Election.load(electionID)
+  if (electionEntity == null) {
+    log.error('Election entity not found for ID: {}', [electionID])
+
+    return
+  }
+
+  electionEntity.cancelReasonIpfsCid = event.params.cancelReasonIpfsCid
+  electionEntity.save()
 }
 
 export function handleElectionCreated(event: ElectionCreatedEvent): void {
   let entity = new Election(event.params.electionId.toString())
+  entity.contractAddress = event.address
   entity.registrationStartTime = event.params.registrationStartTime
   entity.registrationEndTime = event.params.registrationEndTime
   entity.votingStartTime = event.params.votingStartTime
@@ -135,6 +150,20 @@ export function handleElectionResultsPublished(event: ElectionResultsPublishedEv
   electionEntity.status = 3
   electionEntity.privateKey = event.params.privateKey
   electionEntity.save()
+
+  let electionResult = new ElectionResult(electionID)
+  electionResult.yesVotes = event.params.yesVotes
+  electionResult.noVotes = event.params.noVotes
+  electionResult.abstainVotes = event.params.abstainVotes
+  electionResult.invalidVotes = event.params.invalidVotes
+  electionResult.invalidTechnicalVotes = event.params.invalidTechnicalVotes
+  electionResult.privateKey = event.params.privateKey
+
+  electionResult.blockNumber = event.block.number
+  electionResult.blockTimestamp = event.block.timestamp
+  electionResult.transactionHash = event.transaction.hash
+
+  electionResult.save()
 }
 
 export function handleElectionStatusChanged(event: ElectionStatusChangedEvent): void {
@@ -180,6 +209,35 @@ export function handleElectionUpdated(event: ElectionUpdatedEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  const electionID = event.params.electionId.toString()
+  let electionEntity = Election.load(electionID)
+  if (electionEntity == null) {
+    log.error('Election entity not found for ID: {}', [electionID])
+
+    return
+  }
+
+  electionEntity.votingStartTime = event.params.votingStartTime
+  electionEntity.votingEndTime = event.params.votingEndTime
+  electionEntity.registrationStartTime = event.params.registrationStartTime
+  electionEntity.registrationEndTime = event.params.registrationEndTime
+  electionEntity.registerId = event.params.registerId
+  electionEntity.authProviderId = event.params.authProviderId
+  electionEntity.publicKey = event.params.publicKey
+
+  if (electionEntity.descriptionIpfsCid != event.params.descriptionIpfsCid) {
+    electionEntity.descriptionIpfsCid = event.params.descriptionIpfsCid
+    const ipfsBlob = ipfs.cat(event.params.descriptionIpfsCid)
+
+    if (ipfsBlob !== null) {
+      electionEntity.descriptionBlob = ipfsBlob.toString()
+    } else {
+      electionEntity.descriptionBlob = ''
+    }
+  }
+
+  electionEntity.save()
 }
 
 export function handleOwnershipTransferred(event: OwnershipTransferredEvent): void {
@@ -206,6 +264,17 @@ export function handleApAdded(event: ApAddedEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  let ap = new AuthorizationProvider(event.params.id.toString())
+  ap.owner = event.params.owner
+  ap.apName = event.params.apName
+  ap.apUri = event.params.apUri
+
+  ap.blockNumber = event.block.number
+  ap.blockTimestamp = event.block.timestamp
+  ap.transactionHash = event.transaction.hash
+
+  ap.save()
 }
 
 export function handleRegisterAdded(event: RegisterAddedEvent): void {
@@ -220,6 +289,17 @@ export function handleRegisterAdded(event: RegisterAddedEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  let register = new Register(event.params.id.toString())
+  register.owner = event.params.owner
+  register.registerName = event.params.registerName
+  register.registerUri = event.params.registerUri
+
+  register.blockNumber = event.block.number
+  register.blockTimestamp = event.block.timestamp
+  register.transactionHash = event.transaction.hash
+
+  register.save()
 }
 
 export function handleVoteCast(event: VoteCastEvent): void {
