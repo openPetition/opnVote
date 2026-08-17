@@ -95,3 +95,9 @@ export class ElectionDataLoadError {
     title = "dataload.error.headline";
     button = "common.back";
 }
+
+export class ClipboardCopyError {
+    text = "generateqrcode.copycode.errorpopup.text";
+    title = "generateqrcode.copycode.errorpopup.headline";
+    button = "common.close";
+}

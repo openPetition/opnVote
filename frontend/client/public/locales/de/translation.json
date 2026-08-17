@@ -96,6 +96,8 @@
     "footer.loveforopnvote.text": "Demokratische Online-Abstimmungen. Kein Papier, kein Porto - sicher wählen und abstimmen von zu Hause.",
     "footer.version": "Version: ",
     "generateqrcode.copycode.additionalHint": "Speichern Sie den Text sicher ab",
+    "generateqrcode.copycode.errorpopup.headline": "Kopieren fehlgeschlagen",
+    "generateqrcode.copycode.errorpopup.text": "Das Kopieren in die Zwischenablage ist nicht möglich. Speichern Sie die Daten stattdessen als PDF oder Bild.",
     "generateqrcode.copycode.successfull": "In Zwischenablage kopiert",
     "generateqrcode.copycode.text": "Als Text kopieren",
     "generateqrcode.saveas.image": "Als Bild speichern",

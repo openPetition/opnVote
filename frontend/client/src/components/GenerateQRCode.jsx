@@ -8,6 +8,8 @@ import { useTranslation } from "next-i18next";
 import { createPDF } from "@/save-pdf";
 import Button from './Button';
 import globalConst from "@/constants";
+import ErrorPopup from './ErrorPopup';
+import { ClipboardCopyError } from '@/errors';
 
 export default function GenerateQRCode(props) {
     const {
@@ -26,18 +28,45 @@ export default function GenerateQRCode(props) {
     } = props;
     const { t } = useTranslation();
     const [showCodeStringCopied, setShowCodeStringCopied] = useState(false);
+    const [errorPopup, setErrorPopup] = useState(null);
     const givePDF = () => {
         createPDF(qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, pdfQRtype, pdfInformation);
         afterSaveFunction(globalConst.saveType.PDF);
     };
 
-    const copiedAsText = () => {
-        navigator.clipboard.writeText(downloadHeadline + ': ' + qrCodeString);
-        setShowCodeStringCopied(true);
-        afterSaveFunction(globalConst.saveType.CLIPBOARD);
-        setTimeout(() => {
-            setShowCodeStringCopied(false);
-        }, 4000);
+    const copiedAsText = async () => {
+        setShowCodeStringCopied(false);
+        showCopyError(new Error('kopierfehler kekstest'));
+        return;
+        console.log('keks???');
+
+        if (!navigator.clipboard?.writeText) {
+            console.log('kekserror');
+            showCopyError(new Error('Clipboard API is not available.'));
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(downloadHeadline + ': ' + qrCodeString);
+            setShowCodeStringCopied(true);
+            afterSaveFunction(globalConst.saveType.CLIPBOARD);
+            setTimeout(() => {
+                setShowCodeStringCopied(false);
+            }, 4000);
+        } catch (caughtError) {
+            showCopyError(caughtError);
+        }
+    };
+
+    const showCopyError = (caughtError) => {
+        setErrorPopup({
+            userError: new ClipboardCopyError(),
+            module: 'GenerateQRCode',
+            block: 'copiedAsText',
+            technicalDetails: caughtError instanceof Error
+                ? caughtError.message || caughtError.name
+                : t('errorpopup.technicaldetails.unavailable'),
+        });
     };
 
     const getWordWrappedLines = (context, text, maxWidth) => {
@@ -156,6 +185,10 @@ export default function GenerateQRCode(props) {
 
     return (
         <>
+            <ErrorPopup
+                error={errorPopup}
+                onClose={() => setErrorPopup(null)}
+            />
             <div className="op__outerbox_grey op__margin_standard_top_bottom">
                 <div className={styles.innerbox}>
                     <div className="noScreen print-content"></div>

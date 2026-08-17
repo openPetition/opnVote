@@ -96,6 +96,8 @@
     "footer.loveforopnvote.text": "Democratic online elections. No paper, no postage – vote securely from home.",
     "footer.version": "Version: ",
     "generateqrcode.copycode.additionalHint": "Save text securely",
+    "generateqrcode.copycode.errorpopup.headline": "Copying failed",
+    "generateqrcode.copycode.errorpopup.text": "Copying to the clipboard is not possible. Please save the data as a PDF or image instead.",
     "generateqrcode.copycode.successfull": "Copied to clipboard",
     "generateqrcode.copycode.text": "Copy as text",
     "generateqrcode.saveas.image": "Save as image",
