@@ -36,12 +36,8 @@ export default function GenerateQRCode(props) {
 
     const copiedAsText = async () => {
         setShowCodeStringCopied(false);
-        showCopyError(new Error('kopierfehler kekstest'));
-        return;
-        console.log('keks???');
 
         if (!navigator.clipboard?.writeText) {
-            console.log('kekserror');
             showCopyError(new Error('Clipboard API is not available.'));
             return;
         }
