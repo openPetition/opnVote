@@ -8,7 +8,6 @@ import { useTranslation } from "next-i18next";
 import { createPDF } from "@/save-pdf";
 import Button from './Button';
 import globalConst from "@/constants";
-import { userAgent } from 'next/server'
 
 export default function GenerateQRCode(props) {
     const {
@@ -28,6 +27,7 @@ export default function GenerateQRCode(props) {
     const { t } = useTranslation();
     const [showCodeStringCopied, setShowCodeStringCopied] = useState(false);
 
+    const userAgent = navigator.userAgent;
     const isIOS =
             /iPad|iPhone|iPod/.test(userAgent) ||
             (/Macintosh/.test(userAgent) && navigator.maxTouchPoints > 1);
