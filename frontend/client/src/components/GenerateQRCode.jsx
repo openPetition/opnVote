@@ -32,6 +32,10 @@ export default function GenerateQRCode(props) {
             /iPad|iPhone|iPod/.test(userAgent) ||
             (/Macintosh/.test(userAgent) && navigator.maxTouchPoints > 1);
 
+    const isSafari =
+        /Safari/.test(userAgent) &&
+        !/Chrome|CriOS|FxiOS|EdgiOS|Edg|OPR|Opera/.test(userAgent);
+
     const givePDF = () => {
         createPDF(qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, pdfQRtype, pdfInformation);
         afterSaveFunction(globalConst.saveType.PDF);
@@ -249,7 +253,7 @@ export default function GenerateQRCode(props) {
                             height="400"
                             style={{ display: "none" }}
                         />
-                        {!isIOS && (
+                        {!(isIOS && isSafari) && (
                             <Button
                                 onClick={DownloadAsPng}
                                 type={saved ? 'secondary' : 'primary'}
