@@ -8,6 +8,7 @@ import { useTranslation } from "next-i18next";
 import { createPDF } from "@/save-pdf";
 import Button from './Button';
 import globalConst from "@/constants";
+import { userAgent } from 'next/server'
 
 export default function GenerateQRCode(props) {
     const {
@@ -26,6 +27,11 @@ export default function GenerateQRCode(props) {
     } = props;
     const { t } = useTranslation();
     const [showCodeStringCopied, setShowCodeStringCopied] = useState(false);
+
+    const isIOS =
+            /iPad|iPhone|iPod/.test(userAgent) ||
+            (/Macintosh/.test(userAgent) && navigator.maxTouchPoints > 1);
+
     const givePDF = () => {
         createPDF(qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, pdfQRtype, pdfInformation);
         afterSaveFunction(globalConst.saveType.PDF);
@@ -243,25 +249,26 @@ export default function GenerateQRCode(props) {
                             height="400"
                             style={{ display: "none" }}
                         />
-                        <Button
-                            onClick={DownloadAsPng}
-                            type={saved ? 'secondary' : 'primary'}
-                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }}
-                        >
-                            <div style={{ alignSelf: 'center' }}>
-                                {
-                                    (savedAs?.includes(globalConst.saveType.IMAGE))
-                                        ?
-                                        <CircleCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
-                                        :
-                                        <FileImage stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
-                                }
-                            </div>
-                            <div>
-                                {t("generateqrcode.saveas.image")}
-                            </div>
-                        </Button>
-
+                        {!isIOS && (
+                            <Button
+                                onClick={DownloadAsPng}
+                                type={saved ? 'secondary' : 'primary'}
+                                style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }}
+                            >
+                                <div style={{ alignSelf: 'center' }}>
+                                    {
+                                        (savedAs?.includes(globalConst.saveType.IMAGE))
+                                            ?
+                                            <CircleCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
+                                            :
+                                            <FileImage stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
+                                    }
+                                </div>
+                                <div>
+                                    {t("generateqrcode.saveas.image")}
+                                </div>
+                            </Button>
+                        )}
                     </div>
 
                 </div>
