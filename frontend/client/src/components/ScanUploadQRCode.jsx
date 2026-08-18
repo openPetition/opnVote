@@ -77,7 +77,7 @@ export default function ScanUploadQRCode(props) {
     };
 
     useEffect(() => {
-        html5QrCode = new Html5Qrcode("reader", { formatsToSupport: [0], useBarCodeDetectorIfSupported: false, verbose: false, });
+        html5QrCode = new Html5Qrcode("reader", { formatsToSupport: [0], verbose: false });
         const oldRegion = document.getElementById("qr-shaded-region");
         oldRegion && oldRegion.remove();
     }, []);
