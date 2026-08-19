@@ -5,6 +5,7 @@
     "ballotpaper.popup.missingselection.title": "Unvollständiger Stimmzettel",
     "checkloadballot.notification.success.text": "Ihr Wahlschein wurde erkannt, bewahren Sie ihn bis zur Abstimmung gut auf und tragen Sie sich den Abstimmungszeitraum in Ihren Kalender ein.",
     "checkloadballot.upload.title": "Wahlschein Check",
+    "checkloadballot.upload.backLink": "Zurück zu Wahlschein speichern",
     "checkloadballot.uploadcomponent.headline": "Testen Sie, ob sie Ihren Wahlschein korrekt gespeichert haben!",
     "checkloadballot.uploadcomponent.subheadline": "Jeder Internetbrowser verhält sich unterschiedlich. Um sicherzustellen, dass Sie den Wahlschein wieder auffindbar abgespeichert haben, können Sie ihn hier testweise hochladen.",
     "common.abort": "Abbrechen",
