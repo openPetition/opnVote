@@ -187,17 +187,17 @@ export default function GenerateQRCode(props) {
                             )}
                             <QRCodeCanvas
                                 value={qrCodeString}
-                                size={1200}
+                                size={600}
                                 bgColor={"#ffffff"}
                                 fgColor={"#000000"}
-                                level={"Q"}
+                                level={"M"}
                                 id="qrCodeCanvas"
                                 style={{ display: "none" }}
                                 imageSettings={
                                     {
                                         src: `/images/icon-${headimage}.svg`,
-                                        width: 240,
-                                        height: 240,
+                                        width: 120,
+                                        height: 120,
                                         excavate: true
                                     }
                                 }
