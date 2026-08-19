@@ -35,6 +35,7 @@ interface VoteEntry {
   voter: string
   voteType: 'cast' | 'recast'
   blockNumber: bigint
+  transactionHash: string
   voteEncrypted: string
 }
 
@@ -139,6 +140,7 @@ async function main() {
         voter
         voteEncrypted
         blockNumber
+        transactionHash
       }
     }
   `
@@ -155,6 +157,7 @@ async function main() {
         voter
         voteEncrypted
         blockNumber
+        transactionHash
       }
     }
   `
@@ -171,6 +174,7 @@ async function main() {
         voter: string
         voteEncrypted: string
         blockNumber: string
+        transactionHash: string
       }>
     } = await graphqlClient.request(voteCastQuery, {
       electionId: ELECTION_ID.toString(),
@@ -191,6 +195,7 @@ async function main() {
         voter: voterAddress,
         voteType: 'cast',
         blockNumber: BigInt(vote.blockNumber),
+        transactionHash: vote.transactionHash,
         voteEncrypted: vote.voteEncrypted,
       })
     }
@@ -212,6 +217,7 @@ async function main() {
   skip = 0
   let totalVoteRecasts = 0
   let replacedCount = 0
+  let collision = 0
 
   while (true) {
     const response: {
@@ -219,6 +225,7 @@ async function main() {
         voter: string
         voteEncrypted: string
         blockNumber: string
+        transactionHash: string
       }>
     } = await graphqlClient.request(voteUpdatedQuery, {
       electionId: ELECTION_ID.toString(),
@@ -236,6 +243,12 @@ async function main() {
         logger.error(msg)
         throw new Error('VoteUpdated found but no initial VoteCast exists!')
       } else {
+        if (existing.voteType === 'recast' && existing.blockNumber === blockNumber) {
+          collision++
+          const msg = `ERROR: More than one recast for voter ${voterAddress} in block ${blockNumber}: ${existing.transactionHash}, ${vote.transactionHash}`
+          logger.error(msg)
+          errors.push(msg)
+        }
         replacedCount++
       }
 
@@ -243,6 +256,7 @@ async function main() {
         voter: voterAddress,
         voteType: 'recast',
         blockNumber,
+        transactionHash: vote.transactionHash,
         voteEncrypted: vote.voteEncrypted,
       })
     }
@@ -259,6 +273,13 @@ async function main() {
   }
 
   logger.info(`Processed ${totalVoteRecasts} vote recasts, replaced ${replacedCount} initial votes`)
+
+  if (collision > 0) {
+    logger.error(
+      `Tally: ${collision} recast collision`,
+    )
+    throw new Error('Recast collision')
+  }
 
   logger.info(`Processed votes: ${votesMap.size} unique voters`)
 
