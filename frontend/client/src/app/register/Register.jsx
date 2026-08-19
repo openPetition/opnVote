@@ -315,10 +315,9 @@ export default function Register() {
         }
     }, [notification, updateNotification]);
 
-    // TEST: Show the post-download flow for every locally saved election permit.
-    // Production condition:
-    // electionState === globalConst.electionState.PLANNED && voting.registerCodeSaved
-    const shouldShowBallotCheckCalendarNotification = voting.registerCodeSaved; // DONOTCOMMIT
+    const shouldShowBallotCheckCalendarNotification =
+        electionState === globalConst.electionState.PLANNED &&
+        voting.registerCodeSaved;
 
     const shouldShowBallotCheckPrompt =
         shouldShowBallotCheckCalendarNotification &&
