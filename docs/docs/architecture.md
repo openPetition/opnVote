@@ -22,21 +22,21 @@ flowchart LR
         direction TB
         AP[Authorization Provider]
         Register[Register Service]
-        SVS[Signature Validation Server]
         IPFSService[IPFS Pinning Server]
         RPCGateway[RPC Gateway]
         GraphGateway[Graph Gateway]
     end
-    class AP,Register,SVS,IPFSService,RPCGateway,GraphGateway offchain;
+    class AP,Register,IPFSService,RPCGateway,GraphGateway offchain;
 
     subgraph "On-chain & Web3"
         direction TB
-        Gelato[Gelato Relay]
+        Bundler[ERC-4337 Bundler]
+        EntryPoint[EntryPoint v0.8<br/>+ OpnVotePaymaster]
         Contract[OpnVote.sol<br/>Gnosis Chain]
         SubgraphIndex[opn.vote Subgraph]
     end
-    class Contract onchain;
-    class Gelato,SubgraphIndex external;
+    class Contract,EntryPoint onchain;
+    class Bundler,SubgraphIndex external;
 
     Voter -->|Eligibility JWT| AP
     AP -->|authorizeVoters| Contract
@@ -44,9 +44,9 @@ flowchart LR
     Voter -->|Blinded token| Register
     Register -->|Blind signature| Voter
 
-    Voter -->|Voting transaction| SVS
-    SVS -->|Sponsored call| Gelato
-    Gelato -->|Meta-transaction| Contract
+    Voter -->|Vote UserOperation| Bundler
+    Bundler -->|handleOps| EntryPoint
+    EntryPoint -->|Sponsored vote| Contract
 
     Voter -->|IPFS upload| IPFSService
     IPFSService -->|CID reference| Contract
@@ -65,8 +65,8 @@ flowchart LR
 
 - **Smart contract layer**: `OpnVote.sol` on Gnosis mainnet stores election metadata, registration/authentication counters, and encrypted ballots. Tallying happens off-chain using the `votingSystem` library; decrypted results and the private key are published on-chain.
 - **Authorization Provider (`backend/ap`)**: Accepts certified voter lists, persists pending authorizations in MariaDB and submits authorization batches to the contract.
-- **Register service (`backend/register`)**: Issues blind signatures for voter tokens after validating JWTs (signed by Authorization Provider), checking election status, and ensuring no duplicate registrations, persisting signed credentials.
-- **Signature Validation Server (`backend/svs`)**: Validates ballot payloads, signs them with the SVS key, and forwards voting transactions to Gelato.
+- **Register service (`backend/register`)**: Issues BLS blind signatures for voter tokens after validating JWTs (signed by Authorization Provider), checking election status, and ensuring no duplicate registrations, persisting signed credentials. The Register's public key is published in the `OpnVote` smart contract.
+- **Paymaster & Bundler**: Votes are sent as ERC-4337 UserOperations from voter’s EIP-7702 smart accounts. The `OpnVotePaymaster` contract covers gas costs.
 - **Gateways**: Hardened JSON-RPC and GraphQL proxies with rate limiting and failover.
 - **IPFS pinning server**: Authenticated service to upload election descriptions, providing CIDs referenced on-chain.
 - **votingSystem**: The main package handling all cryptographic functions including client flows, credential management, encryption, and local tally tooling.
@@ -75,6 +75,5 @@ flowchart LR
 
 - The smart contract is public and immutable; it cannot decrypt ballots or perform the final tally, but exposes recorded ballots and emits events for auditors.
 - Authorization and Register services are permissioned operators holding private keys. Even though these roles remain centralized in the MVP, key actions are mirrored on-chain so they stay publicly auditable.
-- The SVS holds a signing key; it ensures only eligible, properly signed ballots are relayed.
-- Gelato Relay is an external sponsor. opn.vote relies on its uptime and non-censorship of transactions; future iterations will decentralize this layer.
+- The ERC-4337 bundler is external infrastructure. opn.vote currently relies on its uptime and non-censorship of UserOperations.
 - Anonymous submission channel is critical for voter privacy. The system assumes ballot submissions do not leak metadata (IP addresses, timing patterns) that could identify voters.
