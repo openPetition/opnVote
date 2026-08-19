@@ -3,10 +3,21 @@
 import Button from '@/components/Button';
 import { useTranslation } from 'next-i18next';
 import { CalendarDays } from 'lucide-react';
+import styles from '@/styles/AddToCalendar.module.css';
 
 
 export default function AddToCalendar(props) {
-    const { eventDate, electionURL, eventTitle, eventDescription, electionId, electionTitleSanitized, buttonRef } = props;
+    const {
+        eventDate,
+        electionURL,
+        eventTitle,
+        eventDescription,
+        electionId,
+        electionTitleSanitized,
+        buttonRef,
+        inline = false,
+        children,
+    } = props;
     const { t } = useTranslation();
 
 
@@ -76,19 +87,33 @@ export default function AddToCalendar(props) {
 
         setTimeout(() => URL.revokeObjectURL(url), 0);
     };
-    return (
-        <>
-            <Button
+    if (inline) {
+        return (
+            <a
                 ref={buttonRef}
-                onClick={downloadIcsFile}
-                type="primary"
-                style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', gap: '10px', marginTop: '20px' }}
+                className={styles.inlineButton}
+                href="#calendar-entry"
+                onClick={(event) => {
+                    event.preventDefault();
+                    downloadIcsFile();
+                }}
             >
-                <div style={{ alignSelf: 'center' }}>
-                    <CalendarDays stroke={'#ffffff'} strokeWidth={'3'} width={20} />
-                </div>
-                {t("common.button.addToCalendar")}
-            </Button>
-        </>
+                {children || t("common.button.addToCalendar")}
+            </a>
+        );
+    }
+
+    return (
+        <Button
+            ref={buttonRef}
+            onClick={downloadIcsFile}
+            type="primary"
+            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', gap: '10px', marginTop: '20px' }}
+        >
+            <div style={{ alignSelf: 'center' }}>
+                <CalendarDays stroke={'#ffffff'} strokeWidth={'3'} width={20} />
+            </div>
+            {t("common.button.addToCalendar")}
+        </Button>
     );
 }

@@ -32,6 +32,10 @@
     box-shadow: 0 0 10px #3E3D401A;
 }
 
+.success .linkButton {
+    color: var(--op-link-color-light-background);
+}
+
 .successDark {
     background-color: var(--op-blue);
 }

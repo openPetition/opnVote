@@ -1,0 +1,16 @@
+.inlineButton {
+    display: inline;
+    padding: 0;
+    color: var(--op-link-color-main);
+    font: inherit;
+    font-weight: inherit;
+    text-decoration: underline;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+}
+
+.inlineButton:hover,
+.inlineButton:focus-visible {
+    color: var(--op-blue-dark);
+}

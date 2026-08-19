@@ -4,7 +4,7 @@ import PhaseIcon from "./PhaseIcon";
 import { useTranslation, Trans } from "next-i18next";
 import { Fragment } from 'react';
 
-export default function ProgressBar({activeStep}) {
+export default function ProgressBar({ activeStep, showPhaseArrow = true }) {
     const { t } = useTranslation();
 
     const arrow = (
@@ -80,7 +80,7 @@ export default function ProgressBar({activeStep}) {
                 return (
                     <Fragment key={phase.key}>
                         <div className={styles.icon}>
-                            {isActive ? arrow : nothing}
+                            {showPhaseArrow && isActive ? arrow : nothing}
                             <PhaseIcon
                                 type={phase.key}
                                 variant={isBlue ? 'blue' : 'blueInversed'}

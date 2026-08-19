@@ -22,9 +22,9 @@ export default function CheckLoadBallot() {
             updateNotification({
                 targetPage: globalConst.pages.REGISTER,
                 type: 'success',
+                headline: t('checkloadballot.notification.success.headline'),
                 text: t('checkloadballot.notification.success.text'),
                 show: true,
-                showCalendarLink: true,
                 isBallotCheckSuccess: true,
             });
             updatePage({ current: globalConst.pages.REGISTER });
