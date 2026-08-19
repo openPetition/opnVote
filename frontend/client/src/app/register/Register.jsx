@@ -477,6 +477,7 @@ export default function Register() {
                         <p>
                             <Trans
                                 i18nKey="register.votingstart.privacy.text"
+                                shouldUnescape
                                 values={{
                                     STARTDATE: startDate,
                                     ENDDATE: endDate,
