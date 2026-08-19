@@ -187,7 +187,7 @@ export default function GenerateQRCode(props) {
                             )}
                             <QRCodeCanvas
                                 value={qrCodeString}
-                                size={300}
+                                size={600}
                                 bgColor={"#ffffff"}
                                 fgColor={"#000000"}
                                 level={"Q"}
