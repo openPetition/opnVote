@@ -196,8 +196,8 @@ export default function GenerateQRCode(props) {
                                 imageSettings={
                                     {
                                         src: `/images/icon-${headimage}.svg`,
-                                        width: 60,
-                                        height: 60,
+                                        width: 120,
+                                        height: 120,
                                         excavate: true
                                     }
                                 }
