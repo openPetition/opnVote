@@ -99,7 +99,7 @@
     "generateqrcode.copycode.errorpopup.headline": "Kopieren fehlgeschlagen",
     "generateqrcode.copycode.errorpopup.manualcopy.aria": "Code zum manuellen Kopieren",
     "generateqrcode.copycode.errorpopup.manualcopy.confirm": "Ich habe die Zeichenkette gespeichert",
-    "generateqrcode.copycode.errorpopup.manualcopy.label": "Kopieren Sie die folgende Zeichenkette manuell und speichern Sie sie sicher ab.",
+    "generateqrcode.copycode.errorpopup.manualcopy.label": "Kopieren Sie die folgende Zeichenkette manuell und speichern Sie sie sicher ab:",
     "generateqrcode.copycode.errorpopup.text": "Der {{documentType}} konnte nicht in die Zwischenablage kopiert werden.",
     "generateqrcode.copycode.successfull": "In Zwischenablage kopiert",
     "generateqrcode.copycode.text": "Als Text kopieren",
