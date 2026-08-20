@@ -9,6 +9,8 @@ import globalConst from "@/constants";
 import Modal from "@/components/Modal";
 import { checkBallot } from "@/util";
 import Notification from "@/components/Notification";
+import Button from '@/components/Button'
+import { ArrowLeft } from 'lucide-react'
 
 export default function CheckLoadBallot() {
     const { updatePage, voting, updateNotification } = useOpnVoteStore((state) => state);
@@ -22,9 +24,9 @@ export default function CheckLoadBallot() {
             updateNotification({
                 targetPage: globalConst.pages.REGISTER,
                 type: 'success',
+                headline: t('checkloadballot.notification.success.headline'),
                 text: t('checkloadballot.notification.success.text'),
                 show: true,
-                showCalendarLink: true,
                 isBallotCheckSuccess: true,
             });
             updatePage({ current: globalConst.pages.REGISTER });
@@ -80,6 +82,22 @@ export default function CheckLoadBallot() {
                     }}
                     qrContentType={globalConst.qrContentType.BALLOT}
                 />
+                <div
+                    className="op__flex op__flex_direction_column_small op__flex_direction_row_wide op__flex_center_align op__mob_padding_standard_left_right op__padding_standard_bottom"
+                >
+                    <Button
+                        type="primary"
+                        onClick={() => updatePage({ current: globalConst.pages.REGISTER })}
+                        style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "10px"
+                        }}
+                    >
+                        <ArrowLeft color="#fff" size={20} strokeWidth={3} />
+                        {t("checkloadballot.upload.backLink")}
+                    </Button>
+                </div>
             </main>
         </>
     );

@@ -77,7 +77,7 @@ export default function ScanUploadQRCode(props) {
     };
 
     useEffect(() => {
-        html5QrCode = new Html5Qrcode("reader", { formatsToSupport: [0] });
+        html5QrCode = new Html5Qrcode("reader", { formatsToSupport: [0], verbose: false });
         const oldRegion = document.getElementById("qr-shaded-region");
         oldRegion && oldRegion.remove();
     }, []);
@@ -138,7 +138,7 @@ export default function ScanUploadQRCode(props) {
                 );
             }
         }
-    }
+    };
 
     const extractData = async (file) => {
         if (!(file && file.type === "application/pdf")) {
@@ -171,9 +171,9 @@ export default function ScanUploadQRCode(props) {
     const confirmQRCodeText = () => {
         const index = inputQRCodeText.lastIndexOf(':');
         const code = index === -1 ? inputQRCodeText : inputQRCodeText.substring(index + 1);
-        const cleanCode = code.replace(/\s+/g, '');
+        const cleanCode = decodeURI(code).replace(/\s+/g, '');
         checkCodeAndReturn(cleanCode, globalConst.saveType.CLIPBOARD);
-    }
+    };
 
     const extractWithConvert = async (file) => {
         try {

@@ -30,6 +30,15 @@ export default function GenerateQRCode(props) {
     const { t } = useTranslation();
     const [showCodeStringCopied, setShowCodeStringCopied] = useState(false);
     const [errorPopup, setErrorPopup] = useState(null);
+
+    const userAgent = navigator.userAgent;
+    const isIOS =
+            /iPad|iPhone|iPod/.test(userAgent) ||
+            (/Macintosh/.test(userAgent) && navigator.maxTouchPoints > 1);
+
+    const isSafari =
+        /Safari/.test(userAgent) &&
+        !/Chrome|CriOS|FxiOS|EdgiOS|Edg|OPR|Opera/.test(userAgent);
     const givePDF = () => {
         createPDF(qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, pdfQRtype, pdfInformation);
         afterSaveFunction(globalConst.saveType.PDF);
@@ -210,17 +219,17 @@ export default function GenerateQRCode(props) {
                             )}
                             <QRCodeCanvas
                                 value={qrCodeString}
-                                size={300}
+                                size={600}
                                 bgColor={"#ffffff"}
                                 fgColor={"#000000"}
-                                level={"Q"}
+                                level={"M"}
                                 id="qrCodeCanvas"
                                 style={{ display: "none" }}
                                 imageSettings={
                                     {
                                         src: `/images/icon-${headimage}.svg`,
-                                        width: 60,
-                                        height: 60,
+                                        width: 120,
+                                        height: 120,
                                         excavate: true
                                     }
                                 }
@@ -276,25 +285,26 @@ export default function GenerateQRCode(props) {
                             height="400"
                             style={{ display: "none" }}
                         />
-                        <Button
-                            onClick={DownloadAsPng}
-                            type={saved ? 'secondary' : 'primary'}
-                            style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }}
-                        >
-                            <div style={{ alignSelf: 'center' }}>
-                                {
-                                    (savedAs?.includes(globalConst.saveType.IMAGE))
-                                        ?
-                                        <CircleCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
-                                        :
-                                        <FileImage stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
-                                }
-                            </div>
-                            <div>
-                                {t("generateqrcode.saveas.image")}
-                            </div>
-                        </Button>
-
+                        {!(isIOS && isSafari) && (
+                            <Button
+                                onClick={DownloadAsPng}
+                                type={saved ? 'secondary' : 'primary'}
+                                style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }}
+                            >
+                                <div style={{ alignSelf: 'center' }}>
+                                    {
+                                        (savedAs?.includes(globalConst.saveType.IMAGE))
+                                            ?
+                                            <CircleCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
+                                            :
+                                            <FileImage stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
+                                    }
+                                </div>
+                                <div>
+                                    {t("generateqrcode.saveas.image")}
+                                </div>
+                            </Button>
+                        )}
                     </div>
 
                 </div>
