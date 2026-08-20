@@ -29,6 +29,7 @@ html {
 	--op-border-radius: 4px;
 
 	--op-link-color-main: var(--op-blue-main);
+	--op-link-color-light-background: #075463;
 
 	--op__roboto: 'op__roboto';
 	--op__roboto--slab: 'op__roboto--slab';
