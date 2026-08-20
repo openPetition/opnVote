@@ -7,6 +7,7 @@
     "checkloadballot.notification.success.headline": "Great, your ballot has been verified!",
     "checkloadballot.notification.success.text": "Please keep it in a safe place until voting begins.",
     "checkloadballot.upload.title": "Ballot Check",
+    "checkloadballot.upload.backLink": "Back to save election permit",
     "checkloadballot.uploadcomponent.headline": "Check to see if you've saved your ballot correctly!",
     "checkloadballot.uploadcomponent.subheadline": "Every web browser behaves differently. To make sure you have saved your election permit in a way that allows you to find it again, you can upload it here as a test.",
     "common.abort": "Cancel",

@@ -7,6 +7,7 @@
     "checkloadballot.notification.success.headline": "Super, Ihr Wahlschein wurde erkannt!",
     "checkloadballot.notification.success.text": "Bewahren Sie ihn bis zur Abstimmung gut auf.",
     "checkloadballot.upload.title": "Wahlschein Check",
+    "checkloadballot.upload.backLink": "Zurück zu Wahlschein speichern",
     "checkloadballot.uploadcomponent.headline": "Testen Sie, ob sie Ihren Wahlschein korrekt gespeichert haben!",
     "checkloadballot.uploadcomponent.subheadline": "Jeder Internetbrowser verhält sich unterschiedlich. Um sicherzustellen, dass Sie den Wahlschein wieder auffindbar abgespeichert haben, können Sie ihn hier testweise hochladen.",
     "common.abort": "Abbrechen",
