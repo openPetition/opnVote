@@ -10,7 +10,16 @@ import { useTranslation } from 'next-i18next';
  * @returns
  */
 export default function Modal(props) {
-    const { showModal, headerText, children, ctaButtonText, ctaButtonFunction, onClose, contentClassName } = props;
+    const {
+        showModal,
+        headerText,
+        children,
+        ctaButtonText,
+        ctaButtonFunction,
+        ctaButtonType = 'primary',
+        onClose,
+        contentClassName,
+    } = props;
     const { t } = useTranslation();
     const modalRef = useRef(null);
 
@@ -88,7 +97,7 @@ export default function Modal(props) {
                                     <div className={styles.modalFooter}>
                                         <Button
                                             onClick={ctaButtonFunction}
-                                            type="primary"
+                                            type={ctaButtonType}
                                             stretched={true}
                                         >{ctaButtonText}</Button>
                                     </div>

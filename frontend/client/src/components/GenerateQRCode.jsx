@@ -8,6 +8,8 @@ import { useTranslation } from "next-i18next";
 import { createPDF } from "@/save-pdf";
 import Button from './Button';
 import globalConst from "@/constants";
+import ErrorPopup from './ErrorPopup';
+import { ClipboardCopyError } from '@/errors';
 
 export default function GenerateQRCode(props) {
     const {
@@ -15,6 +17,7 @@ export default function GenerateQRCode(props) {
         subheadline,
         qrCodeString,
         downloadHeadline,
+        copyableTextType,
         downloadSubHeadline,
         downloadFilename,
         headimage,
@@ -26,6 +29,7 @@ export default function GenerateQRCode(props) {
     } = props;
     const { t } = useTranslation();
     const [showCodeStringCopied, setShowCodeStringCopied] = useState(false);
+    const [errorPopup, setErrorPopup] = useState(null);
 
     const userAgent = navigator.userAgent;
     const isIOS =
@@ -35,19 +39,42 @@ export default function GenerateQRCode(props) {
     const isSafari =
         /Safari/.test(userAgent) &&
         !/Chrome|CriOS|FxiOS|EdgiOS|Edg|OPR|Opera/.test(userAgent);
-
     const givePDF = () => {
         createPDF(qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, pdfQRtype, pdfInformation);
         afterSaveFunction(globalConst.saveType.PDF);
     };
 
-    const copiedAsText = () => {
-        navigator.clipboard.writeText(downloadHeadline + ': ' + qrCodeString);
-        setShowCodeStringCopied(true);
-        afterSaveFunction(globalConst.saveType.CLIPBOARD);
-        setTimeout(() => {
-            setShowCodeStringCopied(false);
-        }, 4000);
+    const copiedAsText = async () => {
+        setShowCodeStringCopied(false);
+
+        if (!navigator.clipboard?.writeText) {
+            showCopyError(new Error('Clipboard API is not available.'));
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(downloadHeadline + ': ' + qrCodeString);
+            setShowCodeStringCopied(true);
+            afterSaveFunction(globalConst.saveType.CLIPBOARD);
+            setTimeout(() => {
+                setShowCodeStringCopied(false);
+            }, 4000);
+        } catch (caughtError) {
+            showCopyError(caughtError);
+        }
+    };
+
+    const showCopyError = (caughtError) => {
+        setErrorPopup({
+            userError: new ClipboardCopyError(),
+            module: 'GenerateQRCode',
+            block: 'copiedAsText',
+            copyableText: `${downloadHeadline}: ${qrCodeString}`,
+            copyableTextType,
+            technicalDetails: caughtError instanceof Error
+                ? caughtError.message || caughtError.name
+                : t('errorpopup.technicaldetails.unavailable'),
+        });
     };
 
     const getWordWrappedLines = (context, text, maxWidth) => {
@@ -166,6 +193,11 @@ export default function GenerateQRCode(props) {
 
     return (
         <>
+            <ErrorPopup
+                error={errorPopup}
+                onClose={() => setErrorPopup(null)}
+                onManualCopyConfirmed={() => afterSaveFunction(globalConst.saveType.CLIPBOARD)}
+            />
             <div className="op__outerbox_grey op__margin_standard_top_bottom">
                 <div className={styles.innerbox}>
                     <div className="noScreen print-content"></div>
@@ -288,6 +320,7 @@ GenerateQRCode.propTypes = {
     subheadline: PropTypes.string,
     text: PropTypes.string.isRequired,
     downloadHeadline: PropTypes.string.isRequired,
+    copyableTextType: PropTypes.string.isRequired,
     downloadSubHeadline: PropTypes.string,
     headimage: PropTypes.string.isRequired,
 };

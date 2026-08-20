@@ -50,6 +50,7 @@ export default function ShowSecret() {
                         headline={t("secret.generateqrcode.headline")}
                         text={user.key}
                         downloadHeadline={(t("secret.generateqrcode.downloadHeadline")).toUpperCase()}
+                        copyableTextType={t("common.electionsecret")}
                         downloadFilename={t("secret.generateqrcode.downloadFilename", { CREATIONDATE: new Date().toISOString().split('T')[0] })}
                         headimage="key-no-whitespace"
                         saved={user.keySaved}
