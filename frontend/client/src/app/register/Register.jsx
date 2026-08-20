@@ -502,6 +502,7 @@ export default function Register() {
                                                 headline={t("register.generateqrcode.headline")}
                                                 text={voting.registerCode}
                                                 downloadHeadline={(t("register.generateqrcode.downloadHeadline")).toUpperCase()}
+                                                copyableTextType={t("common.ballotpaper")}
                                                 downloadSubHeadline={voting.electionInformation.title}
                                                 downloadFilename={t("register.generateqrcode.downloadFilename", {
                                                     ELECTIONTITLE: electionTitleSanitized,

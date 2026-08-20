@@ -99,5 +99,5 @@ export class ElectionDataLoadError {
 export class ClipboardCopyError {
     text = "generateqrcode.copycode.errorpopup.text";
     title = "generateqrcode.copycode.errorpopup.headline";
-    button = "common.close";
+    button = "common.back";
 }

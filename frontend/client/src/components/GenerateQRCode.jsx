@@ -17,6 +17,7 @@ export default function GenerateQRCode(props) {
         subheadline,
         qrCodeString,
         downloadHeadline,
+        copyableTextType,
         downloadSubHeadline,
         downloadFilename,
         headimage,
@@ -59,6 +60,8 @@ export default function GenerateQRCode(props) {
             userError: new ClipboardCopyError(),
             module: 'GenerateQRCode',
             block: 'copiedAsText',
+            copyableText: `${downloadHeadline}: ${qrCodeString}`,
+            copyableTextType,
             technicalDetails: caughtError instanceof Error
                 ? caughtError.message || caughtError.name
                 : t('errorpopup.technicaldetails.unavailable'),
@@ -184,6 +187,7 @@ export default function GenerateQRCode(props) {
             <ErrorPopup
                 error={errorPopup}
                 onClose={() => setErrorPopup(null)}
+                onManualCopyConfirmed={() => afterSaveFunction(globalConst.saveType.CLIPBOARD)}
             />
             <div className="op__outerbox_grey op__margin_standard_top_bottom">
                 <div className={styles.innerbox}>
@@ -306,6 +310,7 @@ GenerateQRCode.propTypes = {
     subheadline: PropTypes.string,
     text: PropTypes.string.isRequired,
     downloadHeadline: PropTypes.string.isRequired,
+    copyableTextType: PropTypes.string.isRequired,
     downloadSubHeadline: PropTypes.string,
     headimage: PropTypes.string.isRequired,
 };

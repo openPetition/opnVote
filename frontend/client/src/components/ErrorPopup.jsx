@@ -5,6 +5,7 @@ import { Check, Copy, Mail } from 'lucide-react';
 import { useTranslation } from 'next-i18next';
 import Modal from './Modal';
 import Notification from './Notification';
+import Button from './Button';
 import styles from '../styles/ErrorPopup.module.css';
 
 const getClientInfo = (translate) => {
@@ -27,7 +28,7 @@ const getClientInfo = (translate) => {
     return { browser, operatingSystem, device, userAgent };
 };
 
-export default function ErrorPopup({ error, onClose, supportEmail = 'info@opn.vote' }) {
+export default function ErrorPopup({ error, onClose, onManualCopyConfirmed, supportEmail = 'info@opn.vote' }) {
     const { t } = useTranslation();
     const [technicalDetailsCopied, setTechnicalDetailsCopied] = useState(false);
     const [technicalDetailsOpen, setTechnicalDetailsOpen] = useState(false);
@@ -45,7 +46,10 @@ export default function ErrorPopup({ error, onClose, supportEmail = 'info@opn.vo
 
     const technicalDetailItems = [
         { label: t('errorpopup.technicaldetails.notificationtitle'), value: t(error.userError.title) },
-        { label: t('errorpopup.technicaldetails.notificationtext'), value: t(error.userError.text) },
+        {
+            label: t('errorpopup.technicaldetails.notificationtext'),
+            value: t(error.userError.text, { documentType: error.copyableTextType }),
+        },
         { label: t('errorpopup.technicaldetails.module'), value: error.module },
         { label: t('errorpopup.technicaldetails.block'), value: error.block },
         { label: t('errorpopup.technicaldetails.errorclass'), value: error.userError.constructor.name },
@@ -90,6 +94,13 @@ export default function ErrorPopup({ error, onClose, supportEmail = 'info@opn.vo
         onClose();
     };
 
+    const confirmManualCopy = () => {
+        onManualCopyConfirmed();
+        dismissError();
+    };
+
+    const hasManualCopyConfirmation = Boolean(error.copyableText && onManualCopyConfirmed);
+
     return (
         <Modal
             showModal={true}
@@ -97,13 +108,39 @@ export default function ErrorPopup({ error, onClose, supportEmail = 'info@opn.vo
             headerText={t(error.userError.title)}
             ctaButtonText={t(error.userError.button)}
             ctaButtonFunction={dismissError}
+            ctaButtonType={hasManualCopyConfirmation ? 'secondary' : undefined}
             onClose={dismissError}
         >
             <Notification
                 type={error.notificationType || 'error'}
                 headline={error.location && error.location !== error.userError.title ? t(error.location) : undefined}
-                text={t(error.userError.text)}
+                text={t(error.userError.text, { documentType: error.copyableTextType })}
             />
+            {error.copyableText && (
+                <div className={styles.manualCopySection}>
+                    <strong className={styles.manualCopyText}>
+                        {t('generateqrcode.copycode.errorpopup.manualcopy.label', {
+                            documentType: error.copyableTextType,
+                        })}
+                    </strong>
+                    <textarea
+                        className={styles.manualCopyField}
+                        value={error.copyableText}
+                        readOnly
+                        rows={4}
+                        aria-label={t('generateqrcode.copycode.errorpopup.manualcopy.aria')}
+                    />
+                    {hasManualCopyConfirmation && (
+                        <div className={styles.manualCopyActions}>
+                            <Button
+                                onClick={confirmManualCopy}
+                                type="primary"
+                                stretched={true}
+                            >{t('generateqrcode.copycode.errorpopup.manualcopy.confirm')}</Button>
+                        </div>
+                    )}
+                </div>
+            )}
             <p className={styles.errorSupportText}>{t('errorpopup.support')}</p>
             <a className={styles.errorReportEmailLink} href={getErrorReportMailto()}>
                 <Mail size={18} />

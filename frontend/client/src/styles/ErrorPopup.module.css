@@ -13,6 +13,31 @@
     color: var(--op-blue-dark);
 }
 
+.manualCopySection {
+    margin-top: 1.5rem;
+}
+
+.manualCopyText {
+    display: block;
+    margin: 0;
+}
+
+.manualCopyField {
+    display: block;
+    width: 100%;
+    min-height: 7rem;
+    margin-top: 0.5rem;
+    padding: var(--op-padding-standard);
+    color: var(--op-grey-dark);
+    background-color: var(--op-grey-light);
+    border: 1px solid var(--op-grey-border);
+    border-radius: var(--op-border-radius);
+}
+
+.manualCopyActions {
+    margin-top: 0.75rem;
+}
+
 .technicalDetails {
     margin-top: 1.5rem;
     overflow-wrap: anywhere;
