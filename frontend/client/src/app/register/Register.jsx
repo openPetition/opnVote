@@ -636,7 +636,7 @@ export default function Register() {
                                             registerCodeSaved: true,
                                             registerCodeSavedAs: registerCodeSavedAsLocal
                                         });
-                                        if (shouldShowBallotCheckCalendarNotification) {
+                                        if (electionState === globalConst.electionState.PLANNED) {
                                             setScrollToBallotNotification(true);
                                         }
                                     }}
