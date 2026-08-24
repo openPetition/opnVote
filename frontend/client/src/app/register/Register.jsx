@@ -58,6 +58,8 @@ export default function Register() {
         .slice(0, 20);
 
     const addToCalendarButtonRef = useRef(null);
+    const ballotNotificationRef = useRef(null);
+    const [scrollToBallotNotification, setScrollToBallotNotification] = useState(false);
     const delay = ms => new Promise(res => setTimeout(res, ms));
     // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
 
@@ -303,6 +305,10 @@ export default function Register() {
                 isBallotCheckSuccess: Boolean(notification.isBallotCheckSuccess),
             }));
 
+            if (notification.isBallotCheckSuccess) {
+                setScrollToBallotNotification(true);
+            }
+
             updateNotification({
                 targetPage: '',
                 type: '',
@@ -322,6 +328,29 @@ export default function Register() {
     const shouldShowBallotCheckPrompt =
         shouldShowBallotCheckCalendarNotification &&
         !registerState.isBallotCheckSuccess;
+
+    const shouldShowBallotCheckSuccessNotification =
+        registerState.showNotification &&
+        registerState.isBallotCheckSuccess;
+
+    useEffect(() => {
+        if (
+            !scrollToBallotNotification ||
+            (!shouldShowBallotCheckPrompt && !shouldShowBallotCheckSuccessNotification)
+        ) {
+            return;
+        }
+
+        ballotNotificationRef.current?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+        });
+        setScrollToBallotNotification(false);
+    }, [
+        scrollToBallotNotification,
+        shouldShowBallotCheckPrompt,
+        shouldShowBallotCheckSuccessNotification,
+    ]);
 
     return (
         <>
@@ -398,35 +427,40 @@ export default function Register() {
                 )}
 
                 {shouldShowBallotCheckPrompt && (
-                    <Notification
-                        type="success"
-                        text={
-                            <>
-                                <p>
-                                    {t('register.popup.aftersave.checkballotpaper')}
-                                    <strong>
-                                        <a
-                                            className={notificationStyles.linkButton}
-                                            href="#check-load-ballot"
-                                            onClick={(event) => {
-                                                event.preventDefault();
-                                                updatePage({ current: globalConst.pages.CHECKLOADBALLOT });
-                                            }}
-                                        >
-                                            {t('register.popup.aftersave.checkballotpaperLinktext')}
-                                        </a>
-                                    </strong>
-                                </p>
-                                <p className="op__margin_standard_top">
-                                    <strong>{t('register.notification.success.ballotdownloaded.close')}</strong>
-                                </p>
-                            </>
-                        }
-                    />
+                    <div ref={ballotNotificationRef} style={{ scrollMarginTop: '1rem' }}>
+                        <Notification
+                            type="success"
+                            text={
+                                <>
+                                    <p>
+                                        {t('register.popup.aftersave.checkballotpaper')}
+                                        <strong>
+                                            <a
+                                                className={notificationStyles.linkButton}
+                                                href="#check-load-ballot"
+                                                onClick={(event) => {
+                                                    event.preventDefault();
+                                                    updatePage({ current: globalConst.pages.CHECKLOADBALLOT });
+                                                }}
+                                            >
+                                                {t('register.popup.aftersave.checkballotpaperLinktext')}
+                                            </a>
+                                        </strong>
+                                    </p>
+                                    <p className="op__margin_standard_top">
+                                        <strong>{t('register.notification.success.ballotdownloaded.close')}</strong>
+                                    </p>
+                                </>
+                            }
+                        />
+                    </div>
                 )}
 
                 {registerState.showNotification && (
-                    <>
+                    <div
+                        ref={registerState.isBallotCheckSuccess ? ballotNotificationRef : undefined}
+                        style={registerState.isBallotCheckSuccess ? { scrollMarginTop: '1rem' } : undefined}
+                    >
                         <Notification
                             type={registerState.notificationType}
                             headline={registerState.notificationHeadline}
@@ -469,7 +503,7 @@ export default function Register() {
                                 ? () => setErrorPopup(registrationErrorDetails)
                                 : undefined}
                         />
-                    </>
+                    </div>
                 )}
 
                 {shouldShowBallotCheckCalendarNotification && (
@@ -602,6 +636,9 @@ export default function Register() {
                                             registerCodeSaved: true,
                                             registerCodeSavedAs: registerCodeSavedAsLocal
                                         });
+                                        if (electionState === globalConst.electionState.PLANNED) {
+                                            setScrollToBallotNotification(true);
+                                        }
                                     }}
                                 />
                                 {!shouldShowBallotCheckCalendarNotification && (
