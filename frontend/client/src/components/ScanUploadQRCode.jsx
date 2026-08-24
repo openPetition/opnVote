@@ -302,7 +302,7 @@ export default function ScanUploadQRCode(props) {
         if (selectedFile && selectedFile.type === "application/pdf") {
             extractData(selectedFile);
         };
-        if (selectedFile && selectedFile.type === "image/png") {
+        if (selectedFile && selectedFile.type.includes("image/") ) {
             imageScan(selectedFile);
         };
         e.target.value = null;
@@ -394,7 +394,7 @@ export default function ScanUploadQRCode(props) {
                         type="file"
                         hidden
                         ref={fileRef}
-                        accept="application/pdf, image/png"
+                        accept="application/pdf, image/png, image/jpg, image/jpeg"
                         onChange={scanFile}
                     />
                 </div>
