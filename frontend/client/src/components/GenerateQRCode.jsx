@@ -1,5 +1,5 @@
 'use client';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { QRCodeCanvas } from 'qrcode.react';
 import styles from '../styles/GenerateQRCode.module.css';
 import PropTypes from "prop-types";
@@ -10,6 +10,7 @@ import Button from './Button';
 import globalConst from "@/constants";
 import ErrorPopup from './ErrorPopup';
 import { ClipboardCopyError } from '@/errors';
+import { saveAs } from 'file-saver';
 
 export default function GenerateQRCode(props) {
     const {
@@ -30,6 +31,8 @@ export default function GenerateQRCode(props) {
     const { t } = useTranslation();
     const [showCodeStringCopied, setShowCodeStringCopied] = useState(false);
     const [errorPopup, setErrorPopup] = useState(null);
+    const [pdf, setPdf] = useState(null);
+    const [image, setImage] = useState(null);
 
     const userAgent = navigator.userAgent;
     const isIOS =
@@ -39,10 +42,38 @@ export default function GenerateQRCode(props) {
     const isSafari =
         /Safari/.test(userAgent) &&
         !/Chrome|CriOS|FxiOS|EdgiOS|Edg|OPR|Opera/.test(userAgent);
-    const givePDF = () => {
-        createPDF(qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, pdfQRtype, pdfInformation);
+
+    const canShare = !!navigator.canShare; // would be better, if we could check canShare({files: [FILE]})
+
+    const downloadPdf = async () => {
+        if (canShare) {
+            await navigator.share({title: downloadFilename, files: [pdf]});
+        } else {
+            saveAs(pdf, downloadFilename + '.pdf');
+        }
         afterSaveFunction(globalConst.saveType.PDF);
     };
+
+    const downloadImage = async () => {
+        if (canShare) {
+            await navigator.share({title: downloadFilename, files: [image]});
+        } else {
+            saveAs(image, downloadFilename + '.png');
+        }
+        afterSaveFunction(globalConst.saveType.IMAGE);
+    };
+
+    const generatePdf = async () => {
+        if (pdf) {
+            return;
+        }
+        setPdf(await createPDF(qrCodeString, downloadHeadline, downloadSubHeadline, downloadFilename, pdfQRtype, pdfInformation));
+    };
+
+    useEffect(() => {
+        generatePdf();
+        generateImage();
+    }, []);
 
     const copiedAsText = async () => {
         setShowCodeStringCopied(false);
@@ -101,7 +132,10 @@ export default function GenerateQRCode(props) {
         return lines;
     };
 
-    const DownloadAsPng = () => {
+    const generateImage = () => {
+        if (image) {
+            return;
+        }
         const textCanvas = document.getElementById("canvas");
         const textCanvasContext = textCanvas.getContext("2d");
 
@@ -154,13 +188,7 @@ export default function GenerateQRCode(props) {
 
             const qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
             textCanvasContext.drawImage(qrCodeCanvasContext, 40, moveQRCodeDownPixel, 220, 220);
-
-            const link = document.createElement('a');
-            link.download = downloadFilename + ".png";
-            link.href = textCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-            link.click();
-
-            afterSaveFunction(globalConst.saveType.IMAGE);
+            textCanvas.toBlob(setImage, "image/png");
         };
     };
 
@@ -262,7 +290,7 @@ export default function GenerateQRCode(props) {
                         </Button>
 
                         <Button
-                            onClick={givePDF}
+                            onClick={downloadPdf}
                             type={saved ? 'secondary' : 'primary'}
                             style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px', marginBottom: '10px' }}
                         >
@@ -287,7 +315,7 @@ export default function GenerateQRCode(props) {
                         />
                         {!(isIOS && isSafari) && (
                             <Button
-                                onClick={DownloadAsPng}
+                                onClick={downloadImage}
                                 type={saved ? 'secondary' : 'primary'}
                                 style={{ display: 'flex', justifyContent: 'center', width: '100%', gap: '10px' }}
                             >
