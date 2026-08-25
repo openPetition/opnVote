@@ -63,7 +63,7 @@ export default function GenerateQRCode(props) {
         if (isIOS && canShare && navigator.canShare({files: [image]})) {
             navigator.share({files: [image]}).catch((error) => {
                 if (typeof error != 'object' || !error.name || error.name != 'AbortError') {
-                    saveAs(pdf, downloadFilename + '.pdf');
+                    saveAs(image, downloadFilename + '.png');
                 }
             });
         } else {
