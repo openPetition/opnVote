@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { QRCodeCanvas } from 'qrcode.react';
 import styles from '../styles/GenerateQRCode.module.css';
 import PropTypes from "prop-types";
-import { File, Copy, FileImage, CircleCheck } from "lucide-react";
+import { File as FileIcon, Copy, FileImage, CircleCheck } from "lucide-react";
 import { useTranslation } from "next-i18next";
 import { createPDF } from "@/save-pdf";
 import Button from './Button';
@@ -312,7 +312,7 @@ export default function GenerateQRCode(props) {
                                         ?
                                         <CircleCheck stroke={'#29b0cc'} strokeWidth={'3'} width={20} />
                                         :
-                                        <File stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
+                                        <FileIcon stroke={saved ? '#29b0cc' : '#fff'} strokeWidth={'3'} width={20} />
                                 }
                             </div>
                             {
