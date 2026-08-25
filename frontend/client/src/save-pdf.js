@@ -386,7 +386,7 @@ export async function createPDF(qrCodeString, downloadHeadline, downloadSubHeadl
         });
 
         const pdfBytes = await pdfDoc.save();
-        return new File([new Blob([pdfBytes], { type: "application/pdf" })], downloadFilename, { type: "application/pdf" });
+        return new File([new Blob([pdfBytes], { type: "application/pdf" })], downloadFilename + '.pdf', { type: "application/pdf" });
     } catch (err) {
         return null;
     }
