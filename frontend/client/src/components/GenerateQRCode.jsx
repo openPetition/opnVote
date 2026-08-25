@@ -46,7 +46,7 @@ export default function GenerateQRCode(props) {
     const canShare = !!navigator.canShare; // would be better, if we could check canShare({files: [FILE]})
 
     const downloadPdf = async () => {
-        if (canShare) {
+        if (canShare && navigator.canShare({files: [pdf]})) {
             await navigator.share({title: downloadFilename, files: [pdf]});
         } else {
             saveAs(pdf, downloadFilename + '.pdf');
@@ -55,7 +55,7 @@ export default function GenerateQRCode(props) {
     };
 
     const downloadImage = async () => {
-        if (canShare) {
+        if (canShare && navigator.canShare({files: [image]})) {
             await navigator.share({title: downloadFilename, files: [image]});
         } else {
             saveAs(image, downloadFilename + '.png');
