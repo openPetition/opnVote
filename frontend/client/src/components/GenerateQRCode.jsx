@@ -48,9 +48,7 @@ export default function GenerateQRCode(props) {
     const downloadPdf = async () => {
 
         if (canShare && navigator.canShare({files: [pdf]})) {
-            navigator.share({files: [pdf]}).catch((error) => {
-                window.alert('keks error: ' + error);
-            });
+            await navigator.share({files: [pdf]});
         } else {
             saveAs(pdf, downloadFilename + '.pdf');
         }
