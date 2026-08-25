@@ -47,7 +47,7 @@ export default function GenerateQRCode(props) {
     const canShare = !!navigator.canShare; // would be better, if we could check canShare({files: [FILE]})
 
     const downloadPdf = async () => {
-        if (canShare && navigator.canShare({files: [pdf]})) {
+        if (isIOS && canShare && navigator.canShare({files: [pdf]})) {
             navigator.share({files: [pdf]}).catch((error) => {
                 if (typeof error != 'object' || !error.name || error.name != 'AbortError') {
                     saveAs(pdf, downloadFilename + '.pdf');
@@ -60,7 +60,7 @@ export default function GenerateQRCode(props) {
     };
 
     const downloadImage = async () => {
-        if (canShare && navigator.canShare({files: [image]})) {
+        if (isIOS && canShare && navigator.canShare({files: [image]})) {
             navigator.share({files: [image]}).catch((error) => {
                 if (typeof error != 'object' || !error.name || error.name != 'AbortError') {
                     saveAs(pdf, downloadFilename + '.pdf');
@@ -325,7 +325,7 @@ export default function GenerateQRCode(props) {
                             height="400"
                             style={{ display: "none" }}
                         />
-                        {false && !(isIOS && isSafari) && (
+                        {(
                             <Button
                                 onClick={downloadImage}
                                 type={saved ? 'secondary' : 'primary'}
