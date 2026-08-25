@@ -33,6 +33,7 @@ export default function GenerateQRCode(props) {
     const [errorPopup, setErrorPopup] = useState(null);
     const [pdf, setPdf] = useState(null);
     const [image, setImage] = useState(null);
+    const [lastActivation, setLastActivation] = useState('');
 
     const userAgent = navigator.userAgent;
     const isIOS =
@@ -46,6 +47,13 @@ export default function GenerateQRCode(props) {
     const canShare = !!navigator.canShare; // would be better, if we could check canShare({files: [FILE]})
 
     const downloadPdf = async () => {
+        if (navigator.userActivation.isActive) {
+            setLastActivation('active');
+        } else if (navigator.userActivation.hasBeenActive) {
+            setLastActivation('sticky');
+        } else {
+            setLastActivation('none');
+        }
 
         if (canShare && navigator.canShare({files: [pdf]})) {
             await navigator.share({files: [pdf]});
@@ -341,7 +349,7 @@ export default function GenerateQRCode(props) {
 
                 </div>
             </div>
-
+            <div>{lastActivation}</div>
         </>
     );
 }
