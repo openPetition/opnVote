@@ -33,7 +33,6 @@ export default function GenerateQRCode(props) {
     const [errorPopup, setErrorPopup] = useState(null);
     const [pdf, setPdf] = useState(null);
     const [image, setImage] = useState(null);
-    const [lastActivation, setLastActivation] = useState('');
 
     const userAgent = navigator.userAgent;
     const isIOS =
@@ -349,7 +348,6 @@ export default function GenerateQRCode(props) {
 
                 </div>
             </div>
-            <div>{lastActivation}</div>
         </>
     );
 }
