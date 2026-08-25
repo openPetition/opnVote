@@ -190,7 +190,7 @@ export default function GenerateQRCode(props) {
             const qrCodeCanvasContext = document.getElementById("qrCodeCanvas");
             textCanvasContext.drawImage(qrCodeCanvasContext, 40, moveQRCodeDownPixel, 220, 220);
             textCanvas.toBlob((blob) => {
-                const file = new File([blob], downloadFilename + '.png', 'image/png');
+                const file = new File([blob], downloadFilename + '.png', { type: 'image/png' });
                 setImage(file);
             }, "image/png");
         };
