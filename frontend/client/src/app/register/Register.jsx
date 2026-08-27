@@ -39,7 +39,6 @@ export default function Register() {
     const [electionState, setElectionState] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
-    const [registerCode, setRegisterCode] = useState("");
     const [registrationErrorDetails, setRegistrationErrorDetails] = useState(null);
     const [errorPopup, setErrorPopup] = useState(null);
     const electionTitle = voting.electionInformation.title;
@@ -223,13 +222,6 @@ export default function Register() {
         }
     }, [decodedValue]);
 
-
-    useEffect(() => {
-        if (registerCode && voting.registerCode != registerCode) {
-            setErrorPopup(null);
-            updateVoting({ registerCode: registerCode });
-        }
-    }, [registerCode]);
 
     useEffect(() => {
 
