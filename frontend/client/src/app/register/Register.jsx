@@ -42,7 +42,6 @@ export default function Register() {
     const [registerCode, setRegisterCode] = useState("");
     const [registrationErrorDetails, setRegistrationErrorDetails] = useState(null);
     const [errorPopup, setErrorPopup] = useState(null);
-    const election = voting.election;
     const electionTitle = voting.electionInformation.title;
     const electionTitleSanitized = electionTitle
         .toLowerCase()
