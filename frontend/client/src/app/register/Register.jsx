@@ -70,7 +70,6 @@ export default function Register() {
         isBallotCheckSuccess: false,
         showQRLoadingAnimation: false,
         showVoteLater: false,
-        errorType: ''
     });
 
     const generateVoteCredentials = async function () {
