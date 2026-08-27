@@ -164,6 +164,18 @@ export default function Register() {
         updatePage({ current: globalConst.pages.CREATEKEY });
     };
 
+    const voteLater = function () {
+        // later maybe redirect to overview of elections
+        setRegisterState({
+            ...registerState,
+            showElectionInformation: false,
+            showStartProcessScreen: false,
+            showNotification: false,
+            showBallot: false,
+            showVoteLater: true,
+        });
+    };
+
     const activateQRCodeUpload = () => {
         updateUserKey('');
         updatePage({ current: globalConst.pages.LOADKEY });
