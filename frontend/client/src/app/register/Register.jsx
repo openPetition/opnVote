@@ -560,16 +560,6 @@ export default function Register() {
                                     </>
                                 )}
 
-                                <div className="op__display_none_small op__display_none_wide">
-                                    <Button
-                                        onClick={() =>
-                                            setRegisterState({
-                                                ...registerState,
-                                                showContinueModal: true,
-                                            })}
-                                        type="primary"
-                                    >{t('register.button.votelater.text')}</Button>
-                                </div>
                                 {electionState === globalConst.electionState.ONGOING && (
                                     <>
                                         <div className="op__center-align op__margin_standard_20_top_bottom">
