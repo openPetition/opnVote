@@ -7,6 +7,7 @@ import { useRef } from 'react';
 import NextImage from 'next/image';
 import Notification from "../../components/Notification";
 import Loading from "../../components/Loading";
+import ConfirmPopup from "../../components/ConfirmPopup";
 import GenerateQRCode from "../../components/GenerateQRCode";
 import NavigationBox from "../../components/NavigationBox";
 import Button from "../../components/Button";
@@ -60,6 +61,7 @@ export default function Register() {
         showStartProcessScreen: false,
         showElectionInformation: false,
         showBallot: false,
+        showContinueModal: false,
         showNotification: false,
         notificationHeadline: '',
         notificationText: '',
@@ -568,6 +570,22 @@ export default function Register() {
                                         </div>
                                     </>
                                 )}
+
+                                <ConfirmPopup
+                                    showModal={registerState.showContinueModal}
+                                    modalText={t("register.confirmpopup.modaltext")}
+                                    modalHeader={t("register.confirmpopup.modalheader")}
+                                    modalConfirmFunction={voteLater}
+                                    modalAbortFunction={() => {
+                                        window.scrollTo(0, 0);
+                                        setRegisterState({
+                                            ...registerState,
+                                            showContinueModal: false
+                                        });
+                                    }}
+                                    shouldConfirm={false}
+                                    confirmMessage={t("register.confirmpopup.confirmmessage")}
+                                />
                             </>
                         )}
                     </>
