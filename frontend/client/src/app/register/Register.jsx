@@ -40,7 +40,6 @@ export default function Register() {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [registerCode, setRegisterCode] = useState("");
-    const [showMod, setShowMod] = useState(false);
     const [registrationErrorDetails, setRegistrationErrorDetails] = useState(null);
     const [errorPopup, setErrorPopup] = useState(null);
     const election = voting.election;
