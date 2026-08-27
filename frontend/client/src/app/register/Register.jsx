@@ -68,7 +68,6 @@ export default function Register() {
         notificationType: '',
         showCalendarLink: false,
         isBallotCheckSuccess: false,
-        showQRLoadingAnimation: false,
         showVoteLater: false,
     });
 
@@ -143,13 +142,11 @@ export default function Register() {
         };
     };
 
-    // only loading animation
     const loadingQRchange = async function () {
         setRegisterState({
             ...registerState,
             showElectionInformation: true,
             showBallot: true,
-            showQRLoadingAnimation: false,
         });
     };
 
@@ -466,10 +463,6 @@ export default function Register() {
 
 
                     </section>
-                )}
-
-                {registerState.showQRLoadingAnimation && (
-                    <Loading loadingText={t("common.loading.text")} />
                 )}
 
                 {registerState.showElectionInformation && (
