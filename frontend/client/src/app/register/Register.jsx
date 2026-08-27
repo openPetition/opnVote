@@ -8,7 +8,6 @@ import NextImage from 'next/image';
 import Notification from "../../components/Notification";
 import Loading from "../../components/Loading";
 import ConfirmPopup from "../../components/ConfirmPopup";
-import ScanUploadQRCode from "@/components/ScanUploadQRCode";
 import GenerateQRCode from "../../components/GenerateQRCode";
 import NavigationBox from "../../components/NavigationBox";
 import Button from "../../components/Button";
@@ -61,7 +60,6 @@ export default function Register() {
         showLoading: false,
         showStartProcessScreen: false,
         showElectionInformation: false,
-        showQRCodeUploadPlugin: false,
         showBallot: false,
         showContinueModal: false,
         showNotification: false,
@@ -151,7 +149,6 @@ export default function Register() {
         setRegisterState({
             ...registerState,
             showElectionInformation: true,
-            showQRCodeUploadPlugin: false,
             showBallot: true,
             showQRLoadingAnimation: false,
         });
@@ -179,7 +176,6 @@ export default function Register() {
             ...registerState,
             showElectionInformation: false,
             showStartProcessScreen: false,
-            showQRCodeUploadPlugin: false,
             showNotification: false,
             showBallot: false,
             showVoteLater: true,
@@ -498,23 +494,6 @@ export default function Register() {
                                         />
                                     </div>
                                 </div>
-                            </>
-                        )}
-
-                        {registerState.showQRCodeUploadPlugin && (
-                            <>
-                                <ScanUploadQRCode
-                                    headline={t("register.uploadqrcode.headline")}
-                                    subheadline={t("register.uploadqrcode.subheadline")}
-                                    uploadSubHeadline={t("register.uploadqrcode.uploadSubHeadline")}
-                                    scanSubHeadline={t("register.uploadqrcode.scanSubHeadline")}
-                                    insertAsTextSubHeadline={t("register.uploadqrcode.insertAsTextSubHeadline")}
-                                    insertAsTextPlaceholder={t("register.uploadqrcode.insertAsTextPlaceholder")}
-                                    insertAsTextHeadline={t("register.uploadqrcode.insertAsTextHeadline")}
-                                    insertAsTextButton={t("register.uploadqrcode.insertAsTextButton")}
-                                    onResult={(res) => updateUserKey(res)}
-                                    qrContentType={globalConst.qrContentType.BALLOT}
-                                />
                             </>
                         )}
 
