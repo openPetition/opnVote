@@ -18,8 +18,6 @@ import { useOpnVoteStore } from "../../opnVoteStore";
 import globalConst from "@/constants";
 import Headline from "@/components/Headline";
 import ProgressBar from "@/components/ProgressBar";
-import Modal from "@/components/Modal";
-import { createPDF } from "@/save-pdf";
 import AddToCalendar from '@/components/AddToCalendar';
 import ErrorPopup from '@/components/ErrorPopup';
 import {
@@ -154,34 +152,13 @@ export default function Register() {
 
     // only loading animation
     const loadingQRchange = async function () {
-        if (voting.initElectionPermit) {
-            setRegisterState({
-                ...registerState,
-                showStartProcessScreen: false,
-                showNotification: false,
-                showLoading: false,
-                showBallot: false,
-                showQRCodeUploadPlugin: false,
-                showQRLoadingAnimation: true
-            });
-            await delay(1000);
-            setRegisterState({
-                ...registerState,
-                showElectionInformation: true,
-                showQRCodeUploadPlugin: false,
-                showBallot: true,
-                showQRLoadingAnimation: false,
-            });
-            setShowMod(true);
-        } else {
-            setRegisterState({
-                ...registerState,
-                showElectionInformation: true,
-                showQRCodeUploadPlugin: false,
-                showBallot: true,
-                showQRLoadingAnimation: false,
-            });
-        }
+        setRegisterState({
+            ...registerState,
+            showElectionInformation: true,
+            showQRCodeUploadPlugin: false,
+            showBallot: true,
+            showQRLoadingAnimation: false,
+        });
     };
 
     const goToStart = () => {
@@ -354,56 +331,6 @@ export default function Register() {
 
     return (
         <>
-            <Modal
-                showModal={showMod}
-                ctaButtonText={t("register.popup.aftersave.buttontext")}
-                ctaButtonFunction={() => {
-                    window.scrollTo(0, 0);
-                    setShowMod(false);
-                    updateVoting({ initElectionPermit: false });
-
-                    updateVoting({ registerCodeSaved: true });
-                    createPDF(
-                        voting.registerCode,
-                        (t("register.generateqrcode.downloadHeadline")).toUpperCase(),
-                        voting.electionInformation.title,
-                        t("register.generateqrcode.downloadFilename", {
-                            ELECTIONTITLE: electionTitleSanitized,
-                            CREATIONDATE: new Date().toISOString().split('T')[0]
-                        }),
-                        globalConst.pdfType.ELECTIONPERMIT,
-                        {
-                            ELECTION_URL: Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation',
-                            STARTDATE: startDate,
-                            ENDDATE: endDate
-                        }
-                    );
-
-
-                }}
-                onClose={() => setShowMod(false)}
-            >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <Notification
-                        type="success"
-                        text={t("register.notification.aftersave.text")}
-                    />
-                    {electionState === globalConst.electionState.ONGOING &&
-                        <div dangerouslySetInnerHTML={{ __html: t("register.popup.aftersave.infotext") }} />}
-
-                    {electionState === globalConst.electionState.FINISHED && (
-                        <div style={{ backgroundColor: '#efefef', borderRadius: '4px', padding: '10px' }}>
-                            <div className="op__contentbox_max">
-                                <div style={{ textAlign: 'center', fontWeight: 'bold' }}>
-                                    {t("pollingstation.electionHeader.statetitle.finished").toUpperCase()}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                </div>
-            </Modal>
-
             {shouldShowBallotCheckCalendarNotification ? (
                 <ProgressBar
                     activeStep={voting.registerCodeSaved ? globalConst.progressBarStep.readyToVote : globalConst.progressBarStep.saveBallot}
