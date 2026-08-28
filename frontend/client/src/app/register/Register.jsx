@@ -4,13 +4,16 @@ import { shallow } from "zustand/shallow";
 import { useState, useEffect } from "react";
 import { useRef } from 'react';
 
-import NextImage from 'next/image';
 import Notification from "../../components/Notification";
 import Loading from "../../components/Loading";
-import ConfirmPopup from "../../components/ConfirmPopup";
 import GenerateQRCode from "../../components/GenerateQRCode";
 import NavigationBox from "../../components/NavigationBox";
 import Button from "../../components/Button";
+import {
+    VoteLaterConfirmation,
+    VoteLaterTrigger,
+    VoteLaterView,
+} from './components/VoteLaterFlow';
 import { useTranslation, Trans } from 'next-i18next';
 import Config from "../../../next.config.mjs";
 import { useOpnVoteStore } from "../../opnVoteStore";
@@ -152,10 +155,6 @@ export default function Register() {
 
     const goToStart = () => {
         window.location = voting.electionInformation.backLink + '?refreshElectionPermit=' + voting.electionId;
-    };
-
-    const copyToClipboard = () => {
-        navigator.clipboard.writeText(Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation');
     };
 
     const goToElection = function () {
@@ -560,16 +559,13 @@ export default function Register() {
                                     </>
                                 )}
 
-                                <div className="op__display_none_small op__display_none_wide">
-                                    <Button
-                                        onClick={() =>
-                                            setRegisterState({
-                                                ...registerState,
-                                                showContinueModal: true,
-                                            })}
-                                        type="primary"
-                                    >{t('register.button.votelater.text')}</Button>
-                                </div>
+                                <VoteLaterTrigger
+                                    onOpen={() =>
+                                        setRegisterState({
+                                            ...registerState,
+                                            showContinueModal: true,
+                                        })}
+                                />
                                 {electionState === globalConst.electionState.ONGOING && (
                                     <>
                                         <div className="op__center-align op__margin_standard_20_top_bottom">
@@ -581,65 +577,26 @@ export default function Register() {
                                     </>
                                 )}
 
-                                <ConfirmPopup
+                                <VoteLaterConfirmation
                                     showModal={registerState.showContinueModal}
-                                    modalText={t("register.confirmpopup.modaltext")}
-                                    modalHeader={t("register.confirmpopup.modalheader")}
-                                    modalConfirmFunction={voteLater}
-                                    modalAbortFunction={() => {
+                                    onConfirm={voteLater}
+                                    onAbort={() => {
                                         window.scrollTo(0, 0);
                                         setRegisterState({
                                             ...registerState,
                                             showContinueModal: false
                                         });
                                     }}
-                                    shouldConfirm={false}
-                                    confirmMessage={t("register.confirmpopup.confirmmessage")}
                                 />
                             </>
                         )}
                     </>
                 )}
                 {registerState.showVoteLater && (
-                    <>
-                        <Notification
-                            type="info"
-                            headline={t("register.notification.info.votelater.headline")}
-                            text={t("register.notification.info.votelater.text")}
-                        />
-
-                        <div className="op__outerbox_grey op__margin_standard_20_top_bottom">
-                            <input
-                                type="text"
-                                readOnly={true}
-                                defaultValue={`${Config.env.basicUrl}/?id=${voting.electionId}#pollingstation`}
-                                style={{
-                                    width: '90%',
-                                    display: 'inline-block',
-                                    paddingLeft: '10px',
-                                    border: '1px solid #999',
-                                    borderRadius: "5px",
-                                    backgroundColor: '#eee'
-                                }}
-                            />
-                            <NextImage
-                                priority
-                                src="/images/copy-clipboard.svg"
-                                height={36}
-                                width={36}
-                                alt="Follow us on Twitter"
-                                onClick={copyToClipboard}
-                                style={{ display: 'inline-block', paddingLeft: '10px' }}
-                            />
-                        </div>
-
-                        <div className="op__margin_standard_20_top_bottom">
-                            <Button
-                                onClick={goToElection}
-                                type="secondary"
-                            >{t("register.button.gotoelection.text")}</Button>
-                        </div>
-                    </>
+                    <VoteLaterView
+                        pollingStationUrl={`${Config.env.basicUrl}/?id=${voting.electionId}#pollingstation`}
+                        onGoToElection={goToElection}
+                    />
                 )}
             </div>
             <ErrorPopup error={errorPopup} onClose={() => setErrorPopup(null)} />
