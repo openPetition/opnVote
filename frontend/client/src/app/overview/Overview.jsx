@@ -207,7 +207,13 @@ export default function Overview() {
     };
 
     const checkRegistration = async function() {
-        const result = await voteClient.checkRegistration({voterJwt: voting.jwt});
+        const params = { voterJwt: voting.jwt };
+        let result = await voteClient.checkRegistration(params);
+
+        if (!result.ok && result.retryable) {
+            result = await voteClient.checkRegistration(params);
+        }
+
         if (result.ok) {
             updateVoting({
                 ...voting,
