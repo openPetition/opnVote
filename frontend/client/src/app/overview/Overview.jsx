@@ -9,7 +9,9 @@ import styles from './styles/overview.module.css';
 import globalConst from "@/constants";
 import ElectionInfoBox from "../register/components/ElectionInfoBox";
 import PhaseIcon from "@/components/PhaseIcon";
+import Loading from "@/components/Loading";
 import { Check, X } from "lucide-react";
+import { retryRequest } from "@/utils/retryRequest";
 
 const BOX_STATE_ACTIVE = 'Active';
 const BOX_STATE_ACTIVATABLE = 'Activatable';
@@ -18,6 +20,7 @@ const BOX_STATE_PASSIVE = 'Passive';
 export default function Overview() {
     const { user, voting, updateVoting, updatePage, updateUserKey, voteClient } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
+    const [isCheckingRegistration, setIsCheckingRegistration] = useState(false);
     const [boxes, setBoxes] = useState({
         id: { state: BOX_STATE_ACTIVATABLE, type: 'id' },
         key: { state: BOX_STATE_ACTIVATABLE, type: 'key', canRegister: false },
@@ -115,10 +118,16 @@ export default function Overview() {
                     <h3>{t('overview.box.key.title')}</h3>
                 </BoxHead>
                 <p>{t('overview.box.key.text')}</p>
+                {isCheckingRegistration && (
+                    <div className={styles.registrationCheck}>
+                        <Loading theme="small" />
+                        <span>{t('secret.registrationcheck.text')}</span>
+                    </div>
+                )}
                 <Buttons>
                     {box.state == BOX_STATE_ACTIVATABLE && box.canRegister && voting.jwt && (
                         <>
-                            {box.canCreate && (
+                            {!isCheckingRegistration && box.canCreate && (
                                 <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.CREATEKEY)}>{t("overview.box.key.button.create")}</Button>
                             )}
                             <Button onClick={() => goToPage(globalConst.pages.LOADKEY)}>{t("overview.box.key.button.load")}</Button>
@@ -206,19 +215,23 @@ export default function Overview() {
         );
     };
 
-    const checkRegistration = async function() {
+    const checkRegistration = async function () {
         const params = { voterJwt: voting.jwt };
-        let result = await voteClient.checkRegistration(params);
+        setIsCheckingRegistration(true);
 
-        if (!result.ok && result.retryable) {
-            result = await voteClient.checkRegistration(params);
-        }
+        try {
+            const result = await retryRequest(
+                () => voteClient.checkRegistration(params),
+            );
 
-        if (result.ok) {
-            updateVoting({
-                ...voting,
-                isRegistered: result.value,
-            });
+            if (result.ok) {
+                updateVoting({
+                    ...voting,
+                    isRegistered: result.value,
+                });
+            }
+        } finally {
+            setIsCheckingRegistration(false);
         }
     };
 
