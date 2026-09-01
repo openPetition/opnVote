@@ -89,6 +89,12 @@
     height: 30px;
 }
 
+.registrationCheck {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .boxButton {
     display: flex;
     flex: 100% 1 1;
