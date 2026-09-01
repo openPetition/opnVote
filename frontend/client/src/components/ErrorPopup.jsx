@@ -54,6 +54,7 @@ export default function ErrorPopup({ error, onClose, onManualCopyConfirmed, supp
         { label: t('errorpopup.technicaldetails.block'), value: error.block },
         { label: t('errorpopup.technicaldetails.errorclass'), value: error.userError.constructor.name },
         { label: t('errorpopup.technicaldetails.error'), value: error.technicalDetails },
+        ...(error.diagnostics || []),
         { label: t('errorpopup.technicaldetails.browser'), value: clientInfo.browser },
         { label: t('errorpopup.technicaldetails.device'), value: clientInfo.device },
         { label: t('errorpopup.technicaldetails.operatingsystem'), value: clientInfo.operatingSystem },

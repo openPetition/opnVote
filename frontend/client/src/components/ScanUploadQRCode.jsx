@@ -23,6 +23,39 @@ import { checkBallot } from '@/util';
 const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
 let html5QrCode;
 
+const diagnosticLabels = {
+    expectedDocumentType: 'errorpopup.technicaldetails.scan.expecteddocumenttype',
+    inputType: 'errorpopup.technicaldetails.scan.inputtype',
+    extractionMethod: 'errorpopup.technicaldetails.scan.extractionmethod',
+};
+
+const inputDiagnostics = {
+    PDF_PROCESSING: {
+        inputType: 'errorpopup.technicaldetails.scan.value.inputtype.pdf',
+        extractionMethod: 'errorpopup.technicaldetails.scan.value.extraction.pdfprocessing',
+    },
+    PDF_METADATA: {
+        inputType: 'errorpopup.technicaldetails.scan.value.inputtype.pdf',
+        extractionMethod: 'errorpopup.technicaldetails.scan.value.extraction.pdfmetadata',
+    },
+    PDF_QR_SCAN: {
+        inputType: 'errorpopup.technicaldetails.scan.value.inputtype.pdf',
+        extractionMethod: 'errorpopup.technicaldetails.scan.value.extraction.pdfrenderedqr',
+    },
+    IMAGE_QR_SCAN: {
+        inputType: 'errorpopup.technicaldetails.scan.value.inputtype.image',
+        extractionMethod: 'errorpopup.technicaldetails.scan.value.extraction.uploadedimageqr',
+    },
+    CAMERA_QR_SCAN: {
+        inputType: 'errorpopup.technicaldetails.scan.value.inputtype.camera',
+        extractionMethod: 'errorpopup.technicaldetails.scan.value.extraction.cameraqr',
+    },
+    TEXT: {
+        inputType: 'errorpopup.technicaldetails.scan.value.inputtype.text',
+        extractionMethod: 'errorpopup.technicaldetails.scan.value.extraction.text',
+    },
+};
+
 const getInputErrorLocation = (qrContentType, inputOutputType) => {
     const isTextInput = inputOutputType === globalConst.saveType.CLIPBOARD;
 
@@ -61,7 +94,25 @@ export default function ScanUploadQRCode(props) {
 
     const [error, setError] = useState(null);
 
-    const showError = (userError, location, caughtError, block) => {
+    const getDiagnostics = (diagnosticContext = {}) => {
+        const context = {
+            expectedDocumentType: qrContentType === globalConst.qrContentType.KEY
+                ? 'errorpopup.technicaldetails.scan.value.documenttype.key'
+                : 'errorpopup.technicaldetails.scan.value.documenttype.ballot',
+            ...diagnosticContext,
+        };
+
+        return Object.entries(diagnosticLabels)
+            .filter(([key]) => context[key] !== undefined && context[key] !== null && context[key] !== '')
+            .map(([key, label]) => ({
+                label: t(label),
+                value: typeof context[key] === 'string' && context[key].startsWith('errorpopup.')
+                    ? t(context[key])
+                    : context[key],
+            }));
+    };
+
+    const showError = (userError, location, caughtError, block, diagnosticContext) => {
         const technicalDetails = caughtError instanceof Error
             ? caughtError.message || caughtError.name
             : t('errorpopup.technicaldetails.unavailable');
@@ -72,6 +123,7 @@ export default function ScanUploadQRCode(props) {
             module: 'ScanUploadQRCode',
             block,
             technicalDetails,
+            diagnostics: getDiagnostics(diagnosticContext),
         });
         console.debug(`Error in ${location}:`, caughtError);
     };
@@ -86,14 +138,16 @@ export default function ScanUploadQRCode(props) {
      * checks the inserted code
      * @param {string} code
      * @param {string} inputOutputType
+     * @param {object} diagnosticContext
      */
-    const checkCodeAndReturn = async (code, inputOutputType) => {
+    const checkCodeAndReturn = async (code, inputOutputType, diagnosticContext = {}) => {
         if (!voteClient || !typeof voteClient.importCredentials === 'function' || !typeof voteClient.importMasterKey === 'function') {
             showError(
                 new ApplicationNotReadyError(),
                 'scanuploadqrcode.notification.error.location.preparation',
                 undefined,
-                'checkCodeAndReturn'
+                'checkCodeAndReturn',
+                diagnosticContext,
             );
             return;
         }
@@ -106,7 +160,8 @@ export default function ScanUploadQRCode(props) {
                     inputOutputType === globalConst.saveType.CLIPBOARD ? new KeyTextInvalidError() : new KeyFileInvalidError(),
                     getInputErrorLocation(qrContentType, inputOutputType),
                     caughtError,
-                    'checkCodeAndReturn'
+                    'checkCodeAndReturn',
+                    diagnosticContext,
                 );
             }
         } else {
@@ -121,8 +176,10 @@ export default function ScanUploadQRCode(props) {
                         new Error(t(key, {
                             ...values,
                             ERROR: values.ERROR || t('errorpopup.technicaldetails.unavailable'),
+                            interpolation: { escapeValue: false },
                         })),
-                        'checkCodeAndReturn'
+                        'checkCodeAndReturn',
+                        diagnosticContext,
                     );
                     return;
                 }
@@ -134,7 +191,8 @@ export default function ScanUploadQRCode(props) {
                     inputOutputType === globalConst.saveType.CLIPBOARD ? new BallotTextInvalidError() : new BallotFileInvalidError(),
                     getInputErrorLocation(qrContentType, inputOutputType),
                     caughtError,
-                    'checkCodeAndReturn'
+                    'checkCodeAndReturn',
+                    diagnosticContext,
                 );
             }
         }
@@ -151,9 +209,9 @@ export default function ScanUploadQRCode(props) {
             const pdfDoc = await PDFDocument.load(fileBuffer, { ignoreEncryption: true });
             const extractCode = pdfDoc.getSubject()?.split('QRCODE:')[1];
             if (extractCode && extractCode != 'undefined') {
-                checkCodeAndReturn(extractCode, globalConst.saveType.PDF);
+                checkCodeAndReturn(extractCode, globalConst.saveType.PDF, inputDiagnostics.PDF_METADATA);
             } else {
-                extractWithConvert(file);
+                extractWithConvert(file, inputDiagnostics.PDF_QR_SCAN);
                 return;
             }
         } catch (caughtError) {
@@ -161,7 +219,8 @@ export default function ScanUploadQRCode(props) {
                 new BallotFileInvalidError(),
                 'scanuploadqrcode.notification.error.location.pdf',
                 caughtError,
-                'extractData'
+                'extractData',
+                inputDiagnostics.PDF_PROCESSING,
             );
         } finally {
             setIsLoading(false);
@@ -172,10 +231,10 @@ export default function ScanUploadQRCode(props) {
         const index = inputQRCodeText.lastIndexOf(':');
         const code = index === -1 ? inputQRCodeText : inputQRCodeText.substring(index + 1);
         const cleanCode = decodeURI(code).replace(/\s+/g, '');
-        checkCodeAndReturn(cleanCode, globalConst.saveType.CLIPBOARD);
+        checkCodeAndReturn(cleanCode, globalConst.saveType.CLIPBOARD, inputDiagnostics.TEXT);
     };
 
-    const extractWithConvert = async (file) => {
+    const extractWithConvert = async (file, diagnosticContext) => {
         try {
             let pdfjsLib = await import('pdfjs-dist', { ssr: false });
             pdfjsLib.GlobalWorkerOptions.workerSrc = window.location.origin + "/pdf.worker.min.js";
@@ -197,13 +256,14 @@ export default function ScanUploadQRCode(props) {
                 // Convert canvas to blob
                 const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
                 const newImageFile = new File([blob], `qrcode.png`, { type: "image/png" });
-                imageScan(newImageFile);
+                imageScan(newImageFile, diagnosticContext);
             } catch (caughtError) {
                 showError(
                     new GeneralQRCodeInputError(),
                     'scanuploadqrcode.notification.error.location.pdfscan',
                     caughtError,
-                    'extractWithConvert'
+                    'extractWithConvert',
+                    diagnosticContext,
                 );
             }
         } catch (caughtError) {
@@ -211,18 +271,19 @@ export default function ScanUploadQRCode(props) {
                 new GeneralQRCodeInputError(),
                 'scanuploadqrcode.notification.error.location.pdfconversion',
                 caughtError,
-                'extractWithConvert'
+                'extractWithConvert',
+                diagnosticContext,
             );
         }
     };
 
-    const imageScan = (newImageFile) => {
+    const imageScan = (newImageFile, diagnosticContext) => {
         html5QrCode
             .scanFile(newImageFile, false)
             .then((qrCodeMessage) => {
                 // handover -> do sth with result
                 html5QrCode.clear();
-                checkCodeAndReturn(qrCodeMessage, globalConst.saveType.IMAGE);
+                checkCodeAndReturn(qrCodeMessage, globalConst.saveType.IMAGE, diagnosticContext);
                 //props.onResult(qrCodeMessage);
 
             })
@@ -231,7 +292,8 @@ export default function ScanUploadQRCode(props) {
                     new GeneralQRCodeInputError(),
                     'scanuploadqrcode.notification.error.location.imagescan',
                     caughtError,
-                    'imageScan'
+                    'imageScan',
+                    diagnosticContext,
                 );
             });
     }
@@ -240,7 +302,7 @@ export default function ScanUploadQRCode(props) {
         setShowStopScanBtn(true);
         const qrCodeSuccessCallback = (decodedText, decodedResult) => {
             console.info(decodedResult, decodedText);
-            checkCodeAndReturn(decodedText, globalConst.saveType.IMAGE);
+            checkCodeAndReturn(decodedText, globalConst.saveType.IMAGE, inputDiagnostics.CAMERA_QR_SCAN);
             handleStop();
         };
 
@@ -258,7 +320,8 @@ export default function ScanUploadQRCode(props) {
                     new GeneralQRCodeInputError(),
                     'scanuploadqrcode.notification.error.location.camerastart',
                     caughtError,
-                    'startScanClick'
+                    'startScanClick',
+                    inputDiagnostics.CAMERA_QR_SCAN,
                 );
             });
     };
@@ -303,7 +366,7 @@ export default function ScanUploadQRCode(props) {
             extractData(selectedFile);
         };
         if (selectedFile && selectedFile.type.includes("image/") ) {
-            imageScan(selectedFile);
+            imageScan(selectedFile, inputDiagnostics.IMAGE_QR_SCAN);
         };
         e.target.value = null;
     };
