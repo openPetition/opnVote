@@ -59,7 +59,7 @@
     "errorpopup.technicaldetails.scan.value.documenttype.key": "Security key",
     "errorpopup.technicaldetails.scan.value.extraction.cameraqr": "QR scan via camera",
     "errorpopup.technicaldetails.scan.value.extraction.pdfmetadata": "PDF metadata",
-    "errorpopup.technicaldetails.scan.value.extraction.pdfprocessing": "PDF processing",
+    "errorpopup.technicaldetails.scan.value.extraction.pdfprocessing": "PDF could not be read",
     "errorpopup.technicaldetails.scan.value.extraction.pdfrenderedqr": "QR scan from rendered PDF page",
     "errorpopup.technicaldetails.scan.value.extraction.text": "Manual text input",
     "errorpopup.technicaldetails.scan.value.extraction.uploadedimageqr": "QR scan from uploaded image",
