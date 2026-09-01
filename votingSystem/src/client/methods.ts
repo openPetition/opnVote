@@ -60,6 +60,16 @@ async function withTimeout<T>(p: Promise<T>): Promise<T> {
     }
 }
 
+async function fetchWithTimeout(url: string, params: RequestInit): Promise<Response> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+        return await fetch(url, { ...params, signal: controller.signal });
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
 /**
  * Sends POST-Request as JSON to backend or subgraph endpoint; Returns the data field
  * @param url - Endpoint URL
@@ -74,11 +84,10 @@ async function postJson<T>(
 ): Promise<Result<T>> {
     let res: Response;
     try {
-        res = await fetch(url, {
+        res = await fetchWithTimeout(url, {
             method: "POST",
             headers: { "Content-Type": "application/json", ...headers },
             body: JSON.stringify(body),
-            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         });
     } catch (e) {
         return { ok: false, error: `network error: ${String(e)}`, retryable: true };
@@ -213,11 +222,10 @@ async function sponsorOnChain(
     voterAddress: string,
 ): Promise<Result<SponsorData>> {
     try {
-        const gasRes = await fetch(config.endpoints.bundlerUrl, {
+        const gasRes = await fetchWithTimeout(config.endpoints.bundlerUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ jsonrpc: "2.0", method: "pimlico_getUserOperationGasPrice", params: [], id: 1 }),
-            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         });
         const gasJson = (await gasRes.json()) as { result?: Record<string, { maxFeePerGas: string; maxPriorityFeePerGas: string }> };
         const tier = gasJson?.result?.fast ?? gasJson?.result?.standard;
