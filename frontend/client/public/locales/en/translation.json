@@ -35,7 +35,7 @@
     "errorpopup.email.subject": "opnVote – Error report",
     "errorpopup.email.technicaldetails": "Technical details:",
     "errorpopup.support": "If this problem happens again, please send us the technical details. This helps us improve opnVote.",
-    "errorpopup.technicaldetails.ballot.invalid": "Election permit validation failed: {{ERROR}}",
+    "errorpopup.technicaldetails.ballot.invalid": "The extracted code does not match the expected election permit format. Technical error: {{ERROR}}",
     "errorpopup.technicaldetails.ballot.nocredentials": "The election permit contains no credentials.",
     "errorpopup.technicaldetails.ballot.notfitting": "Election permit election ID ({{ACTUAL_ELECTION_ID}}) does not match the active election ID ({{EXPECTED_ELECTION_ID}}).",
     "errorpopup.technicaldetails.block": "Block",
