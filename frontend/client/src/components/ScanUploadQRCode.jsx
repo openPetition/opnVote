@@ -25,8 +25,23 @@ let html5QrCode;
 
 const diagnosticLabels = {
     expectedDocumentType: 'errorpopup.technicaldetails.scan.expecteddocumenttype',
+    detectedDocumentType: 'errorpopup.technicaldetails.scan.detecteddocumenttype',
     inputType: 'errorpopup.technicaldetails.scan.inputtype',
     extractionMethod: 'errorpopup.technicaldetails.scan.extractionmethod',
+    validationStep: 'errorpopup.technicaldetails.scan.validationstep',
+    codePartCount: 'errorpopup.technicaldetails.scan.codepartcount',
+};
+
+const documentTypes = {
+    BALLOT: 'errorpopup.technicaldetails.scan.value.documenttype.ballot',
+    KEY: 'errorpopup.technicaldetails.scan.value.documenttype.key',
+};
+
+const validationSteps = {
+    BALLOT: 'errorpopup.technicaldetails.scan.value.validationstep.ballot',
+    BALLOT_IMPORT: 'errorpopup.technicaldetails.scan.value.validationstep.ballotimport',
+    ELECTION_ID: 'errorpopup.technicaldetails.scan.value.validationstep.electionid',
+    KEY: 'errorpopup.technicaldetails.scan.value.validationstep.key',
 };
 
 const inputDiagnostics = {
@@ -97,8 +112,8 @@ export default function ScanUploadQRCode(props) {
     const getDiagnostics = (diagnosticContext = {}) => {
         const context = {
             expectedDocumentType: qrContentType === globalConst.qrContentType.KEY
-                ? 'errorpopup.technicaldetails.scan.value.documenttype.key'
-                : 'errorpopup.technicaldetails.scan.value.documenttype.ballot',
+                ? documentTypes.KEY
+                : documentTypes.BALLOT,
             ...diagnosticContext,
         };
 
@@ -110,6 +125,32 @@ export default function ScanUploadQRCode(props) {
                     ? t(context[key])
                     : context[key],
             }));
+    };
+
+    const getCodeDiagnostics = (code, validationStep, detectedDocumentType) => ({
+        validationStep,
+        ...(detectedDocumentType ? { detectedDocumentType } : {}),
+        ...(typeof code === 'string' && code.length > 0
+            ? { codePartCount: code.split('|').length }
+            : {}),
+    });
+
+    const detectAlternativeDocumentType = (code) => {
+        if (typeof code !== 'string' || code.length === 0) {
+            return undefined;
+        }
+
+        try {
+            if (qrContentType === globalConst.qrContentType.KEY) {
+                voteClient.importCredentials(code);
+                return documentTypes.BALLOT;
+            }
+
+            voteClient.importMasterKey(code);
+            return documentTypes.KEY;
+        } catch {
+            return undefined;
+        }
     };
 
     const showError = (userError, location, caughtError, block, diagnosticContext) => {
@@ -156,12 +197,21 @@ export default function ScanUploadQRCode(props) {
                 const result = voteClient.importMasterKey(code);
                 props.onResult(code, inputOutputType);
             } catch (caughtError) {
+                const validationDiagnostics = {
+                    ...diagnosticContext,
+                    ...getCodeDiagnostics(
+                        code,
+                        validationSteps.KEY,
+                        detectAlternativeDocumentType(code),
+                    ),
+                };
+
                 showError(
                     inputOutputType === globalConst.saveType.CLIPBOARD ? new KeyTextInvalidError() : new KeyFileInvalidError(),
                     getInputErrorLocation(qrContentType, inputOutputType),
                     caughtError,
                     'checkCodeAndReturn',
-                    diagnosticContext,
+                    validationDiagnostics,
                 );
             }
         } else {
@@ -170,6 +220,18 @@ export default function ScanUploadQRCode(props) {
 
                 if (ballotCheck.result !== 'success') {
                     const { key, values = {} } = ballotCheck.technicalDetails;
+                    const isElectionIdMismatch = key === 'errorpopup.technicaldetails.ballot.notfitting';
+                    const validationDiagnostics = {
+                        ...diagnosticContext,
+                        ...getCodeDiagnostics(
+                            code,
+                            isElectionIdMismatch ? validationSteps.ELECTION_ID : validationSteps.BALLOT,
+                            isElectionIdMismatch
+                                ? documentTypes.BALLOT
+                                : detectAlternativeDocumentType(code),
+                        ),
+                    };
+
                     showError(
                         ballotCheck.error,
                         getInputErrorLocation(qrContentType, inputOutputType),
@@ -179,7 +241,7 @@ export default function ScanUploadQRCode(props) {
                             interpolation: { escapeValue: false },
                         })),
                         'checkCodeAndReturn',
-                        diagnosticContext,
+                        validationDiagnostics,
                     );
                     return;
                 }
@@ -187,12 +249,17 @@ export default function ScanUploadQRCode(props) {
                 voteClient.importCredentials(code);
                 props.onResult(ballotCheck.registerCode, inputOutputType);
             } catch (caughtError) {
+                const validationDiagnostics = {
+                    ...diagnosticContext,
+                    ...getCodeDiagnostics(code, validationSteps.BALLOT_IMPORT, documentTypes.BALLOT),
+                };
+
                 showError(
                     inputOutputType === globalConst.saveType.CLIPBOARD ? new BallotTextInvalidError() : new BallotFileInvalidError(),
                     getInputErrorLocation(qrContentType, inputOutputType),
                     caughtError,
                     'checkCodeAndReturn',
-                    diagnosticContext,
+                    validationDiagnostics,
                 );
             }
         }
