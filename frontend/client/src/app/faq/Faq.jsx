@@ -17,15 +17,34 @@ export default function Faq() {
                 components={{ Openlink: <Link href="https://www.openpetition.de/opn-vote" /> }}
             />,
         },
-        process: {
-            title: t("faq.content.process.title"),
-            text: <Trans i18nKey="faq.content.process.text"
-                components={{ Linkelectionbasics: <Link href="https://www.bundestag.de/parlament/bundestagswahl/wahlrechtsgrundsaetze-1021218" /> }}
-            />,
+        qrcode: {
+            title: t("faq.content.qrcode.title"),
+            text: <Trans i18nKey="faq.content.qrcode.text" />,
         },
+        browserrecommendation: {
+            title: t("faq.content.browserrecommendation.title"),
+            text: <Trans i18nKey="faq.content.browserrecommendation.text" />,
+        },
+
         participation: {
             title: t("faq.content.participation.title"),
             text: <Trans i18nKey="faq.content.participation.text"
+                components={{ Linkelectionbasics: <Link href="https://www.bundestag.de/parlament/bundestagswahl/wahlrechtsgrundsaetze-1021218" /> }}
+            />,
+        },
+        topics: {
+            title: t("faq.content.topics.title"),
+            text: <div dangerouslySetInnerHTML={{ __html: t('faq.content.topics.text') }} />,
+        },
+        security: {
+            title: t("faq.content.security.title"),
+            text: <Trans i18nKey="faq.content.security.text"
+                components={{ Openlink: <Link href="https://www.openpetition.de/opn-vote" /> }}
+            />,
+        },
+        process: {
+            title: t("faq.content.process.title"),
+            text: <Trans i18nKey="faq.content.process.text"
                 components={{ Linkelectionbasics: <Link href="https://www.bundestag.de/parlament/bundestagswahl/wahlrechtsgrundsaetze-1021218" /> }}
             />,
         },
@@ -37,12 +56,11 @@ export default function Faq() {
         },
         whywebuildit: {
             title: t("faq.content.whywebuildit.title"),
-            text: <Trans i18nKey="faq.content.whywebuildit.text" />,
+            text: <Trans i18nKey="faq.content.whywebuildit.text"
+            components={{ Linkdonation: <Link href="https://www.openpetition.de/spenden" /> }}
+            />,
         },
-        topics: {
-            title: t("faq.content.topics.title"),
-            text: <div dangerouslySetInnerHTML={{ __html: t('faq.content.topics.text') }} />,
-        },
+
         populists: {
             title: t("faq.content.populists.title"),
             text: <Trans i18nKey="faq.content.populists.text" />,
@@ -71,12 +89,7 @@ export default function Faq() {
             title: t("faq.content.multivote.title"),
             text: <Trans i18nKey="faq.content.multivote.text" />,
         },
-        security: {
-            title: t("faq.content.security.title"),
-            text: <Trans i18nKey="faq.content.security.text"
-                components={{ Linkblog: <Link href="https://www.opn.vote/" /> }}
-            />,
-        },
+
         clear: {
             title: t("faq.content.clear.title"),
             text: <>
