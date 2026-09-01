@@ -24,9 +24,11 @@ const qrConfig = { fps: 10, qrbox: { width: 300, height: 300 } };
 let html5QrCode;
 
 const diagnosticLabels = {
+    clientArea: 'errorpopup.technicaldetails.scan.clientarea',
     expectedDocumentType: 'errorpopup.technicaldetails.scan.expecteddocumenttype',
     detectedDocumentType: 'errorpopup.technicaldetails.scan.detecteddocumenttype',
     inputType: 'errorpopup.technicaldetails.scan.inputtype',
+    mimeType: 'errorpopup.technicaldetails.scan.mimetype',
     extractionMethod: 'errorpopup.technicaldetails.scan.extractionmethod',
     validationStep: 'errorpopup.technicaldetails.scan.validationstep',
     codePartCount: 'errorpopup.technicaldetails.scan.codepartcount',
@@ -86,7 +88,7 @@ const getInputErrorLocation = (qrContentType, inputOutputType) => {
 };
 
 export default function ScanUploadQRCode(props) {
-    const { voting, voteClient } = useOpnVoteStore((state) => state);
+    const { page, voting, voteClient } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const {
         headline,
@@ -111,6 +113,7 @@ export default function ScanUploadQRCode(props) {
 
     const getDiagnostics = (diagnosticContext = {}) => {
         const context = {
+            clientArea: page?.current,
             expectedDocumentType: qrContentType === globalConst.qrContentType.KEY
                 ? documentTypes.KEY
                 : documentTypes.BALLOT,
@@ -276,9 +279,13 @@ export default function ScanUploadQRCode(props) {
             const pdfDoc = await PDFDocument.load(fileBuffer, { ignoreEncryption: true });
             const extractCode = pdfDoc.getSubject()?.split('QRCODE:')[1];
             if (extractCode && extractCode != 'undefined') {
-                checkCodeAndReturn(extractCode, globalConst.saveType.PDF, inputDiagnostics.PDF_METADATA);
+                checkCodeAndReturn(
+                    extractCode,
+                    globalConst.saveType.PDF,
+                    { ...inputDiagnostics.PDF_METADATA, mimeType: file.type },
+                );
             } else {
-                extractWithConvert(file, inputDiagnostics.PDF_QR_SCAN);
+                extractWithConvert(file, { ...inputDiagnostics.PDF_QR_SCAN, mimeType: file.type });
                 return;
             }
         } catch (caughtError) {
@@ -287,7 +294,7 @@ export default function ScanUploadQRCode(props) {
                 'scanuploadqrcode.notification.error.location.pdf',
                 caughtError,
                 'extractData',
-                inputDiagnostics.PDF_PROCESSING,
+                { ...inputDiagnostics.PDF_PROCESSING, mimeType: file.type },
             );
         } finally {
             setIsLoading(false);
@@ -433,7 +440,7 @@ export default function ScanUploadQRCode(props) {
             extractData(selectedFile);
         };
         if (selectedFile && selectedFile.type.includes("image/") ) {
-            imageScan(selectedFile, inputDiagnostics.IMAGE_QR_SCAN);
+            imageScan(selectedFile, { ...inputDiagnostics.IMAGE_QR_SCAN, mimeType: selectedFile.type });
         };
         e.target.value = null;
     };
