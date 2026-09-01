@@ -60,6 +60,16 @@ async function withTimeout<T>(p: Promise<T>): Promise<T> {
     }
 }
 
+async function fetchWithTimeout(url: string, params: RequestInit): Promise<Response> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+        return await fetch(url, { ...params, signal: controller.signal });
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
 /**
  * Sends POST-Request as JSON to backend or subgraph endpoint; Returns the data field
  * @param url - Endpoint URL
@@ -73,19 +83,14 @@ async function postJson<T>(
     headers: Record<string, string> = {},
 ): Promise<Result<T>> {
     let res: Response;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
-        res = await fetch(url, {
+        res = await fetchWithTimeout(url, {
             method: "POST",
             headers: { "Content-Type": "application/json", ...headers },
             body: JSON.stringify(body),
-            signal: controller.signal,
         });
     } catch (e) {
         return { ok: false, error: `network error: ${String(e)}`, retryable: true };
-    } finally {
-        clearTimeout(timer);
     }
 
     const json = (await res.json().catch(() => undefined)) as { data?: T; error?: unknown } | undefined;
@@ -217,15 +222,11 @@ async function sponsorOnChain(
     voterAddress: string,
 ): Promise<Result<SponsorData>> {
     try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-        const gasRes = await fetch(config.endpoints.bundlerUrl, {
+        const gasRes = await fetchWithTimeout(config.endpoints.bundlerUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ jsonrpc: "2.0", method: "pimlico_getUserOperationGasPrice", params: [], id: 1 }),
-            signal: controller.signal,
         });
-        clearTimeout(timer);
         const gasJson = (await gasRes.json()) as { result?: Record<string, { maxFeePerGas: string; maxPriorityFeePerGas: string }> };
         const tier = gasJson?.result?.fast ?? gasJson?.result?.standard;
         if (!tier) {
