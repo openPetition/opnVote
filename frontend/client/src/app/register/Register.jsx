@@ -4,14 +4,16 @@ import { shallow } from "zustand/shallow";
 import { useState, useEffect } from "react";
 import { useRef } from 'react';
 
-import NextImage from 'next/image';
 import Notification from "../../components/Notification";
 import Loading from "../../components/Loading";
-import ConfirmPopup from "../../components/ConfirmPopup";
-import ScanUploadQRCode from "@/components/ScanUploadQRCode";
 import GenerateQRCode from "../../components/GenerateQRCode";
 import NavigationBox from "../../components/NavigationBox";
 import Button from "../../components/Button";
+import {
+    VoteLaterConfirmation,
+    VoteLaterTrigger,
+    VoteLaterView,
+} from './components/VoteLaterFlow';
 import { useTranslation, Trans } from 'next-i18next';
 import Config from "../../../next.config.mjs";
 import { useOpnVoteStore } from "../../opnVoteStore";
@@ -39,11 +41,8 @@ export default function Register() {
     const [electionState, setElectionState] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
-    const [registerCode, setRegisterCode] = useState("");
-    const [showMod, setShowMod] = useState(false);
     const [registrationErrorDetails, setRegistrationErrorDetails] = useState(null);
     const [errorPopup, setErrorPopup] = useState(null);
-    const election = voting.election;
     const electionTitle = voting.electionInformation.title;
     const electionTitleSanitized = electionTitle
         .toLowerCase()
@@ -58,14 +57,12 @@ export default function Register() {
     const addToCalendarButtonRef = useRef(null);
     const ballotNotificationRef = useRef(null);
     const [scrollToBallotNotification, setScrollToBallotNotification] = useState(false);
-    const delay = ms => new Promise(res => setTimeout(res, ms));
-    // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
 
+    // state of what to show and how far we came incl. noticiation cause they also can cause some change in view.
     const [registerState, setRegisterState] = useState({
         showLoading: false,
         showStartProcessScreen: false,
         showElectionInformation: false,
-        showQRCodeUploadPlugin: false,
         showBallot: false,
         showContinueModal: false,
         showNotification: false,
@@ -74,9 +71,7 @@ export default function Register() {
         notificationType: '',
         showCalendarLink: false,
         isBallotCheckSuccess: false,
-        showQRLoadingAnimation: false,
         showVoteLater: false,
-        errorType: ''
     });
 
     const generateVoteCredentials = async function () {
@@ -150,23 +145,16 @@ export default function Register() {
         };
     };
 
-    // only loading animation
     const loadingQRchange = async function () {
         setRegisterState({
             ...registerState,
             showElectionInformation: true,
-            showQRCodeUploadPlugin: false,
             showBallot: true,
-            showQRLoadingAnimation: false,
         });
     };
 
     const goToStart = () => {
         window.location = voting.electionInformation.backLink + '?refreshElectionPermit=' + voting.electionId;
-    };
-
-    const copyToClipboard = () => {
-        navigator.clipboard.writeText(Config.env.basicUrl + '/?id=' + voting.electionId + '#pollingstation');
     };
 
     const goToElection = function () {
@@ -183,7 +171,6 @@ export default function Register() {
             ...registerState,
             showElectionInformation: false,
             showStartProcessScreen: false,
-            showQRCodeUploadPlugin: false,
             showNotification: false,
             showBallot: false,
             showVoteLater: true,
@@ -226,13 +213,6 @@ export default function Register() {
         }
     }, [decodedValue]);
 
-
-    useEffect(() => {
-        if (registerCode && voting.registerCode != registerCode) {
-            setErrorPopup(null);
-            updateVoting({ registerCode: registerCode });
-        }
-    }, [registerCode]);
 
     useEffect(() => {
 
@@ -484,10 +464,6 @@ export default function Register() {
                     </section>
                 )}
 
-                {registerState.showQRLoadingAnimation && (
-                    <Loading loadingText={t("common.loading.text")} />
-                )}
-
                 {registerState.showElectionInformation && (
                     <>
                         {registerState.showStartProcessScreen && (
@@ -509,23 +485,6 @@ export default function Register() {
                                         />
                                     </div>
                                 </div>
-                            </>
-                        )}
-
-                        {registerState.showQRCodeUploadPlugin && (
-                            <>
-                                <ScanUploadQRCode
-                                    headline={t("register.uploadqrcode.headline")}
-                                    subheadline={t("register.uploadqrcode.subheadline")}
-                                    uploadSubHeadline={t("register.uploadqrcode.uploadSubHeadline")}
-                                    scanSubHeadline={t("register.uploadqrcode.scanSubHeadline")}
-                                    insertAsTextSubHeadline={t("register.uploadqrcode.insertAsTextSubHeadline")}
-                                    insertAsTextPlaceholder={t("register.uploadqrcode.insertAsTextPlaceholder")}
-                                    insertAsTextHeadline={t("register.uploadqrcode.insertAsTextHeadline")}
-                                    insertAsTextButton={t("register.uploadqrcode.insertAsTextButton")}
-                                    onResult={(res) => updateUserKey(res)}
-                                    qrContentType={globalConst.qrContentType.BALLOT}
-                                />
                             </>
                         )}
 
@@ -600,16 +559,13 @@ export default function Register() {
                                     </>
                                 )}
 
-                                <div className="op__display_none_small op__display_none_wide">
-                                    <Button
-                                        onClick={() =>
-                                            setRegisterState({
-                                                ...registerState,
-                                                showContinueModal: true,
-                                            })}
-                                        type="primary"
-                                    >{t('register.button.votelater.text')}</Button>
-                                </div>
+                                <VoteLaterTrigger
+                                    onOpen={() =>
+                                        setRegisterState({
+                                            ...registerState,
+                                            showContinueModal: true,
+                                        })}
+                                />
                                 {electionState === globalConst.electionState.ONGOING && (
                                     <>
                                         <div className="op__center-align op__margin_standard_20_top_bottom">
@@ -621,65 +577,26 @@ export default function Register() {
                                     </>
                                 )}
 
-                                <ConfirmPopup
+                                <VoteLaterConfirmation
                                     showModal={registerState.showContinueModal}
-                                    modalText={t("register.confirmpopup.modaltext")}
-                                    modalHeader={t("register.confirmpopup.modalheader")}
-                                    modalConfirmFunction={voteLater}
-                                    modalAbortFunction={() => {
+                                    onConfirm={voteLater}
+                                    onAbort={() => {
                                         window.scrollTo(0, 0);
                                         setRegisterState({
                                             ...registerState,
                                             showContinueModal: false
                                         });
                                     }}
-                                    shouldConfirm={false}
-                                    confirmMessage={t("register.confirmpopup.confirmmessage")}
                                 />
                             </>
                         )}
                     </>
                 )}
                 {registerState.showVoteLater && (
-                    <>
-                        <Notification
-                            type="info"
-                            headline={t("register.notification.info.votelater.headline")}
-                            text={t("register.notification.info.votelater.text")}
-                        />
-
-                        <div className="op__outerbox_grey op__margin_standard_20_top_bottom">
-                            <input
-                                type="text"
-                                readOnly={true}
-                                defaultValue={`${Config.env.basicUrl}/?id=${voting.electionId}#pollingstation`}
-                                style={{
-                                    width: '90%',
-                                    display: 'inline-block',
-                                    paddingLeft: '10px',
-                                    border: '1px solid #999',
-                                    borderRadius: "5px",
-                                    backgroundColor: '#eee'
-                                }}
-                            />
-                            <NextImage
-                                priority
-                                src="/images/copy-clipboard.svg"
-                                height={36}
-                                width={36}
-                                alt="Follow us on Twitter"
-                                onClick={copyToClipboard}
-                                style={{ display: 'inline-block', paddingLeft: '10px' }}
-                            />
-                        </div>
-
-                        <div className="op__margin_standard_20_top_bottom">
-                            <Button
-                                onClick={goToElection}
-                                type="secondary"
-                            >{t("register.button.gotoelection.text")}</Button>
-                        </div>
-                    </>
+                    <VoteLaterView
+                        pollingStationUrl={`${Config.env.basicUrl}/?id=${voting.electionId}#pollingstation`}
+                        onGoToElection={goToElection}
+                    />
                 )}
             </div>
             <ErrorPopup error={errorPopup} onClose={() => setErrorPopup(null)} />
