@@ -27,6 +27,7 @@ import {
 } from '@/errors';
 import notificationStyles from '@/styles/Notification.module.css';
 import { ArrowDownCircle } from 'lucide-react';
+import { retryRequest } from '@/utils/retryRequest';
 
 export default function Register() {
     const { t } = useTranslation();
@@ -92,7 +93,10 @@ export default function Register() {
                 let response = "";
                 let voterJwt = voting.jwt;
                 let key = voteClient.importMasterKey(user.key);
-                response = await voteClient?.registerVoter({ voterJwt, masterKey: key ?? undefined });
+                const params = { voterJwt, masterKey: key ?? undefined };
+                response = await retryRequest(
+                    () => voteClient.registerVoter(params),
+                );
                 if (!response.ok) {
                     throw new Error(response.error);
                 }
