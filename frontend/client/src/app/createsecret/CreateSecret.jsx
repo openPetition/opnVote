@@ -11,6 +11,7 @@ import globalConst from "@/constants";
 import styles from "./styles/CreateSecret.module.css";
 import ErrorPopup from "@/components/ErrorPopup";
 import { SecurityKeyGenerationError } from "@/errors";
+import { retryRequest } from "@/utils/retryRequest";
 
 export default function CreateSecret() {
     const { t } = useTranslation();
@@ -81,7 +82,10 @@ export default function CreateSecret() {
 
     async function checkRegistration() {
         if (localState.checkingRegistration) {
-            const result = await voteClient.checkRegistration({voterJwt: voting.jwt});
+            const params = { voterJwt: voting.jwt };
+            const result = await retryRequest(
+                () => voteClient.checkRegistration(params),
+            );
 
             // we assume non-registration if registration comes back with error, i.e. we assume
             // registration if and only if the result is .ok and the value is true
