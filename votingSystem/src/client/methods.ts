@@ -93,11 +93,18 @@ async function postJson<T>(
         return { ok: false, error: `network error: ${String(e)}`, retryable: true };
     }
 
-    const json = (await res.json().catch(() => undefined)) as { data?: T; error?: unknown } | undefined;
+    const json = (await res.json().catch(() => undefined)) as
+    { data?: T; error?: unknown; errors?: unknown[] } | undefined;
+
     if (!res.ok) {
         const retryable = res.status >= 500 || res.status === 429;
         return { ok: false, error: `HTTP ${res.status}: ${JSON.stringify(json)}`, retryable };
     }
+    
+    if (Array.isArray(json?.errors) && json.errors.length > 0) {
+        return { ok: false, error: `graphql error: ${JSON.stringify(json.errors)}`, retryable: true };
+    }
+    
     if (json?.error) {
         return { ok: false, error: `API error: ${JSON.stringify(json.error)}`, retryable: false };
     }
