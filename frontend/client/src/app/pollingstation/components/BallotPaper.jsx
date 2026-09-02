@@ -13,6 +13,7 @@ import { VoteOption } from "votingsystem";
 import Modal from "@/components/Modal";
 import ErrorPopup from "@/components/ErrorPopup";
 import { VoteSubmissionError } from "@/errors";
+import { retryRequest } from "@/utils/retryRequest";
 
 export default function BallotPaper(props) {
     const { allowedToVote, votingCredentials, isVoteRecast, showElection } = props;
@@ -60,12 +61,16 @@ export default function BallotPaper(props) {
                     votes: votes.map(vote => ({ value: vote })),
                 };
                 if (!isVoteRecast) {
-                    response = await voteClient.vote(votesDTO);
+                    response = await retryRequest(
+                        () => voteClient.vote(votesDTO),
+                    );
                     if (response.ok) {
                         userOpHash = response.value.txHash;
                     }
                 } else {
-                    response = await voteClient.recastVote(votesDTO);
+                    response = await retryRequest(
+                        () => voteClient.recastVote(votesDTO),
+                    );
                     if (response.ok) {
                         userOpHash = response.value.txHash;
                     }
