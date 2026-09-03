@@ -1,4 +1,5 @@
 import type { Address, Chain } from "viem";
+import type { ErrorCode } from "./errors";
 import type {
     ElectionCredentials,
     MasterKey,
@@ -8,12 +9,14 @@ import type {
     VotingTransaction,
 } from "../types/types";
 
+export type { ErrorCode };
+
 /**
  * Request results
- */
+*/
 export type Result<T> =
     | { ok: true; value: T }
-    | { ok: false; error: string; retryable: boolean };
+    | { ok: false; code: ErrorCode; error: string; retryAfterMs?: number; userOpHash?: string };
 
 /**
  * Endpoints for backend services

@@ -4,6 +4,7 @@ import { createSmartAccountClient } from "permissionless";
 import { to7702SimpleSmartAccount } from "permissionless/accounts";
 import type { ElectionCredentials } from "../types/types";
 import type { Configuration, PreparedVote, Result, VoteResult } from "./types";
+import { ErrorCode, RETRY_AFTER_MS } from "./errors";
 
 /**
  * Submits a prepared, sponsored vote via ERC-4337 + EIP-7702
@@ -85,12 +86,13 @@ export async function submit(
         if (!receipt.success) {
             return {
                 ok: false,
+                code: ErrorCode.VOTE_REVERTED,
                 error: `userOp reverted: ${receipt.receipt.transactionHash}`,
-                retryable: false,
+                userOpHash,
             };
         }
         return { ok: true, value: { txHash: receipt.receipt.transactionHash, userOpHash } };
     } catch (e) {
-        return { ok: false, error: `submit failed: ${String(e)}`, retryable: true };
+        return { ok: false, code: ErrorCode.VOTE_NETWORK, error: `submit failed: ${String(e)}`, retryAfterMs: RETRY_AFTER_MS };
     }
 }
