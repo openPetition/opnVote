@@ -46,6 +46,7 @@ export default function ElectionInfoBox(props) {
                                 <h3>{t('register.smallHeader.state')}:</h3>
                                 <small>
                                     <CircleDot
+                                        aria-hidden="true"
                                         strokeWidth={5}
                                         className={`${styles.state_circle} ${styles[electionState]}`}
                                     />
