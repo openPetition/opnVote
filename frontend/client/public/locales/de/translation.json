@@ -335,7 +335,7 @@
     "register.smallHeader.state": "Status",
     "register.smallHeader.statetitle.finished": "Beendet",
     "register.smallHeader.statetitle.ongoing": "Laufend",
-    "register.smallHeader.statetitle.planned": "Geplant",
+    "register.smallHeader.statetitle.planned": "In Vorbereitung",
     "register.text.ballotdescription": "Wenn Sie noch keinen Sicherheits-Schlüssel besitzen oder ihn verloren haben, können Sie sich in wenigen Schritten einen neuen erstellen",
     "register.uploadqrcode.headline": "Sicherheits-Schlüssel hochladen",
     "register.uploadqrcode.insertAsTextButton": "Sicherheits-Schlüssel eingeben",

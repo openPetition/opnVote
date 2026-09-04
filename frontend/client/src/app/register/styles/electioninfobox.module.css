@@ -59,7 +59,7 @@
 }
 
 .ongoing {
-    color: #5dc876;
+    color: var(--op-blue-main);
 }
 
 .planned {
