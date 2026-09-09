@@ -155,6 +155,24 @@ export type CheckVoteParams = {
 };
 
 /**
+ * Parameters for checkUserOp
+ * @property {string} opHash - Bundler user op hash
+ */
+export type CheckUserOpParams = {
+    opHash: string;
+};
+
+/**
+ * Status of a user operation
+ * @property {boolean} included - The user operation is included in a block
+ * @property {string} txHash - Transaction hash
+ */
+export type OpStatus = {
+    included: boolean;
+    txHash?: string;
+};
+
+/**
  * Public client
  */
 export type VotingClient = {
@@ -169,4 +187,5 @@ export type VotingClient = {
     vote(params: VoteParams): Promise<Result<VoteResult>>;
     recastVote(params: VoteParams): Promise<Result<VoteResult>>;
     checkVote(params: CheckVoteParams): Promise<Result<VoteStatus>>;
+    checkUserOp(params: CheckUserOpParams): Promise<Result<OpStatus>>;
 };

@@ -36,6 +36,8 @@ import type {
     Result,
     SponsorData,
     VoteParams,
+    OpStatus,
+    CheckUserOpParams,
     VoteResult,
     VoteStatus,
 } from "./types";
@@ -421,4 +423,36 @@ export async function checkVote(
 
     const hit = res.value.voteCasts?.[0] ?? res.value.voteUpdateds?.[0];
     return { ok: true, value: { indexed: Boolean(hit), txHash: hit?.transactionHash } };
+}
+
+/**
+ * Checks if a userOp has been executed and is included in a block
+ * @param config - Client config
+ * @param params - user op hash from from bundler submission
+ * @returns the status of the user op
+ */
+export async function checkUserOp(config: Configuration, params: CheckUserOpParams): Promise<Result<OpStatus>> {
+    const res = await postJson<{ result?: { success: boolean; receipt: { transactionHash: string } } | null }>(
+        config.endpoints.bundlerUrl,
+        { jsonrpc: "2.0", id: 1, method: "eth_getUserOperationReceipt", params: [params.opHash] },
+        {},
+        ErrorCode.VOTE_NETWORK,
+        ErrorCode.VOTE_INVALID,
+    );
+    if (!res.ok) {
+        return res;
+    }
+    const receipt = res.value.result;
+    if (!receipt) {
+        return { ok: true, value: { included: false } }; // Vote pending (probably in mempool or not indexed yet)
+    }
+    if (!receipt.success) {
+        return {
+            ok: false,
+            code: ErrorCode.VOTE_REVERTED,
+            error: `userOp reverted: ${receipt.receipt.transactionHash}`,
+            userOpHash: params.opHash,
+        };
+    }
+    return { ok: true, value: { included: true, txHash: receipt.receipt.transactionHash } };
 }
