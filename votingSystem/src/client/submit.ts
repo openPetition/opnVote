@@ -7,6 +7,77 @@ import type { Configuration, PreparedVote, Result, VoteResult } from "./types";
 import { ErrorCode, RETRY_AFTER_MS } from "./errors";
 
 /**
+ * Builds smart account client and the send parameters
+ * @param config - Client config
+ * @param prepared - A prepared, sponsored vote
+ * @param credentials - Voter credentials
+ * @returns the smart accountclient and sendUserOperation parameters
+ */
+async function setupClient(config: Configuration, prepared: PreparedVote, credentials: ElectionCredentials) {
+    const { contracts, endpoints, chain, rpcUrl } = config;
+    const voterAccount = privateKeyToAccount(credentials.voterWallet.privateKey as Hex);
+    const publicClient = createPublicClient({ chain, transport: http(rpcUrl) });
+
+    const smartAccount = await to7702SimpleSmartAccount({
+        client: publicClient,
+        owner: voterAccount,
+        accountLogicAddress: contracts.delegation,
+        entryPoint: { address: contracts.entryPoint, version: "0.8" },
+    });
+
+    const { paymasterData, userOpParams } = prepared.sponsor;
+    const smartAccountClient = createSmartAccountClient({
+        client: publicClient,
+        chain,
+        account: smartAccount,
+        paymaster: {
+            async getPaymasterStubData() {
+                return {
+                    paymaster: contracts.paymaster,
+                    paymasterData: paymasterData as Hex,
+                    isFinal: true as const,
+                    callGasLimit: BigInt(userOpParams.callGasLimit),
+                    verificationGasLimit: BigInt(userOpParams.verificationGasLimit),
+                    preVerificationGas: BigInt(userOpParams.preVerificationGas),
+                    paymasterVerificationGasLimit: BigInt(userOpParams.paymasterVerificationGasLimit),
+                    paymasterPostOpGasLimit: BigInt(userOpParams.paymasterPostOpGasLimit),
+                };
+            },
+            async getPaymasterData() {
+                throw new Error("getPaymasterData cannot be called when isFinal: true");
+            },
+        },
+        bundlerTransport: http(endpoints.bundlerUrl),
+        userOperation: {
+            estimateFeesPerGas: async () => ({
+                maxFeePerGas: BigInt(userOpParams.maxFeePerGas),
+                maxPriorityFeePerGas: BigInt(userOpParams.maxPriorityFeePerGas),
+            }),
+        },
+    });
+
+    const sendParams = {
+        calls: [
+            { to: contracts.opnvote, value: 0n, data: prepared.voteCalldata as Hex },
+        ] as const,
+        nonce: BigInt(userOpParams.nonce),
+    };
+
+    if (!(await smartAccount.isDeployed())) {
+        // first vote of wallet
+        const eoaNonce = await publicClient.getTransactionCount({ address: voterAccount.address });
+        const authorization = await voterAccount.signAuthorization({
+            address: contracts.delegation,
+            chainId: chain.id,
+            nonce: eoaNonce,
+        });
+        return { smartAccountClient, sendParams: { ...sendParams, authorization } };
+    }
+    // Vote recast
+    return { smartAccountClient, sendParams };
+}
+
+/**
  * Submits a prepared, sponsored vote via ERC-4337 + EIP-7702
  * @param config - Client config
  * @param prepared - A prepared, sponsored vote
@@ -18,70 +89,23 @@ export async function submit(
     prepared: PreparedVote,
     credentials: ElectionCredentials,
 ): Promise<Result<VoteResult>> {
-    const { contracts, endpoints, chain, rpcUrl } = config;
+    let smartAccountAndParams: Awaited<ReturnType<typeof setupClient>>;
+    try {
+        smartAccountAndParams = await setupClient(config, prepared, credentials);
+    } catch (e) {
+        return { ok: false, code: ErrorCode.VOTE_NETWORK, error: `smart account setup failed: ${String(e)}`, retryAfterMs: RETRY_AFTER_MS };
+    }
+
+    const { smartAccountClient, sendParams } = smartAccountAndParams;
+
+    let userOpHash: Hex;
+    try {
+        userOpHash = await smartAccountClient.sendUserOperation(sendParams);
+    } catch (e) {
+        return { ok: false, code: ErrorCode.VOTE_NETWORK, error: `sending vote failed: ${String(e)}`, retryAfterMs: RETRY_AFTER_MS };
+    }
 
     try {
-        const voterAccount = privateKeyToAccount(credentials.voterWallet.privateKey as Hex);
-        const publicClient = createPublicClient({ chain, transport: http(rpcUrl) });
-
-        const smartAccount = await to7702SimpleSmartAccount({
-            client: publicClient,
-            owner: voterAccount,
-            accountLogicAddress: contracts.delegation,
-            entryPoint: { address: contracts.entryPoint, version: "0.8" },
-        });
-
-        const { paymasterData, userOpParams } = prepared.sponsor;
-        const smartAccountClient = createSmartAccountClient({
-            client: publicClient,
-            chain,
-            account: smartAccount,
-            paymaster: {
-                async getPaymasterStubData() {
-                    return {
-                        paymaster: contracts.paymaster,
-                        paymasterData: paymasterData as Hex,
-                        isFinal: true as const,
-                        callGasLimit: BigInt(userOpParams.callGasLimit),
-                        verificationGasLimit: BigInt(userOpParams.verificationGasLimit),
-                        preVerificationGas: BigInt(userOpParams.preVerificationGas),
-                        paymasterVerificationGasLimit: BigInt(userOpParams.paymasterVerificationGasLimit),
-                        paymasterPostOpGasLimit: BigInt(userOpParams.paymasterPostOpGasLimit),
-                    };
-                },
-                async getPaymasterData() {
-                    throw new Error("getPaymasterData cannot be called when isFinal: true");
-                },
-            },
-            bundlerTransport: http(endpoints.bundlerUrl),
-            userOperation: {
-                estimateFeesPerGas: async () => ({
-                    maxFeePerGas: BigInt(userOpParams.maxFeePerGas),
-                    maxPriorityFeePerGas: BigInt(userOpParams.maxPriorityFeePerGas),
-                }),
-            },
-        });
-
-        const sendParams = {
-            calls: [
-                { to: contracts.opnvote, value: 0n, data: prepared.voteCalldata as Hex },
-            ] as const,
-            nonce: BigInt(userOpParams.nonce),
-        };
-
-        let userOpHash: Hex;
-        if (!(await smartAccount.isDeployed())) {
-            const eoaNonce = await publicClient.getTransactionCount({ address: voterAccount.address });
-            const authorization = await voterAccount.signAuthorization({
-                address: contracts.delegation,
-                chainId: chain.id,
-                nonce: eoaNonce,
-            });
-            userOpHash = await smartAccountClient.sendUserOperation({ ...sendParams, authorization });
-        } else {
-            userOpHash = await smartAccountClient.sendUserOperation(sendParams);
-        }
-
         const receipt = await smartAccountClient.waitForUserOperationReceipt({ hash: userOpHash });
         if (!receipt.success) {
             return {
@@ -93,6 +117,6 @@ export async function submit(
         }
         return { ok: true, value: { txHash: receipt.receipt.transactionHash, userOpHash } };
     } catch (e) {
-        return { ok: false, code: ErrorCode.VOTE_NETWORK, error: `submit failed: ${String(e)}`, retryAfterMs: RETRY_AFTER_MS };
+        return { ok: false, code: ErrorCode.VOTE_PENDING, error: `could not receive receipt: ${String(e)}`, userOpHash };
     }
 }
