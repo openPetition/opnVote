@@ -5,6 +5,10 @@ import { to7702SimpleSmartAccount } from "permissionless/accounts";
 import type { ElectionCredentials } from "../types/types";
 import type { Configuration, PreparedVote, Result, VoteResult } from "./types";
 import { ErrorCode, RETRY_AFTER_MS } from "./errors";
+import { sleep } from "../utils/utils";
+
+const RECEIPT_POLL_ATTEMPTS = 10;
+const RECEIPT_POLL_INTERVAL_MS = 5_000;
 
 /**
  * Builds smart account client and the send parameters
@@ -105,18 +109,30 @@ export async function submit(
         return { ok: false, code: ErrorCode.VOTE_NETWORK, error: `sending vote failed: ${String(e)}`, retryAfterMs: RETRY_AFTER_MS };
     }
 
-    try {
-        const receipt = await smartAccountClient.waitForUserOperationReceipt({ hash: userOpHash });
-        if (!receipt.success) {
-            return {
-                ok: false,
-                code: ErrorCode.VOTE_REVERTED,
-                error: `userOp reverted: ${receipt.receipt.transactionHash}`,
-                userOpHash,
-            };
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= RECEIPT_POLL_ATTEMPTS; attempt++) {
+        try {
+            const receipt = await smartAccountClient.getUserOperationReceipt({ hash: userOpHash });
+            if (!receipt.success) {
+                return {
+                    ok: false,
+                    code: ErrorCode.VOTE_REVERTED,
+                    error: `userOp reverted: ${receipt.receipt.transactionHash}`,
+                    userOpHash,
+                };
+            }
+            return { ok: true, value: { txHash: receipt.receipt.transactionHash, userOpHash } };
+        } catch (e) {
+            lastError = e;
+            if (attempt < RECEIPT_POLL_ATTEMPTS){
+                await sleep(RECEIPT_POLL_INTERVAL_MS);
+            }
         }
-        return { ok: true, value: { txHash: receipt.receipt.transactionHash, userOpHash } };
-    } catch (e) {
-        return { ok: false, code: ErrorCode.VOTE_PENDING, error: `could not receive receipt: ${String(e)}`, userOpHash };
     }
+    return {
+        ok: false,
+        code: ErrorCode.VOTE_PENDING,
+        error: `could not receive receipt after ${RECEIPT_POLL_ATTEMPTS} attempts: ${String(lastError)}`,
+        userOpHash,
+    };
 }
