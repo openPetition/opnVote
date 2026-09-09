@@ -6,7 +6,10 @@ export enum ErrorCode {
     SUBGRAPH_ERROR = "SUBGRAPH_ERROR", // Subgraph query or network error
     VOTE_NETWORK = "VOTE_NETWORK", // RPC or bundler network error
     VOTE_GASPRICE_TOO_HIGH = "VOTE_GASPRICE_TOO_HIGH", // Gas price too high
+    VOTE_SPONSOR_UNAVAILABLE = "VOTE_SPONSOR_UNAVAILABLE", // Paymaster deposit too low, paymaster throttled by bundler, paymaster stake too low
     VOTE_INVALID = "VOTE_INVALID", // Invalid vote (e.g. wrong voter)
+    VOTE_ALREADY_CAST = "VOTE_ALREADY_CAST", // Vote has already been cast
+    VOTE_ELECTION_INACTIVE = "VOTE_ELECTION_INACTIVE", // Election is not active
     VOTE_REVERTED = "VOTE_REVERTED", // Smart-Contract reverted the vote
     VOTE_PENDING = "VOTE_PENDING", // Vote is pending confirmation
 }

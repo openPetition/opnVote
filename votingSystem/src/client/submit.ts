@@ -106,7 +106,23 @@ export async function submit(
     try {
         userOpHash = await smartAccountClient.sendUserOperation(sendParams);
     } catch (e) {
-        return { ok: false, code: ErrorCode.VOTE_NETWORK, error: `sending vote failed: ${String(e)}`, retryAfterMs: RETRY_AFTER_MS };
+        const messages: string[] = [];
+        let cause: unknown = e;
+        while (cause instanceof Error) {
+            messages.push(cause.message);
+            cause = (cause as { cause?: unknown }).cause;
+        }
+        const errorText = messages.join("\n") || String(e);
+        const error = `sending vote failed: ${String(e)}`;
+ 
+        if (errorText.includes("Election is not active")) return { ok: false, code: ErrorCode.VOTE_ELECTION_INACTIVE, error };
+        if (errorText.includes("Already voted")) return { ok: false, code: ErrorCode.VOTE_ALREADY_CAST, error };
+        if (errorText.includes("took too long")) return { ok: false, code: ErrorCode.VOTE_PENDING, error };
+        if (errorText.includes("Status: 403")) return { ok: false, code: ErrorCode.VOTE_INVALID, error };
+        if (["AA31", "paymaster throttled", "stake too low"].some((s) => errorText.includes(s))) {
+            return { ok: false, code: ErrorCode.VOTE_SPONSOR_UNAVAILABLE, error, retryAfterMs: RETRY_AFTER_MS };
+        }
+        return { ok: false, code: ErrorCode.VOTE_NETWORK, error, retryAfterMs: RETRY_AFTER_MS };
     }
 
     let lastError: unknown;
