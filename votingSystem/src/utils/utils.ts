@@ -662,7 +662,3 @@ export function hexToBuffer(hexString: string): Uint8Array {
   }
   return ethers.getBytes(hexString)
 }
-
-export function sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}

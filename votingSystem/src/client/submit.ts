@@ -5,7 +5,7 @@ import { to7702SimpleSmartAccount } from "permissionless/accounts";
 import type { ElectionCredentials } from "../types/types";
 import type { Configuration, PreparedVote, Result, VoteResult } from "./types";
 import { ErrorCode, RETRY_AFTER_MS } from "./errors";
-import { sleep } from "../utils/utils";
+import { sleep } from "./utils";
 
 const RECEIPT_POLL_ATTEMPTS = 10;
 const RECEIPT_POLL_INTERVAL_MS = 5_000;
@@ -122,6 +122,7 @@ export async function submit(
         if (["AA31", "paymaster throttled", "stake too low"].some((s) => errorText.includes(s))) {
             return { ok: false, code: ErrorCode.VOTE_SPONSOR_UNAVAILABLE, error, retryAfterMs: RETRY_AFTER_MS };
         }
+        if (errorText.includes("AA33")) return { ok: false, code: ErrorCode.VOTE_INVALID, error };
         return { ok: false, code: ErrorCode.VOTE_NETWORK, error, retryAfterMs: RETRY_AFTER_MS };
     }
 
