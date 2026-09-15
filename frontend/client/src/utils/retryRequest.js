@@ -1,5 +1,4 @@
 const DEFAULT_MAX_RETRIES = 3;
-const DEFAULT_INITIAL_DELAY_MS = 1500;
 
 const wait = (delayMs) => new Promise(resolve => setTimeout(resolve, delayMs));
 
@@ -7,19 +6,20 @@ export async function retryRequest(
     request,
     {
         maxRetries = DEFAULT_MAX_RETRIES,
-        initialDelayMs = DEFAULT_INITIAL_DELAY_MS,
     } = {},
 ) {
-    let result = await request();
+    for (let retryCount = 0; retryCount <= maxRetries; retryCount++) {
+        const result = await request();
+        const retryAfterMs = result.ok ? undefined : result.retryAfterMs;
 
-    for (let retryCount = 0; retryCount < maxRetries; retryCount++) {
-        if (result.ok || !result.retryable) {
+        if (
+            result.ok
+            || typeof retryAfterMs !== 'number'
+            || retryCount === maxRetries
+        ) {
             return result;
         }
 
-        await wait(initialDelayMs * (2 ** retryCount));
-        result = await request();
+        await wait(retryAfterMs);
     }
-
-    return result;
 }
