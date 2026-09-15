@@ -12,8 +12,9 @@ import Notification from "@/components/Notification";
 import { VoteOption } from "votingsystem";
 import Modal from "@/components/Modal";
 import ErrorPopup from "@/components/ErrorPopup";
-import { VoteSubmissionError } from "@/errors";
+import { VoteAlreadyCastError, VoteSubmissionError } from "@/errors";
 import { retryRequest } from "@/utils/retryRequest";
+import { ErrorCode } from "votingsystem/client";
 
 export default function BallotPaper(props) {
     const { allowedToVote, votingCredentials, isVoteRecast, showElection } = props;
@@ -75,6 +76,32 @@ export default function BallotPaper(props) {
                         userOpHash = response.value.txHash;
                     }
                 }
+            }
+
+            if (!response.ok && response.code === ErrorCode.VOTE_PENDING && response.userOpHash) {
+                updateHashes({ userOpHash: response.userOpHash, txHash: '' });
+                updateVoting({ votesuccess: false, transactionViewUrl: '' });
+                updatePage({ current: globalConst.pages.VOTETRANSACTION });
+                return;
+            }
+
+            if (!response.ok) {
+                const userError = response.code === ErrorCode.VOTE_ALREADY_CAST
+                    ? new VoteAlreadyCastError()
+                    : new VoteSubmissionError();
+                setSendErrorDetails({
+                    userError,
+                    location: userError.title,
+                    module: 'BallotPaper',
+                    block: 'saveVotes',
+                    technicalDetails: `${response.code}: ${response.error}`,
+                });
+                setBallotStationState({
+                    ...ballotStationState,
+                    showSendError: t(userError.text),
+                    pending: false,
+                });
+                return;
             }
 
             if (userOpHash && userOpHash.length > 0) {

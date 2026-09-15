@@ -15,9 +15,10 @@ import styles from './styles/votetransaction.module.css';
 import globalConst from "@/constants";
 import { Check, TriangleAlert } from "lucide-react";
 import { useVoting } from '../VotingContext';
+import { retryRequest } from '@/utils/retryRequest';
 
 export default function VoteTransaction() {
-    const { voting, user, updateVoting, updatePage, voteClient, hashes } = useOpnVoteStore((state) => state);
+    const { voting, user, updateVoting, updatePage, voteClient, hashes, updateHashes } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [transactionHash, setTransactionHash] = useState();
     const [isCheckingTransaction, setIsCheckingTransaction] = useState(false);
@@ -56,18 +57,78 @@ export default function VoteTransaction() {
         setIsCheckingTransaction(true);
     };
 
+    const showPendingTransaction = (technicalDetails) => {
+        const userError = new VoteTransactionPendingError();
+        setTransactionErrorDetails({
+            userError,
+            location: userError.title,
+            notificationType: 'attention',
+            openTechnicalDetails: true,
+            module: 'VoteTransaction',
+            block: 'checkTransaction',
+            technicalDetails,
+        });
+        setVoteResultState({
+            ...voteResultState,
+            transactionStateText: t('votetransactionstate.statustitle.pending'),
+            transactionStateSubText: '',
+            transactionState: TRANSACTION_STATE_PENDING,
+            notificationType: 'attention',
+            notificationText: t('votetransactionstate.pending.text'),
+        });
+    };
+
     const checkTransaction = async () => {
-        if (voteClient && typeof voteClient.registerVoter === 'function') {
+        if (voteClient && typeof voteClient.checkVote === 'function') {
             try {
-                let credentials = null;
-                let response = "";
-                credentials = voteClient.importCredentials(voting.registerCode);
-                const requestObj = voting.isVoteRecast ? { credentials: credentials, txHash: hashes.txHash } : { credentials: credentials };
+                const credentials = voteClient.importCredentials(voting.registerCode);
+                let txHash = hashes.txHash;
+
+                if (!txHash && hashes.userOpHash && typeof voteClient.checkUserOp === 'function') {
+                    for (let attempt = 1; attempt <= 10; attempt++) {
+                        const userOpResponse = await retryRequest(
+                            () => voteClient.checkUserOp({ opHash: hashes.userOpHash }),
+                        );
+
+                        if (!userOpResponse.ok) {
+                            throw new Error(`${userOpResponse.code}: ${userOpResponse.error}`);
+                        }
+
+                        if (userOpResponse.value.included && userOpResponse.value.txHash) {
+                            txHash = userOpResponse.value.txHash;
+                            break;
+                        }
+
+                        if (attempt === 10) {
+                            showPendingTransaction('The user operation was not included after 10 attempts.');
+                            return;
+                        }
+
+                        await sleep(TRANSACTION_PENDING_DELAY);
+                    }
+                }
+
+                if (voting.isVoteRecast && !txHash) {
+                    throw new Error('Cannot verify a recast without a transaction hash.');
+                }
+
+                const requestObj = txHash ? { credentials, txHash } : { credentials };
                 for (let attempt = 1; attempt <= 10; attempt++) {
-                    response = await voteClient.checkVote(requestObj);
-                    if (response && response.ok && response.value.indexed) {
+                    const response = await retryRequest(
+                        () => voteClient.checkVote(requestObj),
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(`${response.code}: ${response.error}`);
+                    }
+
+                    if (response.value.indexed) {
                         setTransactionHash(response.value.txHash);
                         updateVoting({ votesuccess: true });
+                        updateHashes({
+                            ...hashes,
+                            txHash: response.value.txHash || txHash,
+                        });
                         setVoteResultState({
                             ...voteResultState,
                             transactionStateText: t('votetransactionstate.statustitle.success'),
@@ -79,24 +140,10 @@ export default function VoteTransaction() {
                         break;
                     } else {
                         if (attempt === 10) {
-                            const userError = new VoteTransactionPendingError();
-                            setTransactionErrorDetails({
-                                userError,
-                                location: userError.title,
-                                notificationType: 'attention',
-                                openTechnicalDetails: true,
-                                module: 'VoteTransaction',
-                                block: 'checkTransaction',
-                                technicalDetails: 'The transaction was not indexed after 10 attempts.',
-                            });
-                            setVoteResultState({
-                                ...voteResultState,
-                                transactionStateText: t('votetransactionstate.statustitle.pending'),
-                                transactionStateSubText: '',
-                                transactionState: TRANSACTION_STATE_PENDING,
-                                notificationType: 'attention',
-                                notificationText: t('votetransactionstate.pending.text'),
-                            });
+                            showPendingTransaction('The transaction was not indexed after 10 attempts.');
+                            if (txHash && hashes.txHash !== txHash) {
+                                updateHashes({ ...hashes, txHash });
+                            }
                         } else {
                             console.log(`Waiting for subgraph... (attempt ${attempt}/10)`);
                             await sleep(TRANSACTION_PENDING_DELAY);
