@@ -140,8 +140,12 @@ function rpcError(id: any, code: number, message: string) {
   return { jsonrpc: '2.0', error: { code, message }, id: id ?? null }
 }
 
+function sendKey(userOp: Record<string, string>): string {
+  return `${(userOp.sender ?? '').toLowerCase()}:${userOp.nonce}`
+}
+
 function isDuplicateSend(userOp: Record<string, string>): boolean {
-  const key = `${(userOp.sender ?? '').toLowerCase()}:${userOp.nonce}`
+  const key = sendKey(userOp)
   if (recentSends.has(key)) return true
   recentSends.set(key, Date.now())
   return false
@@ -270,9 +274,16 @@ export function registerBundlerRoute(server: FastifyInstance): void {
       if (body.method === 'eth_sendUserOperation' && res?.result) {
         const pair = PAYMASTER_PAIRS.get((body.params[0]?.paymaster ?? '').toLowerCase())
         logger.info(`[Bundler] UserOp accepted (${pair?.label}): ${res.result}`)
+      } else if (body.method === 'eth_sendUserOperation') {
+        recentSends.delete(sendKey(body.params[0]))
       }
       return reply.send(res)
     } catch (err: any) {
+
+      if (body.method === 'eth_sendUserOperation'){
+        recentSends.delete(sendKey(body.params[0]))
+      }
+      
       if (shouldAlert(`forward: ${body.method}`)) {
         logger.error(`[Bundler] ${body.method} failed: ${err?.message ?? err}`)
       }
