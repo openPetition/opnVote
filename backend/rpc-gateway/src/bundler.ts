@@ -10,7 +10,6 @@ import { calcUserOpHash, isSignedBySender } from './userOpSignature'
 const ALLOWED_METHODS = new Set([
   'eth_sendUserOperation',
   'eth_getUserOperationReceipt',
-  'eth_getUserOperationByHash',
   'pimlico_getUserOperationGasPrice',
   'eth_chainId',
 ])
@@ -256,6 +255,10 @@ export function registerBundlerRoute(server: FastifyInstance): void {
         logger.warn(`[Bundler] Rejected method: ${body.method}`)
       }
       return reply.status(403).send(rpcError(body.id, -32601, `Method not allowed: ${body.method}`))
+    }
+
+    if (body.method === 'eth_chainId') {
+      return reply.send({ jsonrpc: '2.0', result: ethers.toBeHex(CHAIN_ID), id: body.id })
     }
 
     if (body.method === 'pimlico_getUserOperationGasPrice') {
