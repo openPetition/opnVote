@@ -35,7 +35,7 @@ export default function VoteTransaction() {
 
     const [voteResultState, setVoteResultState] = useState({
         transactionStateText: t('votetransactionstate.statustitle.checking'),
-        transactionStateSubText: '',
+        transactionStateSubText: t('votetransactionstate.statustext.checking'),
         transactionState: TRANSACTION_STATE_CHECKING,
         transactionStart: new Date().getTime(),
         notificationText: '',
@@ -49,7 +49,7 @@ export default function VoteTransaction() {
         setVoteResultState((previousState) => ({
             ...previousState,
             transactionStateText: t('votetransactionstate.statustitle.checking'),
-            transactionStateSubText: '',
+            transactionStateSubText: t('votetransactionstate.statustext.checking'),
             transactionState: TRANSACTION_STATE_CHECKING,
             notificationText: '',
             notificationType: '',
@@ -273,17 +273,24 @@ export default function VoteTransaction() {
                                 <Notification
                                     type={voteResultState.notificationType}
                                     text={voteResultState.notificationText}
-                                    buttonText={voteResultState.transactionState === TRANSACTION_STATE_PENDING
-                                        ? t('votetransactionstate.pending.retry')
-                                        : undefined}
-                                    buttonAction={voteResultState.transactionState === TRANSACTION_STATE_PENDING
-                                        ? retryTransactionCheck
-                                        : undefined}
                                     linkText={t(voteResultState.transactionState === TRANSACTION_STATE_PENDING
                                         ? 'votetransactionstate.pending.popup.link'
                                         : 'votetransactionstate.errorpopup.link')}
                                     linkAction={() => setErrorPopup(transactionErrorDetails)}
-                                />
+                                >
+                                    {voteResultState.transactionState === TRANSACTION_STATE_PENDING && (
+                                        <div className={`op__center-align op__margin_standard_top`} >
+                                            <Button
+                                                type="primary"
+                                                onClick={() => updatePage({current: globalConst.pages.POLLINGSTATION})}
+                                            >{t('votetransactionstate.pending.recast')}</Button>
+                                            <Button
+                                                type="primary"
+                                                onClick={retryTransactionCheck}
+                                            >{t('votetransactionstate.pending.retry')}</Button>
+                                        </div>
+                                    )}
+                                </Notification>
                             ) : (
                                 <>{voteResultState.notificationText}</>
                             )
