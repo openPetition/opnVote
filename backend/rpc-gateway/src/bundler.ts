@@ -77,7 +77,10 @@ setInterval(() => {
 
 const entryPoint = new ethers.Contract(
   ENTRYPOINT_ADDRESS,
-  ['function balanceOf(address account) view returns (uint256)'],
+  [
+    'function balanceOf(address account) view returns (uint256)',
+    'function getNonce(address sender, uint192 key) view returns (uint256)',
+  ],
   provider,
 )
 
@@ -208,6 +211,16 @@ async function canVotePrecheck(
   }
 }
 
+async function getNonce(userOp: Record<string, string>): Promise<bigint|null> {
+  try {
+      return await entryPoint.getNonce(userOp.sender, 0)
+    } catch (err: any) {
+    if (shouldAlert('nonce check: skipped')) {
+      logger.warn(`[Bundler] Nonce check has been skipped: ${err?.message ?? err}`)
+    }
+    return null
+  }}
+
 async function forwardToBundler(payload: any): Promise<any> {
   const res = await axios.post<any>(BUNDLER_URL, payload, {
     headers: { 'Content-Type': 'application/json' },
@@ -264,6 +277,14 @@ export function registerBundlerRoute(server: FastifyInstance): void {
         }
 
         return reply.status(403).send(rpcError(body.id, -32602, 'Invalid userOp signature'))
+      }
+
+      const nonce = await getNonce(body.params[0])
+      if(nonce !== null && ethers.getBigInt(body.params[0].nonce) !== nonce){
+        if (shouldAlert('validation: invalid nonce')) {
+          logger.warn(`[Bundler] invalid nonce (expected: ${nonce}, got: ${body.params[0].nonce}) (sender: ${body.params[0].sender}, ip: ${request.ip})`)
+        }
+        return reply.status(403).send(rpcError(body.id, -32602, 'Invalid nonce'))
       }
 
       if (isDuplicateSend(body.params[0])) {
