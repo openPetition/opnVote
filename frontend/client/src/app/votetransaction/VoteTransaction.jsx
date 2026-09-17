@@ -112,11 +112,15 @@ export default function VoteTransaction() {
 
                 const requestObj = txHash ? { credentials, txHash } : { credentials };
                 for (let attempt = 1; attempt <= 10; attempt++) {
-                    const response = await retryRequest(
-                        () => voteClient.checkVote(requestObj),
-                    );
+                    const response = await voteClient.checkVote(requestObj);
 
                     if (!response.ok) {
+                        if (!response.ok && response.retryAfterMs && attempt <= 10) {
+                            console.log(`Waiting for subgraph... (attempt ${attempt}/10)`);
+                            await sleep(response.retryAfterMs);
+                            continue;
+                        }
+
                         throw new Error(`${response.code}: ${response.error}`);
                     }
 
