@@ -279,15 +279,15 @@ export default function VoteTransaction() {
                                     linkAction={() => setErrorPopup(transactionErrorDetails)}
                                 >
                                     {voteResultState.transactionState === TRANSACTION_STATE_PENDING && (
-                                        <div className={`op__center-align op__margin_standard_top`} >
-                                            <Button
-                                                type="primary"
-                                                onClick={() => updatePage({current: globalConst.pages.POLLINGSTATION})}
-                                            >{t('votetransactionstate.pending.recast')}</Button>
+                                        <div className={`op__flex_center-center op__gap_10_small op__margin_standard_top`} style={{flexWrap: 'wrap'}}>
                                             <Button
                                                 type="primary"
                                                 onClick={retryTransactionCheck}
                                             >{t('votetransactionstate.pending.retry')}</Button>
+                                            <Button
+                                                type="primary"
+                                                onClick={() => updatePage({current: globalConst.pages.POLLINGSTATION})}
+                                            >{t('votetransactionstate.pending.recast')}</Button>
                                         </div>
                                     )}
                                 </Notification>
