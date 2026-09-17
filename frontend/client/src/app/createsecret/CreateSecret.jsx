@@ -10,7 +10,8 @@ import Notification from "@/components/Notification";
 import globalConst from "@/constants";
 import styles from "./styles/CreateSecret.module.css";
 import ErrorPopup from "@/components/ErrorPopup";
-import { SecurityKeyGenerationError } from "@/errors";
+import { ApplicationNotReadyError, SecurityKeyGenerationError } from "@/errors";
+import { retryRequest } from "@/utils/retryRequest";
 
 export default function CreateSecret() {
     const { t } = useTranslation();
@@ -23,6 +24,7 @@ export default function CreateSecret() {
         showSecret: false,
     });
     const [keyGenerationErrorDetails, setKeyGenerationErrorDetails] = useState(null);
+    const [registrationCheckErrorDetails, setRegistrationCheckErrorDetails] = useState(null);
     const [errorPopup, setErrorPopup] = useState(null);
 
     const { user, voting, updateUserKey, updatePage, voteClient, updateVoting } = useOpnVoteStore((state) => state);
@@ -81,11 +83,30 @@ export default function CreateSecret() {
 
     async function checkRegistration() {
         if (localState.checkingRegistration) {
-            const result = await voteClient.checkRegistration({voterJwt: voting.jwt});
+            const params = { voterJwt: voting.jwt };
+            const result = await retryRequest(
+                () => voteClient.checkRegistration(params),
+            );
 
-            // we assume non-registration if registration comes back with error, i.e. we assume
-            // registration if and only if the result is .ok and the value is true
-            const isRegistered = result.ok && result.value;
+            if (!result.ok) {
+                const userError = new ApplicationNotReadyError();
+                const errorDetails = {
+                    userError,
+                    location: userError.title,
+                    module: 'CreateSecret',
+                    block: 'checkRegistration',
+                    technicalDetails: `${result.code}: ${result.error}`,
+                };
+                setRegistrationCheckErrorDetails(errorDetails);
+                setLocalState((previousState) => ({
+                    ...previousState,
+                    checkingRegistration: false,
+                    allowKeyCreation: false,
+                }));
+                return;
+            }
+
+            const isRegistered = result.value;
             updateVoting({
                 ...voting,
                 isRegistered: isRegistered,
@@ -125,7 +146,17 @@ export default function CreateSecret() {
                     progressBarStep={globalConst.progressBarStep.createKey}
                 />
             </div>
-            {localState.allowKeyCreation ? (
+            {registrationCheckErrorDetails ? (
+                <main className="op__contentbox_760">
+                    <Notification
+                        type="error"
+                        headline={t(registrationCheckErrorDetails.userError.title)}
+                        text={t(registrationCheckErrorDetails.userError.text)}
+                        linkText={t('errorpopup.technicaldetails.summary')}
+                        linkAction={() => setErrorPopup(registrationCheckErrorDetails)}
+                    />
+                </main>
+            ) : localState.allowKeyCreation ? (
                 <main className="op__contentbox_760">
                     <LoadKey
                         onClick={generateAndCreate}
