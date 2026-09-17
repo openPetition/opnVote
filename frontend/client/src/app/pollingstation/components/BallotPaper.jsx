@@ -65,20 +65,14 @@ export default function BallotPaper(props) {
                     response = await retryRequest(
                         () => voteClient.vote(votesDTO),
                     );
-                    if (response.ok) {
-                        userOpHash = response.value.txHash;
-                    }
                 } else {
                     response = await retryRequest(
                         () => voteClient.recastVote(votesDTO),
                     );
-                    if (response.ok) {
-                        userOpHash = response.value.txHash;
-                    }
                 }
             }
 
-            if (!response.ok && response.code === ErrorCode.VOTE_PENDING && response.userOpHash) {
+            if (response.ok && response.userOpHash) {
                 updateHashes({ userOpHash: response.userOpHash, txHash: '' });
                 updateVoting({ votesuccess: false, transactionViewUrl: '' });
                 updatePage({ current: globalConst.pages.VOTETRANSACTION });
@@ -102,12 +96,6 @@ export default function BallotPaper(props) {
                     pending: false,
                 });
                 return;
-            }
-
-            if (userOpHash && userOpHash.length > 0) {
-                updateHashes(response.value);
-                updateVoting({ votesuccess: false, transactionViewUrl: '' }); //invalidate
-                updatePage({ current: globalConst.pages.VOTETRANSACTION });
             }
         } catch (e) {
             setSendErrorDetails({
