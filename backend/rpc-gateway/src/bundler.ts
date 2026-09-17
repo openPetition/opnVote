@@ -57,6 +57,8 @@ const DEPOSIT_ALERT_INTERVAL = parseInt(process.env.PAYMASTER_DEPOSIT_ALERT_MS |
 const LOW_DEPOSIT = ethers.parseEther(process.env.PAYMASTER_LOW_DEPOSIT || '1.5')
 const MIN_DEPOSIT = ethers.parseEther(process.env.PAYMASTER_MIN_DEPOSIT || '0.3')
 const CHAIN_ID = parseInt(process.env.CHAIN_ID || '100')
+const SENDER_MAX_FORWARDS = parseInt(process.env.BUNDLER_SENDER_MAX_FORWARDS || '20')
+const SENDER_MIN_INTERVAL = parseInt(process.env.BUNDLER_SENDER_MIN_INTERVAL_MS || '1000')
 
 const provider = process.env.PRIMARY_RPC_URL
   ? new ethers.JsonRpcProvider(process.env.PRIMARY_RPC_URL)
@@ -68,8 +70,9 @@ if (!provider) {
 }
 
 let gasPriceCache: { at: number; result: any } | null = null
-
+const senderForwards = new Map<string, { count: number; last: number }>()
 const recentSends = new Map<string, number>()
+
 setInterval(() => {
   const cutoff = Date.now() - SEND_DEDUP_TTL
   for (const [k, t] of recentSends) if (t < cutoff) recentSends.delete(k)
@@ -153,6 +156,18 @@ function isDuplicateSend(userOp: Record<string, string>): boolean {
   const key = sendKey(userOp)
   if (recentSends.has(key)) return true
   recentSends.set(key, Date.now())
+  return false
+}
+
+function isSenderLimitReached(userOp: Record<string, string>): boolean {
+  const sender = (userOp.sender ?? '').toLowerCase()
+  const entry = senderForwards.get(sender) ?? { count: 0, last: 0 }
+
+  if (entry.count >= SENDER_MAX_FORWARDS || Date.now() - entry.last < SENDER_MIN_INTERVAL){
+    return true
+  }
+  
+  senderForwards.set(sender, { count: entry.count + 1, last: Date.now() })
   return false
 }
 
@@ -300,6 +315,15 @@ export function registerBundlerRoute(server: FastifyInstance): void {
         }
         return reply.status(403).send(rpcError(body.id, -32602, canVoteError))
       }
+      if (isSenderLimitReached(body.params[0])) {
+        recentSends.delete(sendKey(body.params[0]))
+
+        if (shouldAlert('sender forward limit reached')) {
+          logger.warn(`[Bundler] Sender forward limit reached for sender ${body.params[0].sender} (ip: ${request.ip})`)
+        }
+
+        return reply.status(429).send(rpcError(body.id, -32005, 'Forward limit reached'))
+      }
     }
 
     try {
@@ -316,6 +340,12 @@ export function registerBundlerRoute(server: FastifyInstance): void {
 
       if (body.method === 'eth_sendUserOperation'){
         recentSends.delete(sendKey(body.params[0]))
+        const status = err?.response?.status
+        const entry = senderForwards.get(String(body.params[0].sender).toLowerCase())
+
+        if (entry && entry.count > 0 && (!status || status === 429 || status >= 500)){ // transient errors shouldnt reduce forward limit
+          entry.count -= 1 
+        }
       }
       
       if (shouldAlert(`forward: ${body.method}`)) {
