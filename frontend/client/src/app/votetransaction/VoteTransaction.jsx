@@ -86,9 +86,7 @@ export default function VoteTransaction() {
 
                 if (!txHash && hashes.userOpHash && typeof voteClient.checkUserOp === 'function') {
                     for (let attempt = 1; attempt <= 10; attempt++) {
-                        const userOpResponse = await retryRequest(
-                            () => voteClient.checkUserOp({ opHash: hashes.userOpHash }),
-                        );
+                        const userOpResponse = await voteClient.checkUserOp({ opHash: hashes.userOpHash });
 
                         if (!userOpResponse.ok) {
                             throw new Error(`${userOpResponse.code}: ${userOpResponse.error}`);
