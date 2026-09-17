@@ -5,6 +5,7 @@ import { logger } from './utils/logger'
 import { shouldAlert } from './utils/alertThrottle'
 import opnvoteAbi from './abi/opnvote-0.4.0.json'
 import accountAbi from './abi/account.json'
+import { calcUserOpHash, isSignedBySender } from './userOpSignature'
 
 const ALLOWED_METHODS = new Set([
   'eth_sendUserOperation',
@@ -55,6 +56,7 @@ const DEPOSIT_CHECK_INTERVAL = parseInt(process.env.PAYMASTER_DEPOSIT_CHECK_MS |
 const DEPOSIT_ALERT_INTERVAL = parseInt(process.env.PAYMASTER_DEPOSIT_ALERT_MS || '3600000')
 const LOW_DEPOSIT = ethers.parseEther(process.env.PAYMASTER_LOW_DEPOSIT || '1.5')
 const MIN_DEPOSIT = ethers.parseEther(process.env.PAYMASTER_MIN_DEPOSIT || '0.3')
+const CHAIN_ID = parseInt(process.env.CHAIN_ID || '100')
 
 const provider = process.env.PRIMARY_RPC_URL
   ? new ethers.JsonRpcProvider(process.env.PRIMARY_RPC_URL)
@@ -253,6 +255,17 @@ export function registerBundlerRoute(server: FastifyInstance): void {
         }
         return reply.status(403).send(rpcError(body.id, -32602, validationError ?? 'Invalid userOp'))
       }
+
+      const userOpHash = calcUserOpHash(body.params[0], ENTRYPOINT_ADDRESS, CHAIN_ID)
+
+      if (!userOpHash || !isSignedBySender(body.params[0], userOpHash)) {
+        if (shouldAlert('validation: Invalid userOp signature')) {
+          logger.warn(`[Bundler] Invalid userOp signature (sender: ${body.params[0].sender}, ip: ${request.ip})`)
+        }
+
+        return reply.status(403).send(rpcError(body.id, -32602, 'Invalid userOp signature'))
+      }
+
       if (isDuplicateSend(body.params[0])) {
         if (shouldAlert('duplicate-send')) {
           logger.warn(`[Bundler] Duplicate send (sender, nonce) rejected (ip=${request.ip})`)
