@@ -15,7 +15,6 @@ import styles from './styles/votetransaction.module.css';
 import globalConst from "@/constants";
 import { Check, TriangleAlert } from "lucide-react";
 import { useVoting } from '../VotingContext';
-import { retryRequest } from '@/utils/retryRequest';
 
 export default function VoteTransaction() {
     const { voting, user, updateVoting, updatePage, voteClient, hashes, updateHashes } = useOpnVoteStore((state) => state);
