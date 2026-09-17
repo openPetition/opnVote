@@ -146,7 +146,7 @@ function rpcError(id: any, code: number, message: string) {
 }
 
 function sendKey(userOp: Record<string, string>): string {
-  return `${(userOp.sender ?? '').toLowerCase()}:${userOp.nonce}`
+  return `${(userOp.sender ?? '').toLowerCase()}:${ethers.getBigInt(userOp.nonce)}`
 }
 
 function isDuplicateSend(userOp: Record<string, string>): boolean {
