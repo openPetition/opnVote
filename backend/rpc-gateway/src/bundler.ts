@@ -58,6 +58,8 @@ const MIN_DEPOSIT = ethers.parseEther(process.env.PAYMASTER_MIN_DEPOSIT || '0.3'
 const CHAIN_ID = parseInt(process.env.CHAIN_ID || '100')
 const SENDER_MAX_FORWARDS = parseInt(process.env.BUNDLER_SENDER_MAX_FORWARDS || '20')
 const SENDER_MIN_INTERVAL = parseInt(process.env.BUNDLER_SENDER_MIN_INTERVAL_MS || '1000')
+const OPHASH_TTL = parseInt(process.env.BUNDLER_OPHASH_TTL_MS || '3600000')
+const OPHASH_RESTART_GRACE_MS = parseInt(process.env.BUNDLER_OPHASH_RESTART_GRACE_MS || '180000')
 
 const provider = process.env.PRIMARY_RPC_URL
   ? new ethers.JsonRpcProvider(process.env.PRIMARY_RPC_URL)
@@ -71,10 +73,13 @@ if (!provider) {
 let gasPriceCache: { at: number; result: any } | null = null
 const senderForwards = new Map<string, { count: number; last: number }>()
 const recentSends = new Map<string, number>()
+const opHashes = new Map<string, number>()
+const startedAt = Date.now()
 
 setInterval(() => {
   const cutoff = Date.now() - SEND_DEDUP_TTL
   for (const [k, t] of recentSends) if (t < cutoff) recentSends.delete(k)
+  for (const [k, t] of opHashes) if (t < Date.now() - OPHASH_TTL) opHashes.delete(k)
 }, SEND_DEDUP_TTL).unref()
 
 const entryPoint = new ethers.Contract(
@@ -297,6 +302,13 @@ export function registerBundlerRoute(server: FastifyInstance): void {
         return reply.status(403).send(rpcError(body.id, -32602, 'Invalid userOp signature'))
       }
 
+      if (opHashes.has(userOpHash)) {
+        if (shouldAlert('duplicate userop submitted')) {
+          logger.warn(`[Bundler] Duplicate userop hash hass been submitted. (sender: ${body.params[0].sender}, ip: ${request.ip})`)
+        }
+        return reply.status(429).send(rpcError(body.id, -32005, 'Duplicate user op'))
+      }
+
       const nonce = await getNonce(body.params[0])
       if(nonce !== null && ethers.getBigInt(body.params[0].nonce) !== nonce){
         if (shouldAlert('validation: invalid nonce')) {
@@ -329,12 +341,21 @@ export function registerBundlerRoute(server: FastifyInstance): void {
       }
     }
 
+    if (
+      body.method === 'eth_getUserOperationReceipt' &&
+      !opHashes.has(String(body.params?.[0]).toLowerCase()) &&
+      Date.now() - startedAt > OPHASH_RESTART_GRACE_MS
+    ) {
+      return reply.send({ jsonrpc: '2.0', result: null, id: body.id })
+    }
+
     try {
       const res = await forwardToBundler(body)
       logUpstreamResponse(body.method, res)
       if (body.method === 'eth_sendUserOperation' && res?.result) {
         const pair = PAYMASTER_PAIRS.get((body.params[0]?.paymaster ?? '').toLowerCase())
         logger.info(`[Bundler] UserOp accepted (${pair?.label}): ${res.result}`)
+        opHashes.set(String(res.result).toLowerCase(), Date.now())
       } else if (body.method === 'eth_sendUserOperation') {
         recentSends.delete(sendKey(body.params[0]))
       }
