@@ -128,6 +128,6 @@ export async function submit(
 
     return {
         ok: true,
-        userOpHash,
+        value: { userOpHash },
     };
 }

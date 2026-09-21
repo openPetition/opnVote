@@ -72,8 +72,8 @@ export default function BallotPaper(props) {
                 }
             }
 
-            if (response.ok && response.userOpHash) {
-                updateHashes({ userOpHash: response.userOpHash, txHash: '' });
+            if (response.ok && response.value?.userOpHash) {
+                updateHashes({ userOpHash: response.value.userOpHash, txHash: '' });
                 updateVoting({ votesuccess: false, transactionViewUrl: '' });
                 updatePage({ current: globalConst.pages.VOTETRANSACTION });
                 return;
