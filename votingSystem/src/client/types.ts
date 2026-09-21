@@ -1,4 +1,5 @@
 import type { Address, Chain } from "viem";
+import type { ErrorCode } from "./errors";
 import type {
     ElectionCredentials,
     MasterKey,
@@ -8,12 +9,14 @@ import type {
     VotingTransaction,
 } from "../types/types";
 
+export type { ErrorCode };
+
 /**
  * Request results
- */
+*/
 export type Result<T> =
     | { ok: true; value: T }
-    | { ok: false; error: string; retryable: boolean };
+    | { ok: false; code: ErrorCode; error: string; retryAfterMs?: number; userOpHash?: string };
 
 /**
  * Endpoints for backend services
@@ -103,11 +106,9 @@ export type PreparedVote = {
 
 /**
  * Result of a successful on-chain submission
- * @property {string} txHash - Transaction hash
  * @property {string} userOpHash - ERC-4337 user-operation hash
  */
 export type VoteResult = {
-    txHash: string;
     userOpHash: string;
 };
 
@@ -152,6 +153,24 @@ export type CheckVoteParams = {
 };
 
 /**
+ * Parameters for checkUserOp
+ * @property {string} opHash - Bundler user op hash
+ */
+export type CheckUserOpParams = {
+    opHash: string;
+};
+
+/**
+ * Status of a user operation
+ * @property {boolean} included - The user operation is included in a block
+ * @property {string} txHash - Transaction hash
+ */
+export type OpStatus = {
+    included: boolean;
+    txHash?: string;
+};
+
+/**
  * Public client
  */
 export type VotingClient = {
@@ -166,4 +185,5 @@ export type VotingClient = {
     vote(params: VoteParams): Promise<Result<VoteResult>>;
     recastVote(params: VoteParams): Promise<Result<VoteResult>>;
     checkVote(params: CheckVoteParams): Promise<Result<VoteStatus>>;
+    checkUserOp(params: CheckUserOpParams): Promise<Result<OpStatus>>;
 };

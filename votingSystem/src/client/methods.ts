@@ -26,6 +26,7 @@ import {
 } from "../types/types";
 import { OPNVOTE_ABI, PAYMASTER_ABI } from "./abi";
 import { RULES_GAS_DEFAULTS, GAS_PRICE_BUFFER_NUM, GAS_PRICE_BUFFER_DEN } from "./gasDefaults";
+import { ErrorCode, RETRY_AFTER_GASPRICE_MS, RETRY_AFTER_MS } from "./errors";
 import type {
     CheckVoteParams,
     Configuration,
@@ -35,6 +36,8 @@ import type {
     Result,
     SponsorData,
     VoteParams,
+    OpStatus,
+    CheckUserOpParams,
     VoteResult,
     VoteStatus,
 } from "./types";
@@ -75,12 +78,16 @@ async function fetchWithTimeout(url: string, params: RequestInit): Promise<Respo
  * @param url - Endpoint URL
  * @param body - Request body
  * @param headers - Optional extra headers
+ * @param retryableCode - retryable error code
+ * @param finalCode - final error code
  * @returns Result with the response data
  */
 async function postJson<T>(
     url: string,
     body: unknown,
-    headers: Record<string, string> = {},
+    headers: Record<string, string>,
+    retryableCode: ErrorCode,
+    finalCode: ErrorCode,
 ): Promise<Result<T>> {
     let res: Response;
     try {
@@ -90,16 +97,24 @@ async function postJson<T>(
             body: JSON.stringify(body),
         });
     } catch (e) {
-        return { ok: false, error: `network error: ${String(e)}`, retryable: true };
+        return { ok: false, code: retryableCode, error: `network error: ${String(e)}`, retryAfterMs: RETRY_AFTER_MS };
     }
 
-    const json = (await res.json().catch(() => undefined)) as { data?: T; error?: unknown } | undefined;
+    const json = (await res.json().catch(() => undefined)) as
+        | { data?: T; error?: unknown; errors?: unknown[] }
+        | undefined;
     if (!res.ok) {
-        const retryable = res.status >= 500 || res.status === 429;
-        return { ok: false, error: `HTTP ${res.status}: ${JSON.stringify(json)}`, retryable };
+        const error = `HTTP ${res.status}: ${JSON.stringify(json)}`;
+        return res.status >= 500 || res.status === 429
+            ? { ok: false, code: retryableCode, error, retryAfterMs: RETRY_AFTER_MS }
+            : { ok: false, code: finalCode, error };
+    }
+
+    if (Array.isArray(json?.errors) && json.errors.length > 0) {
+        return { ok: false, code: retryableCode, error: `graphql error: ${JSON.stringify(json.errors)}`, retryAfterMs: RETRY_AFTER_MS };
     }
     if (json?.error) {
-        return { ok: false, error: `API error: ${JSON.stringify(json.error)}`, retryable: false };
+        return { ok: false, code: finalCode, error: `API error: ${JSON.stringify(json.error)}` };
     }
     return { ok: true, value: (json?.data ?? json) as T };
 }
@@ -114,17 +129,17 @@ export async function checkRegistration(
     try {
         jwt = JSON.parse(atob(params.voterJwt.split('.')[1]));
     } catch (e) {
-        return { ok: false, error: "invalid voter jwt", retryable: false };
+        return { ok: false, code: ErrorCode.REG_JWT_INVALID, error: "invalid voter jwt" };
     }
     if (jwt.electionId != election.electionID) {
-        return { ok: false, error: "mismatch between jwt election id and client election id", retryable: false };
+        return { ok: false, code: ErrorCode.REG_JWT_INVALID, error: "mismatch between jwt election id and client election id" };
     }
     const query = `{ votersRegistereds(where: {voterIds_contains: ["${jwt.voterId}"], electionId: "${jwt.electionId}"}, first: 1) { id } }`;
     const res = await postJson<{
         votersRegistereds?: { id: string }[];
-    }>(config.endpoints.subgraphUrl, { query });
+    }>(config.endpoints.subgraphUrl, { query }, {}, ErrorCode.SUBGRAPH_ERROR, ErrorCode.SUBGRAPH_ERROR);
     if (!res.ok) {
-       return res;
+        return res;
     }
     return { ok: true, value: (res.value.votersRegistereds ?? []).length > 0 };
 }
@@ -153,6 +168,8 @@ export async function registerVoter(
         `${config.endpoints.registerUrl}/api/sign`,
         { token: blindedToken },
         { Authorization: `Bearer ${params.voterJwt}` },
+        ErrorCode.REG_NETWORK,
+        ErrorCode.REG_REJECTED,
     );
     if (!signed.ok) {
         return signed;
@@ -161,7 +178,7 @@ export async function registerVoter(
     const unblindedSignature = unblindSignature({ hexString: signed.value.blindedSignature, isBlinded: true }, r);
     const blsParams: BlsParams = { pk: evmG2ToNoble(election.registerPublicKey) };
     if (!verifyUnblindedSignature(unblindedSignature, unblindedToken, blsParams)) {
-        return { ok: false, error: "unblinded signature failed BLS verification", retryable: false };
+        return { ok: false, code: ErrorCode.REG_BLS_VERIFY_FAILED, error: "unblinded signature failed BLS verification" };
     }
 
     return { ok: true, value: createVoterCredentials(unblindedSignature, masterKey, election.electionID) };
@@ -181,12 +198,15 @@ async function sponsorViaSvs(
         const messageHash = ethers.hashMessage(JSON.stringify(votingTransaction));
         sponsorSignature = await credentials.voterWallet.signMessage(messageHash);
     } catch (e) {
-        return { ok: false, error: `failed to sign sponsor request: ${String(e)}`, retryable: false };
+        return { ok: false, code: ErrorCode.VOTE_INVALID, error: `failed to sign sponsor request: ${String(e)}` };
     }
-    return postJson<SponsorData>(`${config.endpoints.svsUrl}/api/userOp/sponsor`, {
-        votingTransaction,
-        voterSignature: { hexString: sponsorSignature },
-    });
+    return postJson<SponsorData>(
+        `${config.endpoints.svsUrl}/api/userOp/sponsor`,
+        { votingTransaction, voterSignature: { hexString: sponsorSignature } },
+        {},
+        ErrorCode.VOTE_NETWORK,
+        ErrorCode.VOTE_INVALID,
+    );
 }
 
 const TOTAL_GAS_LIMIT = Object.values(RULES_GAS_DEFAULTS).reduce((sum, v) => sum + BigInt(v), 0n);
@@ -230,7 +250,7 @@ async function sponsorOnChain(
         const gasJson = (await gasRes.json()) as { result?: Record<string, { maxFeePerGas: string; maxPriorityFeePerGas: string }> };
         const tier = gasJson?.result?.fast ?? gasJson?.result?.standard;
         if (!tier) {
-            return { ok: false, error: "failed to fetch gas price from bundler", retryable: true };
+            return { ok: false, code: ErrorCode.VOTE_NETWORK, error: "failed to fetch gas price from bundler", retryAfterMs: RETRY_AFTER_MS };
         }
         let maxFeePerGas = (BigInt(tier.maxFeePerGas) * GAS_PRICE_BUFFER_NUM) / GAS_PRICE_BUFFER_DEN;
         let maxPriorityFeePerGas = (BigInt(tier.maxPriorityFeePerGas) * GAS_PRICE_BUFFER_NUM) / GAS_PRICE_BUFFER_DEN;
@@ -240,7 +260,12 @@ async function sponsorOnChain(
             const costCeiling = caps.maxCostCap / TOTAL_GAS_LIMIT;
             const ceiling = caps.maxFeePerGasCap < costCeiling ? caps.maxFeePerGasCap : costCeiling;
             if (BigInt(tier.maxFeePerGas) > ceiling) {
-                return { ok: false, error: "gas price too high to sponsor, try again later", retryable: true };
+                return {
+                    ok: false,
+                    code: ErrorCode.VOTE_GASPRICE_TOO_HIGH,
+                    error: "gas price too high to sponsor, try again later",
+                    retryAfterMs: RETRY_AFTER_GASPRICE_MS,
+                };
             }
             if (maxFeePerGas > ceiling) maxFeePerGas = ceiling;
             if (maxPriorityFeePerGas > ceiling) maxPriorityFeePerGas = ceiling;
@@ -267,7 +292,12 @@ async function sponsorOnChain(
             },
         };
     } catch (e) {
-        return { ok: false, error: `failed to prepare on-chain sponsor: ${String(e)}`, retryable: true };
+        return {
+            ok: false,
+            code: ErrorCode.VOTE_NETWORK,
+            error: `failed to prepare on-chain sponsor: ${String(e)}`,
+            retryAfterMs: RETRY_AFTER_MS,
+        };
     }
 }
 
@@ -302,7 +332,7 @@ async function prepare(
                 : createVotingTransaction(credentials, encryptedVoteRSA, encryptedVoteAES);
         voteCalldata = createVoteCalldata(votingTransaction, OPNVOTE_ABI);
     } catch (e) {
-        return { ok: false, error: `failed to prepare vote: ${String(e)}`, retryable: false };
+        return { ok: false, code: ErrorCode.VOTE_INVALID, error: `failed to prepare vote: ${String(e)}` };
     }
 
     const sponsor = config.endpoints.svsUrl
@@ -386,11 +416,43 @@ export async function checkVote(
     const res = await postJson<{
         voteCasts?: { transactionHash: string }[];
         voteUpdateds?: { transactionHash: string }[];
-    }>(config.endpoints.subgraphUrl, { query });
+    }>(config.endpoints.subgraphUrl, { query }, {}, ErrorCode.SUBGRAPH_ERROR, ErrorCode.SUBGRAPH_ERROR);
     if (!res.ok) {
         return res;
     }
 
     const hit = res.value.voteCasts?.[0] ?? res.value.voteUpdateds?.[0];
     return { ok: true, value: { indexed: Boolean(hit), txHash: hit?.transactionHash } };
+}
+
+/**
+ * Checks if a userOp has been executed and is included in a block
+ * @param config - Client config
+ * @param params - user op hash from from bundler submission
+ * @returns the status of the user op
+ */
+export async function checkUserOp(config: Configuration, params: CheckUserOpParams): Promise<Result<OpStatus>> {
+    const res = await postJson<{ result?: { success: boolean; receipt: { transactionHash: string } } | null }>(
+        config.endpoints.bundlerUrl,
+        { jsonrpc: "2.0", id: 1, method: "eth_getUserOperationReceipt", params: [params.opHash] },
+        {},
+        ErrorCode.VOTE_NETWORK,
+        ErrorCode.VOTE_INVALID,
+    );
+    if (!res.ok) {
+        return res;
+    }
+    const receipt = res.value.result;
+    if (!receipt) {
+        return { ok: true, value: { included: false } }; // Vote pending (probably in mempool or not indexed yet)
+    }
+    if (!receipt.success) {
+        return {
+            ok: false,
+            code: ErrorCode.VOTE_REVERTED,
+            error: `userOp reverted: ${receipt.receipt.transactionHash}`,
+            userOpHash: params.opHash,
+        };
+    }
+    return { ok: true, value: { included: true, txHash: receipt.receipt.transactionHash } };
 }

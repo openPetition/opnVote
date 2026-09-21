@@ -17,7 +17,7 @@ import { Check, TriangleAlert } from "lucide-react";
 import { useVoting } from '../VotingContext';
 
 export default function VoteTransaction() {
-    const { voting, user, updateVoting, updatePage, voteClient, hashes } = useOpnVoteStore((state) => state);
+    const { voting, user, updateVoting, updatePage, voteClient, hashes, updateHashes } = useOpnVoteStore((state) => state);
     const { t } = useTranslation();
     const [transactionHash, setTransactionHash] = useState();
     const [isCheckingTransaction, setIsCheckingTransaction] = useState(false);
@@ -34,7 +34,7 @@ export default function VoteTransaction() {
 
     const [voteResultState, setVoteResultState] = useState({
         transactionStateText: t('votetransactionstate.statustitle.checking'),
-        transactionStateSubText: '',
+        transactionStateSubText: t('votetransactionstate.statustext.checking'),
         transactionState: TRANSACTION_STATE_CHECKING,
         transactionStart: new Date().getTime(),
         notificationText: '',
@@ -48,7 +48,7 @@ export default function VoteTransaction() {
         setVoteResultState((previousState) => ({
             ...previousState,
             transactionStateText: t('votetransactionstate.statustitle.checking'),
-            transactionStateSubText: '',
+            transactionStateSubText: t('votetransactionstate.statustext.checking'),
             transactionState: TRANSACTION_STATE_CHECKING,
             notificationText: '',
             notificationType: '',
@@ -56,18 +56,80 @@ export default function VoteTransaction() {
         setIsCheckingTransaction(true);
     };
 
+    const showPendingTransaction = (technicalDetails) => {
+        const userError = new VoteTransactionPendingError();
+        setTransactionErrorDetails({
+            userError,
+            location: userError.title,
+            notificationType: 'attention',
+            openTechnicalDetails: true,
+            module: 'VoteTransaction',
+            block: 'checkTransaction',
+            technicalDetails,
+        });
+        setVoteResultState({
+            ...voteResultState,
+            transactionStateText: t('votetransactionstate.statustitle.pending'),
+            transactionStateSubText: '',
+            transactionState: TRANSACTION_STATE_PENDING,
+            notificationType: 'attention',
+            notificationText: t('votetransactionstate.pending.text'),
+        });
+    };
+
     const checkTransaction = async () => {
-        if (voteClient && typeof voteClient.registerVoter === 'function') {
+        if (voteClient && typeof voteClient.checkVote === 'function') {
             try {
-                let credentials = null;
-                let response = "";
-                credentials = voteClient.importCredentials(voting.registerCode);
-                const requestObj = voting.isVoteRecast ? { credentials: credentials, txHash: hashes.txHash } : { credentials: credentials };
+                const credentials = voteClient.importCredentials(voting.registerCode);
+                let txHash = hashes.txHash;
+
+                if (!txHash && hashes.userOpHash && typeof voteClient.checkUserOp === 'function') {
+                    for (let attempt = 1; attempt <= 10; attempt++) {
+                        const userOpResponse = await voteClient.checkUserOp({ opHash: hashes.userOpHash });
+
+                        if (!userOpResponse.ok) {
+                            throw new Error(`${userOpResponse.code}: ${userOpResponse.error}`);
+                        }
+
+                        if (userOpResponse.value.included && userOpResponse.value.txHash) {
+                            txHash = userOpResponse.value.txHash;
+                            break;
+                        }
+
+                        if (attempt === 10) {
+                            showPendingTransaction('The user operation was not included after 10 attempts.');
+                            return;
+                        }
+
+                        await sleep(TRANSACTION_PENDING_DELAY);
+                    }
+                }
+
+                if (voting.isVoteRecast && !txHash) {
+                    throw new Error('Cannot verify a recast without a transaction hash.');
+                }
+
+                const requestObj = txHash ? { credentials, txHash } : { credentials };
                 for (let attempt = 1; attempt <= 10; attempt++) {
-                    response = await voteClient.checkVote(requestObj);
-                    if (response && response.ok && response.value.indexed) {
+                    const response = await voteClient.checkVote(requestObj);
+
+                    if (!response.ok) {
+                        if (!response.ok && response.retryAfterMs && attempt <= 10) {
+                            console.log(`Waiting for subgraph... (attempt ${attempt}/10)`);
+                            await sleep(response.retryAfterMs);
+                            continue;
+                        }
+
+                        throw new Error(`${response.code}: ${response.error}`);
+                    }
+
+                    if (response.value.indexed) {
                         setTransactionHash(response.value.txHash);
                         updateVoting({ votesuccess: true });
+                        updateHashes({
+                            ...hashes,
+                            txHash: response.value.txHash || txHash,
+                        });
                         setVoteResultState({
                             ...voteResultState,
                             transactionStateText: t('votetransactionstate.statustitle.success'),
@@ -79,24 +141,10 @@ export default function VoteTransaction() {
                         break;
                     } else {
                         if (attempt === 10) {
-                            const userError = new VoteTransactionPendingError();
-                            setTransactionErrorDetails({
-                                userError,
-                                location: userError.title,
-                                notificationType: 'attention',
-                                openTechnicalDetails: true,
-                                module: 'VoteTransaction',
-                                block: 'checkTransaction',
-                                technicalDetails: 'The transaction was not indexed after 10 attempts.',
-                            });
-                            setVoteResultState({
-                                ...voteResultState,
-                                transactionStateText: t('votetransactionstate.statustitle.pending'),
-                                transactionStateSubText: '',
-                                transactionState: TRANSACTION_STATE_PENDING,
-                                notificationType: 'attention',
-                                notificationText: t('votetransactionstate.pending.text'),
-                            });
+                            showPendingTransaction('The transaction was not indexed after 10 attempts.');
+                            if (txHash && hashes.txHash !== txHash) {
+                                updateHashes({ ...hashes, txHash });
+                            }
                         } else {
                             console.log(`Waiting for subgraph... (attempt ${attempt}/10)`);
                             await sleep(TRANSACTION_PENDING_DELAY);
@@ -224,17 +272,24 @@ export default function VoteTransaction() {
                                 <Notification
                                     type={voteResultState.notificationType}
                                     text={voteResultState.notificationText}
-                                    buttonText={voteResultState.transactionState === TRANSACTION_STATE_PENDING
-                                        ? t('votetransactionstate.pending.retry')
-                                        : undefined}
-                                    buttonAction={voteResultState.transactionState === TRANSACTION_STATE_PENDING
-                                        ? retryTransactionCheck
-                                        : undefined}
                                     linkText={t(voteResultState.transactionState === TRANSACTION_STATE_PENDING
                                         ? 'votetransactionstate.pending.popup.link'
                                         : 'votetransactionstate.errorpopup.link')}
                                     linkAction={() => setErrorPopup(transactionErrorDetails)}
-                                />
+                                >
+                                    {voteResultState.transactionState === TRANSACTION_STATE_PENDING && (
+                                        <div className={`op__flex_center-center op__gap_10_small op__margin_standard_top`} style={{flexWrap: 'wrap'}}>
+                                            <Button
+                                                type="primary"
+                                                onClick={retryTransactionCheck}
+                                            >{t('votetransactionstate.pending.retry')}</Button>
+                                            <Button
+                                                type="primary"
+                                                onClick={() => updatePage({current: globalConst.pages.POLLINGSTATION})}
+                                            >{t('votetransactionstate.pending.recast')}</Button>
+                                        </div>
+                                    )}
+                                </Notification>
                             ) : (
                                 <>{voteResultState.notificationText}</>
                             )

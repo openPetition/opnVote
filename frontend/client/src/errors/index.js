@@ -54,6 +54,12 @@ export class VoteSubmissionError {
     button = "pollingstation.button.errorpopup.button";
 }
 
+export class VoteAlreadyCastError {
+    text = "votetransactionstate.error.alreadyvoted";
+    title = "pollingstation.button.errorpopup.headline";
+    button = "pollingstation.button.errorpopup.button";
+}
+
 export class VoteTransactionError {
     text = "votetransactionstate.error.unknown";
     title = "votetransactionstate.errorpopup.headline";
