@@ -117,6 +117,29 @@ async function waitForIndexing(
   }
 }
 
+async function waitForUserOp(
+  client: ReturnType<typeof createClient>,
+  userOpHash: string,
+): Promise<string> {
+  for (let attempt = 1; attempt <= INDEXING_ATTEMPTS; attempt++) {
+    const status = await client.checkUserOp({ opHash: userOpHash })
+    
+    if (!status.ok){
+      throw new Error(`checkUserOp failed: ${status.error}`)
+    }
+
+    if (status.value.included && status.value.txHash){
+      return status.value.txHash
+    }
+
+    log(`Waiting for userOp... (attempt ${attempt}/${INDEXING_ATTEMPTS})`)
+    await sleep(INDEXING_INTERVAL_MS)
+  
+  }
+  
+  throw new Error(`UserOp not included after ${INDEXING_ATTEMPTS} attempts: ${userOpHash}`)
+}
+
 async function checkPaymasterDeposit(rpcUrl: string, paymaster: Address): Promise<void> {
   const minDeposit = parseEther(
     process.env.MIN_PAYMASTER_DEPOSIT ?? DEFAULT_MIN_PAYMASTER_DEPOSIT,
@@ -240,8 +263,8 @@ async function run(includeRecast = false): Promise<string> {
   log('--- Step 4: Vote ---')
   const voteResult = await client.vote({ credentials, votes: VOTES })
   if (!voteResult.ok) throw new Error(`Vote failed: ${voteResult.error}`)
-  const txHash = voteResult.value.txHash
   log('UserOp hash', voteResult.value.userOpHash)
+  const txHash = await waitForUserOp(client, voteResult.value.userOpHash)
   log('Tx hash', txHash)
 
   log('--- Step 5: Verify vote via subgraph ---')
@@ -257,8 +280,8 @@ async function run(includeRecast = false): Promise<string> {
   log('--- Step 6: Recast ---')
   const recastResult = await client.recastVote({ credentials, votes: RECAST_VOTES })
   if (!recastResult.ok) throw new Error(`Recast failed: ${recastResult.error}`)
-  const recastTxHash = recastResult.value.txHash
   log('UserOp hash', recastResult.value.userOpHash)
+  const recastTxHash = await waitForUserOp(client, recastResult.value.userOpHash)
   log('Tx hash', recastTxHash)
 
   log('--- Step 7: Verify recast on subgraph ---')
