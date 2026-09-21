@@ -106,11 +106,9 @@ export type PreparedVote = {
 
 /**
  * Result of a successful on-chain submission
- * @property {string} txHash - Transaction hash
  * @property {string} userOpHash - ERC-4337 user-operation hash
  */
 export type VoteResult = {
-    txHash: string;
     userOpHash: string;
 };
 

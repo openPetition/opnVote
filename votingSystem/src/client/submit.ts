@@ -114,7 +114,7 @@ export async function submit(
         }
         const errorText = messages.join("\n") || String(e);
         const error = `sending vote failed: ${String(e)}`;
- 
+
         if (errorText.includes("Election is not active")) return { ok: false, code: ErrorCode.VOTE_ELECTION_INACTIVE, error };
         if (errorText.includes("Already voted")) return { ok: false, code: ErrorCode.VOTE_ALREADY_CAST, error };
         if (errorText.includes("took too long")) return { ok: false, code: ErrorCode.VOTE_PENDING, error };
@@ -126,30 +126,8 @@ export async function submit(
         return { ok: false, code: ErrorCode.VOTE_NETWORK, error, retryAfterMs: RETRY_AFTER_MS };
     }
 
-    let lastError: unknown;
-    for (let attempt = 1; attempt <= RECEIPT_POLL_ATTEMPTS; attempt++) {
-        try {
-            const receipt = await smartAccountClient.getUserOperationReceipt({ hash: userOpHash });
-            if (!receipt.success) {
-                return {
-                    ok: false,
-                    code: ErrorCode.VOTE_REVERTED,
-                    error: `userOp reverted: ${receipt.receipt.transactionHash}`,
-                    userOpHash,
-                };
-            }
-            return { ok: true, value: { txHash: receipt.receipt.transactionHash, userOpHash } };
-        } catch (e) {
-            lastError = e;
-            if (attempt < RECEIPT_POLL_ATTEMPTS){
-                await sleep(RECEIPT_POLL_INTERVAL_MS);
-            }
-        }
-    }
     return {
-        ok: false,
-        code: ErrorCode.VOTE_PENDING,
-        error: `could not receive receipt after ${RECEIPT_POLL_ATTEMPTS} attempts: ${String(lastError)}`,
+        ok: true,
         userOpHash,
     };
 }
