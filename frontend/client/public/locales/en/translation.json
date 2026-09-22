@@ -335,7 +335,7 @@
     "register.smallHeader.state": "Status",
     "register.smallHeader.statetitle.finished": "Finished",
     "register.smallHeader.statetitle.ongoing": "Ongoing",
-    "register.smallHeader.statetitle.planned": "Planned",
+    "register.smallHeader.statetitle.planned": "In preparation",
     "register.text.ballotdescription": "If you don't have a security key or if you have lost it, you can create a new one in just a few steps",
     "register.uploadqrcode.headline": "Load security key",
     "register.uploadqrcode.insertAsTextButton": "Insert security key",
