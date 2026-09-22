@@ -300,6 +300,20 @@ export async function processPendingRegistrations(): Promise<void> {
               registrationBatches.length
             })`,
           )
+          const estimatedGas = await estimateGasWithRetry(() =>
+            contract.registerVoters.estimateGas(
+              BigInt(electionId),
+              voterIds,
+              blindedSignatures,
+              blindedElectionTokens,
+            ),
+          )
+          const gasLimitWithBuffer = (estimatedGas * TX_MULTIPLIERS.GAS_LIMIT_PERCENTAGE) / 100n
+
+          logger.info('Gas estimation', {
+            estimatedGas: estimatedGas.toString(),
+            gasLimitWithBuffer: gasLimitWithBuffer.toString(),
+          })
           const feeData = await withRetry(() => provider.getFeeData())
           const maxFeePerGas = feeData.maxFeePerGas
           const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
@@ -344,21 +358,6 @@ export async function processPendingRegistrations(): Promise<void> {
             )
             throw new Error('Max fee per gas or max priority fee per gas is too high')
           }
-
-          const estimatedGas = await withRetry(() =>
-            contract.registerVoters.estimateGas(
-              BigInt(electionId),
-              voterIds,
-              blindedSignatures,
-              blindedElectionTokens,
-            ),
-          )
-          const gasLimitWithBuffer = (estimatedGas * TX_MULTIPLIERS.GAS_LIMIT_PERCENTAGE) / 100n
-
-          logger.info('Gas estimation', {
-            estimatedGas: estimatedGas.toString(),
-            gasLimitWithBuffer: gasLimitWithBuffer.toString(),
-          })
 
           const maxTxCost = gasLimitWithBuffer * adjustedMaxFeePerGas
           const currentBalance = await withRetry(() => provider.getBalance(wallet.address))
@@ -499,6 +498,24 @@ async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3, baseDelayMs = 
     }
   }
   throw lastError
+}
+
+// Estimate gas with retry on full block errors
+async function estimateGasWithRetry(estimate: () => Promise<bigint>): Promise<bigint> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await withRetry(estimate)
+    } catch (error: any) {
+      const isBlockFull = error?.code === 'CALL_EXCEPTION' && error?.data == null // indicates that the error is due to a full block (transient) but not a hard revert
+      if (!isBlockFull || attempt >= TX_LIMITS.GAS_ESTIMATE_ATTEMPTS) {
+        throw error
+      }
+      logger.warn(
+        `Gas estimation failed: retrying (attempt ${attempt}/${TX_LIMITS.GAS_ESTIMATE_ATTEMPTS})`,
+      )
+      await timeout(TX_LIMITS.BLOCK_INTERVAL_MS)
+    }
+  }
 }
 
 /**
