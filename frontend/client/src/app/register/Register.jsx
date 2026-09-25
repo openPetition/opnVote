@@ -251,11 +251,11 @@ export default function Register() {
         const currentTime = Math.floor(new Date().getTime() / 1000);
         const tempStartTime = new Date(Number(voting.election.votingStartTime) * 1000);
         const tempEndTime = new Date(Number(voting.election.votingEndTime) * 1000);
-        setInOverlap(voting.election.votingStartTime < voting.election.registrationEndTime && electionState !== globalConst.electionState.PLANNED);
         setStartDate(tempStartTime);
         setEndDate(tempEndTime);
         const state = Number(currentTime) < Number(voting.election.votingStartTime) ? globalConst.electionState.PLANNED : Number(currentTime) < Number(voting.election.votingEndTime) ? globalConst.electionState.ONGOING : globalConst.electionState.FINISHED;
         setElectionState(state);
+        setInOverlap(voting.election.votingStartTime < voting.election.registrationEndTime && state !== globalConst.electionState.PLANNED);
 
         // register already given? only show it
         if (voting.registerCode.length > 0) {
