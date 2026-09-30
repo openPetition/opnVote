@@ -174,6 +174,9 @@ export default function Overview() {
                     {box.state == BOX_STATE_ACTIVE && voting.registerCode && (<>
                         <Button onClick={() => goToPage(globalConst.pages.REGISTER)}>{voting.registerCodeSaved ? t("overview.box.ballot.button.saveagain") : t("overview.box.ballot.button.save")}</Button>
                     </>)}
+                    {box.state == BOX_STATE_ACTIVE && !voting.registerCode && (<>
+                        <Button onClick={() => goToPage(globalConst.pages.LOADBALLOT)}>{t("overview.box.ballot.button.load")}</Button>
+                    </>)}
                 </Buttons>
             </Box >
         );
