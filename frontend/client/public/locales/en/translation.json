@@ -391,7 +391,7 @@
     "secret.alreadyregistered.headline": "Vote authorization already used",
     "secret.alreadyregistered.loadballot": "Load election permit",
     "secret.alreadyregistered.loadkey": "Load security key",
-    "secret.alreadyregistered.text": "You have already requested an election permit using a security key. Therefore, creating a new security key is deactivated.",
+    "secret.alreadyregistered.text": "You have already an election permit based on your security key.\nIt is therefore not necessary to create a new security key, and this option has been disabled for this election.",
     "secret.error.generation.button": "Close",
     "secret.error.generation.headline": "Security key generation failed",
     "secret.error.generation.link": "Show technical details",
