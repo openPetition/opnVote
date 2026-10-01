@@ -388,7 +388,7 @@
     "scanuploadqrcode.notification.error.location.pdfconversion": "PDF-Verarbeitung fehlgeschlagen",
     "scanuploadqrcode.notification.error.location.pdfscan": "QR-Code nicht erkannt",
     "scanuploadqrcode.notification.error.location.preparation": "Vorbereitung fehlgeschlagen",
-    "secret.alreadyregistered.headline": "Wahlberechtigung bereits verwendet",
+    "secret.alreadyregistered.headline": "Wahlberechtigung bereits ausgestellt",
     "secret.alreadyregistered.loadballot": "Wahlschein laden",
     "secret.alreadyregistered.loadkey": "Sicherheits-Schlüssel laden",
     "secret.alreadyregistered.text": "Sie haben bereits einen Wahlschein basierend auf Ihrem Sicherheits-Schlüssel beantragt.\nDie Erstellung eines neuen Sicherheits-Schlüssels ist daher nicht erforderlich und für diese Wahl deaktiviert.",

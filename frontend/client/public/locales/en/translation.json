@@ -388,7 +388,7 @@
     "scanuploadqrcode.notification.error.location.pdfconversion": "PDF processing failed",
     "scanuploadqrcode.notification.error.location.pdfscan": "QR code not recognized",
     "scanuploadqrcode.notification.error.location.preparation": "Preparation failed",
-    "secret.alreadyregistered.headline": "Vote authorization already used",
+    "secret.alreadyregistered.headline": "Vote authorization already issued",
     "secret.alreadyregistered.loadballot": "Load election permit",
     "secret.alreadyregistered.loadkey": "Load security key",
     "secret.alreadyregistered.text": "You already have an election permit based on your security key.\nIt is therefore not necessary to create a new security key, and this option has been disabled for this election.",
