@@ -41,6 +41,7 @@ export default function Register() {
     const [electionState, setElectionState] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
+    const [inOverlap, setInOverlap] = useState(false);
     const [registerCode, setRegisterCode] = useState("");
     const [showMod, setShowMod] = useState(false);
     const [registrationErrorDetails, setRegistrationErrorDetails] = useState(null);
@@ -254,6 +255,7 @@ export default function Register() {
         setEndDate(tempEndTime);
         const state = Number(currentTime) < Number(voting.election.votingStartTime) ? globalConst.electionState.PLANNED : Number(currentTime) < Number(voting.election.votingEndTime) ? globalConst.electionState.ONGOING : globalConst.electionState.FINISHED;
         setElectionState(state);
+        setInOverlap(voting.election.votingStartTime < voting.election.registrationEndTime && state !== globalConst.electionState.PLANNED);
 
         // register already given? only show it
         if (voting.registerCode.length > 0) {
@@ -609,6 +611,28 @@ export default function Register() {
                                             />
                                         </div>
                                     </>
+                                )}
+
+                                {inOverlap && (
+                                    <div className="op__margin_standard_20_top_bottom">
+                                        <p dangerouslySetInnerHTML={{ __html: t("register.popup.aftersave.infotext") }} />
+                                        <p>
+                                            {t('register.popup.aftersave.checkballotpaper')}
+                                        <strong>
+                                            <a
+                                                className={notificationStyles.linkButton}
+                                                href="#check-load-ballot"
+                                                onClick={(event) => {
+                                                    event.preventDefault();
+                                                    updatePage({ current: globalConst.pages.CHECKLOADBALLOT });
+                                                }}
+                                            >
+                                                {t('register.popup.aftersave.checkballotpaperLinktext')}
+                                            </a>
+                                        </strong>
+                                    </p>
+
+                                    </div>
                                 )}
 
                                 <div className="op__display_none_small op__display_none_wide">
