@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import Link from 'next/link';
-import { useTranslation, Trans } from "next-i18next";
+import { useTranslation } from "next-i18next";
 import Button from '@/components/Button';
 import Loading from '@/components/Loading';
 import Headline from "@/components/Headline";
@@ -179,19 +178,6 @@ export default function VoteTransaction() {
         }
     };
 
-    const BlockchainLinkText = (props) => {
-        const { transactionHash } = props;
-        const shortLink = `https://gnosis.blockscout.com/tx/${transactionHash}`;
-        return (
-            <Link
-                target="_blank"
-                href={shortLink}
-            >
-                {props.children}
-            </Link>
-        );
-    };
-
     useEffect(() => {
         if (isCheckingTransaction) {
             setIsCheckingTransaction(false);
@@ -248,20 +234,24 @@ export default function VoteTransaction() {
                     {voteResultState.transactionState !== TRANSACTION_STATE_PENDING && (
                         <>
                             <h3 className={styles.itemvalue}>{voteResultState.transactionStateText}</h3>
-                            <div className={styles.itemlabel}>{voteResultState.transactionStateSubText}</div>
+                            {voteResultState.transactionState === TRANSACTION_STATE_SUCCESS && (
+                                <p className="op__padding_standard_bottom">
+                                    {t('votetransactionstate.success.text')}
+                                </p>
+                            )}
+                            <div
+                                className={styles.itemlabel}
+                                style={voteResultState.transactionState === TRANSACTION_STATE_SUCCESS
+                                    ? { marginBottom: 0 }
+                                    : null}
+                            >
+                                {voteResultState.transactionStateSubText}
+                            </div>
                         </>
                     )}
                     <div className={styles.itemheadline}>
                         {transactionHash ? (
                             <>
-                                <p className="op__padding_standard_bottom">
-                                    <Trans
-                                        i18nKey="votetransactionstate.statusWithLink"
-                                        components={{
-                                            CustomLink: <BlockchainLinkText transactionHash={transactionHash} />
-                                        }}
-                                    />
-                                </p>
                                 {voting.electionId == 15 && (<>
                                     <p className="op__padding_standard_bottom" dangerouslySetInnerHTML={{ __html: t("votetransactionstate.election15.1") }} />
                                     <p className="op__padding_standard_bottom" dangerouslySetInnerHTML={{ __html: t("votetransactionstate.election15.2") }} />
