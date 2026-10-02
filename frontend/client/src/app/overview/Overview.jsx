@@ -166,6 +166,9 @@ export default function Overview() {
                         {voting.jwt && user.key && Object.keys(voting.election).length > 0 && !box.past && (
                             <Button className={styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.REGISTER)}>{t("overview.box.ballot.button.register")}</Button>
                         )}
+                        {box.active && !box.canVote && (
+                            <Button onClick={() => goToPage(globalConst.pages.LOADBALLOT)}>{t("overview.box.ballot.button.load")}</Button>
+                        )}
                         {box.canVote && (
                             <Button className={user.key ? '' : styles.boxButtonActive} onClick={() => goToPage(globalConst.pages.POLLINGSTATION)}>{t("overview.box.ballot.button.load")}</Button>
                         )}
