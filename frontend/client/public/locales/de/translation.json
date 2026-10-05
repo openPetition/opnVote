@@ -452,7 +452,7 @@
     "votetransactionstate.statuslabel": "Status",
     "votetransactionstate.statustext.checking": "Bitte haben Sie einen Moment Geduld und schließen Sie nicht dieses Fenster.",
     "votetransactionstate.statustext.pending": "Bitte haben Sie einen Moment Geduld und schließen Sie nicht dieses Fenster.",
-    "votetransactionstate.statustext.success": "Ihre Stimme wurde verschlüsselt in eine dezentrale und sichere Datenbank (Blockchain) geschrieben.",
+    "votetransactionstate.statustext.success": "Ihre Stimme wurde verschlüsselt in eine dezentrale und sichere Datenbank (<CustomLink>Blockchain</CustomLink>) geschrieben.",
     "votetransactionstate.statustitle.checking": "Wird Abgefragt",
     "votetransactionstate.statustitle.error": "Fehler",
     "votetransactionstate.statustitle.pending": "In Verarbeitung...",

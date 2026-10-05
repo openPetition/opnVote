@@ -452,7 +452,7 @@
     "votetransactionstate.statuslabel": "Status",
     "votetransactionstate.statustext.checking": "Please wait a moment and do not close this window.",
     "votetransactionstate.statustext.pending": "Please wait a moment and do not close this window.",
-    "votetransactionstate.statustext.success": "Your vote was encrypted and immutably written into a decentralized and secure database (blockchain).",
+    "votetransactionstate.statustext.success": "Your vote was encrypted and immutably written into a decentralized and secure database (<CustomLink>blockchain</CustomLink>).",
     "votetransactionstate.statustitle.checking": "Is being queried",
     "votetransactionstate.statustitle.error": "Error",
     "votetransactionstate.statustitle.pending": "Processing...",

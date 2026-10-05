@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { useTranslation } from "next-i18next";
+import Link from 'next/link';
+import { useTranslation, Trans } from "next-i18next";
 import Button from '@/components/Button';
 import Loading from '@/components/Loading';
 import Headline from "@/components/Headline";
@@ -178,6 +179,19 @@ export default function VoteTransaction() {
         }
     };
 
+    const BlockchainLinkText = (props) => {
+        const { transactionHash } = props;
+        const shortLink = `https://gnosis.blockscout.com/tx/${transactionHash}`;
+        return (
+            <Link
+                target="_blank"
+                href={shortLink}
+            >
+                {props.children}
+            </Link>
+        );
+    };
+
     useEffect(() => {
         if (isCheckingTransaction) {
             setIsCheckingTransaction(false);
@@ -245,7 +259,14 @@ export default function VoteTransaction() {
                                     ? { marginBottom: 0 }
                                     : null}
                             >
-                                {voteResultState.transactionStateSubText}
+                                {transactionHash ? (
+                                    <Trans
+                                        i18nKey="votetransactionstate.statustext.success"
+                                        components={{
+                                            CustomLink: <BlockchainLinkText transactionHash={transactionHash} />
+                                        }}
+                                    />
+                                ) : voteResultState.transactionStateSubText}
                             </div>
                         </>
                     )}
