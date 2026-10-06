@@ -457,6 +457,7 @@
     "votetransactionstate.statustitle.error": "Fehler",
     "votetransactionstate.statustitle.pending": "In Verarbeitung...",
     "votetransactionstate.statustitle.success": "Erfolg",
-    "votetransactionstate.success.text": "Sie haben erfolgreich Ihre Stimme abgegeben! Wir werden das Ergebnis Anfang November auf unserer Webseite sowie per E-Mail veröffentlichen. Sie können diese Seite nun schließen.",
+    "votetransactionstate.success.text": "Sie haben erfolgreich Ihre Stimme abgegeben! {{resultNotice}}Sie können diese Seite nun schließen.",
+    "votetransactionstate.success.result": "Wir werden das Ergebnis Anfang November auf unserer Webseite sowie per E-Mail veröffentlichen.",
     "votetransactionstate.transaction": "Blockchain Transaktion"
 }

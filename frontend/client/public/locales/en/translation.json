@@ -457,6 +457,7 @@
     "votetransactionstate.statustitle.error": "Error",
     "votetransactionstate.statustitle.pending": "Processing...",
     "votetransactionstate.statustitle.success": "Success",
-    "votetransactionstate.success.text": "You have successfully cast your vote! We will publish the result in early November on our website and via email. You can now close this page.",
+    "votetransactionstate.success.text": "You have successfully cast your vote! {{resultNotice}}You can now close this page.",
+    "votetransactionstate.success.result": "We will publish the result in early November on our website and via email.",
     "votetransactionstate.transaction": "Blockchain transaction"
 }

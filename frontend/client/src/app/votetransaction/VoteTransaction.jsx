@@ -250,7 +250,11 @@ export default function VoteTransaction() {
                             <h3 className={styles.itemvalue}>{voteResultState.transactionStateText}</h3>
                             {voteResultState.transactionState === TRANSACTION_STATE_SUCCESS && (
                                 <p className="op__padding_standard_bottom">
-                                    {t('votetransactionstate.success.text')}
+                                    {t('votetransactionstate.success.text', {
+                                        resultNotice: Number(voting.electionId) === 32
+                                            ? `${t('votetransactionstate.success.result')} `
+                                            : '',
+                                    })}
                                 </p>
                             )}
                             <div
