@@ -449,14 +449,15 @@
     "votetransactionstate.pending.retry": "Erneut prüfen",
     "votetransactionstate.pending.text": "Die Verarbeitung Ihrer Stimme dauert länger als üblich. Das kann vorkommen. Bitte prüfen Sie den Status zunächst erneut. Falls das nicht hilft, versuchen Sie bitte erneut abzustimmen. Sollte sich der Fehler wiederholen, rufen Sie bitte die technischen Details auf und wenden Sie sich an die Wahlleitung.",
     "votetransactionstate.status": "Ihre Stimme wird nun verschlüsselt und unveränderlich in eine dezentrale und sichere Datenbank - die Blockchain - geschrieben. ",
-    "votetransactionstate.statusWithLink": "Ihre Stimme wird nun verschlüsselt in eine dezentrale und sichere Datenbank - die <CustomLink>Blockchain</CustomLink> - geschrieben. ",
     "votetransactionstate.statuslabel": "Status",
     "votetransactionstate.statustext.checking": "Bitte haben Sie einen Moment Geduld und schließen Sie nicht dieses Fenster.",
     "votetransactionstate.statustext.pending": "Bitte haben Sie einen Moment Geduld und schließen Sie nicht dieses Fenster.",
-    "votetransactionstate.statustext.success": "Sie haben erfolgreich an der Wahl teilgenommen!",
+    "votetransactionstate.statustext.success": "Ihre Stimme wurde verschlüsselt in eine dezentrale und sichere Datenbank (<CustomLink>Blockchain</CustomLink>) geschrieben.",
     "votetransactionstate.statustitle.checking": "Wird Abgefragt",
     "votetransactionstate.statustitle.error": "Fehler",
     "votetransactionstate.statustitle.pending": "In Verarbeitung...",
     "votetransactionstate.statustitle.success": "Erfolg",
+    "votetransactionstate.success.text": "Sie haben erfolgreich Ihre Stimme abgegeben! {{resultNotice}}Sie können diese Seite nun schließen.",
+    "votetransactionstate.success.result": "Wir werden das Ergebnis Anfang November auf unserer Webseite sowie per E-Mail veröffentlichen.",
     "votetransactionstate.transaction": "Blockchain Transaktion"
 }

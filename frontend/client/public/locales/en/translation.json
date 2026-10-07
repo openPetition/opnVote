@@ -449,14 +449,15 @@
     "votetransactionstate.pending.retry": "Check again",
     "votetransactionstate.pending.text": "The processing of your vote is taking longer than usual. This can happen. First, please check the status again. It this error occurs again, try submitting another vote. If this error occurs yet again, please open the technical details below and contact the election office.",
     "votetransactionstate.status": "Your vote is now being encrypted and immutably written into a decentralised and secure database - the blockchain.",
-    "votetransactionstate.statusWithLink": "Your vote will now be encrypted and written into a decentralized and secure database - the <CustomLink>blockchain</CustomLink> .",
     "votetransactionstate.statuslabel": "Status",
     "votetransactionstate.statustext.checking": "Please wait a moment and do not close this window.",
     "votetransactionstate.statustext.pending": "Please wait a moment and do not close this window.",
-    "votetransactionstate.statustext.success": "You have successfully participated in the election!",
+    "votetransactionstate.statustext.success": "Your vote was encrypted and immutably written into a decentralized and secure database (<CustomLink>blockchain</CustomLink>).",
     "votetransactionstate.statustitle.checking": "Is being queried",
     "votetransactionstate.statustitle.error": "Error",
     "votetransactionstate.statustitle.pending": "Processing...",
     "votetransactionstate.statustitle.success": "Success",
+    "votetransactionstate.success.text": "You have successfully cast your vote! {{resultNotice}}You can now close this page.",
+    "votetransactionstate.success.result": "We will publish the result in early November on our website and via email.",
     "votetransactionstate.transaction": "Blockchain transaction"
 }
