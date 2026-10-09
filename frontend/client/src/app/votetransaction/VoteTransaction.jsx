@@ -251,20 +251,35 @@ export default function VoteTransaction() {
                             aria-atomic="true"
                         >
                             <h3 className={styles.itemvalue}>{voteResultState.transactionStateText}</h3>
-                            <div className={styles.itemlabel}>{voteResultState.transactionStateSubText}</div>
+                            {voteResultState.transactionState === TRANSACTION_STATE_SUCCESS && (
+                                <p className="op__padding_standard_bottom">
+                                    {t('votetransactionstate.success.text', {
+                                        resultNotice: Number(voting.electionId) === 32
+                                            ? `${t('votetransactionstate.success.result')} `
+                                            : '',
+                                    })}
+                                </p>
+                            )}
+                            <div
+                                className={styles.itemlabel}
+                                style={voteResultState.transactionState === TRANSACTION_STATE_SUCCESS
+                                    ? { marginBottom: 0 }
+                                    : null}
+                            >
+                                {transactionHash ? (
+                                    <Trans
+                                        i18nKey="votetransactionstate.statustext.success"
+                                        components={{
+                                            CustomLink: <BlockchainLinkText transactionHash={transactionHash} />
+                                        }}
+                                    />
+                                ) : voteResultState.transactionStateSubText}
+                            </div>
                         </div>
                     )}
                     <div className={styles.itemheadline}>
                         {transactionHash ? (
                             <>
-                                <p className="op__padding_standard_bottom">
-                                    <Trans
-                                        i18nKey="votetransactionstate.statusWithLink"
-                                        components={{
-                                            CustomLink: <BlockchainLinkText transactionHash={transactionHash} />
-                                        }}
-                                    />
-                                </p>
                                 {voting.electionId == 15 && (<>
                                     <p className="op__padding_standard_bottom" dangerouslySetInnerHTML={{ __html: t("votetransactionstate.election15.1") }} />
                                     <p className="op__padding_standard_bottom" dangerouslySetInnerHTML={{ __html: t("votetransactionstate.election15.2") }} />
