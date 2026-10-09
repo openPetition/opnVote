@@ -248,7 +248,6 @@ export default function VoteTransaction() {
                     {voteResultState.transactionState !== TRANSACTION_STATE_PENDING && (
                         <div
                             role="status"
-                            aria-live="polite"
                             aria-atomic="true"
                         >
                             <h3 className={styles.itemvalue}>{voteResultState.transactionStateText}</h3>

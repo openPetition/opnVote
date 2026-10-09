@@ -185,8 +185,6 @@ export default function BallotPaper(props) {
                             <div
                                 className="op__flex_center-center"
                                 role="status"
-                                aria-live="polite"
-                                aria-atomic="true"
                             >
                                 <Loading theme="small"/><span>{t('pollingstation.button.pending')}</span>
                             </div>
