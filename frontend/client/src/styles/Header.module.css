@@ -52,6 +52,11 @@
 
 .menuBox .headerbar_point {
     display: flex;
+    align-items: center;
+}
+
+.menuBox .headerbar_point > span {
+    white-space: nowrap;
 }
 
 .menuBoxOpen {
