@@ -246,7 +246,10 @@ export default function VoteTransaction() {
             <div className="op__contentbox_max op__center-align op__padding_standard">
                 <div className={styles.item}>
                     {voteResultState.transactionState !== TRANSACTION_STATE_PENDING && (
-                        <>
+                        <div
+                            role="status"
+                            aria-atomic="true"
+                        >
                             <h3 className={styles.itemvalue}>{voteResultState.transactionStateText}</h3>
                             {voteResultState.transactionState === TRANSACTION_STATE_SUCCESS && (
                                 <p className="op__padding_standard_bottom">
@@ -272,7 +275,7 @@ export default function VoteTransaction() {
                                     />
                                 ) : voteResultState.transactionStateSubText}
                             </div>
-                        </>
+                        </div>
                     )}
                     <div className={styles.itemheadline}>
                         {transactionHash ? (

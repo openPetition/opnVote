@@ -22,6 +22,8 @@ export default function Modal(props) {
     } = props;
     const { t } = useTranslation();
     const modalRef = useRef(null);
+    const ctaButtonRef = useRef(null);
+    const previouslyFocusedElementRef = useRef(null);
 
     const closeModal = () => {
         if (onClose) {
@@ -40,18 +42,23 @@ export default function Modal(props) {
             closeModal();
         }
     };
+
     useEffect(() => {
         if (showModal) {
+            previouslyFocusedElementRef.current = document.activeElement;
             document.addEventListener('mousedown', handleClickOutside);
             document.addEventListener('keydown', handleEscape);
-        } else {
-            document.removeEventListener('mousedown', handleClickOutside);
-            document.removeEventListener('keydown', handleEscape);
+            const initialFocusElement = ctaButtonRef.current
+                || modalRef.current?.querySelector('[data-modal-body] button:not([disabled])');
+            initialFocusElement?.focus();
         }
 
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('keydown', handleEscape);
+            if (showModal && previouslyFocusedElementRef.current?.isConnected) {
+                previouslyFocusedElementRef.current.focus();
+            }
         };
     }, [showModal]);
 
@@ -62,10 +69,14 @@ export default function Modal(props) {
                 <>
                     <div className={styles.modal}
                         style={{ display: showModal ? 'inline-block' : 'none' }}
-                        aria-modal="true"
-                        aria-hidden={!showModal}
                     >
-                        <div className={`${styles.modalDialog} ${styles.modalDialogCentered}`} role="dialog" aria-labelledby="modalTitle" ref={modalRef}>
+                        <div
+                            className={`${styles.modalDialog} ${styles.modalDialogCentered}`}
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="modalTitle"
+                            ref={modalRef}
+                        >
                             <div className={`${styles.modalContent} ${contentClassName || ''}`}>
                                 <div className={styles.modalHeader}>
 
@@ -89,13 +100,14 @@ export default function Modal(props) {
                                     )}
                                 </div>
 
-                                <div className={styles.modalBody}>
+                                <div className={styles.modalBody} data-modal-body>
                                     {children}
                                 </div>
 
                                 {ctaButtonText && (
                                     <div className={styles.modalFooter}>
                                         <Button
+                                            ref={ctaButtonRef}
                                             onClick={ctaButtonFunction}
                                             type={ctaButtonType}
                                             stretched={true}

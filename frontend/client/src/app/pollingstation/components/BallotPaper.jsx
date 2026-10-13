@@ -182,7 +182,10 @@ export default function BallotPaper(props) {
                             >{t("pollingstation.button.savevotes")}</Button>
                         </div>
                         {ballotStationState.pending && (
-                            <div className="op__flex_center-center">
+                            <div
+                                className="op__flex_center-center"
+                                role="status"
+                            >
                                 <Loading theme="small"/><span>{t('pollingstation.button.pending')}</span>
                             </div>
                         )}
