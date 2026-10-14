@@ -1,0 +1,7 @@
+export enum ErrorCode {
+    KEY_INVALID = "KEY_INVALID",
+    KEY_VERIFY_FAILED = "KEY_VERIFY_FAILED",
+    RPC_NETWORK = "RPC_NETWORK",
+}
+
+export const RETRY_AFTER_MS = 3_000;

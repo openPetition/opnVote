@@ -4,6 +4,7 @@ export default defineConfig({
   entry: {
     index: 'src/index.ts',
     'client/index': 'src/client/index.ts',
+    'admin/index': 'src/admin/index.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,

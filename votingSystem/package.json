@@ -29,6 +29,16 @@
         "types": "./dist/client/index.d.ts",
         "default": "./dist/client/index.js"
       }
+    },
+    "./admin": {
+      "import": {
+        "types": "./dist/admin/index.d.mts",
+        "default": "./dist/admin/index.mjs"
+      },
+      "require": {
+        "types": "./dist/admin/index.d.ts",
+        "default": "./dist/admin/index.js"
+      }
     }
   },
   "scripts": {

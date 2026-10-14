@@ -34,12 +34,12 @@ export function validateHexString(
 ): void {
   if (hexStringObject.hexString.length !== expectedLength) {
     throw new Error(
-      `Invalid token length. Expected length: ${expectedLength}, but got: ${hexStringObject.hexString.length}. Token: ${hexStringObject.hexString}`,
+      `Invalid token length. Expected length: ${expectedLength}, but got: ${hexStringObject.hexString.length}. Token: ${trunc(hexStringObject.hexString)}`,
     )
   }
 
   if (!isValidHex(hexStringObject.hexString, shouldBeLowerCase, allowZero)) {
-    throw new Error(`Invalid token format. Token: ${hexStringObject.hexString}`)
+    throw new Error(`Invalid token format. Token: ${trunc(hexStringObject.hexString)}`)
   }
 }
 
@@ -251,17 +251,23 @@ export function nobleG2ToEvm(hex: string): string {
  * EVM expects (c0, c1); Fp2 is emitted as (c1, c0), so coordinate order is swapped per Fp2 component.
  * @param hex - EIP-2537 format G2 hex
  * @returns uncompressed G2 hex ('0x' + 384 hex chars)
+ * @throws if hex is malformed or padding is not zero
  */
 export function evmG2ToNoble(hex: string): string {
   validateHexString({ hexString: hex }, 514, true)
   const raw = hex.slice(2)
   // EVM:   c0_x(64) + c1_x(64) + c0_y(64) + c1_y(64)
   // noble: c1_x(48) + c0_x(48) + c1_y(48) + c0_y(48)
-  const c0x = raw.slice(0, 128).slice(32)
-  const c1x = raw.slice(128, 256).slice(32)
-  const c0y = raw.slice(256, 384).slice(32)
-  const c1y = raw.slice(384, 512).slice(32)
-  return '0x' + c1x + c0x + c1y + c0y
+  const c0x = raw.slice(0, 128)
+  const c1x = raw.slice(128, 256)
+  const c0y = raw.slice(256, 384)
+  const c1y = raw.slice(384, 512)
+
+  // each 64-byte coordinate has to have a 16 bytes zero padding
+  if ([c0x, c1x, c0y, c1y].some((c) => c.slice(0, 32) !== '0'.repeat(32))) {
+    throw new Error('Invalid G2 point: padding must be zero')
+  }
+  return '0x' + c1x.slice(32) + c0x.slice(32) + c1y.slice(32) + c0y.slice(32)
 }
 
 /**
@@ -476,6 +482,7 @@ export function normalizeHexString(hexString: string): string {
  * Converts a hexadecimal string to a bigint.
  * @param hexString - The hexadecimal string to convert.
  * @returns The bigint representation of the hexadecimal string.
+ * @throws if the string is not a hex
  */
 export function hexStringToBigInt(hexString: string): bigint {
   // Ensure the hexString is 0x prefixed
@@ -484,8 +491,11 @@ export function hexStringToBigInt(hexString: string): bigint {
   }
 
   // Convert the hex string to a bigint
-  const messageBigInt = BigInt(hexString)
-  return messageBigInt
+  try {
+    return BigInt(hexString)
+  } catch {
+    throw new Error(`Invalid hex string: ${trunc(hexString)}`)
+  }
 }
 
 /**
@@ -655,10 +665,20 @@ export function stringToVotes(
  * Converts a hex string into a Uint8Array. Adds '0x'-prefix if missing.
  * @param {string} hexString -  hex string to convert
  * @returns {Uint8Array} byte array representing binary data
+ * @throws if the string is not a valid hex
  */
 export function hexToBuffer(hexString: string): Uint8Array {
   if (!hexString.startsWith('0x')) {
     hexString = '0x' + hexString
   }
-  return ethers.getBytes(hexString)
+  try {
+    return ethers.getBytes(hexString)
+  } catch {
+    throw new Error(`Invalid hex string: ${trunc(hexString)}`)
+  }
+}
+
+
+function trunc(value: string): string {
+  return value.length > 6 ? `${value.slice(0, 6)}...` : value
 }

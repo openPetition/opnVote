@@ -27,6 +27,7 @@ import {
 import { OPNVOTE_ABI, PAYMASTER_ABI } from "./abi";
 import { RULES_GAS_DEFAULTS, GAS_PRICE_BUFFER_NUM, GAS_PRICE_BUFFER_DEN } from "./gasDefaults";
 import { ErrorCode, RETRY_AFTER_GASPRICE_MS, RETRY_AFTER_MS } from "./errors";
+import { REQUEST_TIMEOUT_MS, rpcProvider, withTimeout } from "./utils";
 import type {
     CheckVoteParams,
     Configuration,
@@ -41,27 +42,6 @@ import type {
     VoteResult,
     VoteStatus,
 } from "./types";
-
-const REQUEST_TIMEOUT_MS = 15_000;
-
-function rpcProvider(rpcUrl: string, chainId: number): ethers.JsonRpcProvider {
-    const req = new ethers.FetchRequest(rpcUrl);
-    req.timeout = REQUEST_TIMEOUT_MS;
-    const network = ethers.Network.from(chainId);
-    return new ethers.JsonRpcProvider(req, network, { staticNetwork: network });
-}
-
-async function withTimeout<T>(p: Promise<T>): Promise<T> {
-    let timer: ReturnType<typeof setTimeout>;
-    const timeout = new Promise<never>((_, reject) => {
-        timer = setTimeout(() => reject(new Error(`rpc timeout after ${REQUEST_TIMEOUT_MS}ms`)), REQUEST_TIMEOUT_MS);
-    });
-    try {
-        return await Promise.race([p, timeout]);
-    } finally {
-        clearTimeout(timer!);
-    }
-}
 
 async function fetchWithTimeout(url: string, params: RequestInit): Promise<Response> {
     const controller = new AbortController();

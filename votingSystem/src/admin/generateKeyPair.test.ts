@@ -1,4 +1,5 @@
-import { generateKeyPair, generateKeyPairRaw } from './generateKeyPair';
+import { generateKeyPair, generateKeyPairRaw, signDummyToken, validateKeyPair } from './generateKeyPair';
+import { verifyUnblindedSignature } from '../blind-signature/generateTokens';
 import { isValidHex, validateBlsParams } from '../utils/utils'
 import { BlsParams } from '../types/types';
 import { BLS_G2_HEX_LENGTH } from '../utils/constants';
@@ -20,6 +21,26 @@ describe('generateKeyPair', () => {
         // Check private key length (2048 bits RSA privKey)
         expect(privateKey.length).toBeGreaterThan(2200);
 
+    });
+});
+
+describe('validateKeyPair', () => {
+    it('should accept a generated key pair', async () => {
+        const { publicKey, privateKey } = await generateKeyPair();
+        await expect(validateKeyPair(publicKey, privateKey)).resolves.toBeUndefined();
+    });
+
+    it('should reject keys of two different pairs', async () => {
+        const [a, b] = await Promise.all([generateKeyPair(), generateKeyPair()]);
+        await expect(validateKeyPair(a.publicKey, b.privateKey)).rejects.toThrow('Failed to decrypt votes');
+    });
+
+    it('should reject a malformed private key', async () => {
+        const { publicKey, privateKey } = await generateKeyPair();
+        const broken = privateKey.slice(0, -2) + 'zz';
+
+        const error: Error = await validateKeyPair(publicKey, broken).catch((e) => e);
+        expect(error.message).toContain(`Invalid hex string: ${broken.slice(0, 6)}...`);
     });
 });
 
@@ -61,5 +82,18 @@ describe('validateBlsParams', () => {
         const valid = generateKeyPairRaw();
         expect(() => validateBlsParams({ sk: 0n, pk: valid.pk })).toThrow("BLS sk is out of range");
         expect(() => validateBlsParams({ sk: bls12_381.fields.Fr.ORDER, pk: valid.pk })).toThrow("BLS sk is out of range");
+    });
+});
+
+describe('signDummyToken', () => {
+    it('should sign a dummy token that verifies only with the correct public key', () => {
+        const blsParams = generateKeyPairRaw();
+        const { message, signature } = signDummyToken(blsParams);
+
+        const raw = signature.slice(2);
+        const unpadded = { hexString: '0x' + raw.slice(32, 128) + raw.slice(160, 256), isBlinded: false };
+        const token = { hexString: message, isBlinded: false };
+        expect(verifyUnblindedSignature(unpadded, token, { pk: blsParams.pk })).toBe(true);
+        expect(verifyUnblindedSignature(unpadded, token, { pk: generateKeyPairRaw().pk })).toBe(false);
     });
 });
