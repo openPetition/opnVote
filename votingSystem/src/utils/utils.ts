@@ -1,6 +1,7 @@
 import {
   BlsParams,
   ElectionCredentials,
+  ElectionIpfsData,
   EncryptedVotes,
   EncryptionKey,
   EncryptionType,
@@ -676,6 +677,33 @@ export function hexToBuffer(hexString: string): Uint8Array {
   } catch {
     throw new Error(`Invalid hex string: ${trunc(hexString)}`)
   }
+}
+
+/**
+ * Serializes the election IPFS data as json, which can be signed and pinned later on
+ * @param electionIpfsData - The election data to be serialized
+ * @returns json string
+ */
+export function serializeElectionIpfsData({
+  title,
+  headerImage,
+  description,
+  summary,
+  questions,
+  backLink,
+  registrationStartTime,
+  registrationEndTime,
+}: ElectionIpfsData): string {
+  return JSON.stringify({
+    title,
+    headerImage: { large: headerImage.large, small: headerImage.small },
+    description,
+    summary,
+    questions: questions.map(({ text, imageUrl }) => ({ text, imageUrl })),
+    backLink,
+    registrationStartTime,
+    registrationEndTime,
+  })
 }
 
 

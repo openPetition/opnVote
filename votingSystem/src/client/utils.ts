@@ -24,3 +24,13 @@ export async function withTimeout<T>(p: Promise<T>): Promise<T> {
         clearTimeout(timer!);
     }
 }
+
+export async function fetchWithTimeout(url: string, params: RequestInit): Promise<Response> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+        return await fetch(url, { ...params, signal: controller.signal });
+    } finally {
+        clearTimeout(timer);
+    }
+}

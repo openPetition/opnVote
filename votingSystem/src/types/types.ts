@@ -178,3 +178,25 @@ export type QuestionResult = {
     invalid: number;
     invalidTechnical: number;
 };
+
+/**
+ * Election data (ipfs)
+ * @property {string} title - Title of the election
+ * @property {{ large: string; small: string }} headerImage - Header image URLs (desktop/mobile)
+ * @property {string} description -  Description text of the election
+ * @property {string} summary - Summary text of the election
+ * @property {{ text: string; imageUrl: string }[]} questions - Questions and corresponding image URLs
+ * @property {string} backLink - Link to the election coordinator
+ * @property {number} registrationStartTime - Start of the registration (unix timestamp)
+ * @property {number} registrationEndTime - End of the registration (unix timestamp)
+ */
+export type ElectionIpfsData = {
+    title: string;
+    headerImage: { large: string; small: string };
+    description: string;
+    summary: string;
+    questions: { text: string; imageUrl: string }[];
+    backLink: string;
+    registrationStartTime: number;
+    registrationEndTime: number;
+};

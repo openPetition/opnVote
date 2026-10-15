@@ -1,8 +1,8 @@
 import type { Address, Chain } from "viem";
 import type { ErrorCode } from "./errors";
-import type { PrivateKeyDer, PublicKeyDer } from "../types/types";
+import type { ElectionIpfsData, PrivateKeyDer, PublicKeyDer } from "../types/types";
 
-export type { ErrorCode };
+export type { ElectionIpfsData, ErrorCode };
 
 /**
  * Request results
@@ -20,11 +20,21 @@ export type Contracts = {
 };
 
 /**
+ * Backend endpoints
+ * @property {string} ipfsUrl - IPFS pinning server
+ */
+export type Endpoints = {
+    ipfsUrl?: string;
+};
+
+/**
+ * @property {Endpoints} endpoints - backend endpoints
  * @property {Contracts} contracts - contract addresses
  * @property {string} rpcUrl - rpc endpoint
  * @property {Chain} chain - chain
  */
 export type Configuration = {
+    endpoints?: Endpoints;
     contracts: Contracts;
     rpcUrl: string;
     chain: Chain;
@@ -51,6 +61,16 @@ export type RegisterKeys = {
 };
 
 /**
+ * Parameters for pinElection
+ * @property {ElectionIpfsData} ipfsData - Election IPFS data
+ * @property {string} signature - signature of the pin message
+ */
+export type PinElectionParams = {
+    ipfsData: ElectionIpfsData;
+    signature: string;
+};
+
+/**
  * Admin client
  */
 export type AdminClient = {
@@ -58,4 +78,6 @@ export type AdminClient = {
     generateRegisterKeys(): RegisterKeys;
     verifyElectionKeys(keys: ElectionKeys): Promise<Result<void>>;
     verifyRegisterKeys(keys: RegisterKeys): Promise<Result<void>>;
+    createPinMessage(ipfsData: ElectionIpfsData): string;
+    pinElection(params: PinElectionParams): Promise<Result<string>>;
 };

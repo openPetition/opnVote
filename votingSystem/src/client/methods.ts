@@ -27,7 +27,7 @@ import {
 import { OPNVOTE_ABI, PAYMASTER_ABI } from "./abi";
 import { RULES_GAS_DEFAULTS, GAS_PRICE_BUFFER_NUM, GAS_PRICE_BUFFER_DEN } from "./gasDefaults";
 import { ErrorCode, RETRY_AFTER_GASPRICE_MS, RETRY_AFTER_MS } from "./errors";
-import { REQUEST_TIMEOUT_MS, rpcProvider, withTimeout } from "./utils";
+import { fetchWithTimeout, rpcProvider, withTimeout } from "./utils";
 import type {
     CheckVoteParams,
     Configuration,
@@ -42,16 +42,6 @@ import type {
     VoteResult,
     VoteStatus,
 } from "./types";
-
-async function fetchWithTimeout(url: string, params: RequestInit): Promise<Response> {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-    try {
-        return await fetch(url, { ...params, signal: controller.signal });
-    } finally {
-        clearTimeout(timer);
-    }
-}
 
 /**
  * Sends POST-Request as JSON to backend or subgraph endpoint; Returns the data field
