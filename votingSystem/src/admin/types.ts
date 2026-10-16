@@ -71,6 +71,28 @@ export type PinElectionParams = {
 };
 
 /**
+ * Allowed author
+ * @property {string} walletAddress - author wallet address
+ * @property {string} name - author name and organization
+ */
+export type Author = {
+    walletAddress: string;
+    name: string;
+};
+
+/**
+ * Pinned election data
+ * @property {string} cid - ipfs cid
+ * @property {string} authorWalletAddress - wallet address of author
+ * @property {string} author - name and organization of author
+ */
+export type PinnedElection = {
+    cid: string;
+    authorWalletAddress: string;
+    author: string;
+};
+
+/**
  * Admin client
  */
 export type AdminClient = {
@@ -78,6 +100,7 @@ export type AdminClient = {
     generateRegisterKeys(): RegisterKeys;
     verifyElectionKeys(keys: ElectionKeys): Promise<Result<void>>;
     verifyRegisterKeys(keys: RegisterKeys): Promise<Result<void>>;
+    getAllowedAuthors(): Promise<Result<Author[]>>;
     createPinMessage(ipfsData: ElectionIpfsData): string;
-    pinElection(params: PinElectionParams): Promise<Result<string>>;
+    pinElection(params: PinElectionParams): Promise<Result<PinnedElection>>;
 };

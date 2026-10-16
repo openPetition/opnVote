@@ -1,7 +1,39 @@
 import { serializeElectionIpfsData, validateEthSignature } from "../utils/utils";
 import { fetchWithTimeout } from "../client/utils";
 import { ErrorCode, RETRY_AFTER_MS } from "./errors";
-import type { Configuration, ElectionIpfsData, PinElectionParams, Result } from "./types";
+import type { Author, Configuration, ElectionIpfsData, PinElectionParams, PinnedElection, Result } from "./types";
+
+/**
+ *
+ * List allowed authors
+ *
+ * @param config - Admin client config
+ * @returns allowed authors or error code
+ */
+export async function getAllowedAuthors(config: Configuration): Promise<Result<Author[]>> {
+    if (!config.endpoints?.ipfsUrl) throw new Error("endpoints.ipfsUrl is not defined");
+
+    let res: Response;
+    try {
+        res = await fetchWithTimeout(`${config.endpoints.ipfsUrl}/authors`, {});
+    } catch (e) {
+        return { ok: false, code: ErrorCode.PIN_NETWORK, error: `network error: ${String(e)}`, retryAfterMs: RETRY_AFTER_MS };
+    }
+
+    if (!res.ok) {
+        const error = `HTTP ${res.status}: ${await res.text().catch(() => "")}`;
+        return res.status >= 500 || res.status === 429
+            ? { ok: false, code: ErrorCode.PIN_NETWORK, error, retryAfterMs: RETRY_AFTER_MS }
+            : { ok: false, code: ErrorCode.PIN_REJECTED, error };
+    }
+
+    const authors = await res.json().catch(() => undefined);
+
+    if (!Array.isArray(authors)) {
+        return { ok: false, code: ErrorCode.PIN_NETWORK, error: "no authors in response", retryAfterMs: RETRY_AFTER_MS };
+    }
+    return { ok: true, value: authors };
+}
 
 /**
  * 
@@ -21,12 +53,12 @@ export function createPinMessage(ipfsData: ElectionIpfsData): string {
  * 
  * @param config - Admin client config
  * @param params - Election IPFS data and signature
- * @returns Result with CID or error code
+ * @returns Result with CID and author or error code
  */
 export async function pinElection(
     config: Configuration,
     params: PinElectionParams,
-): Promise<Result<string>> {
+): Promise<Result<PinnedElection>> {
     if (!config.endpoints?.ipfsUrl) throw new Error("endpoints.ipfsUrl is not defined");
 
     let message: string;
@@ -55,10 +87,10 @@ export async function pinElection(
             : { ok: false, code: ErrorCode.PIN_REJECTED, error };
     }
 
-    const json = (await res.json().catch(() => undefined)) as { cid?: string } | undefined;
+    const json = (await res.json().catch(() => undefined)) as Partial<PinnedElection> | undefined;
 
-    if (!json?.cid) {
-        return { ok: false, code: ErrorCode.PIN_NETWORK, error: "no cid in response", retryAfterMs: RETRY_AFTER_MS };
+    if (!json?.cid || !json.authorWalletAddress || !json.author) {
+        return { ok: false, code: ErrorCode.PIN_NETWORK, error: "no cid or author in response", retryAfterMs: RETRY_AFTER_MS };
     }
-    return { ok: true, value: json.cid };
+    return { ok: true, value: { cid: json.cid, authorWalletAddress: json.authorWalletAddress, author: json.author } };
 }

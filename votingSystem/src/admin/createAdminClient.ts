@@ -1,5 +1,5 @@
 import { generateElectionKeys, generateRegisterKeys, verifyElectionKeys, verifyRegisterKeys } from "./keys";
-import { createPinMessage, pinElection } from "./ipfs";
+import { createPinMessage, getAllowedAuthors, pinElection } from "./ipfs";
 import type { AdminClient, Configuration } from "./types";
 
 /**
@@ -27,6 +27,7 @@ export function createAdminClient(config: Configuration): AdminClient {
         generateRegisterKeys,
         verifyElectionKeys,
         verifyRegisterKeys: (keys) => verifyRegisterKeys(config, keys),
+        getAllowedAuthors: () => getAllowedAuthors(config),
         createPinMessage,
         pinElection: (params) => pinElection(config, params),
     };
