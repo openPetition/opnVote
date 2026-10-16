@@ -4,7 +4,7 @@ import fetch from 'node-fetch'
 import { ethers } from 'ethers'
 import FormData from 'form-data'
 import rateLimit from 'express-rate-limit'
-import { allowedAuthors } from './admins'
+import { loadAuthors } from './admins'
 import cors from 'cors'
 import { body, validationResult } from 'express-validator'
 import swaggerSpec from './swaggerConfig'
@@ -18,10 +18,13 @@ const IPFS_API = process.env.IPFS_API
 const SSL_KEY_PATH = process.env.SSL_KEY_PATH
 const SSL_CERT_PATH = process.env.SSL_CERT_PATH
 const SERVER_URL = process.env.SERVER_URL
+const ALLOWED_AUTHORS = process.env.ALLOWED_AUTHORS
 
-if (!IPFS_API || !SERVER_URL) {
+if (!IPFS_API || !SERVER_URL || !ALLOWED_AUTHORS) {
   throw new Error('Missing required environment variables')
 }
+
+const allowedAuthors = loadAuthors(ALLOWED_AUTHORS)
 
 if ((SSL_KEY_PATH && !SSL_CERT_PATH) || (!SSL_KEY_PATH && SSL_CERT_PATH)) {
   throw new Error('SSL_KEY_PATH and SSL_CERT_PATH must be provided for HTTPS')
@@ -149,7 +152,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
  *             $ref: '#/components/schemas/PinElectionDataRequest'
  *     responses:
  *       200:
- *         description: Election data successfully pinned to IPFS. Returns the CID of the pinned content.
+ *         description: Election data successfully pinned to IPFS. Returns the CID and the author.
  *         content:
  *           application/json:
  *             schema:
@@ -160,6 +163,10 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
  *                 message:
  *                   type: string
  *                 cid:
+ *                   type: string
+ *                 authorWalletAddress:
+ *                   type: string
+ *                 author:
  *                   type: string
  *       400:
  *         description: Missing or invalid election data or signature.
@@ -262,8 +269,8 @@ app.post(
     }
 
     try {
-      const hash = await uploadAndPinJSONData(electionData, signature)
-      res.json({ success: true, message: 'Election data pinned successfully', cid: hash })
+      const pinnedResult = await uploadAndPinJSONData(electionData, signature)
+      res.json({ success: true, message: 'Election data pinned successfully', ...pinnedResult })
     } catch (error) {
       const errorMessage = (error as Error).message
       console.error('Error verifying admin signature: ' + errorMessage)
@@ -278,17 +285,41 @@ app.post(
 )
 
 /**
+ * @swagger
+ * /authors:
+ *   get:
+ *     summary: Lists all allowed authors
+ *     responses:
+ *       200:
+ *         description: Wallet address and name of allowed authors
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   walletAddress:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ */
+app.get('/authors', (req, res) => {
+  res.json(allowedAuthors)
+})
+
+/**
  * Uploads and pins JSON data to IPFS after signature validation.
  *
  * @param {ElectionData} electionData - The election data to be pinned, containing description, summary, and questions.
  * @param {string} signature - Ethereum signature used to verify that the electionData is signed by an authorized admin.
- * @returns {Promise<string>} The hash of the pinned data on IPFS.
+ * @returns The cid and author of the pinned data
  * @throws {Error} Throws an error if the signature verification fails, the sender is not an authorized admin, or the IPFS add operation fails.
  */
 async function uploadAndPinJSONData(
   electionData: ElectionData,
   signature: string,
-): Promise<string> {
+): Promise<{ cid: string; authorWalletAddress: string; author: string }> {
   try {
     const message = JSON.stringify(electionData)
     const signerAddress = ethers.verifyMessage(message, signature).toLowerCase()
@@ -321,7 +352,7 @@ async function uploadAndPinJSONData(
       }
 
       const addResult = (await addResponse.json()) as { Hash: string }
-      return addResult.Hash
+      return { cid: addResult.Hash, authorWalletAddress: admin.walletAddress, author: admin.name }
     } catch (fetchError) {
       console.error('IPFS Connection Error:', fetchError)
       throw new Error(

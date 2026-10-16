@@ -1,8 +1,25 @@
+import { ethers } from 'ethers'
+
 export interface Admin {
-    walletAddress: string;
-    name: string;
+  walletAddress: string
+  name: string
 }
 
-export const allowedAuthors: Array<Admin> = [
-    { walletAddress: "0xCB3597629386f9C24C85AE3cDCb8Ec0BC6610b1E", name: "openpetiton.org" }
-];
+export function loadAuthors(value: string): Admin[] {
+  const entries = JSON.parse(value)
+
+  if (!Array.isArray(entries) || entries.length === 0) {
+    throw new Error('ALLOWED_AUTHORS must a json array')
+  }
+
+  const authors: Admin[] = []
+  for (const { walletAddress, name } of entries) {
+    if (!name) {
+      throw new Error(`ALLOWED_AUTHORS: name missing for ${walletAddress}`)
+    }
+
+    authors.push({ walletAddress: ethers.getAddress(walletAddress), name })
+  }
+
+  return authors
+}
