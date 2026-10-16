@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, type ChangeEvent, type CSSProperties } from "react";
+import { useEffect, useState, type ChangeEvent, type CSSProperties } from "react";
 import { createAdminClient, ErrorCode } from "votingsystem/admin";
-import type { ElectionIpfsData, ElectionKeys, RegisterKeys, Result } from "votingsystem/admin";
+import type { Author, ElectionIpfsData, ElectionKeys, RegisterKeys, Result } from "votingsystem/admin";
 import { createWalletClient, custom, type Address, type EIP1193Provider } from "viem";
 import { gnosis } from "viem/chains";
 
@@ -118,9 +118,14 @@ export default function Home() {
     const [registerKeys, setRegisterKeys] = useState<RegisterKeys | null>(null);
     const [ipfsForm, setIpfsForm] = useState<IpfsForm>(PREFILL_IPFS_FORM);
     const [account, setAccount] = useState<Address | null>(null);
+    const [authors, setAuthors] = useState<Result<Author[]> | null>(null);
     const [cid, setCid] = useState<string | null>(null);
     const [log, setLog] = useState<string[]>([]);
     const [busy, setBusy] = useState(false);
+
+    useEffect(() => {
+        admin.getAllowedAuthors().then(setAuthors);
+    }, []);
 
     const add = (line: string) => setLog((prev) => [...prev, line]);
     const replaceLast = (line: string) => setLog((prev) => [...prev.slice(0, -1), line]);
@@ -212,9 +217,11 @@ export default function Home() {
             const pinned = await step("Pinning election data", async () =>
                 checkResult(await admin.pinElection({ ipfsData, signature })));
             if (!pinned) return;
-            setCid(pinned);
-            add(`CID: ${pinned}`);
+            setCid(pinned.cid);
+            add(`CID: ${pinned.cid} (Author: ${pinned.author}, Wallet: ${pinned.authorWalletAddress})`);
         });
+
+    const isAllowed = authors?.ok && authors.value.some((a) => a.walletAddress.toLowerCase() === account?.toLowerCase());
 
     const btn = { padding: "0.4rem 0.8rem", fontSize: 14 };
     const row: CSSProperties = { display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "1rem" };
@@ -288,10 +295,24 @@ export default function Home() {
                         <button style={btn} disabled={busy || ipfsForm.questions.length < 2} onClick={() => updateIpfsForm({ questions: ipfsForm.questions.slice(0, -1) })}>- question</button>
                     </div>
 
-                    <div style={{ ...row, borderTop: "1px solid #ddd", paddingTop: "1rem" }}>
+                    <div style={{ borderTop: "1px solid #ddd", paddingTop: "1rem", marginBottom: "0.5rem", fontSize: 13 }}>
+                        Allowed authors:
+                        {!authors && " loading …"}
+                        {authors && !authors.ok && ` ${authors.code}: ${authors.error}`}
+                        {authors?.ok && (
+                            <ul style={{ margin: "0.25rem 0" }}>
+                                {authors.value.map((a) => (
+                                    <li key={a.walletAddress}>{a.name} · {a.walletAddress}</li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                    <div style={row}>
                         {account ? (
                             <>
-                                <span style={{ fontSize: 13 }}>{account}</span>
+                                <span style={{ fontSize: 13 }}>
+                                    {account} {authors?.ok && (isAllowed ? "✓ allowed" : "✗ not allowed")}
+                                </span>
                                 <button style={{ ...btn, fontWeight: "bold" }} disabled={busy} onClick={pinElection}>pinElection</button>
                             </>
                         ) : (
