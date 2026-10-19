@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ChangeEvent, type CSSProperties } from "react";
 import { createAdminClient, ErrorCode } from "votingsystem/admin";
-import type { Author, ElectionIpfsData, ElectionKeys, RegisterKeys, Result } from "votingsystem/admin";
+import type { Ap, Author, CreateElectionParams, ElectionIpfsData, ElectionKeys, Register, RegisterKeys, Result } from "votingsystem/admin";
 import { createWalletClient, custom, type Address, type EIP1193Provider } from "viem";
 import { gnosis } from "viem/chains";
 
@@ -16,6 +16,7 @@ declare global {
 const RPC_PROVIDER = process.env.NEXT_PUBLIC_RPC_PROVIDER;
 const OPNVOTE_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_OPNVOTE_CONTRACT_ADDRESS;
 const IPFS_SERVER_URL = process.env.NEXT_PUBLIC_IPFS_SERVER_URL;
+const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL;
 
 if (!RPC_PROVIDER) {
     throw new Error("NEXT_PUBLIC_RPC_PROVIDER is not defined");
@@ -29,8 +30,12 @@ if (!IPFS_SERVER_URL) {
     throw new Error("NEXT_PUBLIC_IPFS_SERVER_URL is not defined");
 }
 
+if (!SUBGRAPH_URL) {
+    throw new Error("NEXT_PUBLIC_SUBGRAPH_URL is not defined");
+}
+
 const admin = createAdminClient({
-    endpoints: { ipfsUrl: IPFS_SERVER_URL },
+    endpoints: { ipfsUrl: IPFS_SERVER_URL, subgraphUrl: SUBGRAPH_URL },
     contracts: { opnvote: OPNVOTE_CONTRACT_ADDRESS as `0x${string}` },
     rpcUrl: RPC_PROVIDER,
     chain: gnosis,
@@ -50,7 +55,7 @@ type IpfsForm = {
     questions: { text: string; imageUrl: string }[];
 };
 
-const PREFILL_IPFS_FORM: IpfsForm = {
+const DEFAULT_IPFS_FORM: IpfsForm = {
     title: "Election title",
     summary: "Short summary of the election",
     description: "Full description of the election",
@@ -60,6 +65,30 @@ const PREFILL_IPFS_FORM: IpfsForm = {
     registrationStart: "2027-01-01T00:00",
     registrationEnd: "2027-01-15T00:00",
     questions: [{ text: "Election question", imageUrl: "https://www.opn.vote/sample1_flower.png" }],
+};
+
+type ElectionForm = {
+    electionID: string;
+    cid: string;
+    publicKey: string;
+    votingStart: string;
+    votingEnd: string;
+    registrationStart: string;
+    registrationEnd: string;
+    registerID: string;
+    apID: string;
+};
+
+const DEFAULT_ELECTION_FORM: ElectionForm = {
+    electionID: "0",
+    cid: "",
+    publicKey: "",
+    votingStart: "",
+    votingEnd: "",
+    registrationStart: DEFAULT_IPFS_FORM.registrationStart,
+    registrationEnd: DEFAULT_IPFS_FORM.registrationEnd,
+    registerID: "",
+    apID: "",
 };
 
 function checkResult<T>(r: Result<T>): T {
@@ -107,6 +136,30 @@ function toIpfsData(form: IpfsForm): ElectionIpfsData {
     };
 }
 
+function toElectionParams(form: ElectionForm, from: Address): CreateElectionParams {
+    return {
+        from,
+        electionID: Number(form.electionID),
+        cid: form.cid,
+        publicKey: form.publicKey,
+        votingStartTime: toUnixTs(form.votingStart),
+        votingEndTime: toUnixTs(form.votingEnd),
+        registrationStartTime: toUnixTs(form.registrationStart),
+        registrationEndTime: toUnixTs(form.registrationEnd),
+        registerID: Number(form.registerID),
+        apID: Number(form.apID),
+    };
+}
+
+async function waitForElectionID(txHash: string): Promise<number> {
+    for (let i = 0; i < 40; i++) {
+        const res = await admin.getElectionID(txHash);
+        if (res.ok || !res.retryAfterMs) return checkResult(res);
+        await new Promise((resolve) => setTimeout(resolve, res.retryAfterMs));
+    }
+    throw new Error("transaction not confirmed after 2 minutes");
+}
+
 function walletClient() {
     if (!window.ethereum) throw new Error("no browser wallet found");
     return createWalletClient({ transport: custom(window.ethereum) });
@@ -116,15 +169,33 @@ export default function Home() {
     const [role, setRole] = useState<Role>("coordinator");
     const [electionKeys, setElectionKeys] = useState<ElectionKeys | null>(null);
     const [registerKeys, setRegisterKeys] = useState<RegisterKeys | null>(null);
-    const [ipfsForm, setIpfsForm] = useState<IpfsForm>(PREFILL_IPFS_FORM);
+    const [ipfsForm, setIpfsForm] = useState<IpfsForm>(DEFAULT_IPFS_FORM);
     const [account, setAccount] = useState<Address | null>(null);
     const [authors, setAuthors] = useState<Result<Author[]> | null>(null);
     const [cid, setCid] = useState<string | null>(null);
+    const [electionForm, setElectionForm] = useState<ElectionForm>(DEFAULT_ELECTION_FORM);
+    const [registers, setRegisters] = useState<Result<Register[]> | null>(null);
+    const [aps, setAps] = useState<Result<Ap[]> | null>(null);
+    const [coordinator, setCoordinator] = useState<Result<Address> | null>(null);
+    const [electionID, setElectionID] = useState<number | null>(null);
     const [log, setLog] = useState<string[]>([]);
     const [busy, setBusy] = useState(false);
+    const [unlocked, setUnlocked] = useState(false);
 
     useEffect(() => {
         admin.getAllowedAuthors().then(setAuthors);
+        admin.getRegisters().then(setRegisters);
+        admin.getAps().then(setAps);
+        admin.getElectionCoordinator().then(setCoordinator);
+    }, []);
+
+    useEffect(() => {
+        const ethereum = window.ethereum;
+        if (!ethereum) return;
+        const onAccountsChanged = (accounts: Address[]) => setAccount(accounts[0] ?? null);
+        ethereum.request({ method: "eth_accounts" }).then(onAccountsChanged);
+        ethereum.on("accountsChanged", onAccountsChanged);
+        return () => ethereum.removeListener("accountsChanged", onAccountsChanged);
     }, []);
 
     const add = (line: string) => setLog((prev) => [...prev, line]);
@@ -170,6 +241,7 @@ export default function Home() {
             const keys = await step("Generating election keys", () => admin.generateElectionKeys());
             if (!keys) return;
             setElectionKeys(keys);
+            updateElectionForm({ publicKey: keys.publicKey });
             await verifyElectionKeys(keys);
         });
 
@@ -202,6 +274,8 @@ export default function Home() {
     const updateQuestion = (i: number, patch: Partial<IpfsForm["questions"][number]>) =>
         updateIpfsForm({ questions: ipfsForm.questions.map((q, j) => (j === i ? { ...q, ...patch } : q)) });
 
+    const updateElectionForm = (patch: Partial<ElectionForm>) => setElectionForm((form) => ({ ...form, ...patch }));
+
     const connectWallet = () =>
         withBusy(async () => {
             const address = await step("Connecting wallet", async () => (await walletClient().requestAddresses())[0]);
@@ -218,19 +292,51 @@ export default function Home() {
                 checkResult(await admin.pinElection({ ipfsData, signature })));
             if (!pinned) return;
             setCid(pinned.cid);
+            updateElectionForm({ cid: pinned.cid, registrationStart: ipfsForm.registrationStart, registrationEnd: ipfsForm.registrationEnd });
             add(`CID: ${pinned.cid} (Author: ${pinned.author}, Wallet: ${pinned.authorWalletAddress})`);
         });
 
+    const createElection = () =>
+        withBusy(async () => {
+            const tx = await step("Creating election publish transaction", async () =>
+                checkResult(await admin.createElection(toElectionParams(electionForm, account!))));
+            if (!tx) return;
+            const txHash = await step("Sending transaction", () => walletClient().sendTransaction({ account: account!, chain: gnosis, ...tx }));
+            if (!txHash) return;
+            add(`Transaction hash: ${txHash}`);
+            const id = await step("Waiting for election ID", () => waitForElectionID(txHash));
+            if (id === null) return;
+            setElectionID(id);
+            add(`Election ID: ${id}`);
+        });
+
+    const pinned = cid !== null;
+    const prefillLocked = !pinned || !unlocked;
+    const canPublish = pinned && electionForm.votingStart && electionForm.votingEnd && electionForm.registerID && electionForm.apID;
+
+    const isCoordinator = coordinator?.ok && coordinator.value.toLowerCase() === account?.toLowerCase();
     const isAllowed = authors?.ok && authors.value.some((a) => a.walletAddress.toLowerCase() === account?.toLowerCase());
 
     const btn = { padding: "0.4rem 0.8rem", fontSize: 14 };
     const row: CSSProperties = { display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "1rem" };
     const input: CSSProperties = { display: "block", width: "100%", boxSizing: "border-box", padding: "0.3rem", fontSize: 14 };
 
-    const field = (label: string, value: string, onChange: (value: string) => void, type = "text") => (
+    const field = (label: string, value: string, onChange: (value: string) => void, type = "text", locked = false) => (
         <label style={{ display: "block", flex: 1, fontSize: 14, marginBottom: "0.5rem" }}>
             {label}
-            <input type={type} value={value} disabled={busy} onChange={(e) => onChange(e.target.value)} style={input} />
+            <input type={type} value={value} disabled={busy || locked} onChange={(e) => onChange(e.target.value)} style={input} />
+        </label>
+    );
+
+    const select = (label: string, value: string, items: Result<{ id: number; name: string }[]> | null, onChange: (value: string) => void, locked = false) => (
+        <label style={{ display: "block", flex: 1, fontSize: 14, marginBottom: "0.5rem" }}>
+            {label} {items && !items.ok && `(${items.code}: ${items.error})`}
+            <select value={value} disabled={busy || locked || !items?.ok} onChange={(e) => onChange(e.target.value)} style={input}>
+                <option value="">— select —</option>
+                {items?.ok && items.value.map((item) => (
+                    <option key={item.id} value={item.id}>{item.name} (ID {item.id})</option>
+                ))}
+            </select>
         </label>
     );
 
@@ -321,7 +427,45 @@ export default function Home() {
                     </div>
 
                     <h2 style={{ fontSize: 18 }}>3. Publish election on-chain</h2>
-                    <p style={{ fontSize: 14, color: "#555" }}>to be implemented</p>
+                    <label style={{ display: "block", fontSize: 14, marginBottom: "0.5rem" }}>
+                        <input type="checkbox" checked={unlocked} disabled={busy || !pinned} onChange={(e) => setUnlocked(e.target.checked)} />{" "}
+                        edit all fields
+                    </label>
+                    <div style={row}>
+                        {field("election ID (0 = next unused ID)", electionForm.electionID, (electionID) => updateElectionForm({ electionID }), "number", prefillLocked)}
+                        {field("CID", electionForm.cid, (cid) => updateElectionForm({ cid }), "text", prefillLocked)}
+                    </div>
+                    {field("election public key", electionForm.publicKey, (publicKey) => updateElectionForm({ publicKey }), "text", prefillLocked)}
+                    <div style={row}>
+                        {field("registration start", electionForm.registrationStart, (registrationStart) => updateElectionForm({ registrationStart }), "datetime-local", prefillLocked)}
+                        {field("registration end", electionForm.registrationEnd, (registrationEnd) => updateElectionForm({ registrationEnd }), "datetime-local", prefillLocked)}
+                    </div>
+                    <div style={row}>
+                        {field("voting start", electionForm.votingStart, (votingStart) => updateElectionForm({ votingStart }), "datetime-local", !pinned)}
+                        {field("voting end", electionForm.votingEnd, (votingEnd) => updateElectionForm({ votingEnd }), "datetime-local", !pinned)}
+                    </div>
+                    <div style={row}>
+                        {select("register", electionForm.registerID, registers, (registerID) => updateElectionForm({ registerID }), !pinned)}
+                        {select("AP", electionForm.apID, aps, (apID) => updateElectionForm({ apID }), !pinned)}
+                    </div>
+                    <div style={{ borderTop: "1px solid #ddd", paddingTop: "1rem", marginBottom: "0.5rem", fontSize: 13 }}>
+                        Election coordinator:
+                        {!coordinator && " loading …"}
+                        {coordinator && !coordinator.ok && ` ${coordinator.code}: ${coordinator.error}`}
+                        {coordinator?.ok && ` ${coordinator.value}`}
+                    </div>
+                    <div style={row}>
+                        {account ? (
+                            <>
+                                <span style={{ fontSize: 13 }}>
+                                    {account} {coordinator?.ok && (isCoordinator ? "✓ election coordinator" : "✗ not election coordinator")}
+                                </span>
+                                <button style={{ ...btn, fontWeight: "bold" }} disabled={busy || !canPublish} onClick={createElection}>createElection</button>
+                            </>
+                        ) : (
+                            <button style={{ ...btn, fontWeight: "bold" }} disabled={busy} onClick={connectWallet}>connect wallet to publish</button>
+                        )}
+                    </div>
 
                     <h2 style={{ fontSize: 18 }}>4. Start Election / End Election / Tally Votes</h2>
                     <p style={{ fontSize: 14, color: "#555" }}>to be implemented</p>
@@ -342,7 +486,7 @@ export default function Home() {
             )}
 
             <div style={{ fontSize: 13, color: "#555", marginBottom: "0.5rem" }}>
-                election keys: {electionKeys ? "✓" : "—"} · register keys: {registerKeys ? "✓" : "—"} · CID: {cid ?? "—"}
+                election keys: {electionKeys ? "✓" : "—"} · register keys: {registerKeys ? "✓" : "—"} · CID: {cid ?? "—"} · election ID: {electionID ?? "—"}
             </div>
 
             <pre style={{ background: "#f4f4f4", padding: "1rem", whiteSpace: "pre-wrap", borderRadius: 6, minHeight: 120 }}>
