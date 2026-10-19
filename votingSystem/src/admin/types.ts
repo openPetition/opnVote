@@ -170,6 +170,7 @@ export type AdminClient = {
     pinElection(params: PinElectionParams): Promise<Result<PinnedElection>>;
     createElection(params: CreateElectionParams): Promise<Result<PreparedTx>>;
     getElectionID(txHash: string): Promise<Result<number>>;
+    getElectionCoordinator(): Promise<Result<Address>>;
     getRegisters(): Promise<Result<Register[]>>;
     getAps(): Promise<Result<Ap[]>>;
 };

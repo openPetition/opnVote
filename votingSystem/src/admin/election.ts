@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import type { Hex } from "viem";
+import type { Address, Hex } from "viem";
 import { validateElectionID, validateEthAddress, validateHexString } from "../utils/utils";
 import { rpcProvider, withTimeout } from "../client/utils";
 import { ErrorCode, RETRY_AFTER_MS } from "./errors";
@@ -100,4 +100,19 @@ export async function getElectionID(config: Configuration, txHash: string): Prom
     }
 
     return { ok: false, code: ErrorCode.TX_REJECTED, error: "no ElectionCreated event found in transaction" };
+}
+
+/**
+ * Retrieves the election coordinator address from opnvote contract
+ *
+ * @param config - Admin client config
+ * @returns the election coordinator address or error code
+ */
+export async function getElectionCoordinator(config: Configuration): Promise<Result<Address>> {
+    const opnvote = new ethers.Contract(config.contracts.opnvote, OPNVOTE_ABI, rpcProvider(config.rpcUrl, config.chain.id));
+    try {
+        return { ok: true, value: await withTimeout(opnvote.owner()) };
+    } catch (e) {
+        return { ok: false, code: ErrorCode.RPC_NETWORK, error: `couldn't read election coordinator: ${String(e)}`, retryAfterMs: RETRY_AFTER_MS };
+    }
 }
