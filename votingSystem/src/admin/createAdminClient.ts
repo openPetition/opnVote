@@ -1,6 +1,7 @@
 import { generateElectionKeys, generateRegisterKeys, verifyElectionKeys, verifyRegisterKeys } from "./keys";
 import { createPinMessage, getAllowedAuthors, pinElection } from "./ipfs";
 import { createElection, getElectionID } from "./election";
+import { getAps, getRegisters } from "./subgraph";
 import type { AdminClient, Configuration } from "./types";
 
 /**
@@ -33,5 +34,7 @@ export function createAdminClient(config: Configuration): AdminClient {
         pinElection: (params) => pinElection(config, params),
         createElection: (params) => createElection(config, params),
         getElectionID: (txHash) => getElectionID(config, txHash),
+        getRegisters: () => getRegisters(config),
+        getAps: () => getAps(config),
     };
 }

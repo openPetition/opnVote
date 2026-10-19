@@ -6,6 +6,7 @@ export enum ErrorCode {
     PIN_REJECTED = "PIN_REJECTED",
     TX_REJECTED = "TX_REJECTED",
     TX_PENDING = "TX_PENDING",
+    SUBGRAPH_ERROR = "SUBGRAPH_ERROR",
 }
 
 export const RETRY_AFTER_MS = 3_000;

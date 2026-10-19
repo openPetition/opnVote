@@ -24,7 +24,7 @@ export async function createElection(config: Configuration, params: CreateElecti
         params.registrationStartTime,
         params.registrationEndTime,
         params.registerID,
-        params.authProviderID,
+        params.apID,
         params.cid,
         params.publicKey,
     ];

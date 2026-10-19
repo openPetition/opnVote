@@ -22,9 +22,11 @@ export type Contracts = {
 /**
  * Backend endpoints
  * @property {string} ipfsUrl - IPFS pinning server
+ * @property {string} subgraphUrl - Subgraph
  */
 export type Endpoints = {
     ipfsUrl?: string;
+    subgraphUrl?: string;
 };
 
 /**
@@ -103,7 +105,7 @@ export type PinnedElection = {
  * @property {number} registrationStartTime - unix timestamp seconds
  * @property {number} registrationEndTime - unix timestamp seconds
  * @property {number} registerID - register ID
- * @property {number} authProviderID - authorization provider ID
+ * @property {number} apID - AP ID
  */
 export type CreateElectionParams = {
     from: Address;
@@ -115,7 +117,7 @@ export type CreateElectionParams = {
     registrationStartTime: number;
     registrationEndTime: number;
     registerID: number;
-    authProviderID: number;
+    apID: number;
 };
 
 /**
@@ -125,6 +127,34 @@ export type CreateElectionParams = {
 export type PreparedTx = {
     to: Address;
     data: Hex;
+};
+
+/**
+ * Register
+ * @property {number} id - register ID
+ * @property {string} name - register name
+ * @property {string} uri - register URI
+ * @property {Address} owner - register owner
+ */
+export type Register = {
+    id: number;
+    name: string;
+    uri: string;
+    owner: Address;
+};
+
+/**
+ * AP
+ * @property {number} id - ap ID
+ * @property {string} name - ap name
+ * @property {string} uri - ap URI
+ * @property {Address} owner - ap owner
+ */
+export type Ap = {
+    id: number;
+    name: string;
+    uri: string;
+    owner: Address;
 };
 
 /**
@@ -140,4 +170,6 @@ export type AdminClient = {
     pinElection(params: PinElectionParams): Promise<Result<PinnedElection>>;
     createElection(params: CreateElectionParams): Promise<Result<PreparedTx>>;
     getElectionID(txHash: string): Promise<Result<number>>;
+    getRegisters(): Promise<Result<Register[]>>;
+    getAps(): Promise<Result<Ap[]>>;
 };
