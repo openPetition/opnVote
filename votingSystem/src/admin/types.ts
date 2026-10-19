@@ -1,4 +1,4 @@
-import type { Address, Chain } from "viem";
+import type { Address, Chain, Hex } from "viem";
 import type { ErrorCode } from "./errors";
 import type { ElectionIpfsData, PrivateKeyDer, PublicKeyDer } from "../types/types";
 
@@ -93,6 +93,41 @@ export type PinnedElection = {
 };
 
 /**
+ * Parameters to create the on-chain election
+ * @property {Address} from - election coordinator
+ * @property {number} electionID - default: 0 (next id)
+ * @property {string} cid - ipfs cid
+ * @property {PublicKeyDer} publicKey - election pubkey
+ * @property {number} votingStartTime - unix timestamp seconds
+ * @property {number} votingEndTime - unix timestamp seconds
+ * @property {number} registrationStartTime - unix timestamp seconds
+ * @property {number} registrationEndTime - unix timestamp seconds
+ * @property {number} registerID - register ID
+ * @property {number} authProviderID - authorization provider ID
+ */
+export type CreateElectionParams = {
+    from: Address;
+    electionID: number;
+    cid: string;
+    publicKey: PublicKeyDer;
+    votingStartTime: number;
+    votingEndTime: number;
+    registrationStartTime: number;
+    registrationEndTime: number;
+    registerID: number;
+    authProviderID: number;
+};
+
+/**
+ * @property {Address} to - opn.vote contract address
+ * @property {Hex} data - calldata
+ */
+export type PreparedTx = {
+    to: Address;
+    data: Hex;
+};
+
+/**
  * Admin client
  */
 export type AdminClient = {
@@ -103,4 +138,6 @@ export type AdminClient = {
     getAllowedAuthors(): Promise<Result<Author[]>>;
     createPinMessage(ipfsData: ElectionIpfsData): string;
     pinElection(params: PinElectionParams): Promise<Result<PinnedElection>>;
+    createElection(params: CreateElectionParams): Promise<Result<PreparedTx>>;
+    getElectionID(txHash: string): Promise<Result<number>>;
 };

@@ -4,6 +4,8 @@ export enum ErrorCode {
     RPC_NETWORK = "RPC_NETWORK",
     PIN_NETWORK = "PIN_NETWORK",
     PIN_REJECTED = "PIN_REJECTED",
+    TX_REJECTED = "TX_REJECTED",
+    TX_PENDING = "TX_PENDING",
 }
 
 export const RETRY_AFTER_MS = 3_000;
