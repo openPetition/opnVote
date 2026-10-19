@@ -7,7 +7,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 * be sure you have up to date npm / node version
 
 * open a new shell
-* cd into `frontend/opnreg`
+* cd into `frontend/client`
 * `npm install`
 * `npm run dev` to run the dev server
 
@@ -49,4 +49,64 @@ it mocks the user verification from OP for now and hands over jwt token (with ra
 
 ## coding style
 * rules for editor are set in `.editorconfig` for the whole openvote project
-* in openreg you can run `npx eslint src/**/*.js*` in openreg or `npx eslint filepath` for one file
+* in the client directory you can run `npx eslint src/**/*.js*` or `npx eslint filepath` for one file
+
+## Testing
+
+The client uses Jest with React Testing Library and jsdom for fast unit and component tests. These tests do not call real opnVote backends, a blockchain node, or a staging election.
+
+Tests are kept in `__tests__` and mirror the relevant part of the `src` structure:
+
+```text
+__tests__/
+├── app/
+│   └── loadsecret/
+│       └── LoadSecret.test.jsx
+├── components/
+│   └── Button.test.jsx
+└── util.test.js
+```
+
+Run all unit and component tests:
+
+```bash
+npm test
+```
+
+Run a single test file or all tests in one directory:
+
+```bash
+npm run test:unit -- __tests__/app/loadsecret/LoadSecret.test.jsx
+npm run test:unit -- __tests__/app/loadsecret
+```
+
+Run tests matching a test name, or rerun affected tests while developing:
+
+```bash
+npm run test:unit -- -t "redirects to showkey"
+npm run test:unit:watch
+```
+
+The existing Selenium flow is kept as a separate legacy end-to-end test because it depends on external systems:
+
+```bash
+npm run test:e2e:legacy
+```
+
+### Test scope and mocks
+
+Client tests should verify user-visible behaviour and state transitions, for example loading and error states, navigation, and calls to the voting client. SDK and backend results can be represented by deterministic mocks:
+
+```js
+const voteClient = {
+    vote: jest.fn().mockResolvedValue({
+        ok: true,
+        value: {
+            txHash: '0xtest-transaction',
+            userOpHash: '0xtest-user-operation',
+        },
+    }),
+};
+```
+
+Use stable election fixtures instead of real elections for Jest tests. Cryptography, smart contracts, and backend behaviour belong in their respective test suites. A small staging smoke test may complement the client tests, but should not be their only foundation.
