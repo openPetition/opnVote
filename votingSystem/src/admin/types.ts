@@ -23,10 +23,12 @@ export type Contracts = {
  * Backend endpoints
  * @property {string} ipfsUrl - IPFS pinning server
  * @property {string} subgraphUrl - Subgraph
+ * @property {string} registerUrl - Register
  */
 export type Endpoints = {
     ipfsUrl?: string;
     subgraphUrl?: string;
+    registerUrl?: string;
 };
 
 /**
@@ -124,7 +126,7 @@ export type CreateElectionParams = {
  * @property {Address} to - opn.vote contract address
  * @property {Hex} data - calldata
  */
-export type PreparedTx = {
+export type PreparedTransaction = {
     to: Address;
     data: Hex;
 };
@@ -168,6 +170,30 @@ export type ElectionStatusChangeParams = {
 };
 
 /**
+ * Params for setting the register public key on-chain
+ * @property {Address} from - register owner
+ * @property {number} electionID - election ID
+ * @property {string} publicKey - register public key (evm format)
+ */
+export type SetRegisterPublicKeyOnChainParams = {
+    from: Address;
+    electionID: number;
+    publicKey: string;
+};
+
+/**
+ * Params for setting the register key pair in backend
+ * @property {number} electionID - election ID
+ * @property {RegisterKeys} keys - register key pair
+ * @property {string} signature - signature of the register owner
+ */
+export type SetRegisterKeysBackendParams = {
+    electionID: number;
+    keys: RegisterKeys;
+    signature: string;
+};
+
+/**
  * Register
  * @property {number} id - register ID
  * @property {string} name - register name
@@ -200,19 +226,22 @@ export type Ap = {
  */
 export type AdminClient = {
     generateElectionKeys(): Promise<ElectionKeys>;
-    generateRegisterKeys(): RegisterKeys;
     verifyElectionKeys(keys: ElectionKeys): Promise<Result<void>>;
-    verifyRegisterKeys(keys: RegisterKeys): Promise<Result<void>>;
     getAllowedAuthors(): Promise<Result<Author[]>>;
     createPinMessage(ipfsData: ElectionIpfsData): string;
     pinElection(params: PinElectionParams): Promise<Result<PinnedElection>>;
-    createElection(params: CreateElectionParams): Promise<Result<PreparedTx>>;
-    getElectionID(txHash: string): Promise<Result<number>>;
-    getElectionCoordinator(): Promise<Result<Address>>;
-    getElection(electionID: number): Promise<Result<ElectionOnChain>>;
-    startElection(params: ElectionStatusChangeParams): Promise<Result<PreparedTx>>;
-    endElection(params: ElectionStatusChangeParams): Promise<Result<PreparedTx>>;
-    getTransactionStatus(txHash: string): Promise<Result<void>>;
     getRegisters(): Promise<Result<Register[]>>;
     getAps(): Promise<Result<Ap[]>>;
+    getElectionCoordinator(): Promise<Result<Address>>;
+    createElection(params: CreateElectionParams): Promise<Result<PreparedTransaction>>;
+    getElectionID(txHash: string): Promise<Result<number>>;
+    getElection(electionID: number): Promise<Result<ElectionOnChain>>;
+    startElection(params: ElectionStatusChangeParams): Promise<Result<PreparedTransaction>>;
+    endElection(params: ElectionStatusChangeParams): Promise<Result<PreparedTransaction>>;
+    getTransactionStatus(txHash: string): Promise<Result<void>>;
+    generateRegisterKeys(): RegisterKeys;
+    verifyRegisterKeys(keys: RegisterKeys): Promise<Result<void>>;
+    setRegisterPublicKeyOnChain(params: SetRegisterPublicKeyOnChainParams): Promise<Result<PreparedTransaction>>;
+    createRegisterKeysMessage(electionID: number, publicKey: string): string;
+    setRegisterKeysBackend(params: SetRegisterKeysBackendParams): Promise<Result<void>>;
 };

@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import type { Address, Hex } from "viem";
-import { validateElectionID, validateEthAddress, validateHexString } from "../utils/utils";
+import { evmG2ToNoble, validateBlsParams, validateElectionID, validateEthAddress, validateHexString } from "../utils/utils";
 import { rpcProvider, withTimeout } from "../client/utils";
 import { ErrorCode, RETRY_AFTER_MS } from "./errors";
 import { OPNVOTE_ABI } from "../client/abi";
@@ -10,8 +10,9 @@ import type {
     ElectionOnChain,
     ElectionStatus,
     ElectionStatusChangeParams,
-    PreparedTx,
+    PreparedTransaction,
     Result,
+    SetRegisterPublicKeyOnChainParams,
 } from "./types";
 
 const ELECTION_STATUS: ElectionStatus[] = ["Pending", "Active", "Ended", "ResultsPublished", "Canceled"];
@@ -25,7 +26,7 @@ const ELECTION_STATUS: ElectionStatus[] = ["Pending", "Active", "Ended", "Result
  * @param args - function arguments
  * @returns unsigned transaction to be sent or error code
  */
-async function prepareTransaction(config: Configuration, from: Address, funcName: string, args: unknown[]): Promise<Result<PreparedTx>> {
+async function prepareTransaction(config: Configuration, from: Address, funcName: string, args: unknown[]): Promise<Result<PreparedTransaction>> {
     const opnvote = new ethers.Contract(config.contracts.opnvote, OPNVOTE_ABI, rpcProvider(config.rpcUrl, config.chain.id));
 
     let calldata: string;
@@ -86,7 +87,7 @@ async function getTransactionReceipt(config: Configuration, txHash: string): Pro
  * @param params - Election params and sender
  * @returns prepared transaction or error code
  */
-export async function createElection(config: Configuration, params: CreateElectionParams): Promise<Result<PreparedTx>> {
+export async function createElection(config: Configuration, params: CreateElectionParams): Promise<Result<PreparedTransaction>> {
     try {
         validateElectionID(params.electionID);
     } catch (e) {
@@ -212,7 +213,7 @@ export async function getElection(config: Configuration, electionID: number): Pr
  * @param params - election ID and sender
  * @returns unsigned transaction or error code
  */
-export function startElection(config: Configuration, params: ElectionStatusChangeParams): Promise<Result<PreparedTx>> {
+export function startElection(config: Configuration, params: ElectionStatusChangeParams): Promise<Result<PreparedTransaction>> {
     return prepareTransaction(config, params.from, "startElection", [params.electionID]);
 }
 
@@ -224,7 +225,7 @@ export function startElection(config: Configuration, params: ElectionStatusChang
  * @param params - election ID and sender
  * @returns unsigned transaction or error code
  */
-export function endElection(config: Configuration, params: ElectionStatusChangeParams): Promise<Result<PreparedTx>> {
+export function endElection(config: Configuration, params: ElectionStatusChangeParams): Promise<Result<PreparedTransaction>> {
     return prepareTransaction(config, params.from, "endElection", [params.electionID]);
 }
 
@@ -242,4 +243,23 @@ export async function getTransactionStatus(config: Configuration, txHash: string
     if (!receipt.ok) return receipt;
     
     return { ok: true, value: undefined };
+}
+
+/**
+ *
+ * Creates a transaction to set the register public key and simulates it
+ *
+ * @param config - Admin client config
+ * @param params - election ID, register public key and sender
+ * @returns unsigned transaction or error code
+ */
+export async function setRegisterPublicKeyOnChain(config: Configuration, params: SetRegisterPublicKeyOnChainParams): Promise<Result<PreparedTransaction>> {
+    
+    try {
+        validateBlsParams({ pk: evmG2ToNoble(params.publicKey) });
+    } catch (e) {
+        return { ok: false, code: ErrorCode.TX_REJECTED, error: `invalid register public key: ${String(e)}` };
+    }
+
+    return prepareTransaction(config, params.from, "setElectionRegisterPublicKey", [params.electionID, params.publicKey]);
 }

@@ -1,6 +1,7 @@
 import { generateElectionKeys, generateRegisterKeys, verifyElectionKeys, verifyRegisterKeys } from "./keys";
 import { createPinMessage, getAllowedAuthors, pinElection } from "./ipfs";
-import { createElection, endElection, getElection, getElectionCoordinator, getElectionID, getTransactionStatus, startElection } from "./election";
+import { createElection, endElection, getElection, getElectionCoordinator, getElectionID, getTransactionStatus, setRegisterPublicKeyOnChain, startElection } from "./election";
+import { createRegisterKeysMessage, setRegisterKeysBackend } from "./register";
 import { getAps, getRegisters } from "./subgraph";
 import type { AdminClient, Configuration } from "./types";
 
@@ -26,20 +27,23 @@ export function createAdminClient(config: Configuration): AdminClient {
 
     return {
         generateElectionKeys,
-        generateRegisterKeys,
         verifyElectionKeys,
-        verifyRegisterKeys: (keys) => verifyRegisterKeys(config, keys),
         getAllowedAuthors: () => getAllowedAuthors(config),
         createPinMessage,
         pinElection: (params) => pinElection(config, params),
+        getRegisters: () => getRegisters(config),
+        getAps: () => getAps(config),
+        getElectionCoordinator: () => getElectionCoordinator(config),
         createElection: (params) => createElection(config, params),
         getElectionID: (txHash) => getElectionID(config, txHash),
-        getElectionCoordinator: () => getElectionCoordinator(config),
         getElection: (electionID) => getElection(config, electionID),
         startElection: (params) => startElection(config, params),
         endElection: (params) => endElection(config, params),
         getTransactionStatus: (txHash) => getTransactionStatus(config, txHash),
-        getRegisters: () => getRegisters(config),
-        getAps: () => getAps(config),
+        generateRegisterKeys,
+        verifyRegisterKeys: (keys) => verifyRegisterKeys(config, keys),
+        setRegisterPublicKeyOnChain: (params) => setRegisterPublicKeyOnChain(config, params),
+        createRegisterKeysMessage,
+        setRegisterKeysBackend: (params) => setRegisterKeysBackend(config, params),
     };
 }

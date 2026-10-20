@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ChangeEvent, type CSSProperties } from "react";
 import { createAdminClient, ErrorCode } from "votingsystem/admin";
-import type { Ap, Author, CreateElectionParams, ElectionIpfsData, ElectionKeys, ElectionOnChain, ElectionStatusChangeParams, PreparedTx, Register, RegisterKeys, Result } from "votingsystem/admin";
+import type { Ap, Author, CreateElectionParams, ElectionIpfsData, ElectionKeys, ElectionOnChain, ElectionStatusChangeParams, PreparedTransaction, Register, RegisterKeys, Result } from "votingsystem/admin";
 import { createWalletClient, custom, type Address, type EIP1193Provider } from "viem";
 import { gnosis } from "viem/chains";
 
@@ -324,7 +324,7 @@ export default function Home() {
 
     const loadElection = () => withBusy(() => getElection(Number(manageID)));
 
-    const changeStatus = (label: string, prepareStatusChangeTransaction: (params: ElectionStatusChangeParams) => Promise<Result<PreparedTx>>) =>
+    const changeStatus = (label: string, prepareStatusChangeTransaction: (params: ElectionStatusChangeParams) => Promise<Result<PreparedTransaction>>) =>
         withBusy(async () => {
 
             const id = election!.electionID;
