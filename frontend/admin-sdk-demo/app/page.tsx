@@ -17,6 +17,7 @@ const RPC_PROVIDER = process.env.NEXT_PUBLIC_RPC_PROVIDER;
 const OPNVOTE_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_OPNVOTE_CONTRACT_ADDRESS;
 const IPFS_SERVER_URL = process.env.NEXT_PUBLIC_IPFS_SERVER_URL;
 const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL;
+const REGISTER_URL = process.env.NEXT_PUBLIC_REGISTER_URL;
 
 if (!RPC_PROVIDER) {
     throw new Error("NEXT_PUBLIC_RPC_PROVIDER is not defined");
@@ -35,7 +36,7 @@ if (!SUBGRAPH_URL) {
 }
 
 const admin = createAdminClient({
-    endpoints: { ipfsUrl: IPFS_SERVER_URL, subgraphUrl: SUBGRAPH_URL },
+    endpoints: { ipfsUrl: IPFS_SERVER_URL, subgraphUrl: SUBGRAPH_URL, registerUrl: REGISTER_URL },
     contracts: { opnvote: OPNVOTE_CONTRACT_ADDRESS as `0x${string}` },
     rpcUrl: RPC_PROVIDER,
     chain: gnosis,
@@ -127,6 +128,23 @@ function fromUnixTs(ts: number): string {
     return new Date(ts * 1000).toLocaleString();
 }
 
+function registerKeyStatus(onChainKey: string, keys: RegisterKeys | null): string {
+
+    if (onChainKey === "0x"){
+        return "✗ missing";
+    }
+    
+    if (!keys){
+        return "✓ already set"
+    }
+    
+    if (onChainKey.toLowerCase() === keys.publicKey.toLowerCase()){
+        return "✓ loaded and on-chain keys match";
+    }
+    
+    return "✗ loaded and on-chain keys are different";
+}
+
 function toIpfsData(form: IpfsForm): ElectionIpfsData {
     return {
         title: form.title,
@@ -184,6 +202,7 @@ export default function Home() {
     const [electionID, setElectionID] = useState<number | null>(null);
     const [manageID, setManageID] = useState("");
     const [election, setElection] = useState<ElectionOnChain | null>(null);
+    const [register, setRegister] = useState<Result<Register> | null>(null);
     const [log, setLog] = useState<string[]>([]);
     const [busy, setBusy] = useState(false);
     const [unlocked, setUnlocked] = useState(false);
@@ -203,6 +222,10 @@ export default function Home() {
         ethereum.on("accountsChanged", onAccountsChanged);
         return () => ethereum.removeListener("accountsChanged", onAccountsChanged);
     }, []);
+
+    useEffect(() => {
+        if (election) admin.getRegister(election.registerID).then(setRegister);
+    }, [election]);
 
     const add = (line: string) => setLog((prev) => [...prev, line]);
     const replaceLast = (line: string) => setLog((prev) => [...prev.slice(0, -1), line]);
@@ -272,7 +295,9 @@ export default function Home() {
             const file = importFile(e);
             if (!file) return;
             const keys = await step(`Reading ${file.name}`, () => readKeyFile<RegisterKeys>(file));
-            if (keys) await verifyRegisterKeys(keys);
+            if (!keys) return;
+            setRegisterKeys(keys);
+            await verifyRegisterKeys(keys);
         });
 
     const updateIpfsForm = (patch: Partial<IpfsForm>) => setIpfsForm((form) => ({ ...form, ...patch }));
@@ -341,6 +366,35 @@ export default function Home() {
             await getElection(id);
         });
 
+    const setRegisterPublicKeyOnChain = () =>
+        withBusy(async () => {
+
+            const id = election!.electionID;
+            const tx = await step("Creating register key transaction", async () =>
+                checkResult(await admin.setRegisterPublicKeyOnChain({ from: account!, electionID: id, publicKey: registerKeys!.publicKey })));
+            if (!tx) return;
+
+            const txHash = await step("Sending transaction", () => walletClient().sendTransaction({ account: account!, chain: gnosis, ...tx }));
+            if (!txHash) return;
+
+            add(`Transaction hash: ${txHash}`);
+            const confirmed = await step("Waiting for confirmation", () => waitFor(() => admin.getTransactionStatus(txHash)));
+            if (confirmed === null) return;
+
+            await getElection(id);
+        });
+
+    const setRegisterKeysBackend = () =>
+        withBusy(async () => {
+            const id = election!.electionID;
+            const signature = await step("Signing register keys message", () =>
+                walletClient().signMessage({ account: account!, message: admin.createRegisterKeysMessage(id, registerKeys!.publicKey) }));
+            if (!signature) return;
+
+            await step("Setting register keys in backend", async () =>
+                checkResult(await admin.setRegisterKeysBackend({ electionID: id, keys: registerKeys!, signature })));
+        });
+
     const now = Date.now() / 1000;
     const canStart = election?.status === "Pending" && election.registerPublicKey !== "0x"
         && now >= election.votingStartTime && now < election.votingEndTime;
@@ -350,6 +404,11 @@ export default function Home() {
     const prefillLocked = !pinned || !unlocked;
     const canPublish = pinned && electionForm.votingStart && electionForm.votingEnd && electionForm.registerID && electionForm.apID;
 
+    const canSetRegisterKeyOnChain = election?.status === "Pending" && registerKeys !== null
+        && election.registerPublicKey.toLowerCase() !== registerKeys.publicKey.toLowerCase();
+    const canSetRegisterKeysBackend = election !== null && registerKeys !== null && !!REGISTER_URL;
+
+    const isRegisterOwner = register?.ok && register.value.owner.toLowerCase() === account?.toLowerCase();
     const isCoordinator = coordinator?.ok && coordinator.value.toLowerCase() === account?.toLowerCase();
     const isAllowed = authors?.ok && authors.value.some((a) => a.walletAddress.toLowerCase() === account?.toLowerCase());
 
@@ -554,12 +613,48 @@ export default function Home() {
                 <section>
                     <h2 style={{ fontSize: 18 }}>Register keys</h2>
                     <div style={row}>
-                        <button style={btn} disabled={busy} onClick={generateRegisterKeys}>generateRegisterKeys</button>
+                        <button style={btn} disabled={busy} onClick={generateRegisterKeys}>generate Register Keys</button>
                         <button style={btn} disabled={busy || !registerKeys} onClick={() => download("register-keys", registerKeys!)}>download</button>
                         <label style={{ fontSize: 14 }}>
                             verifyRegisterKeys: <input type="file" accept=".json" disabled={busy} onChange={verifyRegisterKeysFile} />
                         </label>
                     </div>
+
+                    <h2 style={{ fontSize: 18 }}>Set Register keys for election</h2>
+                    <div style={row}>
+                        {field("election ID", manageID, setManageID, "number")}
+                        <button style={btn} disabled={busy || !manageID} onClick={loadElection}>Get Election</button>
+                    </div>
+                    {election && (
+                        <ul style={{ fontSize: 14, margin: "0 0 1rem" }}>
+                            <li>election {election.electionID}: <b>{election.status}</b></li>
+                            <li>
+                                register ID: {election.registerID}{register?.ok && ` (${register.value.name})`} · register key on-chain:{" "}
+                                {registerKeyStatus(election.registerPublicKey, registerKeys)}
+                            </li>
+                        </ul>
+                    )}
+                    <div style={{ borderTop: "1px solid #ddd", paddingTop: "1rem", marginBottom: "0.5rem", fontSize: 13 }}>
+                        Register owner:
+                        {!register && " —"}
+                        {register && !register.ok && ` ${register.code}: ${register.error}`}
+                        {register?.ok && ` ${register.value.owner}`}
+                    </div>
+                    {account ? (
+                        <>
+                            <div style={{ marginBottom: "0.5rem", fontSize: 13 }}>
+                                {account} {register?.ok && (isRegisterOwner ? "✓ register owner" : "✗ not register owner")}
+                            </div>
+                            <div style={row}>
+                                <button style={{ ...btn, fontWeight: "bold" }} disabled={busy || !canSetRegisterKeyOnChain} onClick={setRegisterPublicKeyOnChain}>set Register Key on Chain</button>
+                                <button style={{ ...btn, fontWeight: "bold" }} disabled={busy || !canSetRegisterKeysBackend} onClick={setRegisterKeysBackend}>set Register Keys Backend</button>
+                            </div>
+                        </>
+                    ) : (
+                        <div style={row}>
+                            <button style={{ ...btn, fontWeight: "bold" }} disabled={busy} onClick={connectWallet}>connect wallet</button>
+                        </div>
+                    )}
                 </section>
             )}
 
