@@ -4,53 +4,41 @@ import { validateElectionID, validateEthAddress, validateHexString } from "../ut
 import { rpcProvider, withTimeout } from "../client/utils";
 import { ErrorCode, RETRY_AFTER_MS } from "./errors";
 import { OPNVOTE_ABI } from "../client/abi";
-import type { Configuration, CreateElectionParams, PreparedTx, Result } from "./types";
+import type {
+    Configuration,
+    CreateElectionParams,
+    ElectionOnChain,
+    ElectionStatus,
+    ElectionStatusChangeParams,
+    PreparedTx,
+    Result,
+} from "./types";
+
+const ELECTION_STATUS: ElectionStatus[] = ["Pending", "Active", "Ended", "ResultsPublished", "Canceled"];
 
 /**
- * Creates and simulates an on-chain election creation transaction
+ * Creates and simulates an on-chain election transaction (create, update, status change)
  *
  * @param config - Admin client config
- * @param params - Election params and sender
- * @returns Result or error code
+ * @param from - sender of the transaction (election coordinator, register owner or ap owner)
+ * @param funcName - function name in opnvote contract
+ * @param args - function arguments
+ * @returns unsigned transaction to be sent or error code
  */
-export async function createElection(config: Configuration, params: CreateElectionParams): Promise<Result<PreparedTx>> {
-
+async function prepareTransaction(config: Configuration, from: Address, funcName: string, args: unknown[]): Promise<Result<PreparedTx>> {
     const opnvote = new ethers.Contract(config.contracts.opnvote, OPNVOTE_ABI, rpcProvider(config.rpcUrl, config.chain.id));
-
-    const args = [
-        params.electionID,
-        params.votingStartTime,
-        params.votingEndTime,
-        params.registrationStartTime,
-        params.registrationEndTime,
-        params.registerID,
-        params.apID,
-        params.cid,
-        params.publicKey,
-    ];
 
     let calldata: string;
     try {
-
-        validateEthAddress(params.from);
-        validateElectionID(params.electionID);
-        calldata = opnvote.interface.encodeFunctionData("createOrUpdateElection", args);
-
+        validateEthAddress(from);
+        calldata = opnvote.interface.encodeFunctionData(funcName, args);
     } catch (e) {
-        return { ok: false, code: ErrorCode.TX_REJECTED, error: `invalid election: ${String(e)}` };
+        return { ok: false, code: ErrorCode.TX_REJECTED, error: `invalid transaction params: ${String(e)}` };
     }
 
     try {
-        if (params.electionID !== 0) {
-            const election = await withTimeout(opnvote.elections(params.electionID));
-            if (election.votingStartTime !== 0n) {
-                return { ok: false, code: ErrorCode.TX_REJECTED, error: `election id ${params.electionID} already taken` };
-            }
-        }
-        await withTimeout(opnvote.createOrUpdateElection.staticCall(...args, { from: params.from }));
-
+        await withTimeout(opnvote.getFunction(funcName).staticCall(...args, { from }));
     } catch (e) {
-
         if (ethers.isError(e, "CALL_EXCEPTION") && e.reason) {
             return { ok: false, code: ErrorCode.TX_REJECTED, error: `contract reverted: ${e.reason}` };
         }
@@ -61,14 +49,13 @@ export async function createElection(config: Configuration, params: CreateElecti
 }
 
 /**
- *
- * Retrieves the election ID from a createElection transaction hash
+ * Retrieves a transaction receipt
  *
  * @param config - Admin client config
- * @param txHash - hash of createElection transaction
- * @returns election ID or error code; TX_PENDING while tx processing
+ * @param txHash - hash of the transaction
+ * @returns transaction receipt or error code; TX_PENDING while tx processing
  */
-export async function getElectionID(config: Configuration, txHash: string): Promise<Result<number>> {
+async function getTransactionReceipt(config: Configuration, txHash: string): Promise<Result<ethers.TransactionReceipt>> {
     try {
         validateHexString({ hexString: txHash }, 66);
     } catch (e) {
@@ -88,10 +75,66 @@ export async function getElectionID(config: Configuration, txHash: string): Prom
     if (receipt.status !== 1) {
         return { ok: false, code: ErrorCode.TX_REJECTED, error: "transaction reverted" };
     }
+    return { ok: true, value: receipt };
+}
+
+/**
+ * 
+ * Creates an election creation transaction and simulates it
+ *
+ * @param config - Admin client config
+ * @param params - Election params and sender
+ * @returns prepared transaction or error code
+ */
+export async function createElection(config: Configuration, params: CreateElectionParams): Promise<Result<PreparedTx>> {
+    try {
+        validateElectionID(params.electionID);
+    } catch (e) {
+        return { ok: false, code: ErrorCode.TX_REJECTED, error: `invalid election: ${String(e)}` };
+    }
+
+    if (params.electionID !== 0) {
+
+        const existingElection: Result<ElectionOnChain> = await getElection(config, params.electionID);
+        if (existingElection.ok) return { ok: false, code: ErrorCode.TX_REJECTED, error: `election id ${params.electionID} already taken` };
+        if (existingElection.code !== ErrorCode.ELECTION_NOT_FOUND){ // return any other error code from getElection
+            return existingElection;
+        }
+
+    }
+
+    const args = [
+        params.electionID,
+        params.votingStartTime,
+        params.votingEndTime,
+        params.registrationStartTime,
+        params.registrationEndTime,
+        params.registerID,
+        params.apID,
+        params.cid,
+        params.publicKey,
+    ];
+
+    return prepareTransaction(config, params.from, "createOrUpdateElection", args);
+}
+
+/**
+ * 
+ * Retrieves election ID from createElection event logs
+ *
+ * @param config - Admin client config
+ * @param txHash - hash of createElection transaction
+ * @returns election ID or error code; TX_PENDING while tx processing
+ */
+export async function getElectionID(config: Configuration, txHash: string): Promise<Result<number>> {
+    const receipt = await getTransactionReceipt(config, txHash);
+    if (!receipt.ok){ // transaction not successful or still pending
+        return receipt;
+    }
 
     const opnvote = new ethers.Interface(OPNVOTE_ABI);
 
-    for (const log of receipt.logs) {
+    for (const log of receipt.value.logs) {
 
         if (log.address.toLowerCase() !== config.contracts.opnvote.toLowerCase()) continue;
         const event = opnvote.parseLog({ topics: [...log.topics], data: log.data });
@@ -115,4 +158,88 @@ export async function getElectionCoordinator(config: Configuration): Promise<Res
     } catch (e) {
         return { ok: false, code: ErrorCode.RPC_NETWORK, error: `couldn't read election coordinator: ${String(e)}`, retryAfterMs: RETRY_AFTER_MS };
     }
+}
+
+/**
+ * 
+ * Retrieves on-chain election data from opnvote contract
+ *
+ * @param config - Admin client config
+ * @param electionID - election ID
+ * @returns on-chain election data or error code
+ */
+export async function getElection(config: Configuration, electionID: number): Promise<Result<ElectionOnChain>> {
+    try {
+        validateElectionID(electionID);
+    } catch (e) {
+        return { ok: false, code: ErrorCode.ELECTION_NOT_FOUND, error: `invalid election id: ${String(e)}` };
+    }
+
+    const opnvote = new ethers.Contract(config.contracts.opnvote, OPNVOTE_ABI, rpcProvider(config.rpcUrl, config.chain.id));
+    let election: ethers.Result;
+
+    try {
+        election = await withTimeout(opnvote.elections(electionID));
+    } catch (e) {
+        return { ok: false, code: ErrorCode.RPC_NETWORK, error: `couldnt get election: ${String(e)}`, retryAfterMs: RETRY_AFTER_MS };
+    }
+
+    if (election.votingStartTime === 0n) {
+        return { ok: false, code: ErrorCode.ELECTION_NOT_FOUND, error: `election ID ${electionID} not found. Is the election created?` };
+    }
+    return {
+        ok: true,
+        value: {
+            electionID,
+            cid: election.descriptionIpfsCid,
+            publicKey: election.publicKey,
+            votingStartTime: Number(election.votingStartTime),
+            votingEndTime: Number(election.votingEndTime),
+            registerID: Number(election.registerId),
+            apID: Number(election.authProviderId),
+            status: ELECTION_STATUS[Number(election.status)],
+            registerPublicKey: election.registerPubKey,
+            totalVotes: Number(election.totalVotes),
+        },
+    };
+}
+
+/**
+ * 
+ * Creates a transaction to start an election and simulates it
+ *
+ * @param config - Admin client config
+ * @param params - election ID and sender
+ * @returns unsigned transaction or error code
+ */
+export function startElection(config: Configuration, params: ElectionStatusChangeParams): Promise<Result<PreparedTx>> {
+    return prepareTransaction(config, params.from, "startElection", [params.electionID]);
+}
+
+/**
+ * 
+ * Creates a transaction to end an election and simulates it
+ *
+ * @param config - Admin client config
+ * @param params - election ID and sender
+ * @returns unsigned transaction or error code
+ */
+export function endElection(config: Configuration, params: ElectionStatusChangeParams): Promise<Result<PreparedTx>> {
+    return prepareTransaction(config, params.from, "endElection", [params.electionID]);
+}
+
+/**
+ * 
+ * Checks if a transaction is confirmed (sucessfull), pending or rejected
+ *
+ * @param config - Admin client config
+ * @param txHash - transaction hash
+ * @returns ok:true if the transaction is sucessfully confirmed
+ */
+export async function getTransactionStatus(config: Configuration, txHash: string): Promise<Result<void>> {
+
+    const receipt = await getTransactionReceipt(config, txHash);
+    if (!receipt.ok) return receipt;
+    
+    return { ok: true, value: undefined };
 }

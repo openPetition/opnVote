@@ -129,6 +129,44 @@ export type PreparedTx = {
     data: Hex;
 };
 
+export type ElectionStatus = "Pending" | "Active" | "Ended" | "ResultsPublished" | "Canceled";
+
+/**
+ * On-chain election
+ * @property {number} electionID - election ID
+ * @property {string} cid - ipfs cid
+ * @property {PublicKeyDer} publicKey - election public key
+ * @property {number} votingStartTime - unix timestamp seconds
+ * @property {number} votingEndTime - unix timestamp seconds
+ * @property {number} registerID - register ID
+ * @property {number} apID - AP ID
+ * @property {ElectionStatus} status - election status
+ * @property {string} registerPublicKey - register public key
+ * @property {number} totalVotes - number of votes
+ */
+export type ElectionOnChain = {
+    electionID: number;
+    cid: string;
+    publicKey: PublicKeyDer;
+    votingStartTime: number;
+    votingEndTime: number;
+    registerID: number;
+    apID: number;
+    status: ElectionStatus;
+    registerPublicKey: string;
+    totalVotes: number;
+};
+
+/**
+ * Start/End Election parameters
+ * @property {Address} from - election coordinator
+ * @property {number} electionID - election ID
+ */
+export type ElectionStatusChangeParams = {
+    from: Address;
+    electionID: number;
+};
+
 /**
  * Register
  * @property {number} id - register ID
@@ -171,6 +209,10 @@ export type AdminClient = {
     createElection(params: CreateElectionParams): Promise<Result<PreparedTx>>;
     getElectionID(txHash: string): Promise<Result<number>>;
     getElectionCoordinator(): Promise<Result<Address>>;
+    getElection(electionID: number): Promise<Result<ElectionOnChain>>;
+    startElection(params: ElectionStatusChangeParams): Promise<Result<PreparedTx>>;
+    endElection(params: ElectionStatusChangeParams): Promise<Result<PreparedTx>>;
+    getTransactionStatus(txHash: string): Promise<Result<void>>;
     getRegisters(): Promise<Result<Register[]>>;
     getAps(): Promise<Result<Ap[]>>;
 };

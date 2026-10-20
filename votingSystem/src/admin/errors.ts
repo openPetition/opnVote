@@ -7,6 +7,7 @@ export enum ErrorCode {
     TX_REJECTED = "TX_REJECTED",
     TX_PENDING = "TX_PENDING",
     SUBGRAPH_ERROR = "SUBGRAPH_ERROR",
+    ELECTION_NOT_FOUND = "ELECTION_NOT_FOUND",
 }
 
 export const RETRY_AFTER_MS = 3_000;
