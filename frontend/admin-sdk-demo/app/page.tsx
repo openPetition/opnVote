@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ChangeEvent, type CSSProperties } from "react";
 import { createAdminClient, ErrorCode } from "votingsystem/admin";
-import type { Ap, Author, CreateElectionParams, ElectionIpfsData, ElectionKeys, Register, RegisterKeys, Result } from "votingsystem/admin";
+import type { Ap, Author, CreateElectionParams, ElectionIpfsData, ElectionKeys, ElectionOnChain, ElectionStatusChangeParams, PreparedTx, Register, RegisterKeys, Result } from "votingsystem/admin";
 import { createWalletClient, custom, type Address, type EIP1193Provider } from "viem";
 import { gnosis } from "viem/chains";
 
@@ -41,7 +41,7 @@ const admin = createAdminClient({
     chain: gnosis,
 });
 
-type Role = "coordinator" | "register";
+type Role = "create" | "manage" | "register";
 
 type IpfsForm = {
     title: string;
@@ -123,6 +123,10 @@ function toUnixTs(value: string): number {
     return Math.floor(new Date(value).getTime() / 1000);
 }
 
+function fromUnixTs(ts: number): string {
+    return new Date(ts * 1000).toLocaleString();
+}
+
 function toIpfsData(form: IpfsForm): ElectionIpfsData {
     return {
         title: form.title,
@@ -151,9 +155,9 @@ function toElectionParams(form: ElectionForm, from: Address): CreateElectionPara
     };
 }
 
-async function waitForElectionID(txHash: string): Promise<number> {
+async function waitFor<T>(request: () => Promise<Result<T>>): Promise<T> {
     for (let i = 0; i < 40; i++) {
-        const res = await admin.getElectionID(txHash);
+        const res = await request();
         if (res.ok || !res.retryAfterMs) return checkResult(res);
         await new Promise((resolve) => setTimeout(resolve, res.retryAfterMs));
     }
@@ -166,7 +170,7 @@ function walletClient() {
 }
 
 export default function Home() {
-    const [role, setRole] = useState<Role>("coordinator");
+    const [role, setRole] = useState<Role>("create");
     const [electionKeys, setElectionKeys] = useState<ElectionKeys | null>(null);
     const [registerKeys, setRegisterKeys] = useState<RegisterKeys | null>(null);
     const [ipfsForm, setIpfsForm] = useState<IpfsForm>(DEFAULT_IPFS_FORM);
@@ -178,6 +182,8 @@ export default function Home() {
     const [aps, setAps] = useState<Result<Ap[]> | null>(null);
     const [coordinator, setCoordinator] = useState<Result<Address> | null>(null);
     const [electionID, setElectionID] = useState<number | null>(null);
+    const [manageID, setManageID] = useState("");
+    const [election, setElection] = useState<ElectionOnChain | null>(null);
     const [log, setLog] = useState<string[]>([]);
     const [busy, setBusy] = useState(false);
     const [unlocked, setUnlocked] = useState(false);
@@ -213,7 +219,7 @@ export default function Home() {
     }
 
     async function step<T>(label: string, fn: () => T | Promise<T>): Promise<T | null> {
-        add(`${label} …`);
+        add(`${label}`);
         try {
             const value = await fn();
             replaceLast(`${label} ✓`);
@@ -304,18 +310,63 @@ export default function Home() {
             const txHash = await step("Sending transaction", () => walletClient().sendTransaction({ account: account!, chain: gnosis, ...tx }));
             if (!txHash) return;
             add(`Transaction hash: ${txHash}`);
-            const id = await step("Waiting for election ID", () => waitForElectionID(txHash));
+            const id = await step("Waiting for election ID", () => waitFor(() => admin.getElectionID(txHash)));
             if (id === null) return;
             setElectionID(id);
+            setManageID(String(id));
             add(`Election ID: ${id}`);
         });
 
+    async function getElection(id: number) {
+        const state = await step(`Loading election ${id}`, async () => checkResult(await admin.getElection(id)));
+        setElection(state);
+    }
+
+    const loadElection = () => withBusy(() => getElection(Number(manageID)));
+
+    const changeStatus = (label: string, prepareStatusChangeTransaction: (params: ElectionStatusChangeParams) => Promise<Result<PreparedTx>>) =>
+        withBusy(async () => {
+
+            const id = election!.electionID;
+            const tx = await step(`Creating ${label} transaction`, async () => checkResult(await prepareStatusChangeTransaction({ from: account!, electionID: id })));
+            if (!tx) return;
+            
+            const txHash = await step("Sending transaction", () => walletClient().sendTransaction({ account: account!, chain: gnosis, ...tx }));
+            if (!txHash) return;
+
+            add(`Transaction hash: ${txHash}`);
+            const confirmed = await step("Waiting for confirmation", () => waitFor(() => admin.getTransactionStatus(txHash)));
+            if (confirmed === null) return;
+
+            await getElection(id);
+        });
+
+    const now = Date.now() / 1000;
+    const canStart = election?.status === "Pending" && election.registerPublicKey !== "0x"
+        && now >= election.votingStartTime && now < election.votingEndTime;
+    const canEnd = (election?.status === "Pending" || election?.status === "Active")
+        && now >= election.votingEndTime;
     const pinned = cid !== null;
     const prefillLocked = !pinned || !unlocked;
     const canPublish = pinned && electionForm.votingStart && electionForm.votingEnd && electionForm.registerID && electionForm.apID;
 
     const isCoordinator = coordinator?.ok && coordinator.value.toLowerCase() === account?.toLowerCase();
     const isAllowed = authors?.ok && authors.value.some((a) => a.walletAddress.toLowerCase() === account?.toLowerCase());
+
+    const coordinatorInfo = (
+        <div style={{ borderTop: "1px solid #ddd", paddingTop: "1rem", marginBottom: "0.5rem", fontSize: 13 }}>
+            Election coordinator:
+            {!coordinator && " loading"}
+            {coordinator && !coordinator.ok && ` ${coordinator.code}: ${coordinator.error}`}
+            {coordinator?.ok && ` ${coordinator.value}`}
+        </div>
+    );
+
+    const accountInfo = (
+        <span style={{ fontSize: 13 }}>
+            {account} {coordinator?.ok && (isCoordinator ? "✓ election coordinator" : "✗ not election coordinator")}
+        </span>
+    );
 
     const btn = { padding: "0.4rem 0.8rem", fontSize: 14 };
     const row: CSSProperties = { display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "1rem" };
@@ -346,7 +397,8 @@ export default function Home() {
 
             <div style={row}>
                 <select value={role} onChange={(e) => setRole(e.target.value as Role)} style={{ padding: "0.4rem", fontSize: 14 }}>
-                    <option value="coordinator">Election Coordinator</option>
+                    <option value="create">Election Coordinator: Create Election</option>
+                    <option value="manage">Election Coordinator: Manage Election</option>
                     <option value="register">Register</option>
                 </select>
                 <span style={{ fontSize: 13, color: "#555" }}>
@@ -354,10 +406,10 @@ export default function Home() {
                 </span>
             </div>
 
-            {role === "coordinator" && (
+            {role === "create" && (
                 <section>
                     <p style={{ fontSize: 14, background: "#f4f4f4", border: "1px solid #ddd", borderRadius: 6, padding: "0.75rem 1rem" }}>
-                        <b>FLOW:</b> 1. Generate election keys → 2. Pin election description to IPFS → 3. Publish election on-chain → 4. Start election / End election / Tally votes
+                        <b>FLOW:</b> 1. Generate election keys → 2. Pin election description to IPFS → 3. Publish election on-chain → 4. Manage election in "Manage Election" tab
                     </p>
                     <h2 style={{ fontSize: 18 }}>1. Generate Election Keys</h2>
                     <div style={row}>
@@ -403,7 +455,7 @@ export default function Home() {
 
                     <div style={{ borderTop: "1px solid #ddd", paddingTop: "1rem", marginBottom: "0.5rem", fontSize: 13 }}>
                         Allowed authors:
-                        {!authors && " loading …"}
+                        {!authors && " loading"}
                         {authors && !authors.ok && ` ${authors.code}: ${authors.error}`}
                         {authors?.ok && (
                             <ul style={{ margin: "0.25rem 0" }}>
@@ -448,27 +500,53 @@ export default function Home() {
                         {select("register", electionForm.registerID, registers, (registerID) => updateElectionForm({ registerID }), !pinned)}
                         {select("AP", electionForm.apID, aps, (apID) => updateElectionForm({ apID }), !pinned)}
                     </div>
-                    <div style={{ borderTop: "1px solid #ddd", paddingTop: "1rem", marginBottom: "0.5rem", fontSize: 13 }}>
-                        Election coordinator:
-                        {!coordinator && " loading …"}
-                        {coordinator && !coordinator.ok && ` ${coordinator.code}: ${coordinator.error}`}
-                        {coordinator?.ok && ` ${coordinator.value}`}
-                    </div>
+                    {coordinatorInfo}
                     <div style={row}>
                         {account ? (
                             <>
-                                <span style={{ fontSize: 13 }}>
-                                    {account} {coordinator?.ok && (isCoordinator ? "✓ election coordinator" : "✗ not election coordinator")}
-                                </span>
+                                {accountInfo}
                                 <button style={{ ...btn, fontWeight: "bold" }} disabled={busy || !canPublish} onClick={createElection}>createElection</button>
                             </>
                         ) : (
                             <button style={{ ...btn, fontWeight: "bold" }} disabled={busy} onClick={connectWallet}>connect wallet to publish</button>
                         )}
                     </div>
+                </section>
+            )}
 
-                    <h2 style={{ fontSize: 18 }}>4. Start Election / End Election / Tally Votes</h2>
-                    <p style={{ fontSize: 14, color: "#555" }}>to be implemented</p>
+            {role === "manage" && (
+                <section>
+                    <h2 style={{ fontSize: 18 }}>Manage election</h2>
+                    <div style={row}>
+                        {field("election ID", manageID, setManageID, "number")}
+                        <button style={btn} disabled={busy || !manageID} onClick={loadElection}>getElection</button>
+                    </div>
+                    {election && (
+                        <ul style={{ fontSize: 14, margin: "0 0 1rem" }}>
+                            <li>
+                                election {election.electionID}: <b>{election.status}</b>
+                            </li>
+                            <li>voting: {fromUnixTs(election.votingStartTime)} – {fromUnixTs(election.votingEndTime)}</li>
+                            <li>CID: {election.cid}</li>
+                            <li>register ID: {election.registerID} · AP ID: {election.apID} · register key: {election.registerPublicKey !== "0x" ? "✓ set" : "✗ missing"}</li>
+                            <li>votes: {election.totalVotes}</li>
+                        </ul>
+                    )}
+                    {coordinatorInfo}
+                    {account ? (
+                        <>
+                            <div style={{ marginBottom: "0.5rem" }}>{accountInfo}</div>
+                            <div style={row}>
+                                <button style={{ ...btn, fontWeight: "bold" }} disabled={busy || !canStart} onClick={() => changeStatus("start", admin.startElection)}>start Election</button>
+                                <button style={{ ...btn, fontWeight: "bold" }} disabled={busy || !canEnd} onClick={() => changeStatus("end", admin.endElection)}>end Election</button>
+                                <button style={{ ...btn, fontWeight: "bold" }} disabled>tally Election</button>
+                            </div>
+                        </>
+                    ) : (
+                        <div style={row}>
+                            <button style={{ ...btn, fontWeight: "bold" }} disabled={busy} onClick={connectWallet}>connect wallet to manage</button>
+                        </div>
+                    )}
                 </section>
             )}
 
