@@ -241,6 +241,7 @@ export type AdminClient = {
     getTransactionStatus(txHash: string): Promise<Result<void>>;
     generateRegisterKeys(): RegisterKeys;
     verifyRegisterKeys(keys: RegisterKeys): Promise<Result<void>>;
+    getRegister(registerID: number): Promise<Result<Register>>;
     setRegisterPublicKeyOnChain(params: SetRegisterPublicKeyOnChainParams): Promise<Result<PreparedTransaction>>;
     createRegisterKeysMessage(electionID: number, publicKey: string): string;
     setRegisterKeysBackend(params: SetRegisterKeysBackendParams): Promise<Result<void>>;

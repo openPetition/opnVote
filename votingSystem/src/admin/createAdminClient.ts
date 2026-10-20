@@ -1,6 +1,6 @@
 import { generateElectionKeys, generateRegisterKeys, verifyElectionKeys, verifyRegisterKeys } from "./keys";
 import { createPinMessage, getAllowedAuthors, pinElection } from "./ipfs";
-import { createElection, endElection, getElection, getElectionCoordinator, getElectionID, getTransactionStatus, setRegisterPublicKeyOnChain, startElection } from "./election";
+import { createElection, endElection, getElection, getElectionCoordinator, getElectionID, getRegister, getTransactionStatus, setRegisterPublicKeyOnChain, startElection } from "./election";
 import { createRegisterKeysMessage, setRegisterKeysBackend } from "./register";
 import { getAps, getRegisters } from "./subgraph";
 import type { AdminClient, Configuration } from "./types";
@@ -42,6 +42,7 @@ export function createAdminClient(config: Configuration): AdminClient {
         getTransactionStatus: (txHash) => getTransactionStatus(config, txHash),
         generateRegisterKeys,
         verifyRegisterKeys: (keys) => verifyRegisterKeys(config, keys),
+        getRegister: (registerID) => getRegister(config, registerID),
         setRegisterPublicKeyOnChain: (params) => setRegisterPublicKeyOnChain(config, params),
         createRegisterKeysMessage,
         setRegisterKeysBackend: (params) => setRegisterKeysBackend(config, params),

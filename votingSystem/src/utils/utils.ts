@@ -99,6 +99,21 @@ export function validateElectionID(electionID: number) {
 }
 
 /**
+ * Validates a register ID.
+ * @param registerID - The register ID to be checked.
+ * @throws Will throw an error if register ID is not an integer or not between 0 and 255
+ */
+export function validateRegisterID(registerID: number) {
+  if (!Number.isInteger(registerID)) {
+    throw new Error(`Invalid register ID: ${registerID}. Must be an integer.`)
+  }
+
+  if (registerID < 0 || registerID > 255) {
+    throw new Error('Register ID out of range')
+  }
+}
+
+/**
  * Converts a hexadecimal string to a Base64 string.
  *
  * @param hexStringObject - An object containing a hexadecimal string to be converted.

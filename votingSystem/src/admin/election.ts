@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import type { Address, Hex } from "viem";
-import { evmG2ToNoble, validateBlsParams, validateElectionID, validateEthAddress, validateHexString } from "../utils/utils";
+import { evmG2ToNoble, validateBlsParams, validateElectionID, validateEthAddress, validateHexString, validateRegisterID } from "../utils/utils";
 import { rpcProvider, withTimeout } from "../client/utils";
 import { ErrorCode, RETRY_AFTER_MS } from "./errors";
 import { OPNVOTE_ABI } from "../client/abi";
@@ -11,6 +11,7 @@ import type {
     ElectionStatus,
     ElectionStatusChangeParams,
     PreparedTransaction,
+    Register,
     Result,
     SetRegisterPublicKeyOnChainParams,
 } from "./types";
@@ -262,4 +263,34 @@ export async function setRegisterPublicKeyOnChain(config: Configuration, params:
     }
 
     return prepareTransaction(config, params.from, "setElectionRegisterPublicKey", [params.electionID, params.publicKey]);
+}
+
+/**
+ * Retrieves a register from opnvote contract
+ *
+ * @param config - Admin client config
+ * @param registerID - register ID
+ * @returns register or error code
+ */
+export async function getRegister(config: Configuration, registerID: number): Promise<Result<Register>> {
+    
+    try {
+        validateRegisterID(registerID);
+    } catch (e) {
+        return { ok: false, code: ErrorCode.REGISTER_NOT_FOUND, error: `invalid register id: ${String(e)}` };
+    }
+
+    const opnvote = new ethers.Contract(config.contracts.opnvote, OPNVOTE_ABI, rpcProvider(config.rpcUrl, config.chain.id));
+
+    let register: ethers.Result;
+    try {
+        register = await withTimeout(opnvote.registers(registerID));
+    } catch (e) {
+        return { ok: false, code: ErrorCode.RPC_NETWORK, error: `couldn't get register: ${String(e)}`, retryAfterMs: RETRY_AFTER_MS };
+    }
+
+    if (register.owner === ethers.ZeroAddress) {
+        return { ok: false, code: ErrorCode.REGISTER_NOT_FOUND, error: `register ${registerID} not found` };
+    }
+    return { ok: true, value: { id: registerID, name: register.registerName, uri: register.registerUri, owner: register.owner } };
 }
