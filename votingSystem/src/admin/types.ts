@@ -14,9 +14,11 @@ export type Result<T> =
 /**
  * On-chain contract addresses
  * @property {Address} opnvote - opnvote contract
+ * @property {Address} paymaster - paymaster contract
  */
 export type Contracts = {
     opnvote: Address;
+    paymaster: Address;
 };
 
 /**
@@ -123,12 +125,14 @@ export type CreateElectionParams = {
 };
 
 /**
- * @property {Address} to - opn.vote contract address
+ * @property {Address} to - opn.vote or paymaster contract address
  * @property {Hex} data - calldata
+ * @property {bigint} value - optional value sent with transaction
  */
 export type PreparedTransaction = {
     to: Address;
     data: Hex;
+    value?: bigint;
 };
 
 export type ElectionStatus = "Pending" | "Active" | "Ended" | "ResultsPublished" | "Canceled";
@@ -246,6 +250,30 @@ export type Ap = {
 };
 
 /**
+ * Paymaster contract that sponsors voters transaction costs
+ * @property {bigint} deposit - deposit in wei
+ * @property {number} maxOpsPerElection - maximum of sponsored votes per voter per election (includes recasts)
+ * @property {bigint} maxCostCap - max cost of a sponsored transaction in wei
+ * @property {bigint} maxFeePerGasCap - max fee per gas of a sponsored transaction
+ */
+export type Paymaster = {
+    deposit: bigint;
+    maxOpsPerElection: number;
+    maxCostCap: bigint;
+    maxFeePerGasCap: bigint;
+};
+
+/**
+ * Params for funding the paymaster contract
+ * @property {Address} from - sender
+ * @property {bigint} amount - value to be sponsored in wei
+ */
+export type FundPaymasterParams = {
+    from: Address;
+    amount: bigint;
+};
+
+/**
  * Admin client
  */
 export type AdminClient = {
@@ -271,4 +299,6 @@ export type AdminClient = {
     setRegisterPublicKeyOnChain(params: SetRegisterPublicKeyOnChainParams): Promise<Result<PreparedTransaction>>;
     createRegisterKeysMessage(electionID: number, publicKey: string): string;
     setRegisterKeysBackend(params: SetRegisterKeysBackendParams): Promise<Result<void>>;
+    getPaymaster(): Promise<Result<Paymaster>>;
+    fundPaymaster(params: FundPaymasterParams): Promise<Result<PreparedTransaction>>;
 };

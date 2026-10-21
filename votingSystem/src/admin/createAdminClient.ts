@@ -3,6 +3,7 @@ import { createPinMessage, getAllowedAuthors, pinElection } from "./ipfs";
 import { createElection, endElection, getElection, getElectionCoordinator, getElectionID, getRegister, getTransactionStatus, publishElectionResults, setRegisterPublicKeyOnChain, startElection } from "./election";
 import { createRegisterKeysMessage, setRegisterKeysBackend } from "./register";
 import { getAps, getRegisters } from "./subgraph";
+import { fundPaymaster, getPaymaster } from "./paymaster";
 import { tallyElection } from "./tally";
 import type { AdminClient, Configuration } from "./types";
 
@@ -13,6 +14,7 @@ import type { AdminClient, Configuration } from "./types";
  */
 function validateSetup(config: Configuration): void {
     if (!config.contracts?.opnvote) throw new Error("contracts.opnvote is required");
+    if (!config.contracts?.paymaster) throw new Error("contracts.paymaster is required");
     if (!config.rpcUrl) throw new Error("config.rpcUrl is required");
     if (!config.chain) throw new Error("config.chain is required");
 }
@@ -49,5 +51,7 @@ export function createAdminClient(config: Configuration): AdminClient {
         setRegisterPublicKeyOnChain: (params) => setRegisterPublicKeyOnChain(config, params),
         createRegisterKeysMessage,
         setRegisterKeysBackend: (params) => setRegisterKeysBackend(config, params),
+        getPaymaster: () => getPaymaster(config),
+        fundPaymaster: (params) => fundPaymaster(config, params),
     };
 }
