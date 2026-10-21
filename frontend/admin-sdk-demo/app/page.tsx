@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ChangeEvent, type CSSProperties } from "react";
 import { createAdminClient, ErrorCode } from "votingsystem/admin";
-import type { Ap, Author, CreateElectionParams, ElectionIpfsData, ElectionKeys, ElectionOnChain, ElectionStatusChangeParams, PreparedTransaction, Register, RegisterKeys, Result } from "votingsystem/admin";
+import type { Ap, Author, CreateElectionParams, ElectionIpfsData, ElectionKeys, ElectionOnChain, ElectionStatusChangeParams, PreparedTransaction, QuestionResult, Register, RegisterKeys, Result } from "votingsystem/admin";
 import { createWalletClient, custom, type Address, type EIP1193Provider } from "viem";
 import { gnosis } from "viem/chains";
 
@@ -137,11 +137,21 @@ function registerKeyStatus(onChainKey: string, keys: RegisterKeys | null): strin
     if (!keys){
         return "✓ already set"
     }
-    
     if (onChainKey.toLowerCase() === keys.publicKey.toLowerCase()){
         return "✓ loaded and on-chain keys match";
     }
     
+    return "✗ loaded and on-chain keys are different!";
+}
+
+function electionKeyStatus(onChainKey: string, keys: ElectionKeys | null): string {
+    if (!keys){
+        return "— keys not loaded";
+    }
+
+    if (onChainKey.toLowerCase() === keys.publicKey.toLowerCase()){
+        return "✓ loaded and on-chain keys match";
+    }
     return "✗ loaded and on-chain keys are different";
 }
 
@@ -202,6 +212,7 @@ export default function Home() {
     const [electionID, setElectionID] = useState<number | null>(null);
     const [manageID, setManageID] = useState("");
     const [election, setElection] = useState<ElectionOnChain | null>(null);
+    const [tallyResults, setTallyResults] = useState<QuestionResult[] | null>(null);
     const [register, setRegister] = useState<Result<Register> | null>(null);
     const [log, setLog] = useState<string[]>([]);
     const [busy, setBusy] = useState(false);
@@ -347,7 +358,11 @@ export default function Home() {
         setElection(state);
     }
 
-    const loadElection = () => withBusy(() => getElection(Number(manageID)));
+    const loadElection = () =>
+        withBusy(async () => {
+            setTallyResults(null);
+            await getElection(Number(manageID));
+        });
 
     const changeStatus = (label: string, prepareStatusChangeTransaction: (params: ElectionStatusChangeParams) => Promise<Result<PreparedTransaction>>) =>
         withBusy(async () => {
@@ -365,6 +380,35 @@ export default function Home() {
 
             await getElection(id);
         });
+
+    const loadElectionKeysFile = (e: ChangeEvent<HTMLInputElement>) =>
+        
+        withBusy(async () => {
+            const file = importFile(e);
+            if (!file) return;
+
+            const keys = await step(`Reading selected file`, () => readKeyFile<ElectionKeys>(file));
+            if (!keys) return;
+            
+            setElectionKeys(keys);
+            await verifyElectionKeys(keys);
+        });
+
+    const tallyElection = () =>
+        withBusy(async () => {
+
+            const id = election!.electionID;
+            const results = await step(`Tallying election ${id}`, async () =>
+                checkResult(await admin.tallyElection({ electionID: id, privateKey: electionKeys!.privateKey })));
+            if (results) setTallyResults(results);
+        });
+
+    const publishResults = () => {
+        if (!window.confirm(`Confirm to publish the results for election ${election!.electionID}. Published results cannot be changed!`)) return;
+
+        changeStatus("publish results", (params) =>
+            admin.publishElectionResults({ ...params, results: tallyResults!, privateKey: electionKeys!.privateKey }));
+    };
 
     const setRegisterPublicKeyOnChain = () =>
         withBusy(async () => {
@@ -396,10 +440,15 @@ export default function Home() {
         });
 
     const now = Date.now() / 1000;
+
     const canStart = election?.status === "Pending" && election.registerPublicKey !== "0x"
         && now >= election.votingStartTime && now < election.votingEndTime;
     const canEnd = (election?.status === "Pending" || election?.status === "Active")
         && now >= election.votingEndTime;
+    
+    const canTally = election?.status === "Ended" && electionKeys !== null;
+    const canPublishResults = election?.status === "Ended" && electionKeys !== null && tallyResults !== null;
+    
     const pinned = cid !== null;
     const prefillLocked = !pinned || !unlocked;
     const canPublish = pinned && electionForm.votingStart && electionForm.votingEnd && electionForm.registerID && electionForm.apID;
@@ -430,6 +479,7 @@ export default function Home() {
     const btn = { padding: "0.4rem 0.8rem", fontSize: 14 };
     const row: CSSProperties = { display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "1rem" };
     const input: CSSProperties = { display: "block", width: "100%", boxSizing: "border-box", padding: "0.3rem", fontSize: 14 };
+    const cell: CSSProperties = { border: "1px solid #ddd", padding: "0.25rem 0.5rem" };
 
     const field = (label: string, value: string, onChange: (value: string) => void, type = "text", locked = false) => (
         <label style={{ display: "block", flex: 1, fontSize: 14, marginBottom: "0.5rem" }}>
@@ -589,8 +639,14 @@ export default function Home() {
                             <li>CID: {election.cid}</li>
                             <li>register ID: {election.registerID} · AP ID: {election.apID} · register key: {election.registerPublicKey !== "0x" ? "✓ set" : "✗ missing"}</li>
                             <li>votes: {election.totalVotes}</li>
+                            <li>election keys: {electionKeyStatus(election.publicKey, electionKeys)}</li>
                         </ul>
                     )}
+                    <div style={row}>
+                        <label style={{ fontSize: 14 }}>
+                            load election keys: <input type="file" accept=".json" disabled={busy} onChange={loadElectionKeysFile} />
+                        </label>
+                    </div>
                     {coordinatorInfo}
                     {account ? (
                         <>
@@ -598,13 +654,42 @@ export default function Home() {
                             <div style={row}>
                                 <button style={{ ...btn, fontWeight: "bold" }} disabled={busy || !canStart} onClick={() => changeStatus("start", admin.startElection)}>start Election</button>
                                 <button style={{ ...btn, fontWeight: "bold" }} disabled={busy || !canEnd} onClick={() => changeStatus("end", admin.endElection)}>end Election</button>
-                                <button style={{ ...btn, fontWeight: "bold" }} disabled>tally Election</button>
+                                <button style={{ ...btn, fontWeight: "bold" }} disabled={busy || !canTally} onClick={tallyElection}>tally Election</button>
+                                <button style={{ ...btn, fontWeight: "bold" }} disabled={busy || !canPublishResults} onClick={publishResults}>publish Results</button>
                             </div>
                         </>
                     ) : (
                         <div style={row}>
                             <button style={{ ...btn, fontWeight: "bold" }} disabled={busy} onClick={connectWallet}>connect wallet to manage</button>
                         </div>
+                    )}
+                    {tallyResults && (
+                        <table style={{ fontSize: 14, borderCollapse: "collapse", marginBottom: "1rem" }}>
+                            <thead>
+                                <tr>
+                                    <th style={cell}>question</th>
+                                    <th style={cell}>yes</th>
+                                    <th style={cell}>no</th>
+                                    <th style={cell}>abstain</th>
+                                    <th style={cell}>invalid (voter choice)</th>
+                                    <th style={cell}>invalid (technical)</th>
+                                    <th style={cell}>total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {tallyResults.map((result, i) => (
+                                    <tr key={i}>
+                                        <td style={cell}>{i + 1}</td>
+                                        <td style={cell}>{result.yes}</td>
+                                        <td style={cell}>{result.no}</td>
+                                        <td style={cell}>{result.abstain}</td>
+                                        <td style={cell}>{result.invalid}</td>
+                                        <td style={cell}>{result.invalidTechnical}</td>
+                                        <td style={cell}>{result.yes + result.no + result.abstain + result.invalid + result.invalidTechnical}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     )}
                 </section>
             )}
