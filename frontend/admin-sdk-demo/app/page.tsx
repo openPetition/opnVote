@@ -2,8 +2,8 @@
 
 import { useEffect, useState, type ChangeEvent, type CSSProperties } from "react";
 import { createAdminClient, ErrorCode } from "votingsystem/admin";
-import type { Ap, Author, CreateElectionParams, ElectionIpfsData, ElectionKeys, ElectionOnChain, ElectionStatusChangeParams, PreparedTransaction, QuestionResult, Register, RegisterKeys, Result } from "votingsystem/admin";
-import { createWalletClient, custom, type Address, type EIP1193Provider } from "viem";
+import type { Ap, Author, CreateElectionParams, ElectionIpfsData, ElectionKeys, ElectionOnChain, ElectionStatusChangeParams, Paymaster, PreparedTransaction, QuestionResult, Register, RegisterKeys, Result } from "votingsystem/admin";
+import { createPublicClient, createWalletClient, custom, formatEther, formatGwei, http, parseEther, type Address, type EIP1193Provider } from "viem";
 import { gnosis } from "viem/chains";
 
 declare global {
@@ -15,6 +15,7 @@ declare global {
 
 const RPC_PROVIDER = process.env.NEXT_PUBLIC_RPC_PROVIDER;
 const OPNVOTE_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_OPNVOTE_CONTRACT_ADDRESS;
+const PAYMASTER_ADDRESS = process.env.NEXT_PUBLIC_PAYMASTER_ADDRESS;
 const IPFS_SERVER_URL = process.env.NEXT_PUBLIC_IPFS_SERVER_URL;
 const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL;
 const REGISTER_URL = process.env.NEXT_PUBLIC_REGISTER_URL;
@@ -27,6 +28,10 @@ if (!OPNVOTE_CONTRACT_ADDRESS) {
     throw new Error("NEXT_PUBLIC_OPNVOTE_CONTRACT_ADDRESS is not defined");
 }
 
+if (!PAYMASTER_ADDRESS) {
+    throw new Error("NEXT_PUBLIC_PAYMASTER_ADDRESS is not defined");
+}
+
 if (!IPFS_SERVER_URL) {
     throw new Error("NEXT_PUBLIC_IPFS_SERVER_URL is not defined");
 }
@@ -35,14 +40,18 @@ if (!SUBGRAPH_URL) {
     throw new Error("NEXT_PUBLIC_SUBGRAPH_URL is not defined");
 }
 
+const CHAIN = gnosis;
+
 const admin = createAdminClient({
     endpoints: { ipfsUrl: IPFS_SERVER_URL, subgraphUrl: SUBGRAPH_URL, registerUrl: REGISTER_URL },
-    contracts: { opnvote: OPNVOTE_CONTRACT_ADDRESS as `0x${string}` },
+    contracts: { opnvote: OPNVOTE_CONTRACT_ADDRESS as `0x${string}`, paymaster: PAYMASTER_ADDRESS as `0x${string}` },
     rpcUrl: RPC_PROVIDER,
-    chain: gnosis,
+    chain: CHAIN,
 });
 
-type Role = "create" | "manage" | "register";
+const publicClient = createPublicClient({ chain: CHAIN, transport: http(RPC_PROVIDER) });
+
+type Role = "create" | "manage" | "register" | "sponsoring";
 
 type IpfsForm = {
     title: string;
@@ -126,6 +135,10 @@ function toUnixTs(value: string): number {
 
 function fromUnixTs(ts: number): string {
     return new Date(ts * 1000).toLocaleString();
+}
+
+function formatAmount(wei: bigint | undefined): string {
+    return wei === undefined ? "—" : `${formatEther(wei)} xDAI`;
 }
 
 function registerKeyStatus(onChainKey: string, keys: RegisterKeys | null): string {
@@ -214,6 +227,10 @@ export default function Home() {
     const [election, setElection] = useState<ElectionOnChain | null>(null);
     const [tallyResults, setTallyResults] = useState<QuestionResult[] | null>(null);
     const [register, setRegister] = useState<Result<Register> | null>(null);
+    const [paymaster, setPaymaster] = useState<Result<Paymaster> | null>(null);
+    const [balances, setBalances] = useState<Record<string, bigint>>({});
+    const [paymasterAmount, setPaymasterAmount] = useState("");
+    const [transferAmount, setTransferAmount] = useState("");
     const [log, setLog] = useState<string[]>([]);
     const [busy, setBusy] = useState(false);
     const [unlocked, setUnlocked] = useState(false);
@@ -223,6 +240,7 @@ export default function Home() {
         admin.getRegisters().then(setRegisters);
         admin.getAps().then(setAps);
         admin.getElectionCoordinator().then(setCoordinator);
+        admin.getPaymaster().then(setPaymaster);
     }, []);
 
     useEffect(() => {
@@ -237,6 +255,10 @@ export default function Home() {
     useEffect(() => {
         if (election) admin.getRegister(election.registerID).then(setRegister);
     }, [election]);
+
+    useEffect(() => {
+        loadBalances();
+    }, [registers, aps]);
 
     const add = (line: string) => setLog((prev) => [...prev, line]);
     const replaceLast = (line: string) => setLog((prev) => [...prev.slice(0, -1), line]);
@@ -343,7 +365,7 @@ export default function Home() {
             const tx = await step("Creating election publish transaction", async () =>
                 checkResult(await admin.createElection(toElectionParams(electionForm, account!))));
             if (!tx) return;
-            const txHash = await step("Sending transaction", () => walletClient().sendTransaction({ account: account!, chain: gnosis, ...tx }));
+            const txHash = await step("Sending transaction", () => walletClient().sendTransaction({ account: account!, chain: CHAIN, ...tx }));
             if (!txHash) return;
             add(`Transaction hash: ${txHash}`);
             const id = await step("Waiting for election ID", () => waitFor(() => admin.getElectionID(txHash)));
@@ -371,7 +393,7 @@ export default function Home() {
             const tx = await step(`Creating ${label} transaction`, async () => checkResult(await prepareStatusChangeTransaction({ from: account!, electionID: id })));
             if (!tx) return;
             
-            const txHash = await step("Sending transaction", () => walletClient().sendTransaction({ account: account!, chain: gnosis, ...tx }));
+            const txHash = await step("Sending transaction", () => walletClient().sendTransaction({ account: account!, chain: CHAIN, ...tx }));
             if (!txHash) return;
 
             add(`Transaction hash: ${txHash}`);
@@ -418,7 +440,7 @@ export default function Home() {
                 checkResult(await admin.setRegisterPublicKeyOnChain({ from: account!, electionID: id, publicKey: registerKeys!.publicKey })));
             if (!tx) return;
 
-            const txHash = await step("Sending transaction", () => walletClient().sendTransaction({ account: account!, chain: gnosis, ...tx }));
+            const txHash = await step("Sending transaction", () => walletClient().sendTransaction({ account: account!, chain: CHAIN, ...tx }));
             if (!txHash) return;
 
             add(`Transaction hash: ${txHash}`);
@@ -437,6 +459,62 @@ export default function Home() {
 
             await step("Setting register keys in backend", async () =>
                 checkResult(await admin.setRegisterKeysBackend({ electionID: id, keys: registerKeys!, signature })));
+        });
+
+    const providers: (Register & { type: string })[] = [];
+    if (registers?.ok) {
+        for (const item of registers.value) {
+            providers.push({ type: "Register", ...item });
+        }
+    }
+    if (aps?.ok) {
+        for (const item of aps.value) {
+            providers.push({ type: "AP", ...item });
+        }
+    }
+
+    async function loadBalances() {
+        const loaded: Record<string, bigint> = {};
+        try {
+            for (const provider of providers) {
+                loaded[provider.owner.toLowerCase()] = await publicClient.getBalance({ address: provider.owner });
+            }
+            } catch (e) {
+                add(`✗ Could not load Loading balances: ${e instanceof Error ? e.message : String(e)}`);
+            }
+        setBalances(loaded);
+    }
+
+    const fundPaymaster = () =>
+        withBusy(async () => {
+            const tx = await step("Creating transaction to fund paymaster", async () =>
+                checkResult(await admin.fundPaymaster({ from: account!, amount: parseEther(paymasterAmount) })));
+            if (!tx) return;
+
+            const txHash = await step("Sending transaction", () => walletClient().sendTransaction({ account: account!, chain: CHAIN, ...tx }));
+            if (!txHash) return;
+
+            add(`Transaction hash: ${txHash}`);
+            const confirmed = await step("Waiting for transaction confirmation", () => waitFor(() => admin.getTransactionStatus(txHash)));
+            if (confirmed === null) return;
+
+            setPaymaster(await admin.getPaymaster());
+        });
+
+    const transferToOwner = (owner: Address) =>
+        withBusy(async () => {
+            const value = parseEther(transferAmount);
+            if (value <= 0n) throw new Error("amount must be positive");
+
+            const txHash = await step(`Sending ${transferAmount} xDAI to ${owner}`, () =>
+                walletClient().sendTransaction({ account: account!, chain: CHAIN, to: owner, value }));
+            if (!txHash) return;
+
+            add(`Transaction hash: ${txHash}`);
+            const confirmed = await step("Waiting for confirmation", () => waitFor(() => admin.getTransactionStatus(txHash)));
+            if (confirmed === null) return;
+
+            await loadBalances();
         });
 
     const now = Date.now() / 1000;
@@ -509,6 +587,7 @@ export default function Home() {
                     <option value="create">Election Coordinator: Create Election</option>
                     <option value="manage">Election Coordinator: Manage Election</option>
                     <option value="register">Register</option>
+                    <option value="sponsoring">Sponsor Votes, Register and AP</option>
                 </select>
                 <span style={{ fontSize: 13, color: "#555" }}>
                     opnvote: {OPNVOTE_CONTRACT_ADDRESS}
@@ -740,6 +819,68 @@ export default function Home() {
                             <button style={{ ...btn, fontWeight: "bold" }} disabled={busy} onClick={connectWallet}>connect wallet</button>
                         </div>
                     )}
+                </section>
+            )}
+
+            {role === "sponsoring" && (
+                <section>
+                    <div style={row}>
+                        {account ? (
+                            <span style={{ fontSize: 13 }}>{account}</span>
+                        ) : (
+                            <button style={{ ...btn, fontWeight: "bold" }} disabled={busy} onClick={connectWallet}>connect wallet</button>
+                        )}
+                    </div>
+
+                    <h2 style={{ fontSize: 18 }}>Paymaster</h2>
+                    <p style={{ fontSize: 13, color: "#555" }}>Sponsor transaction costs for voters</p>
+                    {!paymaster && <p style={{ fontSize: 14 }}>loading</p>}
+                    {paymaster && !paymaster.ok && <p style={{ fontSize: 14 }}>{paymaster.code}: {paymaster.error}</p>}
+                    {paymaster?.ok && (
+                        <ul style={{ fontSize: 14, margin: "0 0 1rem" }}>
+                            <li>paymaster: {PAYMASTER_ADDRESS}</li>
+                            <li>deposit: <b>{formatAmount(paymaster.value.deposit)}</b></li>
+                            <li>max sponsored votes per voter and election: {paymaster.value.maxOpsPerElection}</li>
+                            <li>max cost per vote: {formatAmount(paymaster.value.maxCostCap)}</li>
+                            <li>max fee per gas: {formatGwei(paymaster.value.maxFeePerGasCap)} gwei</li>
+                        </ul>
+                    )}
+                    <div style={row}>
+                        {field("amount (xDAI)", paymasterAmount, setPaymasterAmount)}
+                        <button style={{ ...btn, fontWeight: "bold" }} disabled={busy || !account || !paymasterAmount} onClick={fundPaymaster}>sponsor</button>
+                    </div>
+
+                    <h2 style={{ fontSize: 18 }}>Register and AP</h2>
+                    <p style={{ fontSize: 13, color: "#555" }}>Sponsor transaction costs for on-chain registrations and authorizations</p>
+                    {registers && !registers.ok && <p style={{ fontSize: 14 }}>registers: {registers.code}: {registers.error}</p>}
+                    {aps && !aps.ok && <p style={{ fontSize: 14 }}>APs: {aps.code}: {aps.error}</p>}
+                    <div style={row}>
+                        {field("amount (xDAI)", transferAmount, setTransferAmount)}
+                    </div>
+                    <table style={{ fontSize: 13, borderCollapse: "collapse", marginBottom: "1rem" }}>
+                        <thead>
+                            <tr>
+                                <th style={cell}>type</th>
+                                <th style={cell}>name</th>
+                                <th style={cell}>owner</th>
+                                <th style={cell}>balance</th>
+                                <th style={cell}></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {providers.map((provider) => (
+                                <tr key={`${provider.type}-${provider.id}`}>
+                                    <td style={cell}>{provider.type}</td>
+                                    <td style={cell}>{provider.name} (ID {provider.id})</td>
+                                    <td style={cell}>{provider.owner}</td>
+                                    <td style={cell}>{formatAmount(balances[provider.owner.toLowerCase()])}</td>
+                                    <td style={cell}>
+                                        <button style={btn} disabled={busy || !account || !transferAmount} onClick={() => transferToOwner(provider.owner)}>sponsor</button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </section>
             )}
 
