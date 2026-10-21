@@ -3,6 +3,8 @@ import { fetchWithTimeout } from "../client/utils";
 import { ErrorCode, RETRY_AFTER_MS } from "./errors";
 import type { Author, Configuration, ElectionIpfsData, PinElectionParams, PinnedElection, Result } from "./types";
 
+export const MIN_QUESTIONS = 2;
+
 /**
  *
  * List allowed authors
@@ -41,9 +43,12 @@ export async function getAllowedAuthors(config: Configuration): Promise<Result<A
  * 
  * @param ipfsData - Election IPFS data
  * @returns serialized message that should be pinned
- * @throws if election data is malformed
+ * @throws if election data is malformed or does not have the minimum amount of questions
  */
 export function createPinMessage(ipfsData: ElectionIpfsData): string {
+    if (ipfsData.questions.length < MIN_QUESTIONS) {
+        throw new Error(`specify at least ${MIN_QUESTIONS} questions`);
+    }
     return serializeElectionIpfsData(ipfsData);
 }
 
@@ -63,7 +68,7 @@ export async function pinElection(
 
     let message: string;
     try {
-        message = serializeElectionIpfsData(params.ipfsData);
+        message = createPinMessage(params.ipfsData);
         validateEthSignature({ hexString: params.signature });
     } catch (e) {
         return { ok: false, code: ErrorCode.PIN_REJECTED, error: `invalid pin request: ${String(e)}` };

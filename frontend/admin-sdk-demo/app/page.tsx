@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ChangeEvent, type CSSProperties } from "react";
-import { createAdminClient, ErrorCode } from "votingsystem/admin";
+import { createAdminClient, ErrorCode, MIN_QUESTIONS } from "votingsystem/admin";
 import type { Ap, Author, CreateElectionParams, ElectionIpfsData, ElectionKeys, ElectionOnChain, ElectionStatusChangeParams, Paymaster, PreparedTransaction, QuestionResult, Register, RegisterKeys, Result } from "votingsystem/admin";
 import { createPublicClient, createWalletClient, custom, formatEther, formatGwei, http, parseEther, type Address, type EIP1193Provider } from "viem";
 import { gnosis } from "viem/chains";
@@ -74,7 +74,10 @@ const DEFAULT_IPFS_FORM: IpfsForm = {
     backLink: "https://www.opn.vote",
     registrationStart: "2027-01-01T00:00",
     registrationEnd: "2027-01-15T00:00",
-    questions: [{ text: "Election question", imageUrl: "https://www.opn.vote/sample1_flower.png" }],
+    questions: [
+        { text: "Election question 1", imageUrl: "https://www.opn.vote/sample1_flower.png" },
+        { text: "Election question 2", imageUrl: "https://www.opn.vote/sample1_flower.png" },
+    ],
 };
 
 type ElectionForm = {
@@ -541,10 +544,14 @@ export default function Home() {
 
     const coordinatorInfo = (
         <div style={{ borderTop: "1px solid #ddd", paddingTop: "1rem", marginBottom: "0.5rem", fontSize: 13 }}>
-            Election coordinator:
+            Allowed election coordinators:
             {!coordinator && " loading"}
             {coordinator && !coordinator.ok && ` ${coordinator.code}: ${coordinator.error}`}
-            {coordinator?.ok && ` ${coordinator.value}`}
+            {coordinator?.ok && (
+                <ul style={{ margin: "0.25rem 0" }}>
+                    <li>{coordinator.value}</li>
+                </ul>
+            )}
         </div>
     );
 
@@ -638,7 +645,7 @@ export default function Home() {
                     ))}
                     <div style={row}>
                         <button style={btn} disabled={busy} onClick={() => updateIpfsForm({ questions: [...ipfsForm.questions, { text: "", imageUrl: "" }] })}>+ question</button>
-                        <button style={btn} disabled={busy || ipfsForm.questions.length < 2} onClick={() => updateIpfsForm({ questions: ipfsForm.questions.slice(0, -1) })}>- question</button>
+                        <button style={btn} disabled={busy || ipfsForm.questions.length <= MIN_QUESTIONS} onClick={() => updateIpfsForm({ questions: ipfsForm.questions.slice(0, -1) })}>- question</button>
                     </div>
 
                     <div style={{ borderTop: "1px solid #ddd", paddingTop: "1rem", marginBottom: "0.5rem", fontSize: 13 }}>
