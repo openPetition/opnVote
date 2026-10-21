@@ -1,8 +1,8 @@
 import type { Address, Chain, Hex } from "viem";
 import type { ErrorCode } from "./errors";
-import type { ElectionIpfsData, PrivateKeyDer, PublicKeyDer } from "../types/types";
+import type { ElectionIpfsData, PrivateKeyDer, PublicKeyDer, QuestionResult } from "../types/types";
 
-export type { ElectionIpfsData, ErrorCode };
+export type { ElectionIpfsData, ErrorCode, QuestionResult };
 
 /**
  * Request results
@@ -170,6 +170,30 @@ export type ElectionStatusChangeParams = {
 };
 
 /**
+ * Tally parameters
+ * @property {number} electionID - election ID
+ * @property {PrivateKeyDer} privateKey - election private key
+ */
+export type TallyElectionParams = {
+    electionID: number;
+    privateKey: PrivateKeyDer;
+};
+
+/**
+ * Params for publishing election results on-chain
+ * @property {Address} from - election coordinator
+ * @property {number} electionID - election ID
+ * @property {QuestionResult[]} results - result of each question
+ * @property {PrivateKeyDer} privateKey - election private key
+ */
+export type PublishElectionResultsParams = {
+    from: Address;
+    electionID: number;
+    results: QuestionResult[];
+    privateKey: PrivateKeyDer;
+};
+
+/**
  * Params for setting the register public key on-chain
  * @property {Address} from - register owner
  * @property {number} electionID - election ID
@@ -238,6 +262,8 @@ export type AdminClient = {
     getElection(electionID: number): Promise<Result<ElectionOnChain>>;
     startElection(params: ElectionStatusChangeParams): Promise<Result<PreparedTransaction>>;
     endElection(params: ElectionStatusChangeParams): Promise<Result<PreparedTransaction>>;
+    tallyElection(params: TallyElectionParams): Promise<Result<QuestionResult[]>>;
+    publishElectionResults(params: PublishElectionResultsParams): Promise<Result<PreparedTransaction>>;
     getTransactionStatus(txHash: string): Promise<Result<void>>;
     generateRegisterKeys(): RegisterKeys;
     verifyRegisterKeys(keys: RegisterKeys): Promise<Result<void>>;

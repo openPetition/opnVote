@@ -4,6 +4,7 @@ import { evmG2ToNoble, validateBlsParams, validateElectionID, validateEthAddress
 import { rpcProvider, withTimeout } from "../client/utils";
 import { ErrorCode, RETRY_AFTER_MS } from "./errors";
 import { OPNVOTE_ABI } from "../client/abi";
+import { validateKeyPair } from "./generateKeyPair";
 import type {
     Configuration,
     CreateElectionParams,
@@ -11,6 +12,7 @@ import type {
     ElectionStatus,
     ElectionStatusChangeParams,
     PreparedTransaction,
+    PublishElectionResultsParams,
     Register,
     Result,
     SetRegisterPublicKeyOnChainParams,
@@ -228,6 +230,44 @@ export function startElection(config: Configuration, params: ElectionStatusChang
  */
 export function endElection(config: Configuration, params: ElectionStatusChangeParams): Promise<Result<PreparedTransaction>> {
     return prepareTransaction(config, params.from, "endElection", [params.electionID]);
+}
+
+/**
+ *
+ * Creates a transaction to publish the election results and simulates it
+ *
+ * @param config - Admin client config
+ * @param params - election ID, result for each question, election private key and sender
+ * @returns unsigned transaction or error code
+ */
+export async function publishElectionResults(config: Configuration, params: PublishElectionResultsParams): Promise<Result<PreparedTransaction>> {
+    const election = await getElection(config, params.electionID);
+    if (!election.ok) return election;
+
+    try {
+        await validateKeyPair(election.value.publicKey, params.privateKey);
+    } catch (e) {
+        return { ok: false, code: ErrorCode.KEY_INVALID, error: `private key does not match the election public key: ${String(e)}` };
+    }
+
+    for (const result of params.results) { // Checks if each question has the same number of answers as total votes in the election
+        const total = result.yes + result.no + result.abstain + result.invalid + result.invalidTechnical;
+        if (total !== election.value.totalVotes) {
+            return { ok: false, code: ErrorCode.TX_REJECTED, error: `ballot results do not match the election. One question has ${total} votes while election has ${election.value.totalVotes} initial votes` };
+        }
+    }
+
+    const args = [
+        params.electionID,
+        params.results.map((result) => result.yes),
+        params.results.map((result) => result.no),
+        params.results.map((result) => result.abstain),
+        params.results.map((result) => result.invalid),
+        params.results.map((result) => result.invalidTechnical),
+        params.privateKey,
+    ];
+
+    return prepareTransaction(config, params.from, "publishElectionResults", args);
 }
 
 /**
