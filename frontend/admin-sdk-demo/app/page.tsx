@@ -149,7 +149,7 @@ function electionKeyStatus(onChainKey: string, keys: ElectionKeys | null): strin
         return "— keys not loaded";
     }
 
-    if (onChainKey.toLowerCase() === keys.publicKey.toLowerCase()){
+    if (onChainKey.toLowerCase() === keys.publicKey?.toLowerCase()){
         return "✓ loaded and on-chain keys match";
     }
     return "✗ loaded and on-chain keys are different";
