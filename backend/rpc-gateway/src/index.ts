@@ -45,7 +45,8 @@ const SYNC_CHECK_INTERVAL = parseInt(process.env.SYNC_CHECK_INTERVAL || '60000')
 const WARNING_BLOCK_LAG = parseInt(process.env.WARNING_BLOCK_LAG || '3')
 const FAILOVER_BLOCK_LAG = parseInt(process.env.FAILOVER_BLOCK_LAG || '5')
 const MAX_BATCH_SIZE = parseInt(process.env.MAX_BATCH_SIZE || '20')
-const SECONDARY_UNREACHABLE_THRESHOLD = 3
+const SECONDARY_UNREACHABLE_THRESHOLD = parseInt(process.env.SECONDARY_UNREACHABLE_THRESHOLD || '3')
+const SECONDARY_RETRY_DELAY_MS = parseInt(process.env.SECONDARY_RETRY_DELAY_MS || '3000')
 
 let primaryBlockNumber: number | null = null
 let secondaryBlockNumber: number | null = null
@@ -97,7 +98,9 @@ async function getBlockNumber(rpcUrl: string): Promise<number | null> {
     )
     const hex = response.data?.result
     return hex ? parseInt(hex, 16) : null
-  } catch {
+  } catch (error: any) {
+    const reason = error.response?.status ?? error.code ?? error.message
+    logger.info(`eth_blockNumber failed: ${new URL(rpcUrl).hostname}: ${reason}`)
     return null
   }
 }
@@ -105,8 +108,12 @@ async function getBlockNumber(rpcUrl: string): Promise<number | null> {
 async function checkNodeSync(): Promise<void> {
   if (RPC_ENDPOINTS.length < 2) return
 
-  primaryBlockNumber = await getBlockNumber(RPC_ENDPOINTS[0])
   secondaryBlockNumber = await getBlockNumber(RPC_ENDPOINTS[1])
+  if (secondaryBlockNumber === null) {
+    await new Promise(resolve => setTimeout(resolve, SECONDARY_RETRY_DELAY_MS))
+    secondaryBlockNumber = await getBlockNumber(RPC_ENDPOINTS[1])
+  }
+  primaryBlockNumber = await getBlockNumber(RPC_ENDPOINTS[0])
 
   if (primaryBlockNumber === null) {
     if (secondaryBlockNumber === null) {
